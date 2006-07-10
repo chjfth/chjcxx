@@ -66,8 +66,8 @@
 	 #define _TCHAR_DEFINED
 	#endif
 	</pre>
-	That is, test and defining _TCHAR_DEFINED makes a second definiton(
- no matter it is ps_TCHAR.h or TCHAR.h ) peaceful.
+	That is, testing and defining _TCHAR_DEFINED makes a second definiton
+ of \c TCHAR (no matter it is ps_TCHAR.h or TCHAR.h) peaceful.
 	To accomplish this point, the system headers do have to cooperate, one 
  typical senarios is: it should associate a typedef-ed name with a macro
  name, such as _TCHAR_DEFINED for TCHAR, thus we can know from _TCHAR_DEFINED 
@@ -86,7 +86,7 @@
 #endif
 
 #ifndef _TCHAR_DEFINED
- typedef wchar_t     TCHAR;
+ typedef unsigned short TCHAR;
  #define _TCHAR_DEFINED
 #endif
 
