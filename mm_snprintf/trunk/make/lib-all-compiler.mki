@@ -1,0 +1,11 @@
+ifndef gmu_PRJ_NAME
+  gmu_PRJ_NAME = mm_snprintf
+endif
+
+ifndef gmp_bc_IMAGE_TYPE
+  gmp_bc_IMAGE_TYPE = LIB
+endif
+
+
+include $(gmu_DIR_GNUMAKEUNIPROC)/pattern1.mks
+

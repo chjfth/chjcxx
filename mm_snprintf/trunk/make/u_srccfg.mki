@@ -1,0 +1,17 @@
+
+#gmu_ud_list_PRJ_HEADER += 
+
+#gmp_list_DLLEXPORT_DECO = DLLEXPORT_xxx
+
+gmu_ud_SRC_ROOT = ../..
+gmu_uf_LINK_OUTPUT = $(gmp_prefix_LIB)mm_snprintf.$(gmu_extn_LIB)
+
+
+gmu_up_list_SRC_FROM_ROOT = mm_snprintf.c
+
+
+gmp_ud_SYNC_HEADER_FROM = $(gmu_ud_SRC_ROOT)
+gmp_up_list_SYNC_HEADERS_FROM_ROOT = \
+	mm_snprintf.h \
+
+
