@@ -1,4 +1,5 @@
 #include "mm_snprintf.h"
+#include "mm_psfunc.h"
 
 // Chj: redefine the function names :
 #define portable_snprintf  mm_snprintf
@@ -479,8 +480,12 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 		int space_for_positive = 1; // use ' ' to indicate positive number instead of using '+'
 			/* If both the ' ' and '+' flags appear, the ' ' flag should be ignored. */
 		char length_modifier = '\0';   
-			/* allowed values: \0, h, l, L , Chj: and ll ? */
-		char tmp[32];/* temporary buffer for simple numeric->string conversion */
+			/* allowed values: \0, h, l, L , Chj: ll is allowed -- of course .
+			 '\0' means no length-modifier, e.g:
+				In "%ld", 'l' is length-modifier; in "%hd", 'h' is length-modifier,
+				while "%d" has no length-modifier in it.
+			*/
+		char tmp[64];/* temporary buffer for simple numeric->string conversion */
 
 		const char *str_arg = NULL; /* string address in case of string argument */
 		size_t str_arg_l = 0;       /* natural field width of arg without padding
@@ -602,46 +607,48 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 		}
 
 		/* get parameter value, do initial processing */
-		switch (fmt_spec) // BIG PROCESS!!
+		switch (fmt_spec) // BIG CHUNK OF PROCESS!!
 		{
 		case '%': /* % behaves similar to 's' regarding flags and field widths */
 		case 'c': /* c behaves similar to 's' regarding flags and field widths */
 		case 's':
-			length_modifier = '\0';          /* wint_t and wchar_t not supported */
-			/* the result of zero padding flag with non-numeric conversion specifier*/
-			/* is undefined. Solaris and HPUX 10 does zero padding in this case,    */
-			/* Digital Unix and Linux does not. */
+			{
+				length_modifier = '\0';          /* wint_t and wchar_t not supported */
+				/* the result of zero padding flag with non-numeric conversion specifier*/
+				/* is undefined. Solaris and HPUX 10 does zero padding in this case,    */
+				/* Digital Unix and Linux does not. */
 
-			zero_padding = 0;    /* turn zero padding off for string conversions */
+				zero_padding = 0;    /* turn zero padding off for string conversions */
 
-			str_arg_l = 1; // Chj: ?? !! and following
+				str_arg_l = 1; // Chj: ?? !! and following
 
-			if(fmt_spec=='%') {
-				str_arg = p;
-			}
-			if(fmt_spec=='c') {
-				int j = va_arg(ap, int);
-				uchar_arg = (unsigned char) j;   /* standard demands unsigned char */
-				str_arg = (const char *) &uchar_arg;
-			}
-			if(fmt_spec=='s'){
-				str_arg = va_arg(ap, const char *);
-				if (!str_arg) 
-					str_arg_l = 0;
-			/* make sure not to address string beyond the specified precision !!! */
-				else if (!precision_specified) 
-					str_arg_l = strlen(str_arg);
-			/* truncate string if necessary as requested by precision */
-				else if (precision == 0) 
-					str_arg_l = 0;
-				else {
-			/* memchr on HP does not like n > 2^31  !!! */
-					const char *q = (const char*)memchr(str_arg, '\0',
-									 precision <= 0x7fffffff ? precision : 0x7fffffff);
-					str_arg_l = !q ? precision : (q-str_arg);
+				if(fmt_spec=='%') {
+					str_arg = p; // *p is '%' here.
 				}
+				if(fmt_spec=='c') {
+					int j = va_arg(ap, int);
+					uchar_arg = (unsigned char) j;   /* standard demands unsigned char */
+					str_arg = (const char *) &uchar_arg;
+				}
+				if(fmt_spec=='s'){
+					str_arg = va_arg(ap, const char *);
+					if (!str_arg) 
+						str_arg_l = 0;
+				/* make sure not to address string beyond the specified precision !!! */
+					else if (!precision_specified) 
+						str_arg_l = strlen(str_arg);
+				/* truncate string if necessary as requested by precision */
+					else if (precision == 0) 
+						str_arg_l = 0; //Chj: Yes, no characters from the string will be printed if `precision' is zero.
+					else { // `precision' specified and > 0 
+				/* memchr on HP does not like n > 2^31  !!! */
+						const char *q = (const char*)memchr(str_arg, '\0',
+										 precision <= 0x7fffffff ? precision : 0x7fffffff);
+						str_arg_l = !q ? precision : (q-str_arg);
+					}
+				}
+				break; // end of process for type '%','c','s' .
 			}
-			break; // end of process for type '%','c','s' .
 
 		case 'd': case 'u': case 'o': case 'x': case 'X': case 'p': 
 			{
@@ -654,7 +661,8 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 					-1 if negative (unsigned argument is never negative) */
 
 				int int_arg = 0;  unsigned int uint_arg = 0;
-				  /* only defined for length modifier h, or for no length modifiers */
+				  /* only defined for length modifier h (e.g. "%hd"), 
+					or for no length modifiers (e.g. "%d") */
 
 				long int long_arg = 0;  unsigned long int ulong_arg = 0;
 				  /* only defined for length modifier l */
@@ -679,6 +687,7 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 				 *   and %llp treats address as 64-bit data which is incompatible
 				 *   with (void *) argument on a 32-bit system).
 				 */
+				// We follow the HPUX 10 style.
 					length_modifier = '\0';
 
 					ptr_arg = va_arg(ap, void *);
@@ -767,9 +776,10 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 				}
 
 				zero_padding_insertion_ind = str_arg_l;
+					//Chj: This is the position in tmp[] where real value is formated and stored by sprintf.
 
 				if (!precision_specified) 
-					precision = 1;   /* default precision is 1 */
+					precision = 1;   /* default precision is 1 for integer types */
 
 				if (precision == 0 && arg_sign == 0
 #if defined(LINUX_COMPATIBLE)
@@ -783,23 +793,25 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 				 /* converted to null string */
 				 /* When zero value is formatted with an explicit precision 0,
 					the resulting formatted string is empty (d, i, u, o, x, X, p).   */
+				//[2006-10-02]Chj: This is the behavior of MSVCRT
 				} 
 				else 
 				{
 					// >>> Use system's sprintf to format integer string in tmp[].
 
-					char f[5]; int f_l = 0; // `f' used as a temp format string for sprintf
+					char f[5]; int f_l = 0; // `f' used as a temp format string for system's sprintf
 					f[f_l++] = '%';    /* construct a simple format string for sprintf */
+					
 					if (!length_modifier) { }
 					else if (length_modifier=='2') { // to format a 64-bit integer
-					  /* [2006-10-02]Chj: We use an external routine to obtain the 
-					   format-string for 64-bit integer, because it differs on 
-					   different systems:
-					     * On Microsoft VC runtime: "%I64d" or "%I64u" or "%I64x"
-					     * On GNU glibc:   "%lld" or "%llu" or "%llx"
-					     * On ARM SDT/ADS: "%lld" or "%llu" or "%llx"
-					  */
-					  f[f_l++] = 'l'; f[f_l++] = 'l'; //Chj: TODO
+						/* [2006-10-02]Chj: We use an external routine to obtain the 
+						 format-string for 64-bit integer, because it differs on 
+						 different systems:
+						   * On Microsoft VC runtime: "%I64d" or "%I64u" or "%I64x"
+						   * On GNU glibc:   "%lld" or "%llu" or "%llx"
+						   * On ARM SDT/ADS: "%lld" or "%llu" or "%llx"
+						*/
+						f_l += mmps_i64_type_prefix(f+f_l);
 					}
 					else 
 						f[f_l++] = length_modifier;
@@ -841,8 +853,7 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 					if (zero_padding_insertion_ind+1 < str_arg_l &&
 						tmp[zero_padding_insertion_ind]   == '0' &&
 						(tmp[zero_padding_insertion_ind+1] == 'x' || tmp[zero_padding_insertion_ind+1] == 'X') 
-						) 
-					{
+						) { // Chj: What for ??
 						zero_padding_insertion_ind += 2;
 					}
 				}
@@ -896,7 +907,7 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 				}
 				break;
 			}
-		} // switch (fmt_spec) // BIG PROCESS!!
+		} // switch (fmt_spec) // BIG CHUNK OF PROCESS!!
 
 		if (*p) 
 			p++;      /* step over the just processed conversion specifier */
