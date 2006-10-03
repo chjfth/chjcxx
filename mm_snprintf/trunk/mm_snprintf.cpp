@@ -233,36 +233,6 @@
 /* #define NEED_VASNPRINTF */
 
 
-/* Define the following macros if desired:
- *   LINUX_COMPATIBLE,
- *
- * - For portable applications it is best not to rely on peculiarities
- *   of a given implementation so it may be best not to define any
- *   of the macros that select compatibility and to avoid features
- *   that vary among the systems.
- *
- * - Selecting compatibility with more than one operating system
- *   is not strictly forbidden but is not recommended.
- *
- * - 'x'_BUG_COMPATIBLE implies 'x'_COMPATIBLE .
- *
- * - 'x'_COMPATIBLE refers to (and enables) a behaviour that is
- *   documented in a sprintf man page on a given operating system
- *   and actually adhered to by the system's sprintf (but not on
- *   most other operating systems). It may also refer to and enable
- *   a behaviour that is declared 'undefined' or 'implementation specific'
- *   in the man page but a given implementation behaves predictably
- *   in a certain way.
- *
- * - 'x'_BUG_COMPATIBLE refers to (and enables) a behaviour of system's sprintf
- *   that contradicts the sprintf man page on the same operating system.
- *
- * - I do not claim that the 'x'_COMPATIBLE and 'x'_BUG_COMPATIBLE
- *   conditionals take into account all idiosyncrasies of a particular
- *   implementation, there may be other incompatibilities.
- */
-
-
 /* ============================================= */
 /* NO USER SERVICABLE PARTS FOLLOWING THIS POINT */
 /* ============================================= */
@@ -274,10 +244,6 @@
 # if !defined(PREFER_PORTABLE_SNPRINTF)
 # define PREFER_PORTABLE_SNPRINTF
 # endif
-#endif
-
-#if defined(LINUX_BUG_COMPATIBLE) && !defined(LINUX_COMPATIBLE)
-#define LINUX_COMPATIBLE
 #endif
 
 //#include <sys/types.h> //Chj commented it, for ARMCC does not have this.
@@ -473,7 +439,12 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 
 		// Remaining, for (*p=='%') [until end of the outer-most while]
 
-		const char *starting_p;
+		const char *starting_p; // starting % position
+			// Record the position of the '%', so that(if linux behavior is used)
+			//when the type character following % is unrecognized(e.g. "%a"), 
+			//the whole format specifier is output, e.g. "%8.4a" is output as
+			//"%8.4a", not just "a" .
+
 		size_t min_field_width = 0, precision = 0;
 		int zero_padding = 0, precision_specified = 0, justify_left = 0;
 		int alternate_form = 0, force_sign = 0;
@@ -486,6 +457,7 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 				while "%d" has no length-modifier in it.
 			*/
 		char tmp[64];/* temporary buffer for simple numeric->string conversion */
+			//[2006-10-03]Chj: This buffer should be large enough to accommodate a floating number now!
 
 		const char *str_arg = NULL; /* string address in case of string argument */
 		size_t str_arg_l = 0;       /* natural field width of arg without padding
@@ -577,7 +549,7 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 		/* parse 'h', 'l' and 'll' length modifiers */
 		if (*p == 'h' || *p == 'l') {
 			length_modifier = *p; p++;
-			if (length_modifier == 'l' && *p == 'l')  /* double l = long long (__int64) */
+			if (length_modifier == 'l' && *p == 'l')  /* double l = long long, i.e. __int64 */
 			{
 #ifdef SNPRINTF_LONGLONG_SUPPORT
 				length_modifier = '2';                /* double l encoded as '2' */
@@ -590,6 +562,10 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 		
 		fmt_spec = *p;
 
+		//
+		// NOW, THE LENGTHY PROCESS OF fmt_spec(also called "type" in MSDN) STARTS.
+		//
+		
 		/* common synonyms: fmt_spec(also called "type" in MSDN): */
 		switch (fmt_spec) {
 		case 'i': 
@@ -610,6 +586,10 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 		switch (fmt_spec) // BIG CHUNK OF PROCESS!!
 		{
 		case '%': /* % behaves similar to 's' regarding flags and field widths */
+			/*[2006-10-03]Chj: Mark Martinec processes the '%' here, which means
+			 "%3.1%" would be output as "  %", which is different from MSVCRT
+			 and glibc(they output just "%"). However, that's not big deal.
+			*/
 		case 'c': /* c behaves similar to 's' regarding flags and field widths */
 		case 's':
 			{
@@ -760,11 +740,11 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 						tmp[str_arg_l++] = space_for_positive ? ' ' : '+';
 					 /* leave negative numbers for sprintf to handle,
 						to avoid handling tricky cases like (short int)(-32768) */
-#ifdef LINUX_COMPATIBLE
-				} 
-				else if (fmt_spec == 'p' && force_sign && arg_sign > 0) {
-					tmp[str_arg_l++] = space_for_positive ? ' ' : '+';
-#endif
+// #ifdef LINUX_COMPATIBLE
+// 				} 
+// 				else if (fmt_spec == 'p' && force_sign && arg_sign > 0) {
+// 					tmp[str_arg_l++] = space_for_positive ? ' ' : '+';
+// #endif //[2006-10-03]Chj: I do not use Linux's behavior here.
 				} 
 				else if (alternate_form) {
 					if (arg_sign != 0 && (fmt_spec == 'x' || fmt_spec == 'X') )
@@ -782,12 +762,12 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 					precision = 1;   /* default precision is 1 for integer types */
 
 				if (precision == 0 && arg_sign == 0
-#if defined(LINUX_COMPATIBLE)
-					&& fmt_spec != 'p'
-				 /* HPUX 10 man page claims: With conversion character p the result of
-				  * converting a zero value with a precision of zero is a null string.
-				  * Actually HP returns all zeroes, and Linux returns "(nil)". */ //Chj:??
-#endif
+// #if defined(LINUX_COMPATIBLE)
+// 					&& fmt_spec != 'p'
+// 				 /* HPUX 10 man page claims: With conversion character p the result of
+// 				  * converting a zero value with a precision of zero is a null string.
+// 				  * Actually HP returns all zeroes, and Linux returns(outputs) "(nil)". */
+// #endif //[2006-10-03]Chj: I do not use Linux's behavior here.
 				) 
 				{
 				 /* converted to null string */
@@ -891,16 +871,16 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 
 				justify_left = 1; min_field_width = 0;                /* reset flags */
 
-#if defined(LINUX_COMPATIBLE)
+//#if defined(LINUX_COMPATIBLE) //[2006-10-03]Chj: I think the Linux-like behavior is more faithful to user.
 				/* keep the entire format string unchanged */
 				str_arg = starting_p; str_arg_l = p - starting_p;
 				/* well, not exactly so for Linux, which does something inbetween,
 				* and I don't feel an urge to imitate it: "%+++++hy" -> "%+y"  */
-#else
-				/* discard the unrecognized conversion, just keep *
-				* the unrecognized conversion character          */
-				str_arg = p; str_arg_l = 0;
-#endif
+// #else
+// 				/* discard the unrecognized conversion, just keep *
+// 				* the unrecognized conversion character          */
+// 				str_arg = p; str_arg_l = 0;
+// #endif
 				if (*p) {
 					str_arg_l++;  /* include invalid conversion specifier unchanged
 									 if not at end-of-string */
@@ -983,16 +963,17 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 	if (str_m > 0) { 
 		str[str_l <= str_m-1 ? str_l : str_m-1] = '\0';
 	}
-  /* Return the number of characters formatted (excluding trailing null
-   * character), that is, the number of characters that would have been
-   * written to the buffer if it were large enough.
-   *
-   * The value of str_l should be returned, but str_l is of unsigned type
-   * size_t, and snprintf is int, possibly leading to an undetected
-   * integer overflow, resulting in a negative return value, which is illegal.
-   * Both XSH5 and ISO C99 (at least the draft) are silent on this issue.
-   * Should errno be set to EOVERFLOW and EOF returned in this case???
-   */
-  return (int) str_l;
+
+	/* Return the number of characters formatted (excluding trailing null
+	 * character), that is, the number of characters that would have been
+	 * written to the buffer if it were large enough.
+	 *
+	 * The value of str_l should be returned, but str_l is of unsigned type
+	 * size_t, and snprintf is int, possibly leading to an undetected
+	 * integer overflow, resulting in a negative return value, which is illegal.
+	 * Both XSH5 and ISO C99 (at least the draft) are silent on this issue.
+	 * Should errno be set to EOVERFLOW and EOF returned in this case???
+	 */
+	return (int) str_l;
 }
 #endif
