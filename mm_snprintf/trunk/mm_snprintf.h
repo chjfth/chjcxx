@@ -5,11 +5,15 @@
 extern"C"{
 #endif
 
-#define PORTABLE_SNPRINTF_VERSION_MAJOR 2
-#define PORTABLE_SNPRINTF_VERSION_MINOR 2
+//#define PORTABLE_SNPRINTF_VERSION_MAJOR 2 
+//#define PORTABLE_SNPRINTF_VERSION_MINOR 2 
+	// These are defined in the source, and queried by mmsnprintf_getversion().
 
 #include <stdio.h>
 #include <stdarg.h>
+
+unsigned short mmsnprintf_getversion(void);
+	// Returns: Major version in higher byte and minor version in lower byte.
 
 int mm_snprintf(char *, size_t, const char *, /*args*/ ...);
 int mm_vsnprintf(char *, size_t, const char *, va_list);

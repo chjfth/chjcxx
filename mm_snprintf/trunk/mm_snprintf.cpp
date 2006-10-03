@@ -195,6 +195,22 @@
  *		- several comments rephrased and new ones added;
  *		- make compiler not complain about 'credits' defined but
  *		  not used;
+ * 2006-10-03  V3.0 by Chj <chenjun@mail.nlscan.com>
+ *		- SNPRINTF_LONGLONG_SUPPORT is always defined now, and "%lld", 
+ *		  "%llu", "%llx", "%llX" can be used to format a 64-bit integer.
+ *		  This is now system independent to the user due to the 
+ *		  implementation of platform specific function mmps_i64_type_prefix().
+ *		  Note: System's sprintf should be able to support formatting
+ *		  64-bit integer in order for this to work.
+ *		- Floating number formatting is now supported with the help of
+ *		  system's sprintf. User can use %f %g %G %e %E now, e.g. "%-+8.4g" .
+ *		  By the way, formatting "precision" of a floating number is
+ *		  processed by system's sprintf, while "width" is processed by
+ *		  this code.
+ *		- Remove the original xx_COMPATIBLE preprocessor macros, because
+ *		  I'd like the behavior of this code more unified and constant.
+ *		- Add mmsnprintf_getversion() to return the implementation version
+ *		  of this code.
  */
 
 
@@ -237,8 +253,8 @@
 /* NO USER SERVICABLE PARTS FOLLOWING THIS POINT */
 /* ============================================= */
 
-#define PORTABLE_SNPRINTF_VERSION_MAJOR 2
-#define PORTABLE_SNPRINTF_VERSION_MINOR 2
+#define PORTABLE_SNPRINTF_VERSION_MAJOR 3
+#define PORTABLE_SNPRINTF_VERSION_MINOR 0
 
 #if defined(NEED_ASPRINTF) || defined(NEED_ASNPRINTF) || defined(NEED_VASPRINTF) || defined(NEED_VASNPRINTF)
 # if !defined(PREFER_PORTABLE_SNPRINTF)
@@ -259,6 +275,8 @@
 
 #define fast_memcpy memcpy
 #define fast_memset memset
+
+#define mm_GetEleQuan(array) ((int)(sizeof(array)/sizeof(array[0])))
 
 /* prototypes */
 
@@ -388,6 +406,15 @@ int vasnprintf (char **ptr, size_t str_m, const char *fmt, va_list ap) {
 }
 #endif
 
+int 
+IsFloatingType(char fmt_spec)
+{
+	if(fmt_spec=='f'||fmt_spec=='g'||fmt_spec=='G'||fmt_spec=='e'||fmt_spec=='E')
+		return 1; // yes
+	else
+		return 0; // no
+}
+
 /*
  * If the system does have snprintf and the portable routine is not
  * specifically required, this module produces no code for snprintf/vsnprintf.
@@ -447,7 +474,8 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 
 		size_t min_field_width = 0, precision = 0;
 		int zero_padding = 0, precision_specified = 0, justify_left = 0;
-		int alternate_form = 0, force_sign = 0;
+		int alternate_form = 0;
+		int force_sign = 0; // whether reserve a char space(filled with ' ' or '+') for positive indication.
 		int space_for_positive = 1; // use ' ' to indicate positive number instead of using '+'
 			/* If both the ' ' and '+' flags appear, the ' ' flag should be ignored. */
 		char length_modifier = '\0';   
@@ -456,8 +484,11 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 				In "%ld", 'l' is length-modifier; in "%hd", 'h' is length-modifier,
 				while "%d" has no length-modifier in it.
 			*/
-		char tmp[64];/* temporary buffer for simple numeric->string conversion */
-			//[2006-10-03]Chj: This buffer should be large enough to accommodate a floating number now!
+		char tmp[128];/* temporary buffer for simple numeric->string conversion */
+			//[2006-10-03]Chj: Be aware of the overflow of this buffer.
+			//User can assign a very high precision(e.g. "%.400f") to format a number,
+			//which cannot be afforded by this small buffer. Therefore, we will
+			//later limit the precision before invoking system's sprintf.
 
 		const char *str_arg = NULL; /* string address in case of string argument */
 		size_t str_arg_l = 0;       /* natural field width of arg without padding
@@ -631,6 +662,7 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 			}
 
 		case 'd': case 'u': case 'o': case 'x': case 'X': case 'p': 
+		case 'f': case 'g': case 'G': case 'e': case 'E':
 			{
 				/* NOTE: the u, o, x, X and p conversion specifiers imply
 						 the value is unsigned;  d implies a signed value */
@@ -649,6 +681,9 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 
 				void *ptr_arg = NULL;
 				  /* pointer argument value -only defined for p conversion */
+
+				double double_arg = 0;
+				int isFloatingType = IsFloatingType(fmt_spec);
 
 #ifdef SNPRINTF_LONGLONG_SUPPORT
 				__int64 long_long_arg = 0;
@@ -700,9 +735,9 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 						else if (long_long_arg < 0) arg_sign = -1;
 						break;
 #endif
-				  }
+					}
 				} 
-				else /* unsigned */
+				else if(!isFloatingType) /* unsigned */
 				{
 					switch (length_modifier) 
 					{
@@ -723,6 +758,15 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 #endif
 					}
 				}
+				else // floating point number
+				{
+					double_arg = va_arg(ap, double);
+					if(double_arg>0) arg_sign = 1;
+					else if(double_arg<0) arg_sign = -1;
+
+					alternate_form = 0;
+					//[2006-10-03]Chj Set/clear More vars? Seems enough.
+				}
 
 				str_arg = tmp; str_arg_l = 0;
 
@@ -735,7 +779,7 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 				if (precision_specified) 
 					zero_padding = 0;
 
-				if (fmt_spec == 'd') {
+				if (fmt_spec == 'd' || isFloatingType) {
 					if (force_sign && arg_sign >= 0)
 						tmp[str_arg_l++] = space_for_positive ? ' ' : '+';
 					 /* leave negative numbers for sprintf to handle,
@@ -759,7 +803,12 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 					//Chj: This is the position in tmp[] where real value is formated and stored by sprintf.
 
 				if (!precision_specified) 
-					precision = 1;   /* default precision is 1 for integer types */
+				{
+					if(isFloatingType)
+						precision = 6;	// default precision is 6 floating point numbers
+					else
+						precision = 1;   /* default precision is 1 for integer types */
+				}
 
 				if (precision == 0 && arg_sign == 0
 // #if defined(LINUX_COMPATIBLE)
@@ -777,12 +826,26 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 				} 
 				else 
 				{
-					// >>> Use system's sprintf to format integer string in tmp[].
+					// >>> Use system's sprintf to format numeric string in tmp[].
 
-					char f[5]; int f_l = 0; // `f' used as a temp format string for system's sprintf
+					char f[32]; int f_l = 0; // `f' used as a temp format string for system's sprintf
 					f[f_l++] = '%';    /* construct a simple format string for sprintf */
 					
-					if (!length_modifier) { }
+					if(isFloatingType)
+					{
+						// Limit the precision so that not to overflow tmp[].
+						const int MaxPrecision = mm_GetEleQuan(tmp)-16;
+
+						f_l += sprintf(f+f_l, ".%d", precision<MaxPrecision ? precision : MaxPrecision); 
+							//For floating point number, we leave precision processing to system's sprintf.
+
+						precision_specified = 0; precision = 0;
+							// !!! As if we have not specified the precision 
+							//so that the "precision processing for integers" will not take place.
+						
+						// length_modifier is ignored for floating type.
+					}
+					else if (!length_modifier) { }
 					else if (length_modifier=='2') { // to format a 64-bit integer
 						/* [2006-10-02]Chj: We use an external routine to obtain the 
 						 format-string for 64-bit integer, because it differs on 
@@ -811,7 +874,7 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 #endif
 						}
 					} 
-					else {  /* unsigned */
+					else if (!isFloatingType){  /* unsigned */
 						switch (length_modifier) {
 						case '\0':
 						case 'h': str_arg_l+=sprintf(tmp+str_arg_l, f, uint_arg);  break;
@@ -821,6 +884,10 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 #endif
 						}
 					}
+					else // floating type
+					{
+						str_arg_l += sprintf(tmp+str_arg_l, f, double_arg);
+					}
 
 					// <<< Use system's sprintf to format integer string in tmp[].
 				 
@@ -828,12 +895,22 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 					  in the region before the zero padding insertion point */
 					if (zero_padding_insertion_ind < str_arg_l &&
 						tmp[zero_padding_insertion_ind] == '-') {
+						//[2006-10-03]Chj: If the result string from system's sprintf 
+						//starts with '-', then take it as if '-' is filled by us and
+						//only the substring after '-' is from system's sprintf.
+						// This makes counting of zeros to pad for "integer precision" 
+						//a bit simpler, because how many zeros to pad has nothing
+						//to do with the preceding '-'.
 						zero_padding_insertion_ind++;
 					}
 					if (zero_padding_insertion_ind+1 < str_arg_l &&
 						tmp[zero_padding_insertion_ind]   == '0' &&
 						(tmp[zero_padding_insertion_ind+1] == 'x' || tmp[zero_padding_insertion_ind+1] == 'X') 
-						) { // Chj: What for ??
+						) {
+						//[2006-10-03]Chj: If the result string from system's sprintf 
+						//starts with "0x", then take it as if "0x" is filled by us and
+						//only the substring after "0x" is from system's sprintf.
+						// But, can system's sprintf give out a formatted string starting with "0x"??
 						zero_padding_insertion_ind += 2;
 					}
 				}
@@ -863,7 +940,7 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 						number_of_zeros_to_pad += n;
 				}
 				break;
-			} // case 'd': case 'u': case 'o': case 'x': case 'X': case 'p': 
+			} // case 'd', 'u', 'o', 'x', 'X', 'p', 'f', 'g', 'G', 'e', 'E' 
 
 		default: /* unrecognized conversion specifier, keep format string as-is*/
 			{
@@ -977,3 +1054,9 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 	return (int) str_l;
 }
 #endif
+
+unsigned short
+mmsnprintf_getversion(void)
+{
+	return (PORTABLE_SNPRINTF_VERSION_MAJOR<<8) | PORTABLE_SNPRINTF_VERSION_MINOR;
+}
