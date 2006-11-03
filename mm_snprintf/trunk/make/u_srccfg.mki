@@ -7,7 +7,7 @@ gmu_ud_SRC_ROOT = ../..
 gmu_uf_LINK_OUTPUT = $(gmp_prefix_LIB)mm_snprintf.$(gmu_extn_LIB)
 
 
-gmu_up_list_SRC_FROM_ROOT = mm_snprintf.c
+gmu_up_list_SRC_FROM_ROOT += mm_snprintf.cpp
 
 
 gmp_ud_SYNC_HEADER_FROM = $(gmu_ud_SRC_ROOT)
