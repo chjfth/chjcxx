@@ -56,14 +56,20 @@
 #ifdef HAVE_SNPRINTF
 extern int portable_snprintf(char *str, size_t str_m, const char *fmt, /*args*/ ...);
 #else
-extern int snprintf(char *, size_t, const char *, /*args*/ ...);
-extern int vsnprintf(char *, size_t, const char *, va_list);
+//extern int mm_snprintf(char *, size_t, const char *, /*args*/ ...);
+//extern int mm_vsnprintf(char *, size_t, const char *, va_list);
+# include "../mm_snprintf.h"
 #endif
 
 #ifndef HAVE_SNPRINTF
-#define portable_snprintf  snprintf
-#define portable_vsnprintf vsnprintf
+#define portable_snprintf  mm_snprintf
+#define portable_vsnprintf mm_vsnprintf
 #endif
+
+// Chj >>>
+#define snprintf mm_snprintf
+#define vsnprintf mm_vsnprintf
+// Chj <<<
 
 #ifndef CLOCKS_PER_SEC
 #define CLOCKS_PER_SEC 100
@@ -138,7 +144,7 @@ int main(int argc, char *argv[]) {
     size = 18000;
 
     printf("\n\nsize = %d\n", (int)size);
-    p = malloc(size); assert(p);
+    p = (char*)malloc(size); assert(p);
     memset(p,'h',size); p[size-1] = '\0';
     t0 = clock();
 
@@ -261,7 +267,7 @@ int main(int argc, char *argv[]) {
     len1  = snprintf(str1, str_m, fmt, "abcdef",-12,"str");
     len1f = snprintf(str_full, sizeof(str_full), fmt, "abcdef",-12,"str");
     assert(len1f==len1);
-    assert(memcmp(str1,str_full,min(len1,str_m-1)) == 0);
+    assert(memcmp(str1,str_full,min((size_t)len1,str_m-1)) == 0);
     assert(str1[str_m-1] == '\0');
     assert(str_full[sizeof(str_full)-1] == '\0');
 
@@ -269,7 +275,7 @@ int main(int argc, char *argv[]) {
     printf("preliminary test: vsnprintf\n");
     len2 = wrap_vsnprintf(str2, str_m, fmt, "abcdef",-12,"str");
     assert(len2==len1);
-    assert(memcmp(str1,str2,min(len1+1,str_m)) == 0);
+    assert(memcmp(str1,str2,min((size_t)len1+1,str_m)) == 0);
     assert(str2[str_m-1] == '\0');
 #endif
 
@@ -663,7 +669,7 @@ int main(int argc, char *argv[]) {
                        printf("sys snprintf: |%s|  len = %d\n", str3, len3);
 #else
                      } else if (len1 != len2 ||
-                         (len1>0 && memcmp(str1,str2,min(len1,str_m)-1) != 0)) {
+                         (len1>0 && memcmp(str1,str2,min((size_t)len1,str_m)-1) != 0)) {
                        bad = 1;
                        if (strtype) printf("\n1: %s, <%s>\n", fmt, sargs[a]);
                        else         printf("\n1: %s, %ld\n",   fmt, iargs[a]);
