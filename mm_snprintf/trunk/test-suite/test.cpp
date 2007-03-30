@@ -261,7 +261,7 @@ int main(int argc, char *argv[]) {
     const char fmt[] = "Bla%.4s%05iHE%%%-50sTail";
     char *ptr4=0, *ptr5=0, *ptr6=0, *ptr7=0;
     int len1f;
-    char str_full[256];
+    char str_full[256] = {0};
 
     printf("\npreliminary test: snprintf\n");
     len1  = snprintf(str1, str_m, fmt, "abcdef",-12,"str");
