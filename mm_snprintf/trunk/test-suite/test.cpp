@@ -445,7 +445,9 @@ int main(int argc, char *argv[]) {
 
     printf("test 17\n");
     memset(str1,'x',sizeof(str1));  memset(str2,'x',sizeof(str2));
-    len1 = snprintf(str1, sizeof(str1), "%.*s", 4294967296U,"13");
+//    len1 = snprintf(str1, sizeof(str1), "%.*s", 4294967296U,"13");
+	// [2007-03-30] Don't bother with this. decimal 4294967296 is 0x100000000UL .
+	// SuSE Linux 10.1, gcc 4.1.0: error: integer constant is too large for ¡®unsigned long¡¯ type
 /*  len2 = sprintf (str2,               "%.*s", 4294967296U,"13"); */ /* core dumps on HPUX */
 /*  assert(len1==len2);
  *  assert(memcmp(str1,str2,(size_t)len1) == 0);
@@ -670,6 +672,7 @@ int main(int argc, char *argv[]) {
 #else
                      } else if (len1 != len2 ||
                          (len1>0 && memcmp(str1,str2,min((size_t)len1,str_m)-1) != 0)) {
+                       int lenfmt = strlen(fmt); //[2007-03-31]Chj add this to ease debugging.
                        bad = 1;
                        if (strtype) printf("\n1: %s, <%s>\n", fmt, sargs[a]);
                        else         printf("\n1: %s, %ld\n",   fmt, iargs[a]);

@@ -629,7 +629,14 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 				/* is undefined. Solaris and HPUX 10 does zero padding in this case,    */
 				/* Digital Unix and Linux does not. */
 
-				zero_padding = 0;    /* turn zero padding off for string conversions */
+				//zero_padding = 0;    /* turn zero padding off for string conversions */
+					/* [2007-03-31]Chj: On MSVCRT 6.0(32-bit):
+							printf("[%03s]", "7");
+						 outputs:
+							[007]
+						Considering that sometimes it is useful to pad zeros before a
+					 string, so, I decide not to reset zero_padding=0 .
+					*/
 
 				str_arg_l = 1; // Chj: ?? !! and following
 
@@ -791,10 +798,21 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 // #endif //[2006-10-03]Chj: I do not use Linux's behavior here.
 				} 
 				else if (alternate_form) {
-					if (arg_sign != 0 && (fmt_spec == 'x' || fmt_spec == 'X') )
+					if (arg_sign != 0 && (fmt_spec == 'x' || fmt_spec == 'X' || fmt_spec=='p') )
 					{ 
+						/* [2007-03-31]Chj: On MSVCRT 6.0(32-bit):
+							printf("[%+#p]", (void*)16);
+						 outputs:
+							[+0X00000010]
+						 Now, I make mm_snprintf follow this scheme(check for fmt_spec=='p')
+						 but with a minor change: outpout small 'x' instead of the capital one.
+						 That is, mm_snprintf outputs:
+							[+0x00000010]
+						 Using small 'x' seems more reasonable, since it corresponds to the
+						 small type-char 'p'.
+						*/
 						tmp[str_arg_l++] = '0'; 
-						tmp[str_arg_l++] = fmt_spec; 
+						tmp[str_arg_l++] = fmt_spec=='p' ? 'x' : fmt_spec; 
 					}
 					/* alternate form should have no effect for p conversion, but ... */
 				}
