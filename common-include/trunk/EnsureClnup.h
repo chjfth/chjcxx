@@ -45,6 +45,11 @@ public:
 		return m_t;
 	}
 	
+	PTR_TYPE operator->()
+	{
+		return m_t;
+	}
+
 	// Cleanup the object if the value represents a valid object
 	void Cleanup() 
 	{ 
@@ -89,7 +94,7 @@ public:
 	{ 
 		return m_t;
 	}
-	
+
 	// Cleanup the object if the value represents a valid object
 	void Cleanup() 
 	{ 
@@ -103,16 +108,16 @@ public:
 };
 
 
-#define MakeCleanupPtrClass(ClassName, RET_TYPE_of_CleanupFunction, pCleanupFunction, PTR_TYPE) \
-	typedef CEnsureCleanupPtr<PTR_TYPE, RET_TYPE_of_CleanupFunction, pCleanupFunction> ClassName;
+#define MakeCleanupPtrClass(CecClassName, RET_TYPE_of_CleanupFunction, pCleanupFunction, PTR_TYPE) \
+	typedef CEnsureCleanupPtr<PTR_TYPE, RET_TYPE_of_CleanupFunction, pCleanupFunction> CecClassName;
 
-#define MakeCleanupIntClass(ClassName, RET_TYPE_of_CleanupFunction, pCleanupFunction, INT_TYPE, IntValueInvalid) \
-	typedef CEnsureCleanupInt<INT_TYPE, RET_TYPE_of_CleanupFunction, pCleanupFunction, IntValueInvalid> ClassName;
+#define MakeCleanupIntClass(CecClassName, RET_TYPE_of_CleanupFunction, pCleanupFunction, INT_TYPE, IntValueInvalid) \
+	typedef CEnsureCleanupInt<INT_TYPE, RET_TYPE_of_CleanupFunction, pCleanupFunction, IntValueInvalid> CecClassName;
 
 
-#define MakeCleanupPtrClass_delete(ClassName, PTR_TYPE) \
-	inline void __delete_##ClassName(PTR_TYPE p) { delete p; } \
-	MakeCleanupPtrClass(ClassName, void, __delete_##ClassName, PTR_TYPE)
+#define MakeCleanupPtrClass_delete(CecClassName, PTR_TYPE) \
+	inline void __delete_##CecClassName(PTR_TYPE p) { delete p; } \
+	MakeCleanupPtrClass(CecClassName, void, __delete_##CecClassName, PTR_TYPE)
 
 /* Some usage examples:
 
@@ -132,6 +137,9 @@ MakeCleanupPtrClass(Cec_pUchar, void, free_unsigned_char_ptr, unsigned char *)
 	// Use ` void free_unsigned_char_ptr(unsigned char * p); ' to cleanup a buffer 
 	// allocated by ` void* malloc(size_t); ' . For the sake of function pointer
 	// type matching, you have to define a wrapper function for free() .
+
+class MyClass { ... };
+MakeCleanupPtrClass_delete(Cec_MyClass, MyClass*)
 
 int main()
 {
