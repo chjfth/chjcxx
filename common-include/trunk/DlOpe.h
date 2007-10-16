@@ -5,6 +5,71 @@
 #include <stddef.h> // for definition of NULL
 #include <assert.h>
 
+template<typename Tnode, Tnode* Tnode::*ofsPrev, Tnode* Tnode::*ofsNext>
+class DlOpe
+{
+public:
+	static Tnode* 
+	InitHead(Tnode* &r_pVHeadNode, Tnode* &r_pPrevNode)
+	{
+		ptrdiff_t prev_offset = (ptrdiff_t) &( ((Tnode*)0)->*ofsPrev );
+		r_pVHeadNode = (Tnode*)((char*)&r_pPrevNode - prev_offset);
+
+		r_pVHeadNode->*ofsPrev = r_pVHeadNode->*ofsNext = r_pVHeadNode;
+		
+		return r_pVHeadNode; // return the virtual head node address
+	}
+
+	static Tnode* 
+	InitNode(Tnode *pNode)
+	{
+		pNode->*ofsPrev = pNode->*ofsNext = pNode;
+		return pNode;
+	}
+
+	static void 
+	NodeInsert(Tnode *pNodeToInsert, Tnode *pFrontNode, Tnode *pRearNode)
+	{
+		pRearNode->*ofsPrev = pNodeToInsert;
+		pNodeToInsert->*ofsNext = pRearNode;
+
+		pFrontNode->*ofsNext = pNodeToInsert;
+		pNodeToInsert->*ofsPrev = pFrontNode;
+	}
+
+	static Tnode* 
+	nInsBefore(Tnode* pNodeToIns, Tnode* pRearNode)
+	{
+		NodeInsert(pNodeToIns, pRearNode->*ofsPrev, pRearNode);
+		return pNodeToIns;
+	}
+
+	static Tnode* 
+	nInsAfter(Tnode* pNodeToIns, Tnode* pFrontNode)
+	{
+		NodeInsert(pNodeToIns, pFrontNode, pFrontNode->*ofsNext);
+		return pNodeToIns;
+	}
+
+	static void 
+	NodeDel(Tnode* pFrontNode, Tnode* pRearNode)
+	{
+		pRearNode->*ofsPrev = pFrontNode;
+		pFrontNode->*ofsNext = pRearNode;
+	}
+
+	static Tnode* 
+	nDel(Tnode* pNodeToDel)
+	{
+		NodeDel(pNodeToDel->*ofsPrev, pNodeToDel->*ofsNext);
+		return pNodeToDel;
+	}
+
+
+};
+
+//////////////////////////////////////////////////////////////////////////
+
 template<typename T> // T is a node-type
 inline T* 
 DlOpe_InitHead(T *&r_pVHeadNode, T *&r_pPrevNode, T* T::*ofsPrev, T* T::*ofsNext)
