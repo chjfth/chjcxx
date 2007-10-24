@@ -62,6 +62,7 @@ public:
 	nDel(Tnode* pNodeToDel)
 	{
 		NodeDel(pNodeToDel->*ofsPrev, pNodeToDel->*ofsNext);
+		pNodeToDel->*ofsPrev = pNodeToDel->*ofsNext = pNodeToDel;
 		return pNodeToDel;
 	}
 
