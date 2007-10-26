@@ -69,15 +69,17 @@ public:
 
 };
 
+/*
 //////////////////////////////////////////////////////////////////////////
-/* Work around:
+Work around:
 If your compiler is too old to not be able to support the DlOpe template class,
 you can use the following DlOpe_XXX functions instead. Functions in DlOpe class
 and DlOpe_XXX functions have the same binary interface, but the latter has
 a more verbose interface.
 
   Old Compilers include: Visual C++ 6 SP6 
-//////////////////////////////////////////////////////////////////////////*/
+//////////////////////////////////////////////////////////////////////////
+*/
 
 template<typename T> // T is a node-type
 inline T* 
