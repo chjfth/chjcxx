@@ -50,6 +50,11 @@ public:
 		return m_t;
 	}
 
+	PTR_TYPE operator[](int idx)
+	{
+		return &m_t[idx]; // User should guarantee m_t really points to an array
+	}
+
 	// Cleanup the object if the value represents a valid object
 	void Cleanup() 
 	{ 
@@ -107,7 +112,8 @@ public:
 	
 };
 
-////////
+//////// CEnsureCleanup_array: 
+// If you have an array, in which every element should receive a cleanup operation, then use this.
 
 template<typename USER_TYPE, typename RET_TYPE, RET_TYPE (*pfn)(USER_TYPE), USER_TYPE valInvalid> 
 class CEnsureCleanup_array
@@ -131,6 +137,10 @@ public:
 
 	USER_TYPE& operator[](int idx) {
 		return m_ar[idx];
+	}
+
+	operator USER_TYPE*() {
+		return m_ar; // Return the address of the first array element.
 	}
 
 	// Re-assigning the object forces the current object to be cleaned-up.
@@ -163,10 +173,17 @@ public:
 	inline void __delete_##CecClassName(PTR_TYPE p) { delete p; } \
 	MakeCleanupPtrClass(CecClassName, void, __delete_##CecClassName, PTR_TYPE)
 
+#define MakeCleanupPtrClass_delete_array(CecClassName, PTR_TYPE) \
+	inline void __delete_##CecClassName(PTR_TYPE p) { delete []p; } \
+	MakeCleanupPtrClass(CecClassName, void, __delete_##CecClassName, PTR_TYPE)
+
 
 #define MakeCleanupClass_array(CecClassName, RET_TYPE_of_CleanupFunction, pCleanupFunction, USER_TYPE, valInvalid) \
 	typedef CEnsureCleanup_array<USER_TYPE, RET_TYPE_of_CleanupFunction, pCleanupFunction, valInvalid> CecClassName;
 
+#define MakeCleanupClass_delete_ptr_array(CecClassName, PTR_TYPE) \
+	inline void __delete_##CecClassName(PTR_TYPE p) { delete p; } \
+	MakeCleanupClass_array(CecClassName, void, __delete_##CecClassName, PTR_TYPE, 0)
 
 //////////////////////////////////////////////////////////////////////////
 
