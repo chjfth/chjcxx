@@ -107,6 +107,50 @@ public:
 	
 };
 
+////////
+
+template<typename USER_TYPE, typename RET_TYPE, RET_TYPE (*pfn)(USER_TYPE), USER_TYPE valInvalid> 
+class CEnsureCleanup_array
+{
+	int m_ArraySize;
+	USER_TYPE *m_ar;           // This member representing the object array ptr
+
+public:
+	// Default constructor clears all pointer elements to invalid-value
+	CEnsureCleanup_array(int ArraySize) : m_ArraySize(ArraySize) {
+		m_ar = new USER_TYPE[m_ArraySize];
+		for(int i=0; i<m_ArraySize; i++) m_ar[i] = valInvalid; 
+	}
+	
+	// The destructor performs the cleanup.
+	~CEnsureCleanup_array() { Cleanup(); }
+	
+	// Helper methods to tell if the value represents a valid object or not..
+	int IsValid(int idx) { return(m_ar[idx] != NULL); }
+	int IsInvalid(int idx) { return(!IsValid(idx)); }
+
+	USER_TYPE& operator[](int idx) {
+		return m_ar[idx];
+	}
+
+	// Re-assigning the object forces the current object to be cleaned-up.
+// 	PTR_TYPE operator=(PTR_TYPE t) 
+// 	{ 
+// 		Cleanup(); 
+// 		m_t = t;
+// 		return(*this);  
+// 	}
+	
+	void Cleanup() 
+	{ 
+		for(int i=0; i<m_ArraySize; i++)
+			if (IsValid(i)) {
+				pfn(m_ar[i]);         // Cleanup the object.
+			}
+		delete m_ar;
+	}
+};
+
 
 #define MakeCleanupPtrClass(CecClassName, RET_TYPE_of_CleanupFunction, pCleanupFunction, PTR_TYPE) \
 	typedef CEnsureCleanupPtr<PTR_TYPE, RET_TYPE_of_CleanupFunction, pCleanupFunction> CecClassName;
@@ -119,6 +163,13 @@ public:
 	inline void __delete_##CecClassName(PTR_TYPE p) { delete p; } \
 	MakeCleanupPtrClass(CecClassName, void, __delete_##CecClassName, PTR_TYPE)
 
+
+#define MakeCleanupClass_array(CecClassName, RET_TYPE_of_CleanupFunction, pCleanupFunction, USER_TYPE, valInvalid) \
+	typedef CEnsureCleanup_array<USER_TYPE, RET_TYPE_of_CleanupFunction, pCleanupFunction, valInvalid> CecClassName;
+
+
+//////////////////////////////////////////////////////////////////////////
+
 /* Some usage examples:
 
 MakeCleanupIntClass(Cec_LibcFh, int, close, int, -1)
@@ -130,6 +181,10 @@ MakeCleanupPtrClass(Cec_pVoid, void, free, void*)
 	// Use ` void free(void*); ' to cleanup a buffer allocated by 
 	// ` void* malloc(size_t); ' .
 
+MakeCleanupClass_array(CecFpAr, int, fclose, FILE*, NULL)
+
+MakeCleanupClass_array(CecFhAr, int, close, int, -1)
+
 
 inline void free_unsigned_char_ptr(unsigned char * p){ free(p); }
 
@@ -140,6 +195,7 @@ MakeCleanupPtrClass(Cec_pUchar, void, free_unsigned_char_ptr, unsigned char *)
 
 class MyClass { ... };
 MakeCleanupPtrClass_delete(Cec_MyClass, MyClass*)
+
 
 int main()
 {
