@@ -28,8 +28,8 @@ public:
 	~CEnsureCleanupPtr() { Cleanup(); }
 	
 	// Helper methods to tell if the value represents a valid object or not..
-	int IsValid() { return(m_t != NULL); }
-	int IsInvalid() { return(!IsValid()); }
+	bool IsValid() { return(m_t != NULL); }
+	bool IsInvalid() { return(!IsValid()); }
 	
 	// Re-assigning the object forces the current object to be cleaned-up.
 	PTR_TYPE operator=(PTR_TYPE t) 
@@ -50,10 +50,9 @@ public:
 		return m_t;
 	}
 
-	PTR_TYPE operator[](int idx)
-	{
-		return &m_t[idx]; // User should guarantee m_t really points to an array
-	}
+//	<*PTR_TYPE> operator[](int idx); 
+		// No need! When operator [] is used on this object, compiler can call ``operator PTR_TYPE()''
+		// automatically returning `m_t' so that `m_t[idx]' comes to the scene.
 
 	// Cleanup the object if the value represents a valid object
 	void Cleanup() 
@@ -83,8 +82,8 @@ public:
 	~CEnsureCleanupInt() { Cleanup(); }
 	
 	// Helper methods to tell if the value represents a valid object or not..
-	int IsValid() { return(m_t != tInvalid); }
-	int IsInvalid() { return(!IsValid()); }
+	bool IsValid() { return(m_t != tInvalid); }
+	bool IsInvalid() { return(!IsValid()); }
 	
 	// Re-assigning the object forces the current object to be cleaned-up.
 	INT_TYPE operator=(INT_TYPE t) 
@@ -112,27 +111,64 @@ public:
 	
 };
 
-//////// CEnsureCleanup_array: 
-// If you have an array, in which every element should receive a cleanup operation, then use this.
+//////// Now, CEnsureCleanupPtrArray and CEnsureCleanupIntArray
+// If you have an array, in which every element should receive a cleanup operation, then use these two.
 
-template<typename USER_TYPE, typename RET_TYPE, RET_TYPE (*pfn)(USER_TYPE), USER_TYPE valInvalid> 
-class CEnsureCleanup_array
+template<typename USER_TYPE, typename RET_TYPE, RET_TYPE (*pfn)(USER_TYPE)> 
+class CEnsureCleanupPtrArray
 {
 	int m_ArraySize;
 	USER_TYPE *m_ar;           // This member representing the object array ptr
 
 public:
 	// Default constructor clears all pointer elements to invalid-value
-	CEnsureCleanup_array(int ArraySize) : m_ArraySize(ArraySize) {
+	CEnsureCleanupPtrArray(int ArraySize) : m_ArraySize(ArraySize) {
+		m_ar = new USER_TYPE[m_ArraySize];
+		for(int i=0; i<m_ArraySize; i++) m_ar[i] = NULL; 
+	}
+	
+	// The destructor performs the cleanup.
+	~CEnsureCleanupPtrArray() { Cleanup(); }
+	
+	// Helper methods to tell if the value represents a valid object or not..
+	bool IsValid(int idx) { return(m_ar[idx] != NULL); }
+	bool IsInvalid(int idx) { return(!IsValid(idx)); }
+
+	USER_TYPE& operator[](int idx) {
+		return m_ar[idx];
+	}
+
+	operator USER_TYPE*() {
+		return m_ar; // Return the address of the first array element.
+	}
+
+	void Cleanup() { 
+		for(int i=0; i<m_ArraySize; i++)
+			if (IsValid(i)) {
+				pfn(m_ar[i]);         // Cleanup the object.
+			}
+		delete m_ar;
+	}
+};
+
+template<typename USER_TYPE, typename RET_TYPE, RET_TYPE (*pfn)(USER_TYPE), USER_TYPE valInvalid> 
+class CEnsureCleanupIntArray
+{
+	int m_ArraySize;
+	USER_TYPE *m_ar;           // This member representing the object array ptr
+
+public:
+	// Default constructor clears all pointer elements to invalid-value
+	CEnsureCleanupIntArray(int ArraySize) : m_ArraySize(ArraySize) {
 		m_ar = new USER_TYPE[m_ArraySize];
 		for(int i=0; i<m_ArraySize; i++) m_ar[i] = valInvalid; 
 	}
 	
 	// The destructor performs the cleanup.
-	~CEnsureCleanup_array() { Cleanup(); }
+	~CEnsureCleanupIntArray() { Cleanup(); }
 	
 	// Helper methods to tell if the value represents a valid object or not..
-	int IsValid(int idx) { return(m_ar[idx] != NULL); }
+	int IsValid(int idx) { return(m_ar[idx] != valInvalid); }
 	int IsInvalid(int idx) { return(!IsValid(idx)); }
 
 	USER_TYPE& operator[](int idx) {
@@ -143,16 +179,7 @@ public:
 		return m_ar; // Return the address of the first array element.
 	}
 
-	// Re-assigning the object forces the current object to be cleaned-up.
-// 	PTR_TYPE operator=(PTR_TYPE t) 
-// 	{ 
-// 		Cleanup(); 
-// 		m_t = t;
-// 		return(*this);  
-// 	}
-	
-	void Cleanup() 
-	{ 
+	void Cleanup() { 
 		for(int i=0; i<m_ArraySize; i++)
 			if (IsValid(i)) {
 				pfn(m_ar[i]);         // Cleanup the object.
@@ -163,27 +190,38 @@ public:
 
 
 #define MakeCleanupPtrClass(CecClassName, RET_TYPE_of_CleanupFunction, pCleanupFunction, PTR_TYPE) \
-	typedef CEnsureCleanupPtr<PTR_TYPE, RET_TYPE_of_CleanupFunction, pCleanupFunction> CecClassName;
+	typedef CEnsureCleanupPtr< PTR_TYPE, RET_TYPE_of_CleanupFunction, pCleanupFunction > CecClassName;
+	// Note: There should be a space between pCleanupfunction and the right angle bracket, because
+	// pCleanupFunction will later be replaced by _EnsureClnup_cpp_delete<PTR_TYPE> which would 
+	// otherwise result in a bogus >> operator .
 
 #define MakeCleanupIntClass(CecClassName, RET_TYPE_of_CleanupFunction, pCleanupFunction, INT_TYPE, IntValueInvalid) \
 	typedef CEnsureCleanupInt<INT_TYPE, RET_TYPE_of_CleanupFunction, pCleanupFunction, IntValueInvalid> CecClassName;
 
+template<typename PTR_TYPE>
+inline void _EnsureClnup_cpp_delete(PTR_TYPE p){ delete p; }
 
 #define MakeCleanupPtrClass_delete(CecClassName, PTR_TYPE) \
-	inline void __delete_##CecClassName(PTR_TYPE p) { delete p; } \
-	MakeCleanupPtrClass(CecClassName, void, __delete_##CecClassName, PTR_TYPE)
+	MakeCleanupPtrClass(CecClassName, void, _EnsureClnup_cpp_delete<PTR_TYPE>, PTR_TYPE)
 
-#define MakeCleanupPtrClass_delete_array(CecClassName, PTR_TYPE) \
-	inline void __delete_##CecClassName(PTR_TYPE p) { delete []p; } \
-	MakeCleanupPtrClass(CecClassName, void, __delete_##CecClassName, PTR_TYPE)
+template<typename PTR_TYPE>
+inline void _EnsureClnup_cpp_array_delete(PTR_TYPE p){ delete []p; }
+
+#define MakeCleanupPtrClass_array_delete(CecClassName, PTR_TYPE) \
+	MakeCleanupPtrClass(CecClassName, void, _EnsureClnup_cpp_array_delete<PTR_TYPE>, PTR_TYPE)
+	// Note: In this macro name, I put "array" before "delete" because in ``delete []p'',
+	// ``[]'' is written before ``p'' .
 
 
-#define MakeCleanupClass_array(CecClassName, RET_TYPE_of_CleanupFunction, pCleanupFunction, USER_TYPE, valInvalid) \
-	typedef CEnsureCleanup_array<USER_TYPE, RET_TYPE_of_CleanupFunction, pCleanupFunction, valInvalid> CecClassName;
+#define MakeCleanupPtrArrayClass(CecClassName, RET_TYPE_of_CleanupFunction, pCleanupFunction, USER_TYPE) \
+	typedef CEnsureCleanupPtrArray< USER_TYPE, RET_TYPE_of_CleanupFunction, pCleanupFunction > CecClassName;
 
-#define MakeCleanupClass_delete_ptr_array(CecClassName, PTR_TYPE) \
-	inline void __delete_##CecClassName(PTR_TYPE p) { delete p; } \
-	MakeCleanupClass_array(CecClassName, void, __delete_##CecClassName, PTR_TYPE, 0)
+#define MakeCleanupIntArrayClass(CecClassName, RET_TYPE_of_CleanupFunction, pCleanupFunction, USER_TYPE, valInvalid) \
+	typedef CEnsureCleanupIntArray<USER_TYPE, RET_TYPE_of_CleanupFunction, pCleanupFunction, valInvalid> CecClassName;
+
+
+#define MakeCleanupPtrArrayClass_delete(CecClassName, PTR_TYPE) \
+	MakeCleanupPtrArrayClass(CecClassName, void, _EnsureClnup_cpp_delete<PTR_TYPE>, PTR_TYPE)
 
 //////////////////////////////////////////////////////////////////////////
 
