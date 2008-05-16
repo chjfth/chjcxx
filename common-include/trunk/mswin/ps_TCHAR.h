@@ -86,7 +86,8 @@
 #endif
 
 #ifndef _TCHAR_DEFINED
- typedef unsigned short TCHAR;
+// typedef unsigned short TCHAR;// before 2008-05-16
+  typedef wchar_t TCHAR;		// after  2008-05-16
  #define _TCHAR_DEFINED
 #endif
 
