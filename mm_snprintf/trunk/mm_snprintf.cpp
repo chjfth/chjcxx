@@ -269,7 +269,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <assert.h>
-#include <errno.h>
+//#include <errno.h> //[2008-05-16]Chj: WinCE don't have this.
 #include <ctype.h>
 
 
