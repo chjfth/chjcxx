@@ -1,0 +1,20 @@
+
+#gmu_ud_list_PRJ_HEADER += 
+
+#gmp_list_DLLEXPORT_DECO = DLLEXPORT_xxx
+
+gmu_ud_SRC_ROOT = ../..
+gmu_uf_LINK_OUTPUT = $(call gmpf_MakeLibName,mm_snprintf)
+
+
+gmu_up_list_SRC_FROM_ROOT += mm_snprintf.cpp
+
+
+# If you use plugin PI_sync_devoutput, you may want to set:
+gmi_SYDO_ud_SYNC_HEADER_ROOT = $(gmu_ud_SRC_ROOT)
+	#	The dir that your headers reside in. ( relative to $(CURDIR) )
+
+gmi_SYDO_up_list_SYNC_HEADER_FROM_ROOT = mm_snprintf.h
+	# List filepaths of the header files to sync. ( relative to $(gmi_SYDO_ud_SYNC_HEADER_ROOT) )
+
+
