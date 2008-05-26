@@ -63,8 +63,8 @@ LIB32=link.exe -lib
 # PROP Output_Dir "Debug"
 # PROP Intermediate_Dir "Debug"
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ  /c
-# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ  /c
+# ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
+# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
 # ADD BASE RSC /l 0x804 /d "_DEBUG"
 # ADD RSC /l 0x804 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -90,6 +90,19 @@ SOURCE=..\..\msvc\mm_psfunc.cpp
 # Begin Source File
 
 SOURCE=..\..\mm_snprintf.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\mm_snprintfW.cpp
+
+!IF  "$(CFG)" == "lib_mm_snprintf - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "lib_mm_snprintf - Win32 Debug"
+
+# ADD CPP /D "_UNICODE"
+
+!ENDIF 
+
 # End Source File
 # End Group
 # Begin Group "Header Files"

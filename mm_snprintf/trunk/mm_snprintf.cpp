@@ -1,10 +1,15 @@
 #include "mm_snprintf.h"
+#include "internal.h"
 #include "mm_psfunc.h"
 
 // Chj: redefine the function names :
-#define portable_snprintf  mm_snprintf
-#define portable_vsnprintf mm_vsnprintf
-
+#ifdef _UNICODE
+#  define portable_snprintf  mm_snprintfA
+#  define portable_vsnprintf mm_vsnprintfA
+#else
+#  define portable_snprintf  mm_snprintfW
+#  define portable_vsnprintf mm_vsnprintfW
+#endif
 // Not using the following four:
 //#define asprintf mm_asprintf 
 //#define vasprintf mm_vasprintf 
@@ -14,7 +19,7 @@
 /*
  * snprintf.c - a portable implementation of snprintf
  *
- * AUTHOR
+ * INITIAL AUTHOR
  *   Mark Martinec <mark.martinec@ijs.si>, April 1999.
  *
  *   Copyright 1999, Mark Martinec. All rights reserved.
@@ -253,9 +258,6 @@
 /* NO USER SERVICABLE PARTS FOLLOWING THIS POINT */
 /* ============================================= */
 
-#define PORTABLE_SNPRINTF_VERSION_MAJOR 3
-#define PORTABLE_SNPRINTF_VERSION_MINOR 0
-
 #if defined(NEED_ASPRINTF) || defined(NEED_ASNPRINTF) || defined(NEED_VASPRINTF) || defined(NEED_VASNPRINTF)
 # if !defined(PREFER_PORTABLE_SNPRINTF)
 # define PREFER_PORTABLE_SNPRINTF
@@ -405,15 +407,6 @@ int vasnprintf (char **ptr, size_t str_m, const char *fmt, va_list ap) {
   return str_l;
 }
 #endif
-
-int 
-IsFloatingType(char fmt_spec)
-{
-	if(fmt_spec=='f'||fmt_spec=='g'||fmt_spec=='G'||fmt_spec=='e'||fmt_spec=='E')
-		return 1; // yes
-	else
-		return 0; // no
-}
 
 /*
  * If the system does have snprintf and the portable routine is not
@@ -690,7 +683,7 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 				  /* pointer argument value -only defined for p conversion */
 
 				double double_arg = 0;
-				int isFloatingType = IsFloatingType(fmt_spec);
+				int isFloatingType = mmsnprintf_IsFloatingType(fmt_spec);
 
 #ifdef SNPRINTF_LONGLONG_SUPPORT
 				__int64 long_long_arg = 0;
@@ -872,7 +865,10 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 						   * On GNU glibc:   "%lld" or "%llu" or "%llx"
 						   * On ARM SDT/ADS: "%lld" or "%llu" or "%llx"
 						*/
-						f_l += mmps_i64_type_prefix(f+f_l);
+						char tmpI64fmt[8]; // Yes, not TCHAR here!
+						int lenI64fmt = mmps_i64_type_prefix(tmpI64fmt);
+						for(int i=0; i<lenI64fmt; i++)
+							f[f_l++] = tmpI64fmt[i];
 					}
 					else 
 						f[f_l++] = length_modifier;
@@ -1073,8 +1069,3 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 }
 #endif
 
-unsigned short
-mmsnprintf_getversion(void)
-{
-	return (PORTABLE_SNPRINTF_VERSION_MAJOR<<8) | PORTABLE_SNPRINTF_VERSION_MINOR;
-}

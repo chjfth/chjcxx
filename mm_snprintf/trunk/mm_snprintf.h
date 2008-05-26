@@ -15,8 +15,11 @@ extern"C"{
 unsigned short mmsnprintf_getversion(void);
 	// Returns: Major version in higher byte and minor version in lower byte.
 
-int mm_snprintf(char *buf, size_t bufsize, const char *format, /*args*/ ...);
-int mm_vsnprintf(char *buf, size_t bufsize, const char *format, va_list);
+int mm_snprintfA(char *buf, size_t bufsize, const char *format, /*args*/ ...);
+int mm_vsnprintfA(char *buf, size_t bufsize, const char *format, va_list);
+
+//int mm_snprintfW(char *buf, size_t bufsize, const char *format, /*args*/ ...);
+//int mm_vsnprintfW(char *buf, size_t bufsize, const char *format, va_list);
 
 /*
 int mm_asprintf  (char **ptr, const char *fmt,  ...);
