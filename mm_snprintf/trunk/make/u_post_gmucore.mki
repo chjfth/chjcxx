@@ -1,0 +1,5 @@
+
+# For mm_snprintfW.cpp, add -D_UNICODE compiler option:
+#$(info =======$(call gmuf_CnCXX_ListToObjList,mm_snprintfW.cpp)=======)
+$(call gmuf_CnCXX_ListToObjList,mm_snprintfW.cpp): gmp_CFLAGS_MACRO_DEFS += -D_UNICODE
+

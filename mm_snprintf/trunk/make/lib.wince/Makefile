@@ -1,4 +1,4 @@
-gmp_PS_INCLUDE_SUBDIRS = mswin
+gmp_PS_INCLUDE_SUBDIRS = wince
 
 gmu_up_list_SRC_FROM_ROOT += msvc/mm_psfunc.cpp
 

@@ -1,3 +1,4 @@
+#include "mm_snprintf.h"
 #include "internal.h"
 
 unsigned short

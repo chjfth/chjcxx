@@ -7,5 +7,10 @@ ifndef gmp_bc_IMAGE_TYPE
 endif
 
 
+ifdef MMSNPRINTF_NEED_UNICODE
+  gmp_USER_FIRST_TARGET = mm_snprintf_FirstTarget
+endif # ifdef MMSNPRINTF_NEED_UNICODE
+
+
 include $(gmu_DIR_GNUMAKEUNIPROC)/pattern1.mks
 

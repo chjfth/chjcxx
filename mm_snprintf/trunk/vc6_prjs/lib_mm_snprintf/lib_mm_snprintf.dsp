@@ -85,6 +85,10 @@ LIB32=link.exe -lib
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
+SOURCE=..\..\internal.cpp
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\msvc\mm_psfunc.cpp
 # End Source File
 # Begin Source File

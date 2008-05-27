@@ -1,14 +1,28 @@
 
-#gmu_ud_list_PRJ_HEADER += 
-
-#gmp_list_DLLEXPORT_DECO = DLLEXPORT_xxx
 
 gmu_ud_SRC_ROOT = ../..
+dirNlssvn = $(gmu_ud_SRC_ROOT)/..
+
 gmu_uf_LINK_OUTPUT = $(call gmpf_MakeLibName,mm_snprintf)
 
 
-gmu_up_list_SRC_FROM_ROOT += mm_snprintf.cpp
+gmu_up_list_SRC_FROM_ROOT += mm_snprintf.cpp mm_snprintfW.cpp \
+	internal.cpp
 
+gmp_ud_list_PS_HEADER_PARENT += $(dirNlssvn)/common-include 
+
+###
+
+p_mm_snprintfW = $(gmu_ud_SRC_ROOT)/mm_snprintfW.cpp
+
+# Before compiling starts: copy mm_snprintf.cpp to mm_snprintfW.cpp
+mm_snprintf_FirstTarget: $(p_mm_snprintfW) $(gmu_Gp_LINK_OUTPUT_ckt)
+
+$(p_mm_snprintfW): $(gmu_ud_SRC_ROOT)/mm_snprintf.cpp
+	copy $< $@
+
+
+####### Plugin :
 
 # If you use plugin PI_sync_devoutput, you may want to set:
 gmi_SYDO_ud_SYNC_HEADER_ROOT = $(gmu_ud_SRC_ROOT)
