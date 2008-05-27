@@ -29,6 +29,15 @@ int mm_asnprintf (char **ptr, size_t str_m, const char *fmt, ...);
 int mm_vasnprintf(char **ptr, size_t str_m, const char *fmt, va_list ap);
 */
 
+#ifdef _UNICODE
+# define mm_snprintf mm_snprintfW
+# define mm_vsnprintf mm_vsnprintfW
+#else
+# define mm_snprintf mm_snprintfA
+# define mm_vsnprintf mm_vsnprintfA
+#endif
+
+
 #ifdef __cplusplus
 }//extern"C"{
 #endif
