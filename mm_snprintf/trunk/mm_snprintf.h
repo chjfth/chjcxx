@@ -18,8 +18,9 @@ unsigned short mmsnprintf_getversion(void);
 int mm_snprintfA(char *buf, size_t bufsize, const char *format, /*args*/ ...);
 int mm_vsnprintfA(char *buf, size_t bufsize, const char *format, va_list);
 
-//int mm_snprintfW(char *buf, size_t bufsize, const char *format, /*args*/ ...);
-//int mm_vsnprintfW(char *buf, size_t bufsize, const char *format, va_list);
+int mm_snprintfW(wchar_t *buf, size_t bufsize, const wchar_t *format, /*args*/ ...);
+int mm_vsnprintfW(wchar_t *buf, size_t bufsize, const wchar_t *format, va_list);
+	// `bufsize' in TCHARs
 
 /*
 int mm_asprintf  (char **ptr, const char *fmt,  ...);

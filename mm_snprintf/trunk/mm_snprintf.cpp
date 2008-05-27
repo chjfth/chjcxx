@@ -1,14 +1,18 @@
+#include <ps_Tstrdef.h> 
+	//This, on MSVC6, may include <tchar.h>, so list it before <ps_TCHAR.h>
+	//otherwise, __T redefinition occurs.
+#include <ps_TCHAR.h>
 #include "mm_snprintf.h"
 #include "internal.h"
 #include "mm_psfunc.h"
 
 // Chj: redefine the function names :
 #ifdef _UNICODE
-#  define portable_snprintf  mm_snprintfA
-#  define portable_vsnprintf mm_vsnprintfA
-#else
 #  define portable_snprintf  mm_snprintfW
 #  define portable_vsnprintf mm_vsnprintfW
+#else
+#  define portable_snprintf  mm_snprintfA
+#  define portable_vsnprintf mm_vsnprintfA
 #endif
 // Not using the following four:
 //#define asprintf mm_asprintf 
@@ -71,9 +75,6 @@
  * c and s conversions is done very carefully by this portable routine.
  * If a string precision (truncation) is specified (e.g. %.8s) it is
  * guaranteed the string beyond the specified precision will not be referenced.
- *
- * Length modifiers h, l and ll are ignored for c and s conversions (data
- * types wint_t and wchar_t are not supported).
  *
  * The following common synonyms for conversion characters are supported:
  *   - i is a synonym for d
@@ -296,17 +297,17 @@ int vasnprintf (char **ptr, size_t str_m, const char *fmt, va_list ap);
 #endif
 
 
-#if !defined(HAVE_SNPRINTF) || defined(PREFER_PORTABLE_SNPRINTF)
-int portable_snprintf(char *str, size_t str_m, const char *fmt, /*args*/ ...);
+/*#if !defined(HAVE_SNPRINTF) || defined(PREFER_PORTABLE_SNPRINTF)
+int portable_snprintf(char *str, size_t str_m, const char *fmt, ...);
 int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap);
 #endif
-
+*/
 /* declarations */
 
 static char credits[] = "\n\
-@(#)snprintf.c, v2.2: Mark Martinec, <mark.martinec@ijs.si>\n\
-@(#)snprintf.c, v2.2: Copyright 1999, Mark Martinec. Frontier Artistic License applies.\n\
-@(#)snprintf.c, v2.2: http://www.ijs.si/software/snprintf/\n";
+@(#)snprintf.c, v3.1: Mark Martinec, <mark.martinec@ijs.si>, and Chen Jun.\n\
+@(#)snprintf.c, v3.1: Copyright 1999, Mark Martinec. Frontier Artistic License applies.\n\
+@(#)snprintf.c, v3.1: http://www.ijs.si/software/snprintf/\n";
 
 #if defined(NEED_ASPRINTF)
 int asprintf(char **ptr, const char *fmt, /*args*/ ...) {
@@ -415,7 +416,7 @@ int vasnprintf (char **ptr, size_t str_m, const char *fmt, va_list ap) {
 #if !defined(HAVE_SNPRINTF) || defined(PREFER_PORTABLE_SNPRINTF)
 
 int 
-portable_snprintf(char *str, size_t str_m, const char *fmt, /*args*/ ...) 
+portable_snprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, /*args*/ ...) 
 {
 	va_list ap;
 	int str_l;
@@ -426,31 +427,31 @@ portable_snprintf(char *str, size_t str_m, const char *fmt, /*args*/ ...)
 	return str_l;
 }
 
-int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap) 
+int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap) 
 {
 
 	size_t str_l = 0;
-	const char *p = fmt;
+	const TCHAR *p = fmt;
 
 /* In contrast with POSIX, the ISO C99 now says
  * that str can be NULL and str_m can be 0.
  * This is more useful than the old:  if (str_m < 1) return -1; */
 
 	if (!p) 
-		p = "";
+		p = _T("");
 
 	while (*p) 
 	{
-		if (*p != '%') 
+		if (*p != _T('%')) 
 		{
 		   /* if (str_l < str_m) str[str_l++] = *p++;    -- this would be sufficient */
 		   /* but the following code achieves better performance for cases
 			* where format string is long and contains few conversions */
-			const char *q = strchr(p+1,'%');
-			size_t n = !q ? strlen(p) : (q-p);
+			const TCHAR *q = TMM_strchr(p+1, _T('%'));
+			size_t n = !q ? TMM_strlen(p) : (q-p);
 			if (str_l < str_m) {
 				size_t avail = str_m-str_l;
-				fast_memcpy(str+str_l, p, (n>avail?avail:n));
+				fast_memcpy(str+str_l, p, TMM_strmemsize(n>avail?avail:n));
 			}
 			p += n; str_l += n;
 
@@ -459,7 +460,7 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 
 		// Remaining, for (*p=='%') [until end of the outer-most while]
 
-		const char *starting_p; // starting % position
+		const TCHAR *starting_p; // starting % position
 			// Record the position of the '%', so that(if linux behavior is used)
 			//when the type character following % is unrecognized(e.g. "%a"), 
 			//the whole format specifier is output, e.g. "%8.4a" is output as
@@ -471,25 +472,27 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 		int force_sign = 0; // whether reserve a char space(filled with ' ' or '+') for positive indication.
 		int space_for_positive = 1; // use ' ' to indicate positive number instead of using '+'
 			/* If both the ' ' and '+' flags appear, the ' ' flag should be ignored. */
-		char length_modifier = '\0';   
-			/* allowed values: \0, h, l, L , Chj: ll is allowed -- of course .
+		TCHAR length_modifier = _T('\0');   
+			/* allowed values: \0, h, l, L , Chj: ll is allowed(encoded as '2').
 			 '\0' means no length-modifier, e.g:
 				In "%ld", 'l' is length-modifier; in "%hd", 'h' is length-modifier,
 				while "%d" has no length-modifier in it.
 			*/
-		char tmp[128];/* temporary buffer for simple numeric->string conversion */
+		TCHAR tmp[128];/* temporary buffer for simple numeric->string conversion */
 			//[2006-10-03]Chj: Be aware of the overflow of this buffer.
 			//User can assign a very high precision(e.g. "%.400f") to format a number,
 			//which cannot be afforded by this small buffer. Therefore, we will
 			//later limit the precision before invoking system's sprintf.
 
-		const char *str_arg = NULL; /* string address in case of string argument */
+		const TCHAR *str_arg = NULL; /* string address in case of string argument */
 		size_t str_arg_l = 0;       /* natural field width of arg without padding
 								   and sign */
-		unsigned char uchar_arg;
+		TCHAR uchar_arg; //unsigned char uchar_arg;
 		/* unsigned char argument value - only defined for c conversion.
 		   N.B. standard explicitly states the char argument for
-		   the c conversion is unsigned */
+		   the c conversion is unsigned --[2008-05-27]Chj: But it doesn't matter
+		   for a function like snprintf, since we just copy the char value.
+		*/
 
 		size_t number_of_zeros_to_pad = 0;
 		/* number of zeros to be inserted for numeric conversions
@@ -498,32 +501,32 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 		size_t zero_padding_insertion_ind = 0;
 		/* index into tmp[] where zero padding is to be inserted */
 
-		char fmt_spec = '\0';
+		TCHAR fmt_spec = _T('\0');
 		/* current conversion specifier character */
 
-		str_arg = credits;/* just to make compiler happy (defined but not used)*/
+//		str_arg = credits;/* just to make compiler happy (defined but not used)*/
 		str_arg = NULL;
 		starting_p = p; p++;  /* skip '%' */
 		/* parse flags */
-		while (*p == '0' || *p == '-' || *p == '+' ||
-			 *p == ' ' || *p == '#' || *p == '\'') 
+		while (*p == _T('0') || *p == _T('-') || *p == _T('+') ||
+			 *p == _T(' ') || *p == _T('#') || *p == _T('\'')) 
 		{
 			switch (*p) {
-			case '0': zero_padding = 1; break;
-			case '-': justify_left = 1; break;
-			case '+': force_sign = 1; space_for_positive = 0; break;
-			case ' ': force_sign = 1;
+			case _T('0'): zero_padding = 1; break;
+			case _T('-'): justify_left = 1; break;
+			case _T('+'): force_sign = 1; space_for_positive = 0; break;
+			case _T(' '): force_sign = 1;
 			/* If both the ' ' and '+' flags appear, the ' ' flag should be ignored */
 					  break;
-			case '#': alternate_form = 1; break;
-			case '\'': break;
+			case _T('#'): alternate_form = 1; break;
+			case _T('\''): break;
 			}
 			p++;
 		}
 		/* If the '0' and '-' flags both appear, the '0' flag should be ignored. */
 
 		/* parse field width */
-		if (*p == '*') {
+		if (*p == _T('*')) {
 			p++; 
 			int j = va_arg(ap, int);
 			if (j >= 0) 
@@ -533,19 +536,19 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 				justify_left = 1; 
 			}
 		} 
-		else if (isdigit((int)(*p))) {
+		else if (TMM_isdigit(*p)) {
 			/* size_t could be wider than unsigned int;
 			   make sure we treat argument like common implementations do */
-			unsigned int uj = *p++ - '0';
-			while (isdigit((int)(*p))) 
-				uj = 10*uj + (unsigned int)(*p++ - '0');
+			unsigned int uj = *p++ - _T('0');
+			while (TMM_isdigit(*p)) 
+				uj = 10*uj + (unsigned int)(*p++ - _T('0'));
 			min_field_width = uj;
 		}
 
 		/* parse precision */
-		if (*p == '.') {
+		if (*p == _T('.')) {
 			p++; precision_specified = 1;
-			if (*p == '*') {
+			if (*p == _T('*')) {
 			  int j = va_arg(ap, int);
 			  p++;
 			  if (j >= 0) 
@@ -560,25 +563,25 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 			  */
 			  }
 			} 
-			else if (isdigit((int)(*p))) {
+			else if (TMM_isdigit(*p)) {
 			  /* size_t could be wider than unsigned int;
 				 make sure we treat argument like common implementations do */
 			  unsigned int uj = *p++ - '0';
-			  while (isdigit((int)(*p))) 
-				  uj = 10*uj + (unsigned int)(*p++ - '0');
+			  while (TMM_isdigit(*p)) 
+				  uj = 10*uj + (unsigned int)(*p++ - _T('0'));
 			  precision = uj;
 			}
 		}
 		
 		/* parse 'h', 'l' and 'll' length modifiers */
-		if (*p == 'h' || *p == 'l') {
+		if (*p == _T('h') || *p == _T('l')) {
 			length_modifier = *p; p++;
-			if (length_modifier == 'l' && *p == 'l')  /* double l = long long, i.e. __int64 */
+			if (length_modifier == _T('l') && *p == _T('l'))  /* double l = long long, i.e. __int64 */
 			{
 #ifdef SNPRINTF_LONGLONG_SUPPORT
-				length_modifier = '2';                /* double l encoded as '2' */
+				length_modifier = _T('2');            /* double l encoded as '2' */
 #else
-				length_modifier = 'l';                /* treat it as a single 'l' */
+				length_modifier = _T('l');            /* treat it as a single 'l' */
 #endif
 				p++;
 			}
@@ -592,32 +595,32 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 		
 		/* common synonyms: fmt_spec(also called "type" in MSDN): */
 		switch (fmt_spec) {
-		case 'i': 
-			fmt_spec = 'd'; break; //[2006-10-02]Chj: Why not length_modifier = 'l'; ?
-		case 'D': 
-			fmt_spec = 'd'; 
-			length_modifier = 'l'; break;
-		case 'U': 
-			fmt_spec = 'u'; 
-			length_modifier = 'l'; break;
-		case 'O': 
-			fmt_spec = 'o'; 
-			length_modifier = 'l'; break;
+		case _T('i'): 
+			fmt_spec = _T('d'); break; //[2006-10-02]Chj: Why not length_modifier = 'l'; ?
+		case _T('D'): 
+			fmt_spec = _T('d'); 
+			length_modifier = _T('l'); break;
+		case _T('U'): 
+			fmt_spec = _T('u'); 
+			length_modifier = _T('l'); break;
+		case _T('O'): 
+			fmt_spec = _T('o'); 
+			length_modifier = _T('l'); break;
 		default: break;
 		}
 
 		/* get parameter value, do initial processing */
 		switch (fmt_spec) // BIG CHUNK OF PROCESS!!
 		{
-		case '%': /* % behaves similar to 's' regarding flags and field widths */
+		case _T('%'): /* % behaves similar to 's' regarding flags and field widths */
 			/*[2006-10-03]Chj: Mark Martinec processes the '%' here, which means
 			 "%3.1%" would be output as "  %", which is different from MSVCRT
 			 and glibc(they output just "%"). However, that's not big deal.
 			*/
-		case 'c': /* c behaves similar to 's' regarding flags and field widths */
-		case 's':
+		case _T('c'): /* c behaves similar to 's' regarding flags and field widths */
+		case _T('s'):
 			{
-				length_modifier = '\0';          /* wint_t and wchar_t not supported */
+				length_modifier = _T('\0');
 				/* the result of zero padding flag with non-numeric conversion specifier*/
 				/* is undefined. Solaris and HPUX 10 does zero padding in this case,    */
 				/* Digital Unix and Linux does not. */
@@ -633,36 +636,34 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 
 				str_arg_l = 1; // Chj: ?? !! and following
 
-				if(fmt_spec=='%') {
+				if(fmt_spec==_T('%')) {
 					str_arg = p; // *p is '%' here.
 				}
-				if(fmt_spec=='c') {
+				if(fmt_spec==_T('c')) {
 					int j = va_arg(ap, int);
-					uchar_arg = (unsigned char) j;   /* standard demands unsigned char */
-					str_arg = (const char *) &uchar_arg;
+					uchar_arg = (TCHAR) j;   /* standard demands unsigned char */
+					str_arg = (TCHAR*) &uchar_arg;
 				}
-				if(fmt_spec=='s'){
-					str_arg = va_arg(ap, const char *);
+				if(fmt_spec==_T('s')){
+					str_arg = va_arg(ap, TCHAR*);
 					if (!str_arg) 
 						str_arg_l = 0;
 				/* make sure not to address string beyond the specified precision !!! */
 					else if (!precision_specified) 
-						str_arg_l = strlen(str_arg);
+						str_arg_l = TMM_strlen(str_arg);
 				/* truncate string if necessary as requested by precision */
 					else if (precision == 0) 
 						str_arg_l = 0; //Chj: Yes, no characters from the string will be printed if `precision' is zero.
 					else { // `precision' specified and > 0 
-				/* memchr on HP does not like n > 2^31  !!! */
-						const char *q = (const char*)memchr(str_arg, '\0',
-										 precision <= 0x7fffffff ? precision : 0x7fffffff);
-						str_arg_l = !q ? precision : (q-str_arg);
+						size_t lenInput = TMM_strlen(str_arg);
+						str_arg_l = lenInput<precision ? lenInput : precision;
 					}
 				}
 				break; // end of process for type '%','c','s' .
 			}
 
-		case 'd': case 'u': case 'o': case 'x': case 'X': case 'p': 
-		case 'f': case 'g': case 'G': case 'e': case 'E':
+		case _T('d'): case _T('u'): case _T('o'): case _T('x'): case _T('X'): case _T('p'): 
+		case _T('f'): case _T('g'): case _T('G'): case _T('e'): case _T('E'):
 			{
 				/* NOTE: the u, o, x, X and p conversion specifiers imply
 						 the value is unsigned;  d implies a signed value */
@@ -690,7 +691,7 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 				unsigned __int64 ulong_long_arg = 0;
 				  /* only defined for length modifier ll */
 #endif
-				if (fmt_spec == 'p') 
+				if (fmt_spec == _T('p')) 
 				{
 				/* HPUX 10: An l, h, ll or L before any other conversion character
 				 *   (other than d, i, u, o, x, or X) is ignored.
@@ -703,17 +704,17 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 				 *   with (void *) argument on a 32-bit system).
 				 */
 				// We follow the HPUX 10 style.
-					length_modifier = '\0';
+					length_modifier = _T('\0');
 
 					ptr_arg = va_arg(ap, void *);
 					if (ptr_arg != NULL) 
 						arg_sign = 1;
 				} 
-				else if (fmt_spec == 'd') 
+				else if (fmt_spec == _T('d')) 
 				{  /* signed */
 					switch (length_modifier) {
-					case '\0':
-					case 'h':
+					case _T('\0'):
+					case _T('h'):
 					/* It is non-portable to specify a second argument of char or short
 					 * to va_arg, because arguments seen by the called function
 					 * are not char or short.  C converts char and short arguments
@@ -723,13 +724,13 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 						if      (int_arg > 0) arg_sign =  1;
 						else if (int_arg < 0) arg_sign = -1;
 						break;
-					case 'l':
+					case _T('l'):
 						long_arg = va_arg(ap, long int);
 						if      (long_arg > 0) arg_sign =  1;
 						else if (long_arg < 0) arg_sign = -1;
 						break;
 #ifdef SNPRINTF_LONGLONG_SUPPORT
-					case '2':
+					case _T('2'):
 						long_long_arg = va_arg(ap, __int64);
 						if      (long_long_arg > 0) arg_sign =  1;
 						else if (long_long_arg < 0) arg_sign = -1;
@@ -741,17 +742,17 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 				{
 					switch (length_modifier) 
 					{
-					case '\0':
-					case 'h':
+					case _T('\0'):
+					case _T('h'):
 						uint_arg = va_arg(ap, unsigned int);
 						if (uint_arg) arg_sign = 1;
 						break;
-					case 'l':
+					case _T('l'):
 						ulong_arg = va_arg(ap, unsigned long int);
 						if (ulong_arg) arg_sign = 1;
 						break;
 #ifdef SNPRINTF_LONGLONG_SUPPORT
-				  case '2':
+				  case _T('2'):
 						ulong_long_arg = va_arg(ap, unsigned __int64);
 						if (ulong_long_arg) arg_sign = 1;
 						break;
@@ -779,9 +780,9 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 				if (precision_specified) 
 					zero_padding = 0;
 
-				if (fmt_spec == 'd' || isFloatingType) {
+				if (fmt_spec == _T('d') || isFloatingType) {
 					if (force_sign && arg_sign >= 0)
-						tmp[str_arg_l++] = space_for_positive ? ' ' : '+';
+						tmp[str_arg_l++] = space_for_positive ? _T(' ') : _T('+');
 					 /* leave negative numbers for sprintf to handle,
 						to avoid handling tricky cases like (short int)(-32768) */
 // #ifdef LINUX_COMPATIBLE
@@ -791,7 +792,7 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 // #endif //[2006-10-03]Chj: I do not use Linux's behavior here.
 				} 
 				else if (alternate_form) {
-					if (arg_sign != 0 && (fmt_spec == 'x' || fmt_spec == 'X' || fmt_spec=='p') )
+					if (arg_sign != 0 && (fmt_spec == _T('x') || fmt_spec == _T('X') || fmt_spec==_T('p')) )
 					{ 
 						/* [2007-03-31]Chj: On MSVCRT 6.0(32-bit):
 							printf("[%+#p]", (void*)16);
@@ -804,8 +805,8 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 						 Using small 'x' seems more reasonable, since it corresponds to the
 						 small type-char 'p'.
 						*/
-						tmp[str_arg_l++] = '0'; 
-						tmp[str_arg_l++] = fmt_spec=='p' ? 'x' : fmt_spec; 
+						tmp[str_arg_l++] = _T('0'); 
+						tmp[str_arg_l++] = fmt_spec==_T('p') ? _T('x') : fmt_spec; 
 					}
 					/* alternate form should have no effect for p conversion, but ... */
 				}
@@ -839,15 +840,15 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 				{
 					// >>> Use system's sprintf to format numeric string in tmp[].
 
-					char f[32]; int f_l = 0; // `f' used as a temp format string for system's sprintf
-					f[f_l++] = '%';    /* construct a simple format string for sprintf */
+					TCHAR f[32]; int f_l = 0; // `f' used as a temp format string for system's sprintf
+					f[f_l++] = _T('%');    /* construct a simple format string for sprintf */
 					
 					if(isFloatingType)
 					{
 						// Limit the precision so that not to overflow tmp[].
 						const int MaxPrecision = mm_GetEleQuan(tmp)-16;
 
-						f_l += sprintf(f+f_l, ".%d", precision<MaxPrecision ? precision : MaxPrecision); 
+						f_l += TMM_sprintf(f+f_l, _T(".%d"), precision<MaxPrecision ? precision : MaxPrecision); 
 							//For floating point number, we leave precision processing to system's sprintf.
 
 						precision_specified = 0; precision = 0;
@@ -857,7 +858,7 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 						// length_modifier is ignored for floating type.
 					}
 					else if (!length_modifier) { }
-					else if (length_modifier=='2') { // to format a 64-bit integer
+					else if (length_modifier==_T('2')) { // to format a 64-bit integer
 						/* [2006-10-02]Chj: We use an external routine to obtain the 
 						 format-string for 64-bit integer, because it differs on 
 						 different systems:
@@ -875,32 +876,32 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 
 					f[f_l++] = fmt_spec; f[f_l++] = '\0';
 
-					if (fmt_spec == 'p') {
-						str_arg_l += sprintf(tmp+str_arg_l, f, ptr_arg);
+					if (fmt_spec == _T('p')) {
+						str_arg_l += TMM_sprintf(tmp+str_arg_l, f, ptr_arg);
 					}
-					else if (fmt_spec == 'd') {  /* signed */
+					else if (fmt_spec == _T('d')) {  /* signed */
 						switch (length_modifier) {
-						case '\0':
-						case 'h': str_arg_l+=sprintf(tmp+str_arg_l, f, int_arg);  break;
-						case 'l': str_arg_l+=sprintf(tmp+str_arg_l, f, long_arg); break;
+						case _T('\0'):
+						case _T('h'): str_arg_l+=TMM_sprintf(tmp+str_arg_l, f, int_arg);  break;
+						case _T('l'): str_arg_l+=TMM_sprintf(tmp+str_arg_l, f, long_arg); break;
 #ifdef SNPRINTF_LONGLONG_SUPPORT
-						case '2': str_arg_l+=sprintf(tmp+str_arg_l,f,long_long_arg); break;
+						case _T('2'): str_arg_l+=TMM_sprintf(tmp+str_arg_l,f,long_long_arg); break;
 #endif
 						}
 					} 
 					else if (!isFloatingType){  /* unsigned */
 						switch (length_modifier) {
 						case '\0':
-						case 'h': str_arg_l+=sprintf(tmp+str_arg_l, f, uint_arg);  break;
-						case 'l': str_arg_l+=sprintf(tmp+str_arg_l, f, ulong_arg); break;
+						case 'h': str_arg_l+=TMM_sprintf(tmp+str_arg_l, f, uint_arg);  break;
+						case 'l': str_arg_l+=TMM_sprintf(tmp+str_arg_l, f, ulong_arg); break;
 #ifdef SNPRINTF_LONGLONG_SUPPORT
-						case '2': str_arg_l+=sprintf(tmp+str_arg_l,f,ulong_long_arg); break;
+						case '2': str_arg_l+=TMM_sprintf(tmp+str_arg_l,f,ulong_long_arg); break;
 #endif
 						}
 					}
 					else // floating type
 					{
-						str_arg_l += sprintf(tmp+str_arg_l, f, double_arg);
+						str_arg_l += TMM_sprintf(tmp+str_arg_l, f, double_arg);
 					}
 
 					// <<< Use system's sprintf to format integer string in tmp[].
@@ -918,8 +919,8 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 						zero_padding_insertion_ind++;
 					}
 					if (zero_padding_insertion_ind+1 < str_arg_l &&
-						tmp[zero_padding_insertion_ind]   == '0' &&
-						(tmp[zero_padding_insertion_ind+1] == 'x' || tmp[zero_padding_insertion_ind+1] == 'X') 
+						tmp[zero_padding_insertion_ind]   == _T('0') &&
+						(tmp[zero_padding_insertion_ind+1] == _T('x') || tmp[zero_padding_insertion_ind+1] == _T('X')) 
 						) {
 						//[2006-10-03]Chj: If the result string from system's sprintf 
 						//starts with "0x", then take it as if "0x" is filled by us and
@@ -930,9 +931,9 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 				}
 				
 				size_t num_of_digits = str_arg_l - zero_padding_insertion_ind;
-				if (alternate_form && fmt_spec == 'o'
+				if (alternate_form && fmt_spec == _T('o')
 					/* unless zero is already the first character */
-					&& !(zero_padding_insertion_ind < str_arg_l && tmp[zero_padding_insertion_ind] == '0')
+					&& !(zero_padding_insertion_ind < str_arg_l && tmp[zero_padding_insertion_ind] == _T('0'))
 					) 
 				{        /* assure leading zero for alternate-form octal numbers */
 					if (!precision_specified || precision < num_of_digits+1) {
@@ -990,7 +991,9 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 			if (n > 0) {
 				if (str_l < str_m) {
 					int /*size_t*/ avail = str_m-str_l;
-					fast_memset(str+str_l, (zero_padding?'0':' '), (n>avail?avail:n));
+					mmsnprintf_fillchar(str+str_l, 
+						zero_padding ? _T('0') : _T(' '), 
+						n>avail?avail:n);
 				}
 				str_l += n;
 			}
@@ -1009,7 +1012,7 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 			if (n > 0) {
 				if (str_l < str_m) {
 					int /*size_t*/ avail = str_m-str_l;
-					fast_memcpy(str+str_l, str_arg, (n>avail?avail:n));
+					fast_memcpy(str+str_l, str_arg, TMM_strmemsize(n>avail?avail:n));
 				}
 				str_l += n;
 			}
@@ -1018,7 +1021,7 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 			if (n > 0) {
 				if (str_l < str_m) {
 					int /*size_t*/ avail = str_m-str_l;
-					fast_memset(str+str_l, '0', (n>avail?avail:n));
+					fast_memset(str+str_l, '0', TMM_strmemsize(n>avail?avail:n));
 				}
 				str_l += n;
 			}
@@ -1030,7 +1033,7 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 			if (str_l < str_m) {
 				int /*size_t*/ avail = str_m-str_l;
 				fast_memcpy(str+str_l, str_arg+zero_padding_insertion_ind,
-					(n>avail?avail:n));
+					TMM_strmemsize(n>avail?avail:n));
 			}
 			str_l += n;
 		}
@@ -1041,7 +1044,7 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 			if (n > 0) {
 				if (str_l < str_m) {
 					int /*size_t*/ avail = str_m-str_l; //Chj
-					fast_memset(str+str_l, ' ', (n>avail?avail:n));
+					mmsnprintf_fillchar(str+str_l, _T(' '), (n>avail?avail:n));
 				}
 				str_l += n;
 			}
@@ -1052,7 +1055,7 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
      even at the expense of overwriting the last character
      (shouldn't happen, but just in case) */
 	if (str_m > 0) { 
-		str[str_l <= str_m-1 ? str_l : str_m-1] = '\0';
+		str[str_l <= str_m-1 ? str_l : str_m-1] = _T('\0');
 	}
 
 	/* Return the number of characters formatted (excluding trailing null
@@ -1069,3 +1072,19 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 }
 #endif
 
+int 
+mmsnprintf_IsFloatingType(TCHAR fmt_spec)
+{
+	if(fmt_spec==_T('f')||fmt_spec==_T('g')||fmt_spec==_T('G')||fmt_spec==_T('e')||fmt_spec==_T('E'))
+		return 1; // yes
+	else
+		return 0; // no
+}
+
+void 
+mmsnprintf_fillchar(TCHAR *pbuf, TCHAR c, int n)
+{
+	int i;
+	for(i=0; i<n; i++)
+		pbuf[i] = c;
+}
