@@ -25,6 +25,8 @@ gmu_uf_LINK_OUTPUT = $(call gmpf_MakeExeName,test1)
 ############################################################################
 gmu_ud_SRC_ROOT = ../..
 dirMmsnpr = $(gmu_ud_SRC_ROOT)/../..
+dirNlssvn = $(dirMmsnpr)/..
+dirCommonInclude = $(dirNlssvn)/common-include
 
 ############################################################################
 # GMU-var: gmu_up_list_SRC_FROM_ROOT
@@ -47,10 +49,10 @@ gmu_up_list_SRC_FROM_ROOT += main.cpp
 #	1. They'll be passed to the compiler through ``-I <dir1> -I <dir2> ...'' .
 #	2. They'll be passed to `$(gmu_GCC_M_PREFIX)gcc -M' in favor of generating hdepend files.
 ############################################################################
-gmu_ud_list_PRJ_HEADER += $(dirMmsnpr)
+gmu_ud_list_PRJ_HEADER += $(dirMmsnpr) 
 	# Don't write ``-I'' in this var; it will be prependded automatically.
 # or
-#gmp_ud_list_PS_HEADER_PARENT += (within gmp_PS_INCLUDE_SUBDIRS)
+gmp_ud_list_PS_HEADER_PARENT += $(dirCommonInclude)
 
 gmp_CFLAGS_INCLUDES += # $(addprefix -I,<dir1> <dir2> ...)
 	# those -I xxx options (in case you don't want to list them in gmu_ud_list_PRJ_HEADER)
