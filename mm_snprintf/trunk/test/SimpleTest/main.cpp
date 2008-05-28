@@ -1,5 +1,7 @@
 #include <stdarg.h>
 #include <stdio.h>
+#include <locale.h>
+
 #include <wchar.h> // for wprintf under linux
 #include <ps_TypeDecl.h>
 #include <mm_snprintf.h>
@@ -25,14 +27,24 @@ void mprintW(const wchar_t *fmt, ...)
 	va_list args;
 	va_start(args, fmt);
 	mm_vsnprintfW(buf, sizeof(buf), fmt, args);
+#ifdef _WIN32
 	wprintf(L"%s\n", buf);
+#else // linux
+	wprintf(L"%S\n", buf);
+#endif
 	va_end(args);
 }
 
 int main()
 {
+//	setlocale(LC_ALL, "");
 
+#ifdef _WIN32
 	mprintA("__int64 [%lld, 0x%llx]", i64, i64);
+#else // linux
+	mprintW(L"__int64 [%lld, 0x%llx]", i64, i64);
+	// glibc ban mixing printf and wprintf, so avoid using mprintA here.
+#endif
 
 	mprintW(L"[%d]", 12);
 	mprintW(L"[%s]", L"xyz");
