@@ -108,6 +108,10 @@ SOURCE=..\..\mm_snprintfW.cpp
 !ENDIF 
 
 # End Source File
+# Begin Source File
+
+SOURCE=..\..\oldname.cpp
+# End Source File
 # End Group
 # Begin Group "Header Files"
 

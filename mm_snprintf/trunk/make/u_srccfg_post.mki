@@ -6,20 +6,19 @@ dirNlssvn = $(gmu_ud_SRC_ROOT)/..
 gmu_uf_LINK_OUTPUT = $(call gmpf_MakeLibName,mm_snprintf)
 
 
-gmu_up_list_SRC_FROM_ROOT += mm_snprintf.cpp mm_snprintfW.cpp \
-	internal.cpp
+gmu_up_list_SRC_FROM_ROOT += mm_snprintf.cpp \
+	$(if $(MMSNPRINTF_NO_UNICODE),,mm_snprintfW.cpp) \
+	internal.cpp oldname.cpp
 
 gmp_ud_list_PS_HEADER_PARENT += $(dirNlssvn)/common-include 
 
-###
+gmp_CFLAGS_CODE_GEN_ALL +=
+  # You may want to dispense options for gmp_CFLAGS_CODE_GEN_ALL into following 2 categories:
+  gmp_CFLAGS_MACRO_DEFS += $(gmp_CFLAGS_MACRO_DEFS_preset) # those macro defines, e.g. -Dxxx=yyy
+  gmp_CFLAGS_CODE_GEN += $(gmp_CFLAGS_CODE_GEN_preset) # other code generation related options
 
-p_mm_snprintfW = $(gmu_ud_SRC_ROOT)/mm_snprintfW.cpp
+gmp_CFLAGS_NON_CODE_GEN += $(gmp_CFLAGS_NON_CODE_GEN_preset)
 
-# Before compiling starts: copy mm_snprintf.cpp to mm_snprintfW.cpp
-mm_snprintf_FirstTarget: $(p_mm_snprintfW) $(gmu_Gp_LINK_OUTPUT_ckt)
-
-$(p_mm_snprintfW): $(gmu_ud_SRC_ROOT)/mm_snprintf.cpp
-	copy $< $@
 
 
 ####### Plugin :

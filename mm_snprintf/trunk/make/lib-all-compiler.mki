@@ -1,3 +1,8 @@
+# Special gmu-vars for this project:
+
+# MMSNPRINTF_NO_UNICODE = (default to null, means need Unicode support)
+#	Define this to avoid compiling mm_snprintfW.cpp
+
 ifndef gmu_PRJ_NAME
   gmu_PRJ_NAME = mm_snprintf
 endif
@@ -7,9 +12,9 @@ ifndef gmp_bc_IMAGE_TYPE
 endif
 
 
-ifdef MMSNPRINTF_NEED_UNICODE
+#ifndef MMSNPRINTF_NO_UNICODE
   gmp_USER_FIRST_TARGET = mm_snprintf_FirstTarget
-endif # ifdef MMSNPRINTF_NEED_UNICODE
+#endif # ifndef MMSNPRINTF_NO_UNICODE
 
 
 include $(gmu_DIR_GNUMAKEUNIPROC)/pattern1.mks
