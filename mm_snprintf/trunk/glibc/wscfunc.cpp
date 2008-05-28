@@ -1,4 +1,8 @@
+#include <stdio.h>
 #include <stdarg.h>
+#include <wctype.h>
+#include <wchar.h>
+
 #include <ps_Tstrdef.h>
 
 
@@ -10,7 +14,7 @@ mmsnpr_wcschr( const wchar_t *string, wchar_t c )
 		string++;
 
 	if(*string==c)
-		return string;
+		return (wchar_t*)string;
 	else 
 		return NULL;
 }
@@ -27,20 +31,20 @@ mmsnpr_wcslen( const wchar_t *string )
 }
 
 //#define TMM_isdigit mmsnpr_iswdigit
-int mmsnpr_iswdigit( wint_t c )
+int mmsnpr_iswdigit( /*wint_t*/int c )
 {
 	return iswdigit(c);
 }
 
 //#define TMM_sprintf mmsnpr_swprintf
 int 
-mmsnpr_swprintf (wchar_t *sbuf, size_t size, const wchar_t *fmt, ...) 
+mmsnpr_swprintf (wchar_t *sbuf, const wchar_t *fmt, ...) 
 {
 	va_list args;
 	int ret;
 
 	va_start(args, fmt);
-	ret = vswprintf(sbuf, size, fmt, args);
+	ret = vswprintf(sbuf, 0x7fffFFFF, fmt, args);
 	va_end(args);
 	return ret;
 	

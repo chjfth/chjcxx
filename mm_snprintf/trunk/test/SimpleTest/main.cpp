@@ -1,8 +1,12 @@
 #include <stdarg.h>
 #include <stdio.h>
+#include <wchar.h> // for wprintf under linux
+#include <ps_TypeDecl.h>
 #include <mm_snprintf.h>
 
-__int64 i64 = 0x912345678;
+//#if
+
+__int64 i64 = DECL_INT64(0x912345678);
 double d = 1.2345678;
 
 void mprintA(const char *fmt, ...)
