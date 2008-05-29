@@ -11,7 +11,7 @@
 // Don't declare these two funcs in mm_snprintf.h, otherwise they'll be
 // #define-ed to mm_snprintfA or mm_snprintfW etc.
 //////////////////////////////////////////////////////////////////////////
-int 
+extern"C" int 
 mm_snprintf(char *str, size_t str_m, const char *fmt,  ...) 
 {
 	va_list ap;
@@ -23,7 +23,7 @@ mm_snprintf(char *str, size_t str_m, const char *fmt,  ...)
 	return str_l;
 }
 
-int 
+extern"C" int 
 mm_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
 {
 	return mm_vsnprintfA(str, str_m, fmt, ap);
