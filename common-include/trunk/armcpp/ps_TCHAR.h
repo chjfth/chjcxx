@@ -21,7 +21,7 @@
 
 
 #ifndef __T
-# define __T(x)	(x)
+# define __T(x)	x
 #endif
 
 #ifndef _TCHAR_DEFINED
