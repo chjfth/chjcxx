@@ -128,6 +128,13 @@ ggt_localtime(struct tm *ptm)
 
 //////////////////////////////////////////////////////////////////////////
 
+bool 
+ggt_SleepMillisec(int millisec)
+{
+	Sleep(millisec);
+	return true;
+}
+
 __int64 
 ggt_GetOsMillisec(void)
 {

@@ -3,7 +3,16 @@
 
 #include <time.h> // for `struct tm'
 
-#include <ps_TCHAR.h>
+#ifdef DONT_WANT_PS_TCHAR
+# if defined WIN32 || defined WINCE
+#  include <tchar.h> // The Microsoft way
+# else
+   typedef char TCHAR;
+# endif
+#else
+# include <ps_TCHAR.h>
+#endif
+
 
 #ifdef __cplusplus
 extern"C" {
@@ -48,6 +57,12 @@ bool ggt_localtime(struct tm *ptm);
 	//!< Similar to ggt_gmtime, but expressed in local time.
 
 
+
+bool ggt_SleepMillisec(int millisec);
+	//!< Sleep for a period of time.
+	/*!< The behavior of millisec==0 can be either return immediately or giving current CPU slice,
+	 so don't busy calling ggt_SleepMillisec(0) .
+	*/
 
 __int64 ggt_GetOsMillisec(void);
 	//!< Get number of milliseconds since the device booted, excluding any time that the system was suspended.
