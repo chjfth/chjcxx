@@ -15,6 +15,10 @@
 
 // [2005-10-08] The name TScalableArray starts with a 'T', which indicates it's a template class.
 
+// [2008-08-26] NOTE: This template class is not aware of class ctor, dtor or copy-ctor.
+// If using this template class to hold objects who needs special destruction process,
+// users have to do it themselves!
+
 template<typename T>
 class TScalableArray
 {
@@ -39,10 +43,14 @@ public:
 	ReCode_t m_InitErr;
 	TScalableArray(){ reset(); }
 
-	ReCode_t init(int MaxEle, int InitEle=0, int IncSize=DEF_INCSIZE, int DecSize=DEF_DECSIZE);
 	TScalableArray(ReCode_t &r_re, int MaxEle, int InitEle=0, int IncSize=DEF_INCSIZE, int DecSize=DEF_DECSIZE);
-
+		/*!< 
+		 Note: Use must set r_re to 0 on input.
+		 Note: If InitEle is 0, the object will not cost any heap storage, so it will always succeed.
+		*/
+	
 	~TScalableArray();
+
 
 	int CurrentEles() const { return m_nCurEle; }
 
@@ -94,12 +102,19 @@ public:
 	}
 
 	ReCode_t SetEleQuan(int nNewEle, int isZeroContent);
+		//!< Change the array size to accommodate at least nNewEle elements.
+		/*!< 
+		@param[in] isZeroContent
+			If array size is extended, whether clear new array element to zero.
+		*/
 
 	ReCode_t SetNewIncDecSize(int IncSize, int DecSize);
 
 protected:
 	void reset();
 		// reset the non-class-object members
+
+	ReCode_t init(int MaxEle, int InitEle=0, int IncSize=DEF_INCSIZE, int DecSize=DEF_DECSIZE);
 
 	void ShiftDownEles(int pos, int n);
 	void ShiftUpEles(int pos, int n);
