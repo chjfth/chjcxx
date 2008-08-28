@@ -63,8 +63,8 @@ LIB32=link.exe -lib
 # PROP Output_Dir "Debug"
 # PROP Intermediate_Dir "Debug"
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ  /c
-# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "../../libsrc/include" /I "../../../common-include/mswin" /I "../../../mm_snprintf" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ  /c
+# ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
+# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "../../libsrc/include" /I "../../../common-include/mswin" /I "../../../mm_snprintf" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
 # ADD BASE RSC /l 0x804 /d "_DEBUG"
 # ADD RSC /l 0x804 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -85,6 +85,14 @@ LIB32=link.exe -lib
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
+SOURCE=..\..\libsrc\mswin\dirfuncs.cpp
+# End Source File
+# Begin Source File
+
+SOURCE="..\..\libsrc\fstream-aux.cpp"
+# End Source File
+# Begin Source File
+
 SOURCE="..\..\libsrc\time-common.cpp"
 # End Source File
 # Begin Source File
@@ -95,6 +103,14 @@ SOURCE=..\..\libsrc\mswin\wintime.cpp
 # Begin Group "Header Files"
 
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
+# Begin Source File
+
+SOURCE=..\..\libsrc\include\gadgetlib\dirfuncs.h
+# End Source File
+# Begin Source File
+
+SOURCE="..\..\libsrc\include\gadgetlib\fstream-aux.h"
+# End Source File
 # Begin Source File
 
 SOURCE=..\..\libsrc\include\gadgetlib\timefuncs.h

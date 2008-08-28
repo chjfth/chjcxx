@@ -53,9 +53,20 @@ bool ggt_gmtime(struct tm *ptm);
 	/*!< If gmtime() from your system lib does not support year 2038, use this instead.
 	*/
 
+bool ggt_gmtime_millisec(struct tm *ptm, int *pMillisec);
+	//!< Similar to ggt_gmtime, but return millisecond as well. 
+	/*!< The returned *pMillisec has the range from 0 to 999 . 
+	 If pMillisec is NULL, the millisecond value will not be returned.
+
+	 Implementor's Note: If the system does not support reporting millisecond precision,
+	 *pMillisec should be filled with 0 and return true instead of returning false to user.
+	*/
+
 bool ggt_localtime(struct tm *ptm);
 	//!< Similar to ggt_gmtime, but expressed in local time.
 
+bool ggt_localtime_millisec(struct tm *ptm, int *pMillisec);
+	//!< Similar to ggt_localtime, but return millisecond as well. 
 
 
 bool ggt_SleepMillisec(int millisec);
@@ -104,5 +115,6 @@ TCHAR *ggt_FormatTimeStr_Now(int isLocalTime, ggt_Time_et fmt, TCHAR *buf, int b
 #ifdef __cplusplus
 } // extern"C" {
 #endif
+
 
 #endif

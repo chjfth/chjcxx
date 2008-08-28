@@ -27,7 +27,7 @@ FileTime_to_int64_millisec(const FILETIME *input)
 }
 
 static void 
-Winsystime_to_Ansi_tm(SYSTEMTIME *pst, struct tm *ptm)
+Winsystime_to_Ansi_tm(SYSTEMTIME *pst, struct tm *ptm, int *pMillisec=0)
 {
     static const int dayoffset[12] =
     {0, 31, 59, 90, 120, 151, 182, 212, 243, 273, 304, 334};
@@ -51,6 +51,8 @@ Winsystime_to_Ansi_tm(SYSTEMTIME *pst, struct tm *ptm)
     if (ggt_IsLeapYear(pst->wYear) && (ptm->tm_yday > 58))
         ptm->tm_yday++;
 
+	if(pMillisec)
+		*pMillisec = pst->wMilliseconds;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -103,14 +105,19 @@ ggt_time64_local_millisec()
 	return FileTime_to_int64_millisec(&time);
 }
 
-
 bool 
 ggt_gmtime(struct tm *ptm)
+{
+	return ggt_gmtime_millisec(ptm, NULL);
+}
+
+bool 
+ggt_gmtime_millisec(struct tm *ptm, int *pMillisec)
 {
     SYSTEMTIME st;
     GetSystemTime(&st);
 
-	Winsystime_to_Ansi_tm(&st, ptm);
+	Winsystime_to_Ansi_tm(&st, ptm, pMillisec);
 
 	return true;
 }
@@ -118,10 +125,16 @@ ggt_gmtime(struct tm *ptm)
 bool 
 ggt_localtime(struct tm *ptm)
 {
+	return ggt_localtime_millisec(ptm, NULL);
+}
+
+bool 
+ggt_localtime_millisec(struct tm *ptm, int *pMillisec)
+{
     SYSTEMTIME st;
     GetLocalTime(&st);
 
-	Winsystime_to_Ansi_tm(&st, ptm);
+	Winsystime_to_Ansi_tm(&st, ptm, pMillisec);
 
 	return true;
 }
