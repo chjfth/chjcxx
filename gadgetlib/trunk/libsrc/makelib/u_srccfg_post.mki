@@ -38,6 +38,7 @@ dirNlssvn = $(gmu_ud_SRC_ROOT)/../../..
 ############################################################################
 gmu_up_list_SRC_FROM_ROOT += \
 	time-common.cpp \
+	fstream-aux.cpp \
 
 ############################################################################
 # GMU-var: gmu_ud_list_PRJ_HEADER
