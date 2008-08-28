@@ -23,7 +23,7 @@ template<typename T>
 class TScalableArray
 {
 public:
-	enum ReCode_t// error codes
+	enum ReCode_et // error codes
 	{
 		E_Success = 0,
 		E_Unknown = -1,
@@ -31,6 +31,7 @@ public:
 		E_InvalidParam = -3,
 		E_Full = -4
 	};
+	typedef ReCode_et ReCode_t;
 
 private:
 	enum
@@ -43,9 +44,9 @@ public:
 	ReCode_t m_InitErr;
 	TScalableArray(){ reset(); }
 
-	TScalableArray(ReCode_t &r_re, int MaxEle, int InitEle=0, int IncSize=DEF_INCSIZE, int DecSize=DEF_DECSIZE);
+	TScalableArray(int &err, int MaxEle, int InitEle=0, int IncSize=DEF_INCSIZE, int DecSize=DEF_DECSIZE);
 		/*!< 
-		 Note: Use must set r_re to 0 on input.
+		 Note: Use must set err to 0 on input.
 		 Note: If InitEle is 0, the object will not cost any heap storage, so it will always succeed.
 		*/
 	
@@ -60,10 +61,13 @@ public:
 		return GetEles(pos, pEle, 1);
 	}
 
-	const T* GetElePtr(int pos);
+	T* GetElePtr(int pos);
 		// Note: Adding or deleting elements may cause the returned pointer to become invalid.
+		// [2008-08-27] Not returning const ptr, since user should be allowed to modify any element.
 
 	T& operator[](int pos) const ;
+
+	operator T* () { return GetElePtr(0); }
 		
 	ReCode_t InsertBefore(int pos, const T* array, int n);
 		// Insert `n' elements at position `pos'. Insert all or insert none.
@@ -101,12 +105,16 @@ public:
 		if(n>0) memset(mar_Ele+pos, 0, n*sizeof(T));
 	}
 
-	ReCode_t SetEleQuan(int nNewEle, int isZeroContent);
+	ReCode_t SetEleQuan(int nNewEle, bool isZeroContent);
 		//!< Change the array size to accommodate at least nNewEle elements.
-		/*!< 
+		/*!< After calling SetEleQuan(), original elements in the array will not be changed.
+
 		@param[in] isZeroContent
 			If array size is extended, whether clear new array element to zero.
 		*/
+
+	int GetIncSize() { return m_nIncSize; }
+	int GetDecSize() { return m_nDecSize; }
 
 	ReCode_t SetNewIncDecSize(int IncSize, int DecSize);
 
@@ -147,7 +155,9 @@ TScalableArray<T>::reset()
 	m_InitErr = E_Success;
 
 	mar_Ele = NULL;
-	m_nMaxEle = m_nCurEle = m_nCurStorage = 0;
+	m_nCurEle = m_nCurStorage = 0;
+
+	m_nMaxEle = 0x7FFFfff;
 
 	m_nIncSize = DEF_INCSIZE; m_nDecSize = m_nIncSize*DEF_DECSIZE;
 }
@@ -203,14 +213,14 @@ TScalableArray<T>::init(int MaxEle, int InitEle, int IncSize, int DecSize)
 }
 
 template<typename T>
-TScalableArray<T>::TScalableArray(ReCode_t &r_re, 
+TScalableArray<T>::TScalableArray(int &err, 
 	int MaxEle, int InitEle, int IncSize, int DecSize)
 {
 	reset();
-	if(r_re!=NOERROR_0) 
+	if(err) 
 		return;
 
-	r_re = init(MaxEle, InitEle, IncSize, DecSize);
+	err = init(MaxEle, InitEle, IncSize, DecSize);
 	return;
 }
 
@@ -232,10 +242,10 @@ TScalableArray<T>::GetEles(int pos, T* pEle, int n) const
 }
 
 template<typename T>
-const T* 
+T* 
 TScalableArray<T>::GetElePtr(int pos)
 {
-	if(pos<0 || pos>m_nCurEle) 
+	if(pos<0 || pos>m_nCurEle || !mar_Ele) 
 		return NULL;
 	
 	return mar_Ele+pos;
@@ -396,7 +406,7 @@ TScalableArray<T>::ExtendEles(int nNewEle)
 
 template<typename T>
 typename TScalableArray<T>::ReCode_t 
-TScalableArray<T>::SetEleQuan(int nNewEle, int isZeroContent)
+TScalableArray<T>::SetEleQuan(int nNewEle, bool isZeroContent)
 {
 	if(nNewEle<0) 
 		return E_InvalidParam;
