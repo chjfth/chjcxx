@@ -17,7 +17,9 @@
 #ifdef __cplusplus
 extern"C" {
 #else
-#define bool int; // sly
+# ifndef bool
+# define bool int; // sly
+# endif
 #endif
 
 
