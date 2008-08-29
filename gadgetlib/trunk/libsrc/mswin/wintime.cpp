@@ -168,16 +168,16 @@ ggt_FormatTimeStr_Winsystime(const SYSTEMTIME &st, ggt_Time_et fmt, TCHAR *buf, 
 	buf[0] = _T('\0');
 	if(fmt==ggt_Year)
 	{
-		mm_snprintf(buf, bufsize, "%s%04d-", buf, st.wYear);
+		mm_snprintf(buf, bufsize, _T("%s%04d-"), buf, st.wYear);
 		fmt = ggt_Month;
 	}
 
 	if(fmt==ggt_Month)
 	{
-		mm_snprintf(buf, bufsize, "%s%02d-%02d ", buf, st.wMonth, st.wDay);
+		mm_snprintf(buf, bufsize, _T("%s%02d-%02d "), buf, st.wMonth, st.wDay);
 	}
 
-	mm_snprintf(buf, bufsize, "%s%02d:%02d:%02d", buf,
+	mm_snprintf(buf, bufsize, _T("%s%02d:%02d:%02d"), buf,
 		st.wHour, st.wMinute, st.wSecond);
 
 	return buf;
