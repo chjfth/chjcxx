@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <string.h>
 #include <gadgetlib/charenccvt.h>
 
@@ -60,18 +61,50 @@ ggt_mbs2wcs_go(const char *pmb, int mbbytes, wchar_t *pwc, int wcbufchars,
 	const char *pmb_end_ = pmb + (mbbytes<0 ? strlen(pmb)+1 : mbbytes);
 	wchar_t *pwc_adv = pwc; 
 	const wchar_t *pwc_buf_end_ = pwc + wcbufchars;
+
+	if(badfill==(wchar_t)-1)
+		badfill = L'?';
 	
+	int nBadCvt = 0;
+
 	for(;;)
 	{
-		int mb_this_succ;
 		int mb_done = pmb_adv - pmb;
 		int wc_done = pwc_adv - pwc;
-		mb_consume = ggt_mbs2wcs(
-			pmb_adv, mbbytes-mb_done, pwc_adv, wcbufchars-wc_done,
-			&mb_this_succ);
 
-//		if(mb_consume!=mb_this_succ)
+		int mb_this_do = mbbytes-mb_done;
+
+		wc_consume = ggt_mbs2wcs(
+			pmb_adv, mb_this_do, pwc_adv, wcbufchars-wc_done,
+			&mb_consume);
+
+		assert(mb_consume<=mb_this_do);
+	
+		pmb_adv += mb_consume;
+		pwc_adv += wc_consume;
+
+		if(mb_consume<mb_this_do) // convert error occurs
+		{
+			if(nBadCvt<CvtBufsize)
+			{
+				arBadCvt[nBadCvt].pos_mb = pmb_adv-pmb;
+				arBadCvt[nBadCvt].pos_wc = pwc_adv-pwc;
+			}
+			nBadCvt++;
+
+			pmb_adv++; // skip the bad byte.
+			pwc_adv++;
+			if(pwc_adv<pwc_buf_end_)
+				*pwc_adv = badfill;
+		}
+
+		assert(pmb_adv<=pmb_end_);
+		if(pmb_adv>=pmb_end_)
+			break;
 	}
+
+	if(pBadCvts)
+		*pBadCvts = nBadCvt;
 
 	return 0;
 }

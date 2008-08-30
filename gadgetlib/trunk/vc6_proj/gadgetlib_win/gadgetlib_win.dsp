@@ -89,7 +89,7 @@ SOURCE="..\..\libsrc\charenccvt-common.cpp"
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\libsrc\mswin\charenccvt.cpp
+SOURCE="..\..\libsrc\mswin\charenccvt-win.cpp"
 # End Source File
 # Begin Source File
 
