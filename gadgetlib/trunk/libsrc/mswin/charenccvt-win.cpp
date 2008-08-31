@@ -25,12 +25,17 @@ ggt_mb2wc(const char *mb, int *pConBytes)
 	{
 		// On Windows, an MBCS char is at most 2 bytes (i.e. DBCS). 
 		// UTF-8 is not actually considered MBCS.
-		int wc = MultiByteToWideChar(CP_ACP, 0, mb, 2, wc_out, GetEleQuan_i(wc_out));
+		int wc = MultiByteToWideChar(CP_ACP, MB_ERR_INVALID_CHARS, 
+			mb, 2, wc_out, GetEleQuan_i(wc_out));
+			// note: without MB_ERR_INVALID_CHARS flag, MultiByteToWideChar can't report illegel DBCS trail byte.
 		assert(wc<=1);
-		if(wc==1)
+		if(wc==1) // convert success, two bytes consumed
 			ConBytes = 2;
 		else if(wc==0)
+		{
+			ConBytes = 0;
 			wc_out[0] = (wchar_t)-1;
+		}
 	}
 
 	if(pConBytes)

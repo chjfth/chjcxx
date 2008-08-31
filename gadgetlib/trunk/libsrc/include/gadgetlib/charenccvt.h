@@ -20,6 +20,8 @@ extern"C" {
 # endif
 #endif
 
+#include <string.h> // For PC Windows, otherwise, wchar_t is not defined on VC6.
+
 
 wchar_t ggt_mb2wc(const char *mb, int *pConBytes);
 	//!< Convert an MBCS char pointed to by mb to Unicode value.
