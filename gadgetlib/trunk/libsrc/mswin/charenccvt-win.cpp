@@ -27,7 +27,7 @@ ggt_mb2wc(const char *mb, int *pConBytes)
 		// UTF-8 is not actually considered MBCS.
 		int wc = MultiByteToWideChar(CP_ACP, MB_ERR_INVALID_CHARS, 
 			mb, 2, wc_out, GetEleQuan_i(wc_out));
-			// note: without MB_ERR_INVALID_CHARS flag, MultiByteToWideChar can't report illegel DBCS trail byte.
+			// note: without MB_ERR_INVALID_CHARS flag, MultiByteToWideChar can't report illegal DBCS trail byte.
 		assert(wc<=1);
 		if(wc==1) // convert success, two bytes consumed
 			ConBytes = 2;
