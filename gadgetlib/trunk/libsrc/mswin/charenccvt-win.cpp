@@ -44,4 +44,27 @@ ggt_mb2wc(const char *mb, int *pConBytes)
 	return wc_out[0];
 }
 
+int 
+ggt_wc2mb(wchar_t wc, char *pmb)
+{
+	BOOL isGotBad = 1;
+
+	if(wc<0x80)
+	{
+		*pmb = (char)wc;
+		return 1;
+	}
+	else
+	{
+		int mb = WideCharToMultiByte(CP_ACP, 0, 
+			&wc, 1, pmb, ggt_max_mbcs_byteslen,
+			NULL, &isGotBad);
+		assert(mb>=1);
+		
+		if(isGotBad)
+			return 0;
+		else 
+			return mb;
+	}
+}
 

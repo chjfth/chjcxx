@@ -113,6 +113,10 @@ SOURCE=..\..\libsrc\mswin\wintime.cpp
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
+SOURCE=..\..\libsrc\include\gadgetlib\charenccvt.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\libsrc\include\gadgetlib\dirfuncs.h
 # End Source File
 # Begin Source File
