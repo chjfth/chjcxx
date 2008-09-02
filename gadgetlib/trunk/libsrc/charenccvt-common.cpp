@@ -151,7 +151,7 @@ ggt_wcs2mbs(const wchar_t *pwc, int wcchars, char *pmb, int mbbufbytes, int *pCo
 			if(consume<=0)
 				break;
 
-			if(consume<mbbuf_remain)
+			if(consume<=mbbuf_remain)
 				memcpy(pmb_adv, mbbbuf_tmp, consume);
 		}
 		pmb_adv += consume;
