@@ -39,6 +39,7 @@ dirNlssvn = $(gmu_ud_SRC_ROOT)/../../..
 gmu_up_list_SRC_FROM_ROOT += \
 	time-common.cpp \
 	fstream-aux.cpp \
+	charenccvt-common.cpp \
 
 ############################################################################
 # GMU-var: gmu_ud_list_PRJ_HEADER
@@ -115,6 +116,7 @@ gmu_uv_list_SUBPRJ_LINK_FOR_PARENT = # <subprj-ref> ...
 # <<<< For CVS checkout
 
 include $(gmu_DIR_GNUMAKEUNIPROC)/nlscan/nlssvn-prjs.mki
+tmp := $(eval $(call NlssvnUseSubprj,AnsiC_Tfuncs)) # by dirfuncs, strlen etc
 tmp := $(eval $(call NlssvnUse,mmsnprintf))
 tmp := $(eval $(call NlssvnUse,CommonInclude))
 

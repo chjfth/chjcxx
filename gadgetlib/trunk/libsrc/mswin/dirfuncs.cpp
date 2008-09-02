@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <tchar.h>
+#include <AnsiC_Tfuncs/AnsiC_Tfuncs.h>
+//#include <tchar.h>
 
 #include <windows.h>
 
@@ -24,7 +25,7 @@ ggt_FreeDirfuncBuffer(TCHAR *p)
 TCHAR * 
 ggt_RelPathToAbsPath(const TCHAR *rel, TCHAR *bufprev)
 {
-	int rellen = _tcslen(rel);
+	int rellen = T_strlen(rel);
 	int resultlen = 0;
 	TCHAR *ptmp = NULL, *pRet = NULL;
 
@@ -40,7 +41,7 @@ ggt_RelPathToAbsPath(const TCHAR *rel, TCHAR *bufprev)
 	else
 		return NULL;
 
-	_tcscpy(pRet, rel);
+	T_strcpy(pRet, rel);
 
 #else
 	TCHAR *pFilePart; 
