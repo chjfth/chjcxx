@@ -79,6 +79,11 @@
 */
 
 
+#include <string.h>
+	//[2008-09-02] On MSVC6, wchar_t is not a C keyword yet, so we include
+	//string.h to get the definition of wchar_t.
+
+
 #ifdef _UNICODE
 
 #ifndef __T
@@ -103,7 +108,9 @@
 	 */
 // chj <<<
 
-
+#ifndef _tmain
+# define _tmain wmain
+#endif
 
 
 #else	/* ================ Not _UNICODE ================ */
@@ -125,6 +132,11 @@
  #define _TINT_DEFINED
 #endif*/
 // chj <<<
+
+#ifndef _tmain
+# define _tmain main
+#endif
+
 
 #endif // #ifdef _UNICODE .else
 
