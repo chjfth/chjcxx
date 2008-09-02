@@ -277,7 +277,12 @@
 
 
 #define fast_memcpy memcpy
-#define fast_memset memset
+//#define fast_memset memset
+inline void mm_chrset(TCHAR *p, TCHAR c, int count)
+{
+	int i; for(i=0; i<count; i++) p[i] = c;
+}
+
 
 #define mm_GetEleQuan(array) ((int)(sizeof(array)/sizeof(array[0])))
 
@@ -1021,7 +1026,7 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 			if (n > 0) {
 				if (str_l < str_m) {
 					int /*size_t*/ avail = str_m-str_l;
-					fast_memset(str+str_l, '0', TMM_strmemsize(n>avail?avail:n));
+					mm_chrset(str+str_l, _T('0'), TMM_strmemsize(n>avail?avail:n));
 				}
 				str_l += n;
 			}
