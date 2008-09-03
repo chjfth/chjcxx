@@ -3,6 +3,7 @@
 #include <locale.h>
 
 #include <wchar.h> // for wprintf under linux
+#include <ps_TCHAR.h> // for _tmain macro
 #include <ps_TypeDecl.h>
 #include <mm_snprintf.h>
 
@@ -27,7 +28,7 @@ void mprintW(const wchar_t *fmt, ...)
 	va_list args;
 	va_start(args, fmt);
 	mm_vsnprintfW(buf, sizeof(buf), fmt, args);
-#ifdef _WIN32
+#if defined WIN32 || defined WINCE
 	wprintf(L"%s\n", buf);
 #else // linux
 	wprintf(L"%S\n", buf);
@@ -35,11 +36,11 @@ void mprintW(const wchar_t *fmt, ...)
 	va_end(args);
 }
 
-int main()
+int _tmain()
 {
 //	setlocale(LC_ALL, "");
 
-#ifdef _WIN32
+#if defined WIN32 || defined WINCE
 	mprintA("__int64 [%lld, 0x%llx]", i64, i64);
 #else // linux
 	mprintW(L"__int64 [%lld, 0x%llx]", i64, i64);
