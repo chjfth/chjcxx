@@ -15,6 +15,10 @@
 #endif
 
 
+#ifndef _tmain
+# define _tmain wmain //Just write it here, although wmain is not the recognized on Linux
+#endif
+
 
 #else	/* ================ Not _UNICODE ================ */
 
@@ -27,6 +31,11 @@
 #ifndef _TCHAR_DEFINED
  typedef char     TCHAR;
  #define _TCHAR_DEFINED
+#endif
+
+
+#ifndef _tmain
+# define _tmain main
 #endif
 
 
