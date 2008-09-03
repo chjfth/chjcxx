@@ -1,7 +1,8 @@
 
 
 gmu_ud_SRC_ROOT = ../..
-dirNlssvn = $(gmu_ud_SRC_ROOT)/..
+dirCommonLib = $(gmu_ud_SRC_ROOT)/..
+dirNlssvn = $(dirCommonLib)/..
 
 gmu_uf_LINK_OUTPUT = $(call gmpf_MakeLibName,mm_snprintf)
 
@@ -10,7 +11,9 @@ gmu_up_list_SRC_FROM_ROOT += mm_snprintf.cpp \
 	$(if $(MMSNPRINTF_NO_UNICODE),,mm_snprintfW.cpp) \
 	internal.cpp oldname.cpp
 
-gmp_ud_list_PS_HEADER_PARENT += $(dirNlssvn)/common-include 
+
+include $(gmu_DIR_GNUMAKEUNIPROC)/nlscan/req-common-include.mki
+
 
 gmp_CFLAGS_CODE_GEN_ALL +=
   # You may want to dispense options for gmp_CFLAGS_CODE_GEN_ALL into following 2 categories:

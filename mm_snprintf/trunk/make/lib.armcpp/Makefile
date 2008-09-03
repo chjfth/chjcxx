@@ -1,6 +1,6 @@
 MMSNPRINTF_NO_UNICODE = 1
 
-gmp_PS_INCLUDE_SUBDIRS = armcpp
+# gmp_PS_INCLUDE_SUBDIRS = armcpp
 
 gmu_up_list_SRC_FROM_ROOT += glibc/mm_psfunc.cpp
 	# Yes, use the same mm_psfunc.cpp as glibc, currently.
