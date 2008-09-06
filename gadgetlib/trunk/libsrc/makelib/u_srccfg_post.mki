@@ -41,7 +41,7 @@ gmu_up_list_SRC_FROM_ROOT += \
 	charenccvt-common.cpp \
 
 gmu_up_list_SRC_FROM_ROOT += $(if $(filter wince%,$(gmp_COMPILER_ID)),,fstream-aux.cpp)
-	# WinCE 5.0 still don't provide fopen etc, so don't add  for WinCE .
+	# WinCE 5.0 still don't provide fopen etc, so don't add it for WinCE .
 
 ############################################################################
 # GMU-var: gmu_ud_list_PRJ_HEADER
