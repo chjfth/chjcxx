@@ -61,7 +61,7 @@ wchar_t ggt_mb2wc(const char *mb, int *pConBytes);
 		(wchar_t)-1 will also be returned.
 	*/
 
-int ggt_mbs2wcs(const char *pmb, int mbbytes, wchar_t *pwc, int wcbufchars, int *pConMbBytes);
+int ggt_mbs2wcs(const char *pmb, int mbbytes, wchar_t *pwc=0, int wcbufchars=0, int *pConMbBytes=0);
 	//!< Convert an MBCS string to Unicode string.
 	/*!<
 
@@ -128,7 +128,7 @@ struct ggt_cvt_map_st
 };
 
 int ggt_mbs2wcs_go(const char *pmb, int mbbytes, wchar_t *pwc, int wcbufchars, 
-	wchar_t badfill, int *pBadCvts, struct ggt_cvt_map_st arBadCvt[], int CvtBufsize);
+	wchar_t badfill, int *pBadCvts=0, struct ggt_cvt_map_st arBadCvt[]=0, int CvtBufsize=0);
 	//!< Convert an MBCS string to Unicode string, auto processing bad converts.
 	/*!< This function is similar to ggt_mbs2wcs, except that when invalid MBCS byte sequence
 	 is encountered, it records the position of the bad converts and skip them, go on processing
@@ -188,7 +188,7 @@ int ggt_wc2mb(wchar_t wc, char *pmb);
 	 ggt_check_conversion_facility() .
 	*/
 
-int ggt_wcs2mbs(const wchar_t *pwc, int wcchars, char *pmb, int mbbufbytes, int *pConWcChars);
+int ggt_wcs2mbs(const wchar_t *pwc, int wcchars, char *pmb=0, int mbbufbytes=0, int *pConWcChars=0);
 	//!< Convert an Unicode string to MBCS string .
 	/*!<
 	
@@ -243,8 +243,8 @@ int ggt_wcs2mbs(const wchar_t *pwc, int wcchars, char *pmb, int mbbufbytes, int 
 
 	*/
 
-int ggt_wcs2mbs_go(const wchar_t *pwc, int wcchars, char *pmb, int mbbufbytes, 
-	const char *pszbadfill, int *pBadCvts, struct ggt_cvt_map_st arBadCvt[], int CvtBufsize);
+int ggt_wcs2mbs_go(const wchar_t *pwc, int wcchars, char *pmb=0, int mbbufbytes=0, 
+	const char *pszbadfill=0, int *pBadCvts=0, struct ggt_cvt_map_st arBadCvt[]=0, int CvtBufsize=0);
 	//!< Convert a Unicode string to MBCS string , auto processing bad converts.
 	/*!< This function is similar to ggt_wcs2mbs, except that when invalid conversion happens,
 	 it records the position of the bad converts and skip them, go on processing
