@@ -3,7 +3,7 @@
 #ifdef WIN32 // <io.h> only available on PC Windows, not WinCE
 # include <io.h>
 #else // Unix style below
-# include <unixstd.h>
+# include <unistd.h>
 #endif
 
 #include <gadgetlib/fstream-aux.h>
