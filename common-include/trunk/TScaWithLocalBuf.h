@@ -128,8 +128,9 @@ template<typename T>
 inline T*
 Tscawlb_ReqNewSize(TScalableArray<T> &sca, int ReqSize)
 {
-	TScalableArray<T>::ReCode_t err = 
+	typename TScalableArray<T>::ReCode_et err = 
 		sca.SetEleQuan(UP_ROUND(ReqSize, sca.GetIncSize()), NO);
+		// Note: gcc(4.1.0 today) require 'typename' written above.
 
 	if(err)
 		return NULL;
