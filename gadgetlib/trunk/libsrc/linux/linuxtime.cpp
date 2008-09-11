@@ -121,6 +121,8 @@ __int64
 ggt_GetOsMillisec(void)
 {
 	return ggt_time64_millisec();
+		// The problem:
+		// If the user changes the system time when the system is running, I could get into trouble.
 }
 
 int 
