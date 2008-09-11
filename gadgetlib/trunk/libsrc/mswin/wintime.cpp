@@ -155,9 +155,9 @@ ggt_GetOsMillisec(void)
 }
 
 int 
-ggt_OsMillisecWrapLimit(void)
+ggt_OsMillisecWrapBits(void)
 {
-	return 32;
+	return 32; // bits
 }
 
 //////////////////////////////////////////////////////////////////////////

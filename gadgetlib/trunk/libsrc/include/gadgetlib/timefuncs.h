@@ -84,8 +84,8 @@ __int64 ggt_GetOsMillisec(void);
 	 To compare two [ time points returned by this func ], call ggt_OsMillisecElapsed().
 	*/
 
-int ggt_OsMillisecWrapLimit(void);
-	//!< Query the wrap limit of ggt_GetOsMillisec()'s return value.
+int ggt_OsMillisecWrapBits(void);
+	//!< Query the wrap bits of ggt_GetOsMillisec()'s return value.
 	/*!< The value is represented in bits. e.g. for Win32 GetTickCout() which wraps at 2^32,
 	 this function will return 32.
 	*/
