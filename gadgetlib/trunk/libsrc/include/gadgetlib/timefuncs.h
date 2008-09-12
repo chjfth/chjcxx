@@ -106,12 +106,18 @@ TCHAR *ggt_FormatTimeStr(__int64 t64sec, ggt_Time_et fmt, TCHAR *buf, int bufsiz
 		- ggt_Year: outputs YYYY-MM-DD hh:mm:ss
 		- ggt_Month: outputs MM-DD hh:mm:ss
 		- ggt_Hour: outputs hh:mm:ss
+
+	@return Return buf.
+		If error occurs, buf[0] is NULL character.
 	*/
 
 
 TCHAR *ggt_FormatTimeStr_Now(int isLocalTime, ggt_Time_et fmt, TCHAR *buf, int bufsize);
 	//!< Similar to ggt_FormatTimeStr, but use current time.
 	/*!< isLocalTime tells whether express time in local timezone or UTC . 
+
+	@return Return buf.
+		If get system time fail, buf[0] is NULL character.
 	*/
 
 #ifdef __cplusplus
