@@ -19,7 +19,7 @@ override gmp_bc_UNICODE :=
 	# and non-Unicode implementation in one library file.
 	# * By default, Unicode and non-Unicode will both be compiled, and the _UNICODE macro
 	#	is automatically defined when doing Unicode compile(see u_post_gmucore.mki for the place it is defined).
-	# * If user don't want to Unicode code, just set MMSNPRINTF_NO_UNICODE to non-null.
+	# * If user don't want Unicode code, just set MMSNPRINTF_NO_UNICODE to non-null.
 	
 gmp_USER_FIRST_TARGET = mm_snprintf_FirstTarget
 
