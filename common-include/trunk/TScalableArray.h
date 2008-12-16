@@ -54,6 +54,7 @@ public:
 
 
 	int CurrentEles() const { return m_nCurEle; }
+	int CurrentStorage() const { return m_nCurStorage; }
 
 	ReCode_t GetEles(int pos, T* pEle, int n) const;
 	ReCode_t GetEle(int pos, T* pEle) const
@@ -84,6 +85,9 @@ public:
 	{
 		return InsertBefore(m_nCurEle, tobj);
 	}
+
+	ReCode_t AppendAt(int pos, const T* array, int n);
+	ReCode_t AppendAt(int pos, const T tobj);
 
 	ReCode_t DeleteEles(int pos, int n);
 		// A too large `n' means delete all eles starting at `pos'
@@ -340,6 +344,11 @@ TScalableArray<T>::DeleteEles(int pos, int n)
 
 	m_nCurEle -= nEleToDelete;
 	
+	if(m_nCurEle >= m_nCurStorage-m_nDecSize)
+	{	//[2008-12-16] Optimize: Check this to avoid doing OCC_DIVIDE every time.
+		return E_Success;
+	}
+
 	int occn_orig = OCC_DIVIDE(m_nCurStorage, m_nDecSize);
 	int occn_new = OCC_DIVIDE(m_nCurEle+m_nIncSize, m_nDecSize);
 
@@ -452,6 +461,45 @@ TScalableArray<T>::SetNewIncDecSize(int IncSize, int DecSize)
 	m_nIncSize = IncSize;
 	m_nDecSize = DecSize;
 	
+	return E_Success;
+}
+
+template<typename T>
+typename TScalableArray<T>::ReCode_t 
+TScalableArray<T>::AppendAt(int pos, const T* array, int n)
+{
+	if(pos<0 || pos>m_nCurEle)
+		return E_InvalidParam;
+
+	if(pos==m_nCurEle)
+	{
+		return AppendTail(array, n);
+	}
+	else if(pos+n<=m_nCurEle)
+	{
+		CopyInEles(pos, n, array);
+		return E_Success;
+	}
+	else
+	{
+		int nOverWrite = m_nCurEle-pos;
+		CopyInEles(pos, nOverWrite, array);
+		return AppendTail(array+nOverWrite, n-nOverWrite);
+	}
+}
+
+template<typename T>
+typename TScalableArray<T>::ReCode_t 
+TScalableArray<T>::AppendAt(int pos, const T tobj)
+{
+	if(pos<0 || pos>m_nCurEle)
+		return E_InvalidParam;
+
+	if(pos==m_nCurEle)
+		AppendTail(tobj);
+	else
+		mar_Ele[pos] = tobj;
+
 	return E_Success;
 }
 
