@@ -14,7 +14,7 @@ Purpose: Common header file containing handy macros and definitions
 //////////////////////// Windows Version Build Option /////////////////////////
 
 
-#define _WIN32_WINNT 0x0500
+//#define _WIN32_WINNT 0x0500	//Chj comment it.
 //#define WINVER       0x0500
 
 
