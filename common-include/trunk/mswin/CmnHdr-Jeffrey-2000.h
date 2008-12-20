@@ -269,10 +269,7 @@ static CUnicodeSupported g_UnicodeSupported;
 #endif
 
 
-/////////////////////////// Force Windows subsystem ///////////////////////////
-
-
-#pragma comment(linker, "/subsystem:Windows")
+//#pragma comment(linker, "/subsystem:Windows")
 
 
 ///////////////////////////////// End of File /////////////////////////////////
