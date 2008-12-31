@@ -1,3 +1,5 @@
+[2008-08-XX] Chj: Naming rule:
+Names of functions, structs, constants in this gadgetlib should all start with ggt_ .
 
 [2008-08-11] Chj:
 The interfaces here should strive to be as independent as possible, e.g. use standard types
