@@ -73,10 +73,14 @@ char *ggt_RoundMbcsString(const char *pIn, int InBytes, const char *pByteResetSc
 		  - ggt_RoundHeadUp tells ggt_RoundMbcsString try to find an MBCS lead-byte 
 		    ahead of pIn -- if *pIn itself is not considered as lead-byte by ggt_RoundMbcsString.
 		  - ggt_RoundHeadDown tells ggt_RoundMbcsString try to find an MBCS lead-byte
-		    after pIn -- if *pIn itself is not considered as lead-byte by ggt_RoundMbcsString.
+		    after   pIn  -- if *pIn itself is not considered as lead-byte by ggt_RoundMbcsString.
 		* Second group, ggt_RoundTailUp and ggt_RoundTailDown. You can choose either one.
-		  These two have similar meaning as group one, except that they deal with tail 
-		  of the user provided string -- that is the bytes around pIn+InBytes .
+		  - ggt_RoundTailUp tells ggt_RoundMbcsString try to find an MBCS trail-byte 
+		    ahead of pIn+InBytes-1 -- if pIn[InBytes-1] itself is not considered as trail-byte.
+		  - ggt_RoundTailDown tells ggt_RoundMbcsString try to find an MBCS trail-byte 
+		    after   pIn+InBytes-1  -- if pIn[InBytes-1] itself is not considered as trail-byte.
+			
+		  of the user provided string -- that is the bytes around pIn+InBytes-1 .
 
 	@param[out] pResultBytes
 		Outputs the bytes of the adjusted MBCS string. This may be more or less than InBytes.
@@ -177,6 +181,25 @@ char *ggt_RoundMbcsString(const char *pIn, int InBytes, const char *pByteResetSc
          * If pByteResetScan==pAllText, Return [pIn-1, 4]
            Rescanning produce the correct result.
         
+	Case 11: (weird input)
+        "IBMÀ¶4µçÄÔ"
+             ^pIn , InBytes=1 , Flag=ggt_RoundHeadDown|ggt_RoundTail(Up/Down)
+         * If pByteResetScan==NULL,     Return [pIn, 1]
+           Reason: Without rescaning, ggt_RoundMbcsString will take 0xE7C4 as an MBCS Char.
+         * If pByteResetScan==pAllText, Return [pIn+1, 0]
+           Rescanning produce the correct result.
+      Note for this case: If after round-head-down, the head pointer goes after the tail pointer,
+      the returned *pResultBytes will always be 0.
+
+	Case 12: (weird input)
+        "IBMÀ¶4µçÄÔ"
+            ^pIn , InBytes=1 , Flag=ggt_RoundHead(Up/Down)|ggt_RoundTailUp
+         * If pByteResetScan==NULL,     Return [pIn, 0]
+           Reason: Without rescaning, ggt_RoundMbcsString will take 0xE7C4 as an MBCS Char.
+         * If pByteResetScan==pAllText, Return [pIn, 0]
+           Rescanning produce the correct result.
+      Note for this case: If after round-tail-up, the tail pointer goes before the head pointer,
+      the returned *pResultBytes will always be 0.
 
 	</pre>
 	*/
