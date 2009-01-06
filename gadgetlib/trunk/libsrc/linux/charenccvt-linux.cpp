@@ -17,8 +17,11 @@ ggt_charnext(const char *pchar)
 char *
 _ggt_charnext_on_illegal_lead_byte(const char *pchar)
 {
-	char *pret = CharNextExA(CP_ACP, pchar, 0);
-	return pret;
+	// unsure yet.
+	if(pchar[0]==0)
+		return pchar;
+	else
+		return pchar+1; 
 }
 
 /*
