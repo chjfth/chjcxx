@@ -1,5 +1,7 @@
 #include <assert.h>
 #include <string.h>
+
+#include <in_char_op.h>
 #include <gadgetlib/charenccvt.h>
 
 
@@ -92,7 +94,7 @@ ggt_mbs2wcs_go(const char *pmb, int mbbytes, wchar_t *pwc, int wcbufchars,
 			}
 			nBadCvt++;
 
-			pmb_adv = ggt_charnext(pmb_adv); // skip the bad byte.
+			pmb_adv = _ggt_charnext_on_illegal_lead_byte(pmb_adv); // skip the bad byte.
 				// Don't just use pmb_adv++ since it may be different from
 				// underlying system's perspective.
 

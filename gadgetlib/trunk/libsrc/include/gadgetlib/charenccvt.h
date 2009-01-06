@@ -36,28 +36,6 @@ enum { ggt_max_mbcs_byteslen = 6 };
 	/*!< I use 6 because an character represented in UTF-8 can be as long as 6 bytes.
 	*/
 
-char *ggt_charnext(const char *pchar);
-	//!< Determine what is the next character in a MBCS byte sequence.
-	/*!< ...
-	 This function shows its special significance when pchar points to an illegal
-	 MBCS byte sequence, e.g. in GBK encoding(codepage=936), (hex) B0 34 is 
-	 an illegal sequence since 0x34 is not a valid trail-byte of a GBK character.
-	 In this case, there are two equally reasonable decisions:
-	   1. Take 0x34 as next char.
-	   2. Take the byte sequence after 0x34 as next char. 
-	 Different system(OS platform) may take different choice, so it is suggested to
-	 call ggt_charnext to determine the "next char" in current system's perspective.
-
-	 PS: Windows takes choice 2 .
-
-	@param[in] pchar
-		Points to input MBCS byte sequence.
-
-	@return
-		If *pchar!='\0', return the pointer to the next MBCS character.
-		If *pchar=='\0', just return pchar.
-	*/
-
 wchar_t ggt_mb2wc(const char *mb, int *pConBytes);
 	//!< Convert an MBCS char pointed to by mb to Unicode value.
 	/*!< ggt_mb2wc checks the bytes sequence pointed to by mb for an MBCS char, 
@@ -298,6 +276,29 @@ int ggt_wcs2mbs_go(const wchar_t *pwc, int wcchars, char *pmb=0, int mbbufbytes=
 	@return
 		MBCS bytes written to output buffer, -- assuming output buffer is sufficient.
 
+	*/
+
+
+char *ggt_charnext(const char *pchar);
+	//!< Determine what is the next character in a MBCS byte sequence.
+	/*!< ...
+	 This function shows its special significance when pchar points to an illegal
+	 MBCS byte sequence, e.g. in GBK encoding(codepage=936), (hex) B0 34 is 
+	 an illegal sequence since 0x34 is not a valid trail-byte of a GBK character.
+	 In this case, there are two equally reasonable decisions:
+	   1. Take 0x34 as next char.
+	   2. Take the byte sequence after 0x34 as next char. 
+	 Different system(OS platform) may take different choice, so it is suggested to
+	 call ggt_charnext to determine the "next char" in current system's perspective.
+
+	 PS: Windows takes choice 2 .
+
+	@param[in] pchar
+		Points to input MBCS byte sequence.
+
+	@return
+		If *pchar!='\0', return the pointer to the next MBCS character.
+		If *pchar=='\0', just return pchar.
 	*/
 
 

@@ -1,9 +1,6 @@
 #include <assert.h>
 #include <stdio.h>
 
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-
 #include <commdefs.h>
 
 #include <in_char_op.h>
@@ -13,8 +10,8 @@
 char *
 ggt_charnext(const char *pchar)
 {
-	char *pret = CharNextExA(CP_ACP, pchar, 0);
-	return pret;
+	//not implemented yet.
+	return NULL;
 }
 
 char *
@@ -24,7 +21,7 @@ _ggt_charnext_on_illegal_lead_byte(const char *pchar)
 	return pret;
 }
 
-
+/*
 wchar_t 
 ggt_mb2wc(const char *mb, int *pConBytes)
 {
@@ -84,4 +81,4 @@ ggt_wc2mb(wchar_t wc, char *pmb)
 			return mb;
 	}
 }
-
+*/
