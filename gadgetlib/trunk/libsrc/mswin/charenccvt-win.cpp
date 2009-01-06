@@ -8,6 +8,13 @@
 #include <gadgetlib/charenccvt.h>
 
 
+char *
+ggt_charnext(const char *pchar)
+{
+	char *pret = CharNextExA(CP_ACP, pchar, 0);
+	return pret;
+}
+
 wchar_t 
 ggt_mb2wc(const char *mb, int *pConBytes)
 {

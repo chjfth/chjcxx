@@ -92,7 +92,10 @@ ggt_mbs2wcs_go(const char *pmb, int mbbytes, wchar_t *pwc, int wcbufchars,
 			}
 			nBadCvt++;
 
-			pmb_adv++; // skip the bad byte.
+			pmb_adv = ggt_charnext(pmb_adv); // skip the bad byte.
+				// Don't just use pmb_adv++ since it may be different from
+				// underlying system's perspective.
+
 			if(pwc_adv<pwc_buf_end_)
 				*pwc_adv = badfill;
 			pwc_adv++;
