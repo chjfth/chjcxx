@@ -9,6 +9,7 @@ extern"C" {
 enum ggt_RoundMbcs_et {
 	ggt_RoundHeadUp = 1, ggt_RoundHeadDown = 0,
 	ggt_RoundTailUp = 2, ggt_RoundTailDown = 0,
+	ggt_RoundBothUp = 3/*1|2*/, ggt_RoundBothDown = 0,
 };
 
 
@@ -65,7 +66,7 @@ char *ggt_RoundMbcsString(const char *pIn, int InBytes, const char *pStartScan,
 		Without such scanning, we cannot know the accurate answer.
 			\n
 		If NULL, no such scanning will be carried out, so the request of ggt_RoundHeadUp
-		will be ignored.
+		will be ignored, and the return value will be exactly pStartScan .
 			\n
 		If not NULL, the scanning from pStartScan will always be carried out so as
 		to get the most accurate result.
@@ -117,35 +118,36 @@ char *ggt_RoundMbcsString(const char *pIn, int InBytes, const char *pStartScan,
 	Case 1:
         "IBMÀ¶4µçÄÔ"
           ^pIn, InBytes=2
-         Return [pIn, 2] // which means: return value is pIn, and *pResultBytes=2 .
+         Return [pIn, 2, 2] // meaning: return value is pIn, *pResultBytes=2, *pResultChars=2 .
 
 	Case 2:
         "IBMÀ¶4µçÄÔ"
           ^pIn , InBytes=3 , Flag=ggt_RoundTailDown
          In this case, input tail splits an MBCS Char, so the tail must be adjusted on return.
-         Return [pIn, 4]
+         Return [pIn, 4, 3]
 
 	Case 3:
         "IBMÀ¶4µçÄÔ"
           ^pIn , InBytes=3 , Flag=ggt_RoundTailUp
          Similar to Case 2, only Flag different
-         Return [pIn, 2]
+         Return [pIn, 2, 2]
 
 	Case 4:
         "IBMÀ¶4µçÄÔ"
              ^pIn , InBytes=2 , Flag=ggt_RoundHeadDown
-         In this case, input head points to an MBCS trail-byte, and it does not make up another 
-         MBCS Char with the byte following it(0x34). So,
+         In this case, input head points to an MBCS trail-byte, and we know it does not make up another 
+         MBCS Char with the byte following it(0x34). However, ggt_RoundMbcsString does not know
+		 this bad trail-byte problem unless we provide a non-NULL pStartScan .
          * If pStartScan==NULL, two sub-cases. 
-		   ggt_RoundMbcsString recognize 0xB6 is an MBCS lead-byte, so it calls system function
+		   ggt_RoundMbcsString unconditionally think 0xB6 is an MBCS lead-byte, so it calls 
 		   procCharNext to determine if 0x34 is a trail-byte. 
 		   - Sub-case1: 0x34 is reported as a trail-byte, 
-		     Return [pIn, 2] // Sigh, it results in an invalid MBCS sequence.
-		   - Sub-case2: 0x34 is not reported as a trail-byte, 0x34 is considered the next valid MBCS Char.
-             Return [pIn+1, 1]
+		     Return [pIn, 2, 1] // Sigh, it results in an invalid MBCS sequence.
+		   - Sub-case2: 0x34 is not reported as a trail-byte, i.e 0x34 is considered the next valid MBCS Char.
+             Return [pIn, 2, 2]
          * If pStartScan==pAllText, ggt_RoundMbcsString will do a scan from pAllText and
            deduce that 0xCOB6 is an MBCS Char, so next MBCS Char is 0x34.
-           Return [pIn+1, 1]
+           Return [pIn+1, 1, 1]
 
 	Case 5:
         "IBMÀ¶4µçÄÔ"
@@ -153,10 +155,11 @@ char *ggt_RoundMbcsString(const char *pIn, int InBytes, const char *pStartScan,
          Similar to Case 4, only Flag different. 
          * If pStartScan==NULL, so ggt_RoundMbcsString don't know how to find the MBCS Char
            just ahead of pIn, so he leave the head position intact.
-           Return [pIn, 2]
+           - If 0xB634 is reported as one MBCS char,     return [pIn, 2, 1] .
+           - If 0xB6 alone is reported as one MBCS char, return [pIn, 2, 2] .
          * If pStartScan==pAllText, ggt_RoundMbcsString will do a scan from pAllText and
            deduce that 0xCOB6 is an MBCS Char, so the head is rounded UP.
-           Return [pIn-1, 3]
+           Return [pIn-1, 3, 2]
          
         Caveat from Case 4 and 5: pStartScan==NULL leaves a "bad" output, so, when you are not certain
         whether pIn already points to a lead-byte, you should give pStartScan to make a safe scan.
@@ -166,51 +169,53 @@ char *ggt_RoundMbcsString(const char *pIn, int InBytes, const char *pStartScan,
              ^pIn , InBytes=1 , Flag=ggt_RoundHeadUp
          Similar to Case 5, but InBytes=1. (no new tricky thing for this case)
          * If pStartScan==NULL,
-           - If 0xB634 is reported as one MBCS char,     return [pIn, 2] .
-           - If 0xB6 alone is reported as one MBCS char, return [pIn, 1] .
+           - If 0xB634 is reported as one MBCS char,     return [pIn, 2, 1] .
+           - If 0xB6 alone is reported as one MBCS char, return [pIn, 1, 1] .
          * If pStartScan==pAllText, 
-           Return [pIn-1, 2]
+           Return [pIn-1, 2, 1]
 
 	Case 7:
         "IBMÀ¶4µçÄÔ"
              ^pIn , InBytes=1 , Flag=ggt_RoundHeadDown
          Similar to Case 4, but InBytes=1.
          * If pStartScan==NULL, 
-           - If 0xB634 is reported as one MBCS char,     return [pIn, 2] .
-           - If 0xB6 alone is reported as one MBCS char, return [pIn, 1] .
+           - If 0xB634 is reported as one MBCS char,     return [pIn, 2, 1] .
+           - If 0xB6 alone is reported as one MBCS char, return [pIn, 1, 1] .
          * If pStartScan==pAllText, 
-           Return [pIn+1, 0]
+           Return [pIn+1, 0, 0]
 
 	Case 8:
         "IBMÀ¶4µçÄÔ"
              ^pIn , InBytes=3 , Flag=ggt_RoundHeadUp|ggt_RoundTailDown
-         * If pStartScan==NULL,     Return [pIn, 4]
-         * If pStartScan==pAllText, Return [pIn-1, 5]
+         * If pStartScan==NULL, 
+           - If 0xB634 is reported as one MBCS char,     return [pIn, 4, 2] .
+           - If 0xB6 alone is reported as one MBCS char, return [pIn, 4, 3] .
+         * If pStartScan==pAllText, Return [pIn-1, 5, 3]
 
 	Case 10:
         "IBMÀ¶4µçÄÔ"
                 ^pIn , InBytes=3 , Flag=ggt_RoundHeadUp|ggt_RoundTailDown
-         * If pStartScan==NULL,     Return [pIn, 3]
+         * If pStartScan==NULL,     Return [pIn, 3, 2]
            Reason: Without rescaning, ggt_RoundMbcsString will take 0xE7C4 as an MBCS Char.
-         * If pStartScan==pAllText, Return [pIn-1, 4]
+         * If pStartScan==pAllText, Return [pIn-1, 4, 2]
            Rescanning produce the correct result.
         
 	Case 11: (weird input)
         "IBMÀ¶4µçÄÔ"
              ^pIn , InBytes=1 , Flag=ggt_RoundHeadDown|ggt_RoundTailUp
 		 Similar to Case 7, but ggt_RoundTailUp
-         * If pStartScan==NULL,     //xxxxxx Return [pIn, 1]
-           - If 0xB634 is reported as one MBCS char,     return [pIn, 0] .
-           - If 0xB6 alone is reported as one MBCS char, return [pIn, 1] .
-         * If pStartScan==pAllText, Return [pIn+1, 0]
+         * If pStartScan==NULL,   
+           - If 0xB634 is reported as one MBCS char,     return [pIn, 0, 0] .
+           - If 0xB6 alone is reported as one MBCS char, return [pIn, 1, 1] .
+         * If pStartScan==pAllText, Return [pIn+1, 0, 0]
       Note for this case: If after round-head-down, the head pointer goes behind 
 	  the rounded(up/down) tail pointer, the returned *pResultBytes will always be 0.
 
 	Case 12: (weird input)
         "IBMÀ¶4µçÄÔ"
             ^pIn , InBytes=1 , Flag=ggt_RoundHead(Up/Down)|ggt_RoundTailUp
-         * If pStartScan==NULL,     Return [pIn, 0]
-         * If pStartScan==pAllText, Return [pIn, 0]
+         * If pStartScan==NULL,     Return [pIn, 0, 0]
+         * If pStartScan==pAllText, Return [pIn, 0, 0]
       Note for this case: If after round-tail-up, the tail pointer goes ahead of the head pointer,
       the returned *pResultBytes will always be 0.
 

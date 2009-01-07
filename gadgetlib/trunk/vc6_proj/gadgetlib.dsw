@@ -27,6 +27,21 @@ Package=<4>
 
 ###############################################################################
 
+Project: "testRoundMbcs"=.\testRoundMbcs\testRoundMbcs.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name gadgetlib_win
+    End Project Dependency
+}}}
+
+###############################################################################
+
 Project: "test_mb2uc"=.\test_mb2uc\test_mb2uc.dsp - Package Owner=<4>
 
 Package=<5>

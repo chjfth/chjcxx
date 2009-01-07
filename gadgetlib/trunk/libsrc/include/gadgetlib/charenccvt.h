@@ -36,6 +36,9 @@ enum { ggt_max_mbcs_byteslen = 6 };
 	/*!< I use 6 because an character represented in UTF-8 can be as long as 6 bytes.
 	*/
 
+#define ggt_INVALID_WCHAR ((wchar_t)-1)
+
+
 wchar_t ggt_mb2wc(const char *mb, int *pConBytes);
 	//!< Convert an MBCS char pointed to by mb to Unicode value.
 	/*!< ggt_mb2wc checks the bytes sequence pointed to by mb for an MBCS char, 
@@ -53,8 +56,11 @@ wchar_t ggt_mb2wc(const char *mb, int *pConBytes);
 	@return
 		Return the Unicode char.
 		If the bytes from mb does not compose a valid MBCS char, (wchar_t)-1 is returned.
+		Suggestion: Use macro ggt_INVALID_WCHAR for (wchar_t)-1 .
+		Warning: if wchar_t equals "unsigned short", omitting (wchar_t) before -1 will wrong compare result.
+			\n
 		Note: If the first byte(HZ: jiu) can not be recognized as an MBCS char, -1 will
-		be returned with no further bytes being examined.
+		be returned with no further bytes being examined.([2009-01-07]STOP! How can this happen?)
 			\n\n
 		If the conversion facility fails to work(e.g. MBCS<->Unicode mapping table absent),
 		(wchar_t)-1 will also be returned.

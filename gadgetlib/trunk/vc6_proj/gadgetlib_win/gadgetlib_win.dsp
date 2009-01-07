@@ -101,6 +101,10 @@ SOURCE="..\..\libsrc\fstream-aux.cpp"
 # End Source File
 # Begin Source File
 
+SOURCE="..\..\libsrc\mbcs-ops.cpp"
+# End Source File
+# Begin Source File
+
 SOURCE="..\..\libsrc\time-common.cpp"
 # End Source File
 # Begin Source File
@@ -122,6 +126,10 @@ SOURCE=..\..\libsrc\include\gadgetlib\dirfuncs.h
 # Begin Source File
 
 SOURCE="..\..\libsrc\include\gadgetlib\fstream-aux.h"
+# End Source File
+# Begin Source File
+
+SOURCE="..\..\libsrc\include\gadgetlib\mbcs-ops.h"
 # End Source File
 # Begin Source File
 
