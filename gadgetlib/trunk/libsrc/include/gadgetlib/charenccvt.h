@@ -279,9 +279,10 @@ int ggt_wcs2mbs_go(const wchar_t *pwc, int wcchars, char *pmb=0, int mbbufbytes=
 	*/
 
 
+
 char *ggt_charnext(const char *pchar);
-	//!< Determine what is the next character in a MBCS byte sequence.
-	/*!< ...
+	//!< Determine what is the next character in a MBCS byte sequence. 
+	/*!< ... Almost the same to Windows API CharNext.
 	 This function shows its special significance when pchar points to an illegal
 	 MBCS byte sequence, e.g. in GBK encoding(codepage=936), (hex) B0 34 is 
 	 an illegal sequence since 0x34 is not a valid trail-byte of a GBK character.
@@ -301,6 +302,20 @@ char *ggt_charnext(const char *pchar);
 		If *pchar=='\0', just return pchar.
 	*/
 
+char *ggt_charprev(const char *pStartScan, const char *pCurChar);
+	//!< Find the character(may be a MBCS character) preceding pCurChar. 
+	/*!< Almost the same to Windows API CharPrev.
+
+	@param[in] pStartScan
+		Pointer to the start scanning position, i.e. start of your MBCS string.
+
+	@param[in] pCurChar
+		Pointer to the MBCS character to which you'd like to know the previous character.
+
+	return
+		Return pointer to the previous character to pCurChar.
+		Special: If pCurChar==pSstartScan, pCurChar is returned.
+	*/
 
 #ifdef __cplusplus
 } // extern"C" {

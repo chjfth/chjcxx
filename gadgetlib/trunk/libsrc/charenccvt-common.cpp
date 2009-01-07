@@ -228,3 +228,20 @@ int ggt_wcs2mbs_go(const wchar_t *pwc, int wcchars, char *pmb, int mbbufbytes,
 
 	return pmb_adv - pmb;
 }
+
+
+char *
+ggt_charprev(const char *start, const char *ptr)
+{
+	// code from WINE 0.9.9
+	while (*start && (start < ptr))
+	{
+		const char * next = ggt_charnext( start );
+		if (next >= ptr) 
+			break;
+		start = next;
+	}
+	return (char*)start;
+
+}
+
