@@ -118,9 +118,9 @@ gmu_uv_list_SUBPRJ_LINK_FOR_PARENT = # <subprj-ref> ...
 # <<<< For CVS checkout
 
 include $(gmu_DIR_GNUMAKEUNIPROC)/nlscan/nlssvn-prjs.mki
-tmp := $(eval $(call NlssvnUseSubprj,AnsiC_Tfuncs)) # by dirfuncs, strlen etc
-tmp := $(eval $(call NlssvnUseSubprj,mmsnprintf))
-tmp := $(eval $(call NlssvnUseHeader,CommonInclude))
+$(call NlssvnLinkSubprjForParent,AnsiC_Tfuncs) # by dirfuncs, strlen etc
+$(call NlssvnLinkSubprjForParent,mmsnprintf)
+$(call NlssvnUseHeader,CommonInclude)
 
 # ----------- below for plugins -----------
 
