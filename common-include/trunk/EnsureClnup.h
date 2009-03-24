@@ -198,8 +198,19 @@ public:
 #define MakeCleanupIntClass(CecClassName, RET_TYPE_of_CleanupFunction, pCleanupFunction, INT_TYPE, IntValueInvalid) \
 	typedef CEnsureCleanupInt<INT_TYPE, RET_TYPE_of_CleanupFunction, pCleanupFunction, IntValueInvalid> CecClassName;
 
+#ifdef __ARMCC_VERSION
+	// For the old ARM SDT 2.50
+
+#define MakeCleanupPtrClass_delete(CecClassName, PTR_TYPE) \
+	inline void __delete_##CecClassName(PTR_TYPE p) { delete p; } \
+	MakeCleanupPtrClass(CecClassName, void, __delete_##CecClassName, PTR_TYPE)
+
+#else // not __ARMCC_VERSION
+
 template<typename PTR_TYPE>
 inline void _EnsureClnup_cpp_delete(PTR_TYPE p){ delete p; }
+	// The old ARM SDT 2.50 spouts error: 
+	//    Serious error: requires pointer argument: 'delete'
 
 #define MakeCleanupPtrClass_delete(CecClassName, PTR_TYPE) \
 	MakeCleanupPtrClass(CecClassName, void, _EnsureClnup_cpp_delete<PTR_TYPE>, PTR_TYPE)
@@ -211,6 +222,8 @@ inline void _EnsureClnup_cpp_array_delete(PTR_TYPE p){ delete []p; }
 	MakeCleanupPtrClass(CecClassName, void, _EnsureClnup_cpp_array_delete<PTR_TYPE>, PTR_TYPE)
 	// Note: In this macro name, I put "array" before "delete" because in ``delete []p'',
 	// ``[]'' is written before ``p'' .
+
+#endif // ! // __ARMCC_VERSION
 
 
 #define MakeCleanupPtrArrayClass(CecClassName, RET_TYPE_of_CleanupFunction, pCleanupFunction, USER_TYPE) \
