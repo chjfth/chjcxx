@@ -4,7 +4,8 @@
 #include <TScalableArray.h>
 
 //! Pick an optimized buffer between a local buffer or an TScalableArray maintained buffer.
-/*! 
+/*! This function compares two buffers provided by LocalBuf and sca, returning the
+  larger one's pointer to the caller. So, "optimized" means "larger" here.
 
  @param[in] LocalBuf
 	Local buffer is usually a buffer(array) allocated on a function's stack.
@@ -19,8 +20,7 @@
 	This output tells the size of buffer pointed to by the returned pointer.
 
  @return
-  This function compares two buffers provided by LocalBuf and sca, returning the
-  larger one's pointer to the caller. 
+	Return the optimized buffer pointer.   
 
   NOTE: "Buffer size" are all described in T elements.
 
@@ -61,10 +61,16 @@ Tscawlb_PickOptBuf(T *LocalBuf, int LocalBufsize, TScalableArray<T> &sca, int *p
  @sca[in]
 	An TScalableArray object who can provide scalable buffer.
 
- @pReize[in/out] (requested and returned size)
+ @pReSize[in/out] (requested and returned size)
 	On input, tells the buffer size request; on output, tells the available buffer size
 	by the returned pointer. This may be larger than the requested size.
 	This output tells the size of buffer pointed to by the returned pointer.
+		\n
+	Q: Why the returned *pReSize can be larger than Input?
+	A: TScalableArray does not increase memory allocation on a byte-by-byte basis, instead,
+	   it may offer to increase allocation chunk by chunk(a chunk is multiple bytes) to
+	   increase operation efficiency. So Tscawlb_ReqOptBuf may allocate more bytes for
+	   you and tell you the fact by output *pReSize.
 
  @isShrinkSca[in]
 	If requested size is larger than LocalBuf but smaller than sca, whether call 
