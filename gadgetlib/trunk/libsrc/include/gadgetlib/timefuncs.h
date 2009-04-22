@@ -44,7 +44,7 @@ __int64 ggt_time64_local(void);
 	//!< Similar to ggt_time64(), but express in localtime.
 
 __int64 ggt_time64_millisec(void);
-	//!< Similar to ggt_time64(), but express millisecond instead of second.
+	//!< Similar to ggt_time64(), but express in millisecond instead of in second.
 
 __int64 ggt_time64_local_millisec(void);
 	//!< Similar to ggt_time64_local(), but express millisecond instead of second.

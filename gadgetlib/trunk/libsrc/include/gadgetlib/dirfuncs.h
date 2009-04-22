@@ -33,10 +33,13 @@ TCHAR * ggt_RelPathToAbsPath(const TCHAR *rel, TCHAR *bufprev=0);
 
 	@param[in] bufprev
 		Buffer pointer returned by previous ggt_RelPathToAbsPath() or other functions
-		declared here. 
+		declared in this header(e.g TO-BE-ADDED). 
 		- If NULL, a new buffer will be allocated for the caller.
 		- If non-NULL, this function will check whether bufprev can be re-used to accommodate
 		  the result, this improves some performance. The internal works like ANSI C realloc().
+		  
+		Note again: You cannot pass a casual TCHAR pointer to bufprev, e.g. you cannot pass
+		a static C string to bufprev.
 
 	@return
 		Return a string pointer to the resulting absolute path.

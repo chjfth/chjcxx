@@ -40,7 +40,8 @@ gmu_up_list_SRC_FROM_ROOT += \
 	time-common.cpp \
 	charenccvt-common.cpp \
 
-gmu_up_list_SRC_FROM_ROOT += $(if $(filter wince%,$(gmp_COMPILER_ID)),,fstream-aux.cpp)
+gmu_up_list_SRC_FROM_ROOT += 
+	#$(if $(filter wince%,$(gmp_COMPILER_ID)),,fstream-aux.cpp) //[2009-04-20] moved to platform-specific mki.
 	# WinCE 5.0 still don't provide fopen etc, so don't add it for WinCE .
 
 ############################################################################
@@ -101,26 +102,21 @@ gmu_up_list_EXTRA_OBJ_TO_LINK +=
 ############################################################################
 gmu_uv_list_SUBPRJ_LINK_FOR_PARENT = # <subprj-ref> ...
 
-<subprj-ref>_Makefile = # where the sub-project's makefile resides
-# If the sub-project's makefiles are to be checked-out from some repository, assign it here.
-# >>>> For SVN checkout
-<subprj-ref>_svnUrl_forMakefiles = # SVN Url for the checkout
-	# Hint: $(call gmuf_MakeSvnRepositoryPath,<SVN-path-prefix-var>,<remaining-repository-path>)
-<subprj-ref>_svnLocalDir_forMakefiles = # Local dir corresponding to the whole SVN URL
-<subprj-ref>_svnRev = # Revision to use(string after svn's -r switch)
-# <<<< For SVN checkout
-# >>>> For CVS checkout
-<subprj-ref>_cvsRoot_forMakefiles = # CVSROOT for the checkout
-	# Hint: $(call gmuf_MakeCvsRepositoryPath,<CVS-server-var>,<repository-path-on-CVS-server>)
-<subprj-ref>_cvsModuleDir_forMakefiles = # CVS module name or module dir to checkout
-<subprj-ref>_cvsLocalDir_forMakefiles = # Local dir corresponding to CVSROOT
-<subprj-ref>_cvsTag_forMakefiles = # Tag or branch to checkout(string after cvs's -r switch)
-# <<<< For CVS checkout
-
 include $(gmu_DIR_GNUMAKEUNIPROC)/nlscan/nlssvn-prjs.mki
-$(call NlssvnLinkSubprjForParent,AnsiC_Tfuncs) # by dirfuncs, strlen etc
+
+ifneq (,$(isUseOnlyHeader_AnsiCTfuncs)) 
+  # PS: [2009-04-21]isUseOnlyHeader_AnsiCTfuncs is only defined in lib-ubase.mki .
+  $(call NlssvnUseHeader,AnsiC_Tfuncs) # by dirfuncs, strlen etc
+else
+  $(call NlssvnLinkSubprjForParent,AnsiC_Tfuncs) # by dirfuncs, strlen etc
+endif
+
 $(call NlssvnLinkSubprjForParent,mmsnprintf)
 $(call NlssvnUseHeader,CommonInclude)
+
+ifneq (,$(isUBase))
+  $(call NlssvnUseHeader,uBaseIII)
+endif
 
 # ----------- below for plugins -----------
 

@@ -1,7 +1,8 @@
 
-gmu_up_list_SRC_FROM_ROOT += $(addprefix linux/,\
-	linuxtime.cpp \
-	dirfuncs.cpp \
+gmu_up_list_SRC_FROM_ROOT += fstream-aux.cpp \
+	$(addprefix linux/,\
+		linuxtime.cpp \
+		dirfuncs.cpp \
 	)
 
 include ../lib.mki

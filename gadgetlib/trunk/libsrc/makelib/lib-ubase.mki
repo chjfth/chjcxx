@@ -1,0 +1,17 @@
+
+#makefile-select = -ubase
+isUseOnlyHeader_AnsiCTfuncs = 1
+isUBase = 1
+
+gmu_up_list_SRC_FROM_ROOT += $(addprefix ubase/,\
+	ubase-time.cpp \
+	dirfuncs.cpp \
+	charenccvt-ubase.cpp \
+	)
+
+gmp_CFLAGS_MACRO_DEFS += $(if $(call gmuf_IsPrefixWith,$(gmp_COMPILER_VER),sdt),\
+	-D__wchar_t -Dwchar_t="unsigned short" \
+	)
+	# deal with wchar_t for ARM SDT 2.50
+
+include ../lib.mki
