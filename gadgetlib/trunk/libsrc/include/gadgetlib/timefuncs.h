@@ -35,13 +35,17 @@ ggt_Minute_t ggt_LocalTimeZone(void);
 	//!< Query local time zone.
 	/*!< Return time difference(in minutes) of local time to UTC.
 	 Example, for time zone of China(UTC+8), this functino returns 480 .
+	 On a system not supporting timezone, it should return 0.
+	 On a system supporting timezone but it fails, it should return -1.
 	*/
 
 __int64 ggt_time64(void);
-	//!< Get current UTC time expressed in seconds elapsed since Unix epoch(Jan 1, 1970).
+	//!< Get current UTC time expressed in seconds elapsed since Unix epoch(Jan 1, 1970 UTC).
 
 __int64 ggt_time64_local(void);
-	//!< Similar to ggt_time64(), but express in localtime.
+	//!< Similar to ggt_time64(), but express in elapsed seconds since Jan 1 1970 local time.
+	//!< Briefly, it is ``ggt_time64()-ggt_LocalTimeZone()*60''.
+	//!< (not oftenly used)
 
 __int64 ggt_time64_millisec(void);
 	//!< Similar to ggt_time64(), but express in millisecond instead of in second.
@@ -96,7 +100,8 @@ __int64 ggt_OsMillisecElapsed(__int64 old_msec, __int64 new_msec);
 
 enum ggt_Time_et {
 	ggt_Year=1, ggt_Month=2, ggt_MDay=4, 
-	ggt_Hour=8, ggt_Minute=16, ggt_Second=32, 
+	ggt_Hour=8, ggt_Minute=16, ggt_Second=32,
+	ggt_Millisec=64
 };
 
 TCHAR *ggt_FormatTimeStr(__int64 t64sec, ggt_Time_et fmt, TCHAR *buf, int bufsize);

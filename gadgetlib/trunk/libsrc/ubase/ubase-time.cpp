@@ -1,4 +1,4 @@
-#include <time.h>
+#include <time64.h>
 #include <uBase.h>
 
 #include <mm_snprintf.h>
@@ -13,20 +13,19 @@
 ggt_Minute_t 
 ggt_LocalTimeZone(void)
 {
-	return 0;
+	return GetTimeZoneOffset();
 }
 
 __int64 
 ggt_time64()
 {
-	return time(NULL);
-		// Wish uBase to go time64 some day.
+	return U_time64();
 }
 
 __int64 
 ggt_time64_local()
 {
-	return ggt_time64()/* - timezone*/;
+	return ggt_time64() - ggt_LocalTimeZone()*60;
 }
 
 __int64 
@@ -38,17 +37,19 @@ ggt_time64_millisec()
 __int64 
 ggt_time64_local_millisec()
 {
-	return ggt_time64_millisec() /*- timezone*1000*/;
+	return ggt_time64_millisec() - ggt_LocalTimeZone()*60*1000;
 }
 
 bool 
 ggt_gmtime(struct tm *ptm)
 {
-	time_t t = time(NULL);
-	IrqLock();
-	struct tm *pret = gmtime(&t);
-	*ptm = *pret;
-	IrqUnLock();
+	__int64 t64 = U_time64();
+	if(t64==-1)
+		return false;
+	
+	if(U_gmtime64(t64, ptm)!=0)
+		return false;
+
 	return true;
 }
 
@@ -65,13 +66,27 @@ ggt_gmtime_millisec(struct tm *ptm, int *pMillisec)
 bool 
 ggt_localtime(struct tm *ptm)
 {
-	return ggt_gmtime(ptm);
+	__int64 t64 = U_time64();
+	if(t64==-1)
+		return false;
+	
+	if(U_localtime64(t64, ptm)!=0)
+		return false;
+
+	return true;
 }
 
 bool 
 ggt_localtime_millisec(struct tm *ptm, int *pMillisec)
 {
-	return ggt_gmtime_millisec(ptm, pMillisec);
+/*	bool b = ggt_gmtime_millisec(ptm, pMillisec); 
+	if(!b)
+		return false;
+	
+	return true;
+*/
+	//temp. should use GetClock_msec
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -127,23 +142,14 @@ ggt_FormatTimeStr_tm(const struct tm *ptm, ggt_Time_et fmt, TCHAR *buf, int bufs
 TCHAR *
 ggt_FormatTimeStr(__int64 t64, ggt_Time_et fmt, TCHAR *buf, int bufsize)
 {
-	struct tm tmInput;
-	time_t etime = (time_t)t64;
+	buf[0] = _T('\0');
+	struct tm tmInput; //, *ptm = &tmInput;
 	
-	IrqLock();
-	struct tm * ptm = gmtime(&etime);
-	if(ptm)
-		tmInput = *ptm;
-	IrqUnLock();
+	int err = U_gmtime64(t64, &tmInput);
+	if(err)
+		return buf;
 	
-	if(ptm)
-	{
-		ggt_FormatTimeStr_tm(&tmInput, fmt, buf, bufsize);
-	}
-	else
-	{
-		buf[0] = 0;
-	}
+	ggt_FormatTimeStr_tm(&tmInput, fmt, buf, bufsize);
 
 	return buf;
 }
@@ -154,7 +160,7 @@ ggt_FormatTimeStr_Now(int isLocalTime, ggt_Time_et fmt, TCHAR *buf, int bufsize)
 {
 	bool b = false;
     struct tm tmNow;
-	buf[0] = 0;
+	buf[0] = _T('\0');
 
 	if(isLocalTime)
 		b = ggt_localtime(&tmNow);
@@ -168,3 +174,4 @@ ggt_FormatTimeStr_Now(int isLocalTime, ggt_Time_et fmt, TCHAR *buf, int bufsize)
 
 	return buf;
 }
+
