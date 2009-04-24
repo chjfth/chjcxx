@@ -120,7 +120,8 @@ typedef int YorN;
 #define __rb__ }
 
 
-#define ENUM_ENABLE_BITWISE_OR(enum_type) \
+#ifdef __cplusplus
+  #define ENUM_ENABLE_BITWISE_OR(enum_type) \
 	inline enum_type operator|(enum_type a, enum_type b) \
 	{ \
 		return enum_type((int)a|b); \
@@ -129,6 +130,7 @@ typedef int YorN;
 	// bitwise-or of two or more enum values will result in the same enum type.
 	// Without this function, the result was an int.
 	// NOTE: ENUM_ENABLE_BITWISE_OR should normally be used in global scope, not in a class definition.
+#endif // #ifdef __cplusplus
 
 #endif // #ifndef __CHJ_COMMDEFS_H
 
