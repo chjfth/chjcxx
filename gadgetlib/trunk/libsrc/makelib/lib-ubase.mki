@@ -9,7 +9,7 @@ gmu_up_list_SRC_FROM_ROOT += $(addprefix ubase/,\
 	charenccvt-ubase.cpp \
 	)
 
-gmp_CFLAGS_MACRO_DEFS += $(if $(call gmuf_IsPrefixWith,$(gmp_COMPILER_VER),sdt),\
+gmp_CFLAGS_MACRO_DEFS += $(if $(call gmuf_IsPrefixWith,$(gmp_G_CompilerVerValid),sdt),\
 	-D__wchar_t -Dwchar_t="unsigned short" \
 	)
 	# deal with wchar_t for ARM SDT 2.50

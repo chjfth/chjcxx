@@ -1,24 +1,24 @@
-# Microsoft Developer Studio Project File - Name="gadgetlib_win" - Package Owner=<4>
+# Microsoft Developer Studio Project File - Name="gadgetlib_ubase_emu" - Package Owner=<4>
 # Microsoft Developer Studio Generated Build File, Format Version 6.00
 # ** DO NOT EDIT **
 
 # TARGTYPE "Win32 (x86) Static Library" 0x0104
 
-CFG=gadgetlib_win - Win32 Debug
+CFG=gadgetlib_ubase_emu - Win32 Debug
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
 !MESSAGE 
-!MESSAGE NMAKE /f "gadgetlib_win.mak".
+!MESSAGE NMAKE /f "gadgetlib_ubase_emu.mak".
 !MESSAGE 
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "gadgetlib_win.mak" CFG="gadgetlib_win - Win32 Debug"
+!MESSAGE NMAKE /f "gadgetlib_ubase_emu.mak" CFG="gadgetlib_ubase_emu - Win32 Debug"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
-!MESSAGE "gadgetlib_win - Win32 Release" (based on "Win32 (x86) Static Library")
-!MESSAGE "gadgetlib_win - Win32 Debug" (based on "Win32 (x86) Static Library")
+!MESSAGE "gadgetlib_ubase_emu - Win32 Release" (based on "Win32 (x86) Static Library")
+!MESSAGE "gadgetlib_ubase_emu - Win32 Debug" (based on "Win32 (x86) Static Library")
 !MESSAGE 
 
 # Begin Project
@@ -28,7 +28,7 @@ CFG=gadgetlib_win - Win32 Debug
 CPP=cl.exe
 RSC=rc.exe
 
-!IF  "$(CFG)" == "gadgetlib_win - Win32 Release"
+!IF  "$(CFG)" == "gadgetlib_ubase_emu - Win32 Release"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
@@ -41,7 +41,7 @@ RSC=rc.exe
 # PROP Intermediate_Dir "Release"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /MD /W3 /GX /O2 /I "../../libsrc/include" /I "../../../mm_snprintf" /I "../../../AnsiC_Tfuncs/libsrc/include" /I "../../../common-include/mswin" /I "../../../common-include" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
+# ADD CPP /nologo /MD /W3 /GX /O2 /I "../../../../uBase-III/Common/include" /I "../../libsrc/include" /I "../../../mm_snprintf" /I "../../../AnsiC_Tfuncs/libsrc/include" /I "../../../common-include/mswin" /I "../../../common-include" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
 # ADD BASE RSC /l 0x804 /d "NDEBUG"
 # ADD RSC /l 0x804 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -51,7 +51,7 @@ LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
 # ADD LIB32 /nologo
 
-!ELSEIF  "$(CFG)" == "gadgetlib_win - Win32 Debug"
+!ELSEIF  "$(CFG)" == "gadgetlib_ubase_emu - Win32 Debug"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
@@ -64,7 +64,7 @@ LIB32=link.exe -lib
 # PROP Intermediate_Dir "Debug"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "../../libsrc/include" /I "../../../mm_snprintf" /I "../../../AnsiC_Tfuncs/libsrc/include" /I "../../../common-include/mswin" /I "../../../common-include" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
+# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "../../../../uBase-III/Common/include" /I "../../libsrc/include" /I "../../../mm_snprintf" /I "../../../AnsiC_Tfuncs/libsrc/include" /I "../../../common-include/mswin" /I "../../../common-include" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
 # ADD BASE RSC /l 0x804 /d "_DEBUG"
 # ADD RSC /l 0x804 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -78,8 +78,8 @@ LIB32=link.exe -lib
 
 # Begin Target
 
-# Name "gadgetlib_win - Win32 Release"
-# Name "gadgetlib_win - Win32 Debug"
+# Name "gadgetlib_ubase_emu - Win32 Release"
+# Name "gadgetlib_ubase_emu - Win32 Debug"
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
@@ -89,19 +89,11 @@ SOURCE="..\..\libsrc\charenccvt-common.cpp"
 # End Source File
 # Begin Source File
 
-SOURCE="..\..\libsrc\mswin\charenccvt-win.cpp"
+SOURCE="..\..\libsrc\ubase\charenccvt-ubase.cpp"
 # End Source File
 # Begin Source File
 
 SOURCE=..\..\libsrc\ubase\dirfuncs.cpp
-# End Source File
-# Begin Source File
-
-SOURCE="..\..\libsrc\fstream-aux.cpp"
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\libsrc\mswin\fstream64.cpp
 # End Source File
 # Begin Source File
 
@@ -113,7 +105,7 @@ SOURCE="..\..\libsrc\time-common.cpp"
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\libsrc\mswin\wintime.cpp
+SOURCE="..\..\libsrc\ubase\ubase-time.cpp"
 # End Source File
 # End Group
 # Begin Group "Header Files"

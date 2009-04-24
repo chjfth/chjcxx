@@ -11,6 +11,7 @@ char *
 ggt_charnext(const char *pchar)
 {
 	assert(("Not implemented yet!",0));
+	return NULL;//TEMP
 }
 
 char *
@@ -23,6 +24,7 @@ _ggt_charnext_on_illegal_lead_byte(const char *pchar)
 	else
 		return pchar+1; 
 */
+	return NULL;//TEMP
 }
 
 /*
