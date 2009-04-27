@@ -46,7 +46,7 @@ public:
 
 	TScalableArray(int &err, int MaxEle, int InitEle=0, int IncSize=DEF_INCSIZE, int DecSize=DEF_DECSIZE);
 		/*!< 
-		 Note: Use must set err to 0 on input.
+		 Note: User must set err to 0 on input.
 		 Note: If InitEle is 0, the object will not cost any heap storage, so it will always succeed.
 		*/
 	
