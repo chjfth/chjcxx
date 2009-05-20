@@ -452,7 +452,10 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 		   /* if (str_l < str_m) str[str_l++] = *p++;    -- this would be sufficient */
 		   /* but the following code achieves better performance for cases
 			* where format string is long and contains few conversions */
-			const TCHAR *q = TMM_strchr(p+1, _T('%'));
+			const TCHAR *q = TMM_strchr(p, _T('%'));
+				//[2009-05-20]Chj Note: Don't try to search from p+1 !!
+				//If p points to an MBCS char, that will break the MBCS char and possible swallow the % following that MBCS sequence.
+
 			size_t n = !q ? TMM_strlen(p) : (q-p);
 			if (str_l < str_m) {
 				size_t avail = str_m-str_l;
