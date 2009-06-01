@@ -2,7 +2,6 @@
 #define __DlOpe_h_20071014_h_
 
 
-#include <stddef.h> // for definition of NULL
 #include <assert.h>
 
 template<typename Tnode, Tnode* Tnode::*ofsPrev, Tnode* Tnode::*ofsNext>
