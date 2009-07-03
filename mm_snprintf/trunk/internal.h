@@ -4,7 +4,7 @@
 #include <ps_TCHAR.h>
 
 #define PORTABLE_SNPRINTF_VERSION_MAJOR 3
-#define PORTABLE_SNPRINTF_VERSION_MINOR 1
+#define PORTABLE_SNPRINTF_VERSION_MINOR 2
 
 #define TMM_strmemsize(chars) ((chars)*sizeof(TCHAR))
 

@@ -9,7 +9,7 @@
 
 //#if
 
-__int64 i64 = DECL_INT64(0x912345678);
+__int64 i64 = DECL_INT64(0x912345678); // decimal 38960125560
 double d = 1.2345678;
 
 void mprintA(const char *fmt, ...)

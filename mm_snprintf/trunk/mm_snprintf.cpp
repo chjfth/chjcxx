@@ -1,6 +1,15 @@
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>		// for malloc
+#include <stdarg.h>
+
 #include <ps_Tstrdef.h> 
-	//This, on MSVC6, may include <tchar.h>, so list it before <ps_TCHAR.h>
+	//Note:
+	// 1. This, on MSVC6, may include <tchar.h>, so list it before <ps_TCHAR.h>
 	//otherwise, __T redefinition occurs.
+	// 2. This file #defines va_copy macro if it is not defined in <stdarg.h>
+	//so #include it after <stdarg.h>
+
 #include <ps_TCHAR.h>
 #include "mm_snprintf.h"
 #include "internal.h"
@@ -10,15 +19,19 @@
 #ifdef _UNICODE
 #  define portable_snprintf  mm_snprintfW
 #  define portable_vsnprintf mm_vsnprintfW
+#  define asprintf mm_asprintfW
+#  define vasprintf mm_vasprintfW
+#  define asnprintf mm_asnprintfW
+#  define vasnprintf mm_vasnprintfW
 #else
 #  define portable_snprintf  mm_snprintfA
 #  define portable_vsnprintf mm_vsnprintfA
+#  define asprintf mm_asprintfA
+#  define vasprintf mm_vasprintfA
+#  define asnprintf mm_asnprintfA
+#  define vasnprintf mm_vasnprintfA
 #endif
-// Not using the following four:
-//#define asprintf mm_asprintf 
-//#define vasprintf mm_vasprintf 
-//#define asnprintf mm_asnprintf 
-//#define vasnprintf mm_vasnprintf 
+
 
 /*
  * snprintf.c - a portable implementation of snprintf
@@ -310,9 +323,9 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap);
 /* declarations */
 
 static char credits[] = "\n\
-@(#)snprintf.c, v3.1: Mark Martinec, <mark.martinec@ijs.si>, and Chen Jun.\n\
-@(#)snprintf.c, v3.1: Copyright 1999, Mark Martinec. Frontier Artistic License applies.\n\
-@(#)snprintf.c, v3.1: http://www.ijs.si/software/snprintf/\n";
+@(#)snprintf.c: Mark Martinec, <mark.martinec@ijs.si>, and Chen Jun.\n\
+@(#)snprintf.c: Copyright 1999, Mark Martinec. Frontier Artistic License applies.\n\
+@(#)snprintf.c: http://www.ijs.si/software/snprintf/\n";
 
 #if defined(NEED_ASPRINTF)
 int asprintf(char **ptr, const char *fmt, /*args*/ ...) {
@@ -512,7 +525,9 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 		TCHAR fmt_spec = _T('\0');
 		/* current conversion specifier character */
 
-//		str_arg = credits;/* just to make compiler happy (defined but not used)*/
+#ifndef _UNICODE
+		str_arg = credits;/* just to make compiler happy (defined but not used)*/
+#endif
 		str_arg = NULL;
 		starting_p = p; p++;  /* skip '%' */
 		/* parse flags */
@@ -1079,6 +1094,136 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 	return (int) str_l;
 }
 #endif
+
+int asprintf(TCHAR **ptr, const TCHAR *fmt, /*args*/ ...) 
+{
+	va_list ap;
+	size_t str_m;
+	int str_l;
+
+	*ptr = NULL;
+	va_start(ap, fmt);                            /* measure the required size */
+	str_l = portable_vsnprintf(NULL, (size_t)0, fmt, ap);
+	va_end(ap);
+	
+	//assert(str_l >= 0);        /* possible integer overflow if str_m > INT_MAX */
+	if(str_l<0)
+		return -2;
+
+	*ptr = (TCHAR *) malloc( (str_m = (size_t)str_l + 1) * sizeof(TCHAR) );
+	if (*ptr == NULL) {
+		str_l = -1; 
+	}
+	else {
+		int str_l2;
+		va_start(ap, fmt);
+		str_l2 = portable_vsnprintf(*ptr, str_m, fmt, ap);
+		va_end(ap);
+		assert(str_l2 == str_l);
+	}
+	return str_l;
+}
+
+int vasprintf(TCHAR **ptr, const TCHAR *fmt, va_list ap) 
+{
+	size_t str_m;
+	int str_l;
+
+	*ptr = NULL;
+	{ 
+		va_list ap2;
+		va_copy(ap2, ap);  /* don't consume the original ap, we'll need it again */
+		str_l = portable_vsnprintf(NULL, (size_t)0, fmt, ap2);/*get required size*/
+		va_end(ap2);
+	}
+	
+	//assert(str_l >= 0);        /* possible integer overflow if str_m > INT_MAX */
+	if(str_l<0)
+		return -2;
+
+	*ptr = (TCHAR *) malloc( (str_m = (size_t)str_l + 1) *sizeof(TCHAR) );
+	if (*ptr == NULL) { 
+		str_l = -1; 
+	}
+	else {
+		int str_l2 = portable_vsnprintf(*ptr, str_m, fmt, ap);
+		assert(str_l2 == str_l);
+	}
+	return str_l;
+}
+
+int asnprintf (TCHAR **ptr, size_t str_m, const TCHAR *fmt, /*args*/ ...) 
+{
+	va_list ap;
+	int str_l;
+
+	*ptr = NULL;
+	va_start(ap, fmt);                            /* measure the required size */
+	str_l = portable_vsnprintf(NULL, (size_t)0, fmt, ap);
+	va_end(ap);
+
+	//assert(str_l >= 0);        /* possible integer overflow if str_m > INT_MAX */
+	if(str_l<0)
+		return -2;
+
+	if ((size_t)str_l + 1 < str_m) 
+		str_m = (size_t)str_l + 1;      /* truncate */
+
+	/* if str_m is 0, no buffer is allocated, just set *ptr to NULL */
+	if (str_m == 0) {  /* not interested in resulting string, just return size */
+	} 
+	else {
+		*ptr = (TCHAR *) malloc(str_m * sizeof(TCHAR));
+		if (*ptr == NULL) {
+			str_l = -1; 
+		}
+		else {
+		  int str_l2;
+		  va_start(ap, fmt);
+		  str_l2 = portable_vsnprintf(*ptr, str_m, fmt, ap);
+		  va_end(ap);
+		  assert(str_l2 == str_l);
+		}
+	}
+  return str_l;
+}
+
+int vasnprintf (TCHAR **ptr, size_t str_m, const TCHAR *fmt, va_list ap) 
+{
+	int str_l;
+
+	*ptr = NULL;
+	{ 
+		va_list ap2;
+		va_copy(ap2, ap);  /* don't consume the original ap, we'll need it again */
+		str_l = portable_vsnprintf(NULL, (size_t)0, fmt, ap2);/*get required size*/
+		va_end(ap2);
+	}
+
+	//assert(str_l >= 0);        /* possible integer overflow if str_m > INT_MAX */
+	if(str_l<0)
+		return -2;
+
+	if ((size_t)str_l + 1 < str_m) 
+		str_m = (size_t)str_l + 1;      /* truncate */
+	
+	/* if str_m is 0, no buffer is allocated, just set *ptr to NULL */
+	if (str_m == 0) {  /* not interested in resulting string, just return size */
+	} 
+	else {
+		*ptr = (TCHAR *) malloc(str_m * sizeof(TCHAR));
+		if (*ptr == NULL) {
+			str_l = -1; 
+		}
+		else {
+			int str_l2 = portable_vsnprintf(*ptr, str_m, fmt, ap);
+			assert(str_l2 == str_l);
+		}
+	}
+	return str_l;
+}
+
+
 
 int 
 mmsnprintf_IsFloatingType(TCHAR fmt_spec)

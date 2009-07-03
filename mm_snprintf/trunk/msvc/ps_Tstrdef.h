@@ -15,4 +15,9 @@
 
 #define TMM_sprintf _stprintf
 
+
+/// >>> special for va_copy macro, MSVC 6,7,8 don't have this macro, but other compiler provides this
+#define va_copy(dest, src) ((dest) = (src))
+/// <<< special for va_copy macro
+
 #endif
