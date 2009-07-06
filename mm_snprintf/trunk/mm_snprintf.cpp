@@ -8,7 +8,7 @@
 	// 1. This, on MSVC6, may include <tchar.h>, so list it before <ps_TCHAR.h>
 	//otherwise, __T redefinition occurs.
 	// 2. This file #defines va_copy macro if it is not defined in <stdarg.h>
-	//so #include it after <stdarg.h>
+	//so you MUST #include it after <stdarg.h>
 
 #include <ps_TCHAR.h>
 #include "mm_snprintf.h"
