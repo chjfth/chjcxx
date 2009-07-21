@@ -88,6 +88,12 @@ public:
 
 	ReCode_t AppendAt(int pos, const T* array, int n);
 	ReCode_t AppendAt(int pos, const T tobj);
+		// Q: Why not use ``const T &tobj'' as 2nd param ?
+		// Answer:
+		// 1. Sometimes, user prefer to provide a const(enum value etc) as 2nd param. 
+		//    In this case, passing a const to a reference type may be forbidden by the compiler.
+		// 2. If user's T object is large and he wants to avoid object memory copy, 
+		//    he can instead use ``AppendAt(int pos, const T* array, int n);'' for efficiency.
 
 	ReCode_t DeleteEles(int pos, int n);
 		// A too large `n' means delete all eles starting at `pos'
