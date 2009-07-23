@@ -13,7 +13,7 @@
 ggt_Minute_t 
 ggt_LocalTimeZone(void)
 {
-	return GetTimeZoneOffset();
+	return GetTimeZoneOffset(0);
 }
 
 __int64 
