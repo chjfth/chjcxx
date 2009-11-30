@@ -1,6 +1,9 @@
 #ifndef __DlOpe_h_20071014_h_
 #define __DlOpe_h_20071014_h_
 
+#include <stddef.h>
+	//[2009-11-30] WinCE SDK in VS2005 needs <crtdef.h> for ptrdiff_t .
+	// crtdef.h is not ANSI standard, so we use <stddef.h> .
 
 #include <assert.h>
 
