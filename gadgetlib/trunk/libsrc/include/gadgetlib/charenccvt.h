@@ -28,16 +28,14 @@ extern"C" {
 # endif
 #endif
 
-#include <string.h> // For PC Windows, otherwise, wchar_t is not defined on VC6.
+#include <string.h> // Need it on PC Windows, otherwise, wchar_t is not defined on VC6.
 
+#include <gadgetlib/ggt-const.h>
 
 enum { ggt_max_mbcs_byteslen = 6 };
 	//!< Max bytes that a single MBCS character('Char' for short) can occupy.
 	/*!< I use 6 because an character represented in UTF-8 can be as long as 6 bytes.
 	*/
-
-#define ggt_INVALID_WCHAR ((wchar_t)-1)
-
 
 wchar_t ggt_mb2wc(const char *mb, int *pConBytes);
 	//!< Convert an MBCS char pointed to by mb to Unicode value.

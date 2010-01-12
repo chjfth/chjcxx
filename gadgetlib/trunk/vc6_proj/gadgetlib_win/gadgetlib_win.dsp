@@ -105,6 +105,10 @@ SOURCE=..\..\libsrc\mswin\fstream64.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\libsrc\gsm0338cvt.cpp
+# End Source File
+# Begin Source File
+
 SOURCE="..\..\libsrc\mbcs-ops.cpp"
 # End Source File
 # Begin Source File
