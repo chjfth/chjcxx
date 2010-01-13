@@ -141,6 +141,10 @@ SOURCE=..\..\libsrc\include\gadgetlib\fstream64.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\libsrc\include\gadgetlib\gsm0338cvt.h
+# End Source File
+# Begin Source File
+
 SOURCE="..\..\libsrc\include\gadgetlib\mbcs-ops.h"
 # End Source File
 # Begin Source File

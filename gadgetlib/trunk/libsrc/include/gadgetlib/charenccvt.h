@@ -120,7 +120,7 @@ int ggt_mbs2wcs(const char *pmb, int mbbytes, wchar_t *pwc=0, int wcbufchars=0, 
 	 byte(s) beyond mbbytes to output an converted Unicode char? The answer is no, it will
 	 report *pConMbBytes less than mbbytes. To distinguish this special case with the real
 	 trail byte missing case, user can check it with ggt_mb2wc() after ggt_mbs2wcs() returns.
-	 ggt_mb2wc() will not do that check for you because ggt_mb2wc() don't have any idea 
+	 ggt_mbs2wcs() will not do that check for you because ggt_mbs2wcs() don't have any idea 
 	 whether the bytes beyond mbbytes is valid for the caller.
 	*/
 
