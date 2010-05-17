@@ -1,0 +1,38 @@
+#### template file for use with pattern1.mks, [GnumakeUniproc v1.0]
+# ! Be sure to replace every occurrence of <angle-brackets> to be your
+# actual content, or [ at least comment them out if some of them are
+# not required] .
+
+############################################################################
+# GMU-var: gmu_PRJ_NAME
+# 	Define the project name(prj-name for short).
+# project name for a project(precisely, after decoration
+# into gmu_G_Final_PrjName) should be unique 
+# across the whole build process of one GnumakeUniproc run. Prj-name
+# conflict will be detected by GMU if two or more projects have the same
+# gmu_G_Final_PrjName.
+############################################################################
+ifndef gmu_PRJ_NAME
+  gmu_PRJ_NAME = mmsnprintf_SimpleTest
+endif
+
+############################################################################
+# GMU-var: gmp_bc_IMAGE_TYPE
+#	Define the "image-type" to generated for this project.
+# Common image-types are: LIB, DLL and EXE.
+############################################################################
+ifndef gmp_bc_IMAGE_TYPE
+  gmp_bc_IMAGE_TYPE = EXE
+endif
+
+############################################################################
+# GMU-var: gmp_u_list_PLUGIN_TO_LOAD
+#	Designate plugins to load in this make-var, multiple plugin names separated
+# by spaces. Plugins are searched from $(gmp_ud_list_CUSTOM_MKI) and then
+# from $(gmu_DIR_GNUMAKEUNIPROC)/pattern1cfg/plugins .
+############################################################################
+gmp_u_list_PLUGIN_TO_LOAD += 
+	# PI_sync_devoutput PI_always_compile
+
+include $(gmu_DIR_GNUMAKEUNIPROC)/pattern1.mks
+
