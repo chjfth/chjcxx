@@ -1,0 +1,15 @@
+#### template file for use with pattern-container1.mks, [GnumakeUniproc v1.0]
+# ! Be sure to replace every occurrence of <angle-brackets> to be your
+# actual content, or [ at least comment them out if some of them are
+# not required] .
+
+#---------------------------------------------------------------------------
+# This file is to be included by $(gmu_DIR_GNUMAKEUNIPROC)/pattern-container1.mks .
+# You should list sub-projects for this container in this file.
+#---------------------------------------------------------------------------
+
+gmu_uv_list_ALL_SUBPRJ = vc60lib
+
+vc60lib_Makefile = ../make/lib.msvc/Makefile
+vc60lib_MakeVarDefines = $(gmpf_LoadCenv_vc60)
+
