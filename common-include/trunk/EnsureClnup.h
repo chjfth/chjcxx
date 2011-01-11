@@ -226,6 +226,13 @@ inline void _EnsureClnup_cpp_array_delete(PTR_TYPE p){ delete []p; }
 #endif // ! // __ARMCC_VERSION
 
 
+#define MakeCleanupClass_delete(ClassName) \
+	inline void __delete_##ClassName(ClassName *p) { delete p; } \
+	MakeCleanupPtrClass(Cec_##ClassName, void, __delete_##ClassName, ClassName*)
+
+
+
+
 #define MakeCleanupPtrArrayClass(CecClassName, RET_TYPE_of_CleanupFunction, pCleanupFunction, USER_TYPE) \
 	typedef CEnsureCleanupPtrArray< USER_TYPE, RET_TYPE_of_CleanupFunction, pCleanupFunction > CecClassName;
 
@@ -235,6 +242,7 @@ inline void _EnsureClnup_cpp_array_delete(PTR_TYPE p){ delete []p; }
 
 #define MakeCleanupPtrArrayClass_delete(CecClassName, PTR_TYPE) \
 	MakeCleanupPtrArrayClass(CecClassName, void, _EnsureClnup_cpp_delete<PTR_TYPE>, PTR_TYPE)
+	// BUG?!                   Shouldn't I use   _EnsureClnup_cpp_array_delete above ?
 
 //////////////////////////////////////////////////////////////////////////
 
