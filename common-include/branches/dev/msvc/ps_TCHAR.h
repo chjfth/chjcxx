@@ -1,5 +1,5 @@
-#ifndef __ps_TCHAR_h_for_mswin_20060107_
-#define __ps_TCHAR_h_for_mswin_20060107_
+#ifndef __ps_TCHAR_h_for_msvc_20110218_
+#define __ps_TCHAR_h_for_msvc_20110218_
 
 /*!
 	This header file is intended to be included by any source file(.h or .cpp)
@@ -102,6 +102,10 @@ typedef wchar_t TCHAR;
 #else	/* ================ Not _UNICODE ================ */
 
 
+#ifndef __T
+#define __T(x)	x
+#endif
+
 typedef char TCHAR;
 
 // chj >>>
@@ -130,4 +134,5 @@ typedef char TCHAR;
 # define _TEXT(x)    __T(x)
 #endif
 
-#endif
+
+#endif // __ps_TCHAR_h_for_msvc_20110218_
