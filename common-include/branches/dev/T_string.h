@@ -9,7 +9,7 @@
 
 #define T_printf    wprintf
 #define T_fprintf   fwprintf
-//#define _stprintf   swprintf
+#define T_sprintf   swprintf
 //#define _sntprintf  _snwprintf  // Use mm_snprintf instead
 #define T_vprintf   vwprintf
 #define T_vfprintf  vfwprintf
@@ -108,7 +108,6 @@
 
 /* Io functions */
 
-#define T_access    _waccess
 #define T_remove    _wremove
 #define T_rename    _wrename
 
