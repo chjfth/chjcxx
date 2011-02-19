@@ -108,6 +108,7 @@
 
 /* Io functions */
 
+#define T_access    _waccess
 #define T_remove    _wremove
 #define T_rename    _wrename
 
@@ -242,6 +243,7 @@
 
 /* Io functions */
 
+#define T_access    access
 #define T_remove    remove
 #define T_rename    rename
 
