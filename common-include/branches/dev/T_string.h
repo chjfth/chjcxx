@@ -143,7 +143,7 @@
 
 #define T_printf    printf
 #define T_fprintf   fprintf
-//#define _stprintf   swprintf
+#define T_sprintf   sprintf
 //#define _sntprintf  _snwprintf  // Use mm_snprintf instead
 #define T_vprintf   vprintf
 #define T_vfprintf  vfprintf
