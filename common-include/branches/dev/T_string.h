@@ -9,11 +9,16 @@
 
 #define T_printf    wprintf
 #define T_fprintf   fwprintf
-#define T_sprintf   swprintf
 //#define _sntprintf  _snwprintf  // Use mm_snprintf instead
 #define T_vprintf   vwprintf
 #define T_vfprintf  vfwprintf
-#define T_vsprintf  vswprintf
+#if defined(__GNUC__) || (defined(_MSC_VER) && _MSC_VER>=1400)
+# define T_sprintf(buf, fmt, ...)   swprintf(buf, 0x10000000, fmt, __VA_ARGS__)
+# define T_vsprintf(buf, fmt, argptr)  vswprintf(buf, 0x10000000, fmt, argptr)
+#else
+# define T_sprintf   swprintf
+# define T_vsprintf  vswprintf
+#endif
 //#define _vsntprintf _vsnwprintf
 #define T_scanf     wscanf
 #define T_fscanf    fwscanf
@@ -143,11 +148,13 @@
 
 #define T_printf    printf
 #define T_fprintf   fprintf
-#define T_sprintf   sprintf
 //#define _sntprintf  _snwprintf  // Use mm_snprintf instead
 #define T_vprintf   vprintf
 #define T_vfprintf  vfprintf
+
+#define T_sprintf   sprintf
 #define T_vsprintf  vsprintf
+
 //#define _vsntprintf _vsnwprintf
 #define T_scanf     scanf
 #define T_fscanf    fscanf
