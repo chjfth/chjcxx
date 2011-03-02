@@ -12,12 +12,20 @@
 //#define _sntprintf  _snwprintf  // Use mm_snprintf instead
 #define T_vprintf   vwprintf
 #define T_vfprintf  vfwprintf
-#if defined(__GNUC__) || (defined(_MSC_VER) && _MSC_VER>=1400)
+#if defined(_MSC_VER) 
+# if defined(WINCE) || _MSC_VER<1400
+	// verified for WinCE 5 or 6
+	// _MSC_VER 1400 is Visual C++ 2005
+#   define T_sprintf   swprintf
+#   define T_vsprintf  vswprintf
+# else
+#   define T_sprintf(buf, fmt, ...)   swprintf(buf, 0x10000000, fmt, __VA_ARGS__)
+#   define T_vsprintf(buf, fmt, argptr)  vswprintf(buf, 0x10000000, fmt, argptr)
+# endif
+#else // compilers other than Visual C++
+// The C99 standard, including gcc 3.2+ (__GNUC__)
 # define T_sprintf(buf, fmt, ...)   swprintf(buf, 0x10000000, fmt, __VA_ARGS__)
 # define T_vsprintf(buf, fmt, argptr)  vswprintf(buf, 0x10000000, fmt, argptr)
-#else
-# define T_sprintf   swprintf
-# define T_vsprintf  vswprintf
 #endif
 //#define _vsntprintf _vsnwprintf
 #define T_scanf     wscanf
