@@ -1,7 +1,7 @@
-#ifndef __ps_TCHAR_h_for_linux_20060109_
-#define __ps_TCHAR_h_for_linux_20060109_
+#ifndef __ps_TCHAR_h_for_linuxgcc_20110304_
+#define __ps_TCHAR_h_for_linuxgcc_20110304_
 
-// IMPORTANT: See mswin/ps_TCHAR.h for important comment of using this header.
+// IMPORTANT: See msvc/ps_TCHAR.h for important comment of using this header.
 
 #ifdef _UNICODE		/* ================ _UNICODE ================ */
 
@@ -10,8 +10,14 @@
 #endif
 
 #ifndef _TCHAR_DEFINED
- typedef wchar_t     TCHAR;
- #define _TCHAR_DEFINED
+  #ifndef __cplusplus
+  #include <wchar.h>
+	// Reason, when compiling a C file, wchar_t seems not to be a keyword, 
+	// so we have to include <wchar.h> for wchar_t definition.
+	// (verified with gcc 4.1.0)
+  #endif
+  typedef wchar_t     TCHAR;
+  #define _TCHAR_DEFINED
 #endif
 
 
