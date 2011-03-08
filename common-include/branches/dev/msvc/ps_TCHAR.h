@@ -1,5 +1,6 @@
 #ifndef __ps_TCHAR_h_for_msvc_20110218_
 #define __ps_TCHAR_h_for_msvc_20110218_
+#ifndef _INC_TCHAR // <tchar.h> defines it. If <tchar.h> has been included, no need to have the code here.
 
 /*!
 	This header file is intended to be included by any source file(.h or .cpp)
@@ -135,4 +136,5 @@ typedef char TCHAR;
 #endif
 
 
+#endif //#ifndef _INC_TCHAR
 #endif // __ps_TCHAR_h_for_msvc_20110218_
