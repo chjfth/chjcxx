@@ -94,6 +94,40 @@ SOURCE=..\..\msvc\mm_psfunc.cpp
 # Begin Source File
 
 SOURCE=..\..\mm_snprintf.cpp
+
+!IF  "$(CFG)" == "lib_mm_snprintf - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "lib_mm_snprintf - Win32 Debug"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build
+InputPath=..\..\mm_snprintf.cpp
+
+BuildCmds= \
+	copy ..\..\mm_snprintf.cpp ..\..\mm_snprintfA.cpp \
+	copy ..\..\mm_snprintf.cpp ..\..\mm_snprintfW.cpp \
+	
+
+"..\..\mm_snprintfA.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+"..\..\mm_snprintfW.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\mm_snprintfA.cpp
+
+!IF  "$(CFG)" == "lib_mm_snprintf - Win32 Release"
+
+!ELSEIF  "$(CFG)" == "lib_mm_snprintf - Win32 Debug"
+
+!ENDIF 
+
 # End Source File
 # Begin Source File
 
@@ -104,6 +138,7 @@ SOURCE=..\..\mm_snprintfW.cpp
 !ELSEIF  "$(CFG)" == "lib_mm_snprintf - Win32 Debug"
 
 # ADD CPP /D "_UNICODE"
+# SUBTRACT CPP /D "_MBCS"
 
 !ENDIF 
 
