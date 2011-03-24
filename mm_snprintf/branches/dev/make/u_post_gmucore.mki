@@ -1,0 +1,19 @@
+
+p_mm_snprintfW = $(gmu_ud_SRC_ROOT)/mm_snprintfW.cpp
+
+# Before compiling starts: copy mm_snprintf.cpp to mm_snprintfW.cpp
+#$(info =====mm_snprintf_FirstTarget: $(p_mm_snprintfW) $(gmu_Gp_LINK_OUTPUT_ckt)=====)
+mm_snprintf_FirstTarget: $(p_mm_snprintfW) $(gmu_Gp_LINK_OUTPUT_ckt)
+
+$(p_mm_snprintfW): $(gmu_ud_SRC_ROOT)/mm_snprintf.cpp
+	cp $< $@
+
+
+# For mm_snprintfW.cpp, add -D_UNICODE compiler option:
+#$(info =======$(call gmuf_CnCXX_ListToObjList,mm_snprintfW.cpp)=======)
+$(call gmuf_CnCXX_ListToObjList,mm_snprintfW.cpp): \
+	gmp_CFLAGS_MACRO_DEFS := $(filter-out $(cfc_chr_Mbcs_defs),$(gmp_CFLAGS_MACRO_DEFS)) -D_UNICODE -DUNICODE
+	# [2008-09-03] NOTE: The macro UNICODE is not used in mm_snprintf's code. We define it
+	# here because WinCE's header(tchar.h, VS2005) will ``typedef char TCHAR;'' if UNICODE is not defined.
+	#
+	# No problem is some compiler-config-mki does not define cfc_chr_Mbcs_defs .
