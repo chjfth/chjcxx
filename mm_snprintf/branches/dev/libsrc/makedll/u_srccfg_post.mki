@@ -43,12 +43,12 @@ gmu_ud_SRC_ROOT = ..
 gmu_up_list_SRC_FROM_ROOT += 
 
 # >>> optional for win32 dll (enable as you will)
-#gmp_up_WINDLL_MODULE_DEF_FROM_ROOT = mswin/walkdir.def
+#gmp_up_WINDLL_MODULE_DEF_FROM_ROOT = mswin/xxx.def
 	# This tells the module-definition (.DEF) file to use for linking a DLL .
 gmp_mswin_IMPLIB_SUFFIX = --imp
 	# (optional) This forces the import-lib name to have suffix --imp .
 	# This must not be set before pattern1.mks .
-#gmp_u_list_DLL_EXPORT_SYM += DLLEXPORT_walkdir
+#gmp_u_list_DLL_EXPORT_SYM += DLLEXPORT_xxx
 gmi_RCVC_up_list_WINRC_FROM_ROOT = msvc/mm_snprintf.rc
 	# This is a required parameter for PI_winres_msvc plugin, telling where is 
 	# the Windows resource script file.
