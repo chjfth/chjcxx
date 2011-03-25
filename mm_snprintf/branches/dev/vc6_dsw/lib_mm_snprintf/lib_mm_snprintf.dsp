@@ -41,7 +41,7 @@ RSC=rc.exe
 # PROP Intermediate_Dir "Release"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /MD /W3 /GX /O2 /I "../../msvc" /I "../../../common-include/mswin" /I "../../../common-include" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I "../../libsrc/msvc" /I "../../include" /I "../../libsrc" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
 # ADD BASE RSC /l 0x804 /d "NDEBUG"
 # ADD RSC /l 0x804 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -49,7 +49,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo
+# ADD LIB32 /nologo /out:"mmsnprintf.lib"
 
 !ELSEIF  "$(CFG)" == "lib_mm_snprintf - Win32 Debug"
 
@@ -64,7 +64,7 @@ LIB32=link.exe -lib
 # PROP Intermediate_Dir "Debug"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "../../msvc" /I "../../../common-include/mswin" /I "../../../common-include" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "../../libsrc/msvc" /I "../../include" /I "../../libsrc" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
 # ADD BASE RSC /l 0x804 /d "_DEBUG"
 # ADD RSC /l 0x804 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -72,7 +72,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 /nologo
+# ADD LIB32 /nologo /out:"mmsnprintf_D.lib"
 
 !ENDIF 
 
@@ -85,33 +85,49 @@ LIB32=link.exe -lib
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE=..\..\internal.cpp
+SOURCE=..\..\libsrc\internal.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\msvc\mm_psfunc.cpp
+SOURCE=..\..\libsrc\msvc\mm_psfunc.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\mm_snprintf.cpp
+SOURCE=..\..\libsrc\mm_snprintf.cpp
 
 !IF  "$(CFG)" == "lib_mm_snprintf - Win32 Release"
+
+# PROP Ignore_Default_Tool 1
+# Begin Custom Build
+InputPath=..\..\libsrc\mm_snprintf.cpp
+
+BuildCmds= \
+	copy $(InputPath) .\mm_snprintfA.cpp \
+	copy $(InputPath) .\mm_snprintfW.cpp \
+	
+
+".\mm_snprintfA.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+
+".\mm_snprintfW.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+   $(BuildCmds)
+# End Custom Build
 
 !ELSEIF  "$(CFG)" == "lib_mm_snprintf - Win32 Debug"
 
 # PROP Ignore_Default_Tool 1
 # Begin Custom Build
-InputPath=..\..\mm_snprintf.cpp
+InputPath=..\..\libsrc\mm_snprintf.cpp
 
 BuildCmds= \
-	copy ..\..\mm_snprintf.cpp ..\..\mm_snprintfA.cpp \
-	copy ..\..\mm_snprintf.cpp ..\..\mm_snprintfW.cpp \
+	copy $(InputPath) .\mm_snprintfA.cpp \
+	copy $(InputPath) .\mm_snprintfW.cpp \
 	
 
-"..\..\mm_snprintfA.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+".\mm_snprintfA.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
    $(BuildCmds)
 
-"..\..\mm_snprintfW.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+".\mm_snprintfW.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
    $(BuildCmds)
 # End Custom Build
 
@@ -120,24 +136,20 @@ BuildCmds= \
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\mm_snprintfA.cpp
-
-!IF  "$(CFG)" == "lib_mm_snprintf - Win32 Release"
-
-!ELSEIF  "$(CFG)" == "lib_mm_snprintf - Win32 Debug"
-
-!ENDIF 
-
+SOURCE=.\mm_snprintfA.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\mm_snprintfW.cpp
+SOURCE=.\mm_snprintfW.cpp
 
 !IF  "$(CFG)" == "lib_mm_snprintf - Win32 Release"
 
+# ADD CPP /D "_UNICODE" /D "UNICODE"
+# SUBTRACT CPP /D "_MBCS"
+
 !ELSEIF  "$(CFG)" == "lib_mm_snprintf - Win32 Debug"
 
-# ADD CPP /D "_UNICODE"
+# ADD CPP /D "_UNICODE" /D "UNICODE"
 # SUBTRACT CPP /D "_MBCS"
 
 !ENDIF 
@@ -145,7 +157,7 @@ SOURCE=..\..\mm_snprintfW.cpp
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\oldname.cpp
+SOURCE=..\..\libsrc\oldname.cpp
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -153,15 +165,46 @@ SOURCE=..\..\oldname.cpp
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
-SOURCE=..\..\internal.h
+SOURCE=..\..\libsrc\internal.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\mm_psfunc.h
+SOURCE=..\..\libsrc\mm_psfunc.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\mm_snprintf.h
+SOURCE=..\..\include\mm_snprintf.h
+# End Source File
+# Begin Source File
+
+SOURCE="..\..\..\common-include\msvc\ps_TCHAR.h"
+
+!IF  "$(CFG)" == "lib_mm_snprintf - Win32 Release"
+
+# Begin Custom Build
+InputPath=..\..\..\common-include\msvc\ps_TCHAR.h
+
+"..\..\include\ps_TCHAR.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy $(InputPath) ..\..\include
+
+# End Custom Build
+
+!ELSEIF  "$(CFG)" == "lib_mm_snprintf - Win32 Debug"
+
+# Begin Custom Build
+InputPath=..\..\..\common-include\msvc\ps_TCHAR.h
+
+"..\..\include\ps_TCHAR.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy $(InputPath) ..\..\include
+
+# End Custom Build
+
+!ENDIF 
+
+# End Source File
+# Begin Source File
+
+SOURCE=..\..\include\ps_TCHAR.h
 # End Source File
 # End Group
 # End Target
