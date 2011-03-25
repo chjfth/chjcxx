@@ -3,8 +3,11 @@
 
 #include <ps_TCHAR.h>
 
-#define PORTABLE_SNPRINTF_VERSION_MAJOR 3
-#define PORTABLE_SNPRINTF_VERSION_MINOR 2
+enum {
+	mmsnprintf_vmajor = 3,
+	mmsnprintf_vminor = 2,
+	mmsnprintf_vbuild = 0,
+};
 
 #define TMM_strmemsize(chars) ((chars)*sizeof(TCHAR))
 
