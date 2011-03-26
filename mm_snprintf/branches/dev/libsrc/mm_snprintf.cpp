@@ -17,6 +17,11 @@
 
 #define DLL_AUTO_EXPORT_STUB
 
+#ifdef NO_assert // specific for this library
+# undef assert
+# define assert(a) 
+#endif
+
 // Chj: redefine the function names :
 #ifdef _UNICODE
 #  define portable_snprintf  mm_snprintfW
