@@ -4,6 +4,8 @@ include $(gmu_DIR_GNUMAKEUNIPROC)/CommonFunctions.mki
 # Different compiler uses different source set, described below. 
 ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),msvc mingw wince),1)
   # msvc, mingw or wince compiler
+  gmp_bc_CRT_STATIC_LIB = 1
+
   gmu_up_list_SRC_FROM_ROOT += msvc/mm_psfunc.cpp
   gmu_ud_list_PRJ_HEADER += $(gmu_ud_SRC_ROOT)/msvc
 

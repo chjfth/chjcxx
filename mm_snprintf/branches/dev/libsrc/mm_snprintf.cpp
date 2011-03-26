@@ -15,6 +15,8 @@
 #include "internal.h"
 #include "mm_psfunc.h"
 
+#define DLL_AUTO_EXPORT_STUB
+
 // Chj: redefine the function names :
 #ifdef _UNICODE
 #  define portable_snprintf  mm_snprintfW
