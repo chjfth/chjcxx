@@ -3,7 +3,7 @@
 # actual content, or [ at least comment them out if some of them are
 # not required] .
 
-gmu_PRJ_NAME = pack-sdk-mm_snprintf
+gmu_PRJ_NAME = mmsnprintf-sdk
 
 
 gmp_USER_POST_TARGETS += # <some make targets>
@@ -11,8 +11,8 @@ gmp_USER_POST_TARGETS += # <some make targets>
 	# you can your targets in this var, and executes your commands under
 	# these targets.
 
-include $(gmu_DIR_GNUMAKEUNIPROC)/pattern1cfg/compiler-env/compiler-env-all.mki
-	# for gmpf_ExportCenv_sdt and gmpf_ExportCenv_vc60
+gmp_u_list_PLUGIN_TO_LOAD += PI_makesdk_2011
+gmi_MSDK1_up_BUILDSDK_INI = buildsdk.ini
 
 
 include $(gmu_DIR_GNUMAKEUNIPROC)/pattern-container1.mks
