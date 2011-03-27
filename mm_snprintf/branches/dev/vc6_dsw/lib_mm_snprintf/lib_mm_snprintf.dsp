@@ -182,8 +182,8 @@ SOURCE="..\..\..\common-include\msvc\ps_TCHAR.h"
 # Begin Custom Build
 InputPath=..\..\..\common-include\msvc\ps_TCHAR.h
 
-"..\..\include\ps_TCHAR.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy $(InputPath) ..\..\include
+"..\..\libsrc\include\ps_TCHAR.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy $(InputPath) ..\..\libsrc\include
 
 # End Custom Build
 
@@ -192,8 +192,8 @@ InputPath=..\..\..\common-include\msvc\ps_TCHAR.h
 # Begin Custom Build
 InputPath=..\..\..\common-include\msvc\ps_TCHAR.h
 
-"..\..\include\ps_TCHAR.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy $(InputPath) ..\..\include
+"..\..\libsrc\include\ps_TCHAR.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	copy $(InputPath) ..\..\libsrc\include
 
 # End Custom Build
 
@@ -202,7 +202,7 @@ InputPath=..\..\..\common-include\msvc\ps_TCHAR.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\include\ps_TCHAR.h
+SOURCE=..\..\libsrc\include\ps_TCHAR.h
 # End Source File
 # End Group
 # End Target
