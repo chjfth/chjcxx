@@ -23,8 +23,9 @@ endif
 # by spaces. Plugins are searched from $(gmp_ud_list_CUSTOM_MKI) and then
 # from $(gmu_DIR_GNUMAKEUNIPROC)/pattern1cfg/plugins .
 ############################################################################
-gmp_u_list_PLUGIN_TO_LOAD += PI_file_precopy
-	# PI_sync_devoutput PI_always_compile
+gmp_u_list_PLUGIN_TO_LOAD += PI_copy_psTCHARh
+gmi_CTCH_dirNlssvn = $(gmu_ud_SRC_ROOT)/../../..
+gmi_CTCH_dirCopyTo = $(gmu_ud_SRC_ROOT)/include
 
 gmp_DECO_DEBUG_FOR_LINK_OUTPUT = 1
 	#Set this to 1 if you want a _D suffix on your output-image when gmp_bc_DEBUG=1

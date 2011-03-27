@@ -25,9 +25,6 @@ gmu_uf_LINK_OUTPUT = $(call gmpf_MakeLibName,mmsnprintf)
 ############################################################################
 gmu_ud_SRC_ROOT = ..
 dirMmsnprintf = ../..
-dirCommonLib = ../../..
-dirNlssvn = $(dirCommonLib)/..
-dirCommonInclude = $(dirCommonLib)/common-include
 
 snprintfW_fromroot = makelib/mm_snprintfW.cpp
 
@@ -47,15 +44,9 @@ gmu_up_list_SRC_FROM_ROOT += \
 	internal.cpp \
 	oldname.cpp \
 
-ifeq ($(gmp_COMPILER_ID),wince)
-  pirTCHARH = msvc
-else
-  pirTCHARH = $(gmp_COMPILER_ID)
-endif
-gmi_FPCP_upp_list_COPY = \
+gmi_FPCP_upp_list_COPY += \
 	$(gmu_ud_SRC_ROOT)/mm_snprintf.cpp|mm_snprintfA.cpp \
 	$(gmu_ud_SRC_ROOT)/mm_snprintf.cpp|mm_snprintfW.cpp \
-	$(dirCommonInclude)/$(pirTCHARH)/ps_TCHAR.h|$(dirMmsnprintf)/include/ps_TCHAR.h
 	# For plugin PI_file_precopy
 
 # >>> optional for win32 lib (enable as you will)
@@ -71,7 +62,7 @@ gmp_u_list_DLL_EXPORT_SYM += DLLEXPORT_mmsnprintf
 #	1. They'll be passed to the compiler through ``-I <dir1> -I <dir2> ...'' .
 #	2. They'll be passed to `$(gmu_GCC_M_PREFIX)gcc -M' in favor of generating hdepend files.
 ############################################################################
-gmu_ud_list_PRJ_HEADER += $(dirMmsnprintf)/include $(gmu_ud_SRC_ROOT)
+gmu_ud_list_PRJ_HEADER += $(gmu_ud_SRC_ROOT)/include $(gmu_ud_SRC_ROOT)
 	# Don't write ``-I'' in this var; -I will be prependded automatically.
 
 gmp_CFLAGS_INCLUDES += # $(addprefix -I,<dir1> <dir2> ...)
