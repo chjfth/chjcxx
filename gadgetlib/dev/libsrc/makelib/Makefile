@@ -182,10 +182,10 @@ ifneq (,$(isUseOnlyHeader_AnsiCTfuncs))
   # PS: [2009-04-21]isUseOnlyHeader_AnsiCTfuncs is only defined in lib-ubase.mki .
   $(call NlssvnUseHeader,AnsiC_Tfuncs) # by dirfuncs, strlen etc
 else
-  $(call NlssvnLinkSubprjForParent,AnsiC_Tfuncs) # by dirfuncs, strlen etc
+  $(call NlssvnLinkSubprjForParent,AnsiC_Tfuncs,-lib) # by dirfuncs, strlen etc
 endif
 
-$(call NlssvnLinkSubprjForParent,mmsnprintf)
+$(call NlssvnLinkSubprjForParent,mmsnprintf,-lib)
 $(call NlssvnUseHeader,CommonInclude)
 
 ifneq (,$(isUBase))

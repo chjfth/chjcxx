@@ -3,6 +3,7 @@
 #include <gadgetlib/mbcs-ops.h>
 
 #define DLL_AUTO_EXPORT_STUB
+extern"C" void gadgetlib_lib__mbcs_ops__DLL_AUTO_EXPORT_STUB(void){}
 
 static int 
 s_DefaultCharNext(const char *pChk, void *pCallbackExtra)

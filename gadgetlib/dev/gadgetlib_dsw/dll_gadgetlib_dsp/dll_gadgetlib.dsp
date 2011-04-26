@@ -13,7 +13,7 @@ CFG=dll_gadgetlib - Win32 Debug_U export
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "dll_gadgetlib.mak" CFG="dll_gadgetlib - Win32 Debug_U"
+!MESSAGE NMAKE /f "dll_gadgetlib.mak" CFG="dll_gadgetlib - Win32 Debug_U export"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
@@ -44,7 +44,7 @@ RSC=rc.exe
 # PROP Intermediate_Dir "Debug"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL"  /YX /FD /GZ /c
+# ADD BASE CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /YX /FD /GZ /c
 # ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "../../../common-include" /I "../../libsrc/include" /I "$(NLSSDK)/include" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D DLLEXPORT_gadgetlib=__declspec(dllexport) /YX /FD /GZ /c
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /win32
@@ -55,13 +55,13 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 kernel32.lib user32.lib /nologo /dll /pdb:"Debug/gadgetlib.dll.pdb" /debug /machine:I386 /out:"Debug/gadgetlib.dll" /implib:"gadgetlib--imp.lib" /pdbtype:sept /libpath:"../../binstore"
+# ADD LINK32 mmsnprintf_D.lib kernel32.lib user32.lib /nologo /dll /pdb:"Debug/gadgetlib.dll.pdb" /debug /machine:I386 /out:"Debug/gadgetlib.dll" /implib:"gadgetlib--imp.lib" /pdbtype:sept /libpath:"../../binstore"
 # SUBTRACT LINK32 /pdb:none
 # Begin Custom Build - Sync output binary( $(InputName).dll , $(InputName)--imp.lib ) to ..\..\binstore folder.
 ProjDir=.
-TargetName=gadgetlib_D
-InputPath=.\Release@(repo)_D.dll
-InputName=gadgetlib_D
+TargetName=gadgetlib
+InputPath=.\Debug\gadgetlib.dll
+InputName=gadgetlib
 SOURCE="$(InputPath)"
 
 BuildCmds= \
@@ -100,13 +100,13 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 kernel32.lib user32.lib /nologo /dll /pdb:"Debug_U/gadgetlib_U.dll.pdb" /debug /machine:I386 /out:"Debug_U/gadgetlib_U.dll" /implib:"gadgetlib_U--imp.lib" /pdbtype:sept /libpath:"../../binstore"
+# ADD LINK32 mmsnprintf_D.lib kernel32.lib user32.lib /nologo /dll /pdb:"Debug_U/gadgetlib_U.dll.pdb" /debug /machine:I386 /out:"Debug_U/gadgetlib_U.dll" /implib:"gadgetlib_U--imp.lib" /pdbtype:sept /libpath:"../../binstore"
 # SUBTRACT LINK32 /pdb:none
 # Begin Custom Build - Sync output binary( $(InputName).dll , $(InputName)--imp.lib ) to ..\..\binstore folder.
 ProjDir=.
-TargetName=gadgetlib_U_D
-InputPath=.\Release@(repo)_U_D.dll
-InputName=gadgetlib_U_D
+TargetName=gadgetlib_U
+InputPath=.\Debug_U\gadgetlib_U.dll
+InputName=gadgetlib_U
 SOURCE="$(InputPath)"
 
 BuildCmds= \
@@ -145,12 +145,12 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386
-# ADD LINK32 kernel32.lib user32.lib /nologo /dll /pdb:"Release/gadgetlib.dll.pdb" /machine:I386 /out:"Release/gadgetlib.dll" /implib:"gadgetlib--imp.lib" /libpath:"../../binstore"
+# ADD LINK32 mmsnprintf.lib kernel32.lib user32.lib /nologo /dll /pdb:"Release/gadgetlib.dll.pdb" /machine:I386 /out:"Release/gadgetlib.dll" /implib:"gadgetlib--imp.lib" /libpath:"../../binstore"
 # SUBTRACT LINK32 /pdb:none
 # Begin Custom Build - Sync output binary( $(InputName).dll , $(InputName)--imp.lib ) to ..\..\binstore folder.
 ProjDir=.
 TargetName=gadgetlib
-InputPath=.\Release@(repo).dll
+InputPath=.\Release\gadgetlib.dll
 InputName=gadgetlib
 SOURCE="$(InputPath)"
 
@@ -190,12 +190,12 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386
-# ADD LINK32 kernel32.lib user32.lib /nologo /dll /pdb:"Release_U/gadgetlib_U.dll.pdb" /machine:I386 /out:"Release_U/gadgetlib_U.dll" /implib:"gadgetlib_U--imp.lib" /libpath:"../../binstore"
+# ADD LINK32 mmsnprintf.lib kernel32.lib user32.lib /nologo /dll /pdb:"Release_U/gadgetlib_U.dll.pdb" /machine:I386 /out:"Release_U/gadgetlib_U.dll" /implib:"gadgetlib_U--imp.lib" /libpath:"../../binstore"
 # SUBTRACT LINK32 /pdb:none
 # Begin Custom Build - Sync output binary( $(InputName).dll , $(InputName)--imp.lib ) to ..\..\binstore folder.
 ProjDir=.
 TargetName=gadgetlib_U
-InputPath=.\Release@(repo)_U.dll
+InputPath=.\Release_U\gadgetlib_U.dll
 InputName=gadgetlib_U
 SOURCE="$(InputPath)"
 

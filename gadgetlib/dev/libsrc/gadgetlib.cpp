@@ -8,7 +8,7 @@
 #include <gadgetlib/gadgetlib.h>
 
 #define DLL_AUTO_EXPORT_STUB
-void gadgetlib__gadgetlib__DLL_AUTO_EXPORT_STUB(void){}
+extern"C" void gadgetlib__gadgetlib__DLL_AUTO_EXPORT_STUB(void){}
 
 unsigned int 
 gadgetlib_get_version_v3n(void)

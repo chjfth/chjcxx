@@ -10,6 +10,7 @@
 #include <gadgetlib/charenccvt.h>
 
 #define DLL_AUTO_EXPORT_STUB
+extern"C" void gadgetlib_lib__charenccvt_win__DLL_AUTO_EXPORT_STUB(void){}
 
 
 char *

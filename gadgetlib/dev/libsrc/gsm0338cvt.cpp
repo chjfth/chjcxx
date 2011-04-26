@@ -1,6 +1,7 @@
 #include <gadgetlib/gsm0338cvt.h>
 
 #define DLL_AUTO_EXPORT_STUB
+extern"C" void gadgetlib_lib__gsm0338cvt__DLL_AUTO_EXPORT_STUB(void){}
 
 //wchar_t ww = L'\xA3';
 	//[2010-01-12] This will cause VC6 SP6 compiler spout error:

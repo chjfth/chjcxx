@@ -9,6 +9,7 @@
 #include <gadgetlib/fstream-aux.h>
 
 #define DLL_AUTO_EXPORT_STUB
+extern"C" void gadgetlib_lib__fstream_aux__DLL_AUTO_EXPORT_STUB(void){}
 
 
 bool 
