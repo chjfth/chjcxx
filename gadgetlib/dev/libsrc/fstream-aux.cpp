@@ -8,6 +8,8 @@
 
 #include <gadgetlib/fstream-aux.h>
 
+#define DLL_AUTO_EXPORT_STUB
+
 
 bool 
 ggt_fstream_change_file_size(FILE *fp, int newsize)

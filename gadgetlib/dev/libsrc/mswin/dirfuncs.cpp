@@ -8,6 +8,9 @@
 
 #include <gadgetlib/dirfuncs.h>
 
+#define DLL_AUTO_EXPORT_STUB
+
+
 bool 
 ggt_FreeDirfuncBuffer(TCHAR *p)
 {

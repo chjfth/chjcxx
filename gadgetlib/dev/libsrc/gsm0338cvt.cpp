@@ -1,5 +1,7 @@
 #include <gadgetlib/gsm0338cvt.h>
 
+#define DLL_AUTO_EXPORT_STUB
+
 //wchar_t ww = L'\xA3';
 	//[2010-01-12] This will cause VC6 SP6 compiler spout error:
 	//	error C2002: invalid wide-character constant

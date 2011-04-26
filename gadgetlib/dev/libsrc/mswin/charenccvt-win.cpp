@@ -9,6 +9,8 @@
 #include <in_char_op.h>
 #include <gadgetlib/charenccvt.h>
 
+#define DLL_AUTO_EXPORT_STUB
+
 
 char *
 ggt_charnext(const char *pchar)

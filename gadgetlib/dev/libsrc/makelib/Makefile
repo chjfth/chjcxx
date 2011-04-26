@@ -31,7 +31,13 @@ ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),msvc wince),1)
 
   gmp_CFLAGS_NON_CODE_GEN += /W3
   
-  gmu_up_list_SRC_FROM_ROOT += mswin/ps_func.cpp
+  gmu_up_list_SRC_FROM_ROOT += \
+	$(if $(filter wince%,$(gmp_COMPILER_ID)),,fstream-aux.cpp) \
+	mswin/wintime.cpp \
+	mswin/dirfuncs.cpp \
+	mswin/charenccvt-win.cpp \
+	# WinCE 5.0 still don't provide fopen etc, so don't add fstream-aux.cpp .
+
   gmu_ud_list_PRJ_HEADER += 
 
   # gmp_u_list_PLUGIN_TO_LOAD += PI_winres_msvc       # compile Windows resource(.rc)
@@ -46,7 +52,11 @@ ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),msvc wince),1)
 else ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),linuxgcc),1)
   # GCC compiling linux program
 
-  gmu_up_list_SRC_FROM_ROOT += linux/ps_func.cpp
+gmu_up_list_SRC_FROM_ROOT += \
+	fstream-aux.cpp \
+	linux/linuxtime.cpp \
+	linux/dirfuncs.cpp \
+
   gmu_ud_list_PRJ_HEADER += 
 
   # gmp_u_list_PLUGIN_TO_LOAD += PI_gcc_strip_lo      # strip output executable
@@ -106,7 +116,11 @@ dirCommonInclude = $(dirCommonLib)/common-include
 # * You can use ``subdir1/../myfunc.c'' or ``subdir1/subdir2/../myfunc.c'', which are 
 #	still in $(gmu_ud_SRC_ROOT) or $(gmu_ud_SRC_ROOT)'s subdir.
 gmu_up_list_SRC_FROM_ROOT += \
-	gadgetlib.c \
+	gadgetlib.cpp \
+	time-common.cpp \
+	charenccvt-common.cpp \
+	gsm0338cvt.cpp \
+	mbcs-ops.cpp \
 
 # GMU-var: gmu_ud_list_PRJ_HEADER
 #	Define header file dirs, multiple dirs should be separated by spaces or tabs.
@@ -163,19 +177,21 @@ gmu_uv_list_SUBPRJ_LINK_FOR_PARENT += # <subprj-ref> ...
 
 <subprj-ref>_Makefile = # where the sub-project's makefile resides
 # If the sub-project's makefiles are to be checked-out from some repository, assign it here.
-# >>>> For SVN checkout
-<subprj-ref>_svnUrl_forMakefiles = # SVN Url for the checkout
-	# Hint: $(call gmuf_MakeSvnRepositoryPath,<SVN-path-prefix-var>,<remaining-repository-path>)
-<subprj-ref>_svnLocalDir_forMakefiles = # Local dir corresponding to the whole SVN URL
-<subprj-ref>_svnRev = # Revision to use(string after svn's -r switch)
-# <<<< For SVN checkout
-# >>>> For CVS checkout
-<subprj-ref>_cvsRoot_forMakefiles = # CVSROOT for the checkout
-	# Hint: $(call gmuf_MakeCvsRepositoryPath,<CVS-server-var>,<repository-path-on-CVS-server>)
-<subprj-ref>_cvsModuleDir_forMakefiles = # CVS module name or module dir to checkout
-<subprj-ref>_cvsLocalDir_forMakefiles = # Local dir corresponding to CVSROOT
-<subprj-ref>_cvsTag_forMakefiles = # Tag or branch to checkout(string after cvs's -r switch)
-# <<<< For CVS checkout
+
+ifneq (,$(isUseOnlyHeader_AnsiCTfuncs)) 
+  # PS: [2009-04-21]isUseOnlyHeader_AnsiCTfuncs is only defined in lib-ubase.mki .
+  $(call NlssvnUseHeader,AnsiC_Tfuncs) # by dirfuncs, strlen etc
+else
+  $(call NlssvnLinkSubprjForParent,AnsiC_Tfuncs) # by dirfuncs, strlen etc
+endif
+
+$(call NlssvnLinkSubprjForParent,mmsnprintf)
+$(call NlssvnUseHeader,CommonInclude)
+
+ifneq (,$(isUBase))
+  $(call NlssvnUseHeader,uBaseIII)
+endif
+
 
 
 # ----------- below for plugin PI_sync_devoutput -----------

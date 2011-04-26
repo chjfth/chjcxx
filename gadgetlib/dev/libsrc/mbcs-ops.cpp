@@ -2,6 +2,7 @@
 #include <gadgetlib/charenccvt.h>
 #include <gadgetlib/mbcs-ops.h>
 
+#define DLL_AUTO_EXPORT_STUB
 
 static int 
 s_DefaultCharNext(const char *pChk, void *pCallbackExtra)

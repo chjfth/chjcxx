@@ -47,7 +47,7 @@ RSC=rc.exe
 # PROP Intermediate_Dir "Debug"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "../../libsrc/include" /I "../../../../CommonLib/common-include" /I "$(NLSSDK)/include" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "_CRT_SECURE_NO_WARNINGS" /YX /Fd"gadgetlib_D.lib.pdb" /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "../../libsrc/include" /I "../../../../CommonLib/AnsiC_Tfuncs/libsrc/include" /I "../../../../CommonLib/common-include" /I "$(NLSSDK)/include" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "_CRT_SECURE_NO_WARNINGS" /YX /Fd"gadgetlib_D.lib.pdb" /FD /GZ /c
 # ADD BASE RSC /l 0x804 /d "_DEBUG"
 # ADD RSC /l 0x804 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -79,7 +79,7 @@ SOURCE="$(InputPath)"
 # PROP Intermediate_Dir "Debug_U"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "../../libsrc/include" /I "$(NLSSDK)/include" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "../../libsrc/include" /I "../../../../CommonLib/common-include" /I "$(NLSSDK)/include" /D "UNICODE" /D "_UNICODE" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "_CRT_SECURE_NO_WARNINGS" /YX /Fd"gadgetlib_U_D.lib.pdb" /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "../../libsrc/include" /I "../../../../CommonLib/AnsiC_Tfuncs/libsrc/include" /I "../../../../CommonLib/common-include" /I "$(NLSSDK)/include" /D "UNICODE" /D "_UNICODE" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "_CRT_SECURE_NO_WARNINGS" /YX /Fd"gadgetlib_U_D.lib.pdb" /FD /GZ /c
 # ADD BASE RSC /l 0x804 /d "_DEBUG"
 # ADD RSC /l 0x804 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -111,7 +111,7 @@ SOURCE="$(InputPath)"
 # PROP Intermediate_Dir "Release"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /Zi /O2 /I "../../libsrc/include" /I "../../../../CommonLib/common-include" /I "$(NLSSDK)/include" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "_CRT_SECURE_NO_WARNINGS" /YX /Fd"gadgetlib.lib.pdb" /FD /c
+# ADD CPP /nologo /MT /W3 /GX /Zi /O2 /I "../../libsrc/include" /I "../../../../CommonLib/AnsiC_Tfuncs/libsrc/include" /I "../../../../CommonLib/common-include" /I "$(NLSSDK)/include" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "_CRT_SECURE_NO_WARNINGS" /YX /Fd"gadgetlib.lib.pdb" /FD /c
 # ADD BASE RSC /l 0x804 /d "NDEBUG"
 # ADD RSC /l 0x804 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -143,7 +143,7 @@ SOURCE="$(InputPath)"
 # PROP Intermediate_Dir "Release_U"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MD /W3 /GX /O2 /I "../../libsrc/include" /I "$(NLSSDK)/include" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /Zi /O2 /I "../../libsrc/include" /I "../../../../CommonLib/common-include" /I "$(NLSSDK)/include" /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "_CRT_SECURE_NO_WARNINGS" /YX /Fd"gadgetlib_U.lib.pdb" /FD /c
+# ADD CPP /nologo /MT /W3 /GX /Zi /O2 /I "../../libsrc/include" /I "../../../../CommonLib/AnsiC_Tfuncs/libsrc/include" /I "../../../../CommonLib/common-include" /I "$(NLSSDK)/include" /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "_CRT_SECURE_NO_WARNINGS" /YX /Fd"gadgetlib_U.lib.pdb" /FD /c
 # ADD BASE RSC /l 0x804 /d "NDEBUG"
 # ADD RSC /l 0x804 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -175,7 +175,7 @@ SOURCE="$(InputPath)"
 # PROP Intermediate_Dir "Debug.export"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "../../libsrc/include" /I "../../../../CommonLib/common-include" /I "$(NLSSDK)/include" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "_CRT_SECURE_NO_WARNINGS" /D DLLEXPORT_gadgetlib=__declspec(dllexport) /YX /Fd"gadgetlib_D.lib.pdb" /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "../../libsrc/include" /I "../../../../CommonLib/AnsiC_Tfuncs/libsrc/include" /I "../../../../CommonLib/common-include" /I "$(NLSSDK)/include" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "_CRT_SECURE_NO_WARNINGS" /D DLLEXPORT_gadgetlib=__declspec(dllexport) /YX /Fd"gadgetlib_D.lib.pdb" /FD /GZ /c
 # ADD BASE RSC /l 0x804 /d "_DEBUG"
 # ADD RSC /l 0x804 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -207,7 +207,7 @@ SOURCE="$(InputPath)"
 # PROP Intermediate_Dir "Debug_U.export"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "../../libsrc/include" /I "$(NLSSDK)/include" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "../../libsrc/include" /I "../../../../CommonLib/common-include" /I "$(NLSSDK)/include" /D "UNICODE" /D "_UNICODE" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "_CRT_SECURE_NO_WARNINGS" /D DLLEXPORT_gadgetlib=__declspec(dllexport) /YX /Fd"gadgetlib_U_D.lib.pdb" /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "../../libsrc/include" /I "../../../../CommonLib/AnsiC_Tfuncs/libsrc/include" /I "../../../../CommonLib/common-include" /I "$(NLSSDK)/include" /D "UNICODE" /D "_UNICODE" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "_CRT_SECURE_NO_WARNINGS" /D DLLEXPORT_gadgetlib=__declspec(dllexport) /YX /Fd"gadgetlib_U_D.lib.pdb" /FD /GZ /c
 # ADD BASE RSC /l 0x804 /d "_DEBUG"
 # ADD RSC /l 0x804 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -239,7 +239,7 @@ SOURCE="$(InputPath)"
 # PROP Intermediate_Dir "Release.export"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /Zi /O2 /I "../../libsrc/include" /I "../../../../CommonLib/common-include" /I "$(NLSSDK)/include" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "_CRT_SECURE_NO_WARNINGS" /D DLLEXPORT_gadgetlib=__declspec(dllexport) /YX /Fd"gadgetlib.lib.pdb" /FD /c
+# ADD CPP /nologo /MT /W3 /GX /Zi /O2 /I "../../libsrc/include" /I "../../../../CommonLib/AnsiC_Tfuncs/libsrc/include" /I "../../../../CommonLib/common-include" /I "$(NLSSDK)/include" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "_CRT_SECURE_NO_WARNINGS" /D DLLEXPORT_gadgetlib=__declspec(dllexport) /YX /Fd"gadgetlib.lib.pdb" /FD /c
 # ADD BASE RSC /l 0x804 /d "NDEBUG"
 # ADD RSC /l 0x804 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -271,7 +271,7 @@ SOURCE="$(InputPath)"
 # PROP Intermediate_Dir "Release_U.export"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /MD /W3 /GX /O2 /I "../../libsrc/include" /I "$(NLSSDK)/include" /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /Zi /O2 /I "../../libsrc/include" /I "../../../../CommonLib/common-include" /I "$(NLSSDK)/include" /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "_CRT_SECURE_NO_WARNINGS" /D DLLEXPORT_gadgetlib=__declspec(dllexport) /YX /Fd"gadgetlib_U.lib.pdb" /FD /c
+# ADD CPP /nologo /MT /W3 /GX /Zi /O2 /I "../../libsrc/include" /I "../../../../CommonLib/AnsiC_Tfuncs/libsrc/include" /I "../../../../CommonLib/common-include" /I "$(NLSSDK)/include" /D "UNICODE" /D "_UNICODE" /D "NDEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "_CRT_SECURE_NO_WARNINGS" /D DLLEXPORT_gadgetlib=__declspec(dllexport) /YX /Fd"gadgetlib_U.lib.pdb" /FD /c
 # ADD BASE RSC /l 0x804 /d "NDEBUG"
 # ADD RSC /l 0x804 /d "NDEBUG"
 BSC32=bscmake.exe
