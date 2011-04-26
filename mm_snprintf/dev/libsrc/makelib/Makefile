@@ -1,5 +1,9 @@
-include $(gmu_DIR_GNUMAKEUNIPROC)/CommonFunctions.mki
-	# To include definition of gmuf_IsWordInSet
+ifdef gmu_DIR_GNUMAKEUNIPROC
+  include $(gmu_DIR_GNUMAKEUNIPROC)/pattern1-concise-header.mki
+  include $(gmu_DIR_ROOT)/nlscan/nlssvn-prjs.mki
+else
+  $(error gmu_DIR_GNUMAKEUNIPROC is not defined, You have to set up GnumakeUniproc environment to use this Makefile)
+endif
 
 # Different compiler uses different source set, described below. 
 ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),msvc mingw wince),1)

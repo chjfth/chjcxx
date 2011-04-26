@@ -24,7 +24,6 @@ gmu_uf_LINK_OUTPUT = $(call gmpf_MakeLibName,mmsnprintf)
 # not to this mki file. Normally, $(CURDIR) is your start-up makefile directory.
 ############################################################################
 gmu_ud_SRC_ROOT = ..
-dirMmsnprintf = ../..
 
 snprintfW_fromroot = makelib/mm_snprintfW.cpp
 
@@ -62,7 +61,10 @@ gmp_u_list_DLL_EXPORT_SYM += DLLEXPORT_mmsnprintf
 #	1. They'll be passed to the compiler through ``-I <dir1> -I <dir2> ...'' .
 #	2. They'll be passed to `$(gmu_GCC_M_PREFIX)gcc -M' in favor of generating hdepend files.
 ############################################################################
-gmu_ud_list_PRJ_HEADER += $(gmu_ud_SRC_ROOT)/include $(gmu_ud_SRC_ROOT)
+gmu_ud_list_PRJ_HEADER += \
+	$(gmu_ud_SRC_ROOT)/include \
+	$(gmu_ud_SRC_ROOT) \
+	$(NLSSDK)/include
 	# Don't write ``-I'' in this var; -I will be prependded automatically.
 
 gmp_CFLAGS_INCLUDES += # $(addprefix -I,<dir1> <dir2> ...)
@@ -131,10 +133,10 @@ gmu_uv_list_SUBPRJ_LINK_FOR_PARENT += # <subprj-ref> ...
 # ----------- below for plugins -----------
 
 # If you use plugin PI_sync_devoutput, you may want to set:
-# gmi_SYDO_ud_SYNC_HEADER_ROOT =
+gmi_SYDO_ud_SYNC_HEADER_FROM = $(gmu_ud_SRC_ROOT)/include
 	# The dir that your headers reside in. ( relative to $(CURDIR) )
 
-# gmi_SYDO_up_list_SYNC_HEADERS =
+gmi_SYDO_up_list_SYNC_HEADER = mm_snprintf.h ps_TCHAR.h
 	# List filepaths of the header files to sync. ( relative to $(gmi_SYDO_ud_SYNC_HEADER_ROOT) )
 
 # gmi_SYDO_ud_SYNC_HEADER_TO = # (suggested to set as env-var or by parent project)

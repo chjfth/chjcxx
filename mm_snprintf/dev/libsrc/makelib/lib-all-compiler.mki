@@ -23,6 +23,8 @@ endif
 # by spaces. Plugins are searched from $(gmp_ud_list_CUSTOM_MKI) and then
 # from $(gmu_DIR_GNUMAKEUNIPROC)/pattern1cfg/plugins .
 ############################################################################
+dirThisRepo = ../..
+
 gmp_u_list_PLUGIN_TO_LOAD += PI_copy_psTCHARh
 gmi_CTCH_dirNlssvn = $(gmu_ud_SRC_ROOT)/../../..
 gmi_CTCH_dirCopyTo = $(gmu_ud_SRC_ROOT)/include
