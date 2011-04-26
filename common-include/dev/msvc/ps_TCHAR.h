@@ -82,6 +82,11 @@
 */
 
 
+#if _MSC_VER <= 1310  // VC7.1(2003) and earlier
+typedef unsigned short wchar_t;
+	// So that wchar_t can be used without including <tchar.h>
+#endif
+
 
 #ifdef UNICODE
 
