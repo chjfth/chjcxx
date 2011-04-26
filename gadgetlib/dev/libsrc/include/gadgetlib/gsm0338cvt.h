@@ -12,15 +12,7 @@ extern"C" {
 # endif
 #endif
 
-#ifdef DONT_WANT_PS_TCHAR
-# if defined WIN32 || defined WINCE
-#  include <tchar.h> // The Microsoft way
-# else
-   typedef char TCHAR;
-# endif
-#else
-# include <ps_TCHAR.h>
-#endif
+#include <ps_TCHAR.h>
 
 #include <gadgetlib/ggt-const.h>
 
