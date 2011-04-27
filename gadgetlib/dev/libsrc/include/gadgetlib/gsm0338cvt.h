@@ -17,6 +17,7 @@ extern"C" {
 #include <gadgetlib/ggt-const.h>
 
 
+DLLEXPORT_gadgetlib
 wchar_t ggt_gsm2uc(int gsmc);
 	//!< Convert a single GSM 03.38 charcode to Unicode.
 	/*!< 
@@ -34,6 +35,7 @@ wchar_t ggt_gsm2uc(int gsmc);
 		If gsmc is not a valid GSM 03.38 charcode, ggt_INVALID_WCHAR(-1) is returned.
 	*/
 
+DLLEXPORT_gadgetlib
 int ggt_uc2gsm(wchar_t uc);
 	//!< Convert a single Unicode charcode to GSM 03.38 charcode.
 	/*!< 
@@ -46,6 +48,7 @@ int ggt_uc2gsm(wchar_t uc);
 	*/
 
 
+DLLEXPORT_gadgetlib // XX ?? 
 TCHAR * XXggt_RelPathToAbsPath(const TCHAR *rel, TCHAR *bufprev=0);
 	//!< Convert relative path to absolute path.
 	/*!< This is only literal operation, not checking disk files.

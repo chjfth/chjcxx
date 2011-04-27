@@ -26,4 +26,18 @@ void _ExportFunctionList(void)
 	gadgetlib_lib__gsm0338cvt__DLL_AUTO_EXPORT_STUB();
 	gadgetlib_lib__mbcs_ops__DLL_AUTO_EXPORT_STUB();
 	}
+	/* Auto-export functions from GMU project(gmu_PRJ_NAME): AnsiC_Tfuncs-lib
+	*/
+	{
+	extern void AnsiC_Tfuncs__AnsiC_Tfuncs__DLL_AUTO_EXPORT_STUB(void);
+	AnsiC_Tfuncs__AnsiC_Tfuncs__DLL_AUTO_EXPORT_STUB();
+	}
+	/* Auto-export functions from GMU project(gmu_PRJ_NAME): mmsnprintf
+	*/
+	{
+	extern void mmsnprintf__mm_snprintfA__DLL_AUTO_EXPORT_STUB(void);
+	extern void mmsnprintf__mm_snprintfW__DLL_AUTO_EXPORT_STUB(void);
+	mmsnprintf__mm_snprintfA__DLL_AUTO_EXPORT_STUB();
+	mmsnprintf__mm_snprintfW__DLL_AUTO_EXPORT_STUB();
+	}
 }

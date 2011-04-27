@@ -23,7 +23,6 @@ extern"C"{
 #include <gadgetlib/dirfuncs.h>
 #include <gadgetlib/fstream-aux.h>
 #include <gadgetlib/fstream64.h>
-#include <gadgetlib/gadgetlib.h>
 #include <gadgetlib/gsm0338cvt.h>
 #include <gadgetlib/mbcs-ops.h>
 #include <gadgetlib/timefuncs.h>

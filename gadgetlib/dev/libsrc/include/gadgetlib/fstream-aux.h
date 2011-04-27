@@ -15,6 +15,7 @@ extern"C" {
 // VC6 CRT used: 
 //	typedef struct _iobuf FILE;
 
+DLLEXPORT_gadgetlib
 bool ggt_fstream_change_file_size(FILE *fp, int newsize);
 	// [2008-08-27]
 	// Since the ANSI(C99) file stream operation has not standardized functions

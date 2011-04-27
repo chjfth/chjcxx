@@ -20,10 +20,12 @@ extern"C" {
 #endif
 
 
+DLLEXPORT_gadgetlib
 bool ggt_FreeDirfuncBuffer(TCHAR *p);
 	//!< Free dir or path buffer allocated by functions below.
 
 
+DLLEXPORT_gadgetlib
 TCHAR * ggt_RelPathToAbsPath(const TCHAR *rel, TCHAR *bufprev=0);
 	//!< Convert relative path to absolute path.
 	/*!< This is only literal operation, not checking disk files.
