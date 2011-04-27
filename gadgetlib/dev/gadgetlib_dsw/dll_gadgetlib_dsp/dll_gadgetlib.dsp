@@ -55,7 +55,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 mmsnprintf_D.lib kernel32.lib user32.lib /nologo /dll /pdb:"Debug/gadgetlib.dll.pdb" /debug /machine:I386 /out:"Debug/gadgetlib.dll" /implib:"gadgetlib--imp.lib" /pdbtype:sept /libpath:"../../binstore"
+# ADD LINK32 mmsnprintf_D.lib AnsiC_Tfuncs_D.lib kernel32.lib user32.lib /nologo /dll /pdb:"Debug/gadgetlib.dll.pdb" /debug /machine:I386 /out:"Debug/gadgetlib.dll" /implib:"gadgetlib--imp.lib" /pdbtype:sept /libpath:"../../binstore"
 # SUBTRACT LINK32 /pdb:none
 # Begin Custom Build - Sync output binary( $(InputName).dll , $(InputName)--imp.lib ) to ..\..\binstore folder.
 ProjDir=.
@@ -100,7 +100,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 mmsnprintf_D.lib kernel32.lib user32.lib /nologo /dll /pdb:"Debug_U/gadgetlib_U.dll.pdb" /debug /machine:I386 /out:"Debug_U/gadgetlib_U.dll" /implib:"gadgetlib_U--imp.lib" /pdbtype:sept /libpath:"../../binstore"
+# ADD LINK32 mmsnprintf_D.lib AnsiC_Tfuncs_U_D.lib kernel32.lib user32.lib /nologo /dll /pdb:"Debug_U/gadgetlib_U.dll.pdb" /debug /machine:I386 /out:"Debug_U/gadgetlib_U.dll" /implib:"gadgetlib_U--imp.lib" /pdbtype:sept /libpath:"../../binstore"
 # SUBTRACT LINK32 /pdb:none
 # Begin Custom Build - Sync output binary( $(InputName).dll , $(InputName)--imp.lib ) to ..\..\binstore folder.
 ProjDir=.
@@ -145,7 +145,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386
-# ADD LINK32 mmsnprintf.lib kernel32.lib user32.lib /nologo /dll /pdb:"Release/gadgetlib.dll.pdb" /machine:I386 /out:"Release/gadgetlib.dll" /implib:"gadgetlib--imp.lib" /libpath:"../../binstore"
+# ADD LINK32 mmsnprintf.lib AnsiC_Tfuncs.lib kernel32.lib user32.lib /nologo /dll /pdb:"Release/gadgetlib.dll.pdb" /machine:I386 /out:"Release/gadgetlib.dll" /implib:"gadgetlib--imp.lib" /libpath:"../../binstore"
 # SUBTRACT LINK32 /pdb:none
 # Begin Custom Build - Sync output binary( $(InputName).dll , $(InputName)--imp.lib ) to ..\..\binstore folder.
 ProjDir=.
@@ -190,7 +190,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386
-# ADD LINK32 mmsnprintf.lib kernel32.lib user32.lib /nologo /dll /pdb:"Release_U/gadgetlib_U.dll.pdb" /machine:I386 /out:"Release_U/gadgetlib_U.dll" /implib:"gadgetlib_U--imp.lib" /libpath:"../../binstore"
+# ADD LINK32 mmsnprintf.lib AnsiC_Tfuncs_U.lib kernel32.lib user32.lib /nologo /dll /pdb:"Release_U/gadgetlib_U.dll.pdb" /machine:I386 /out:"Release_U/gadgetlib_U.dll" /implib:"gadgetlib_U--imp.lib" /libpath:"../../binstore"
 # SUBTRACT LINK32 /pdb:none
 # Begin Custom Build - Sync output binary( $(InputName).dll , $(InputName)--imp.lib ) to ..\..\binstore folder.
 ProjDir=.
