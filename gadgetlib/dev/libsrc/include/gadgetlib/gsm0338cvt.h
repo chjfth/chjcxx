@@ -16,6 +16,10 @@ extern"C" {
 
 #include <gadgetlib/ggt-const.h>
 
+#ifndef DLLEXPORT_gadgetlib
+# define DLLEXPORT_gadgetlib
+#endif
+	
 
 DLLEXPORT_gadgetlib
 wchar_t ggt_gsm2uc(int gsmc);

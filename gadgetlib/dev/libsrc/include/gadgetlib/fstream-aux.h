@@ -15,6 +15,10 @@ extern"C" {
 // VC6 CRT used: 
 //	typedef struct _iobuf FILE;
 
+#ifndef DLLEXPORT_gadgetlib
+# define DLLEXPORT_gadgetlib
+#endif
+
 DLLEXPORT_gadgetlib
 bool ggt_fstream_change_file_size(FILE *fp, int newsize);
 	// [2008-08-27]

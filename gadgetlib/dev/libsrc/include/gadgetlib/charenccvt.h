@@ -37,6 +37,11 @@ enum { ggt_max_mbcs_byteslen = 6 };
 	/*!< I use 6 because an character represented in UTF-8 can be as long as 6 bytes.
 	*/
 
+#ifndef DLLEXPORT_gadgetlib
+# define DLLEXPORT_gadgetlib
+#endif
+
+
 DLLEXPORT_gadgetlib
 wchar_t ggt_mb2wc(const char *mb, int *pConBytes);
 	//!< Convert an MBCS char pointed to by mb to Unicode value.

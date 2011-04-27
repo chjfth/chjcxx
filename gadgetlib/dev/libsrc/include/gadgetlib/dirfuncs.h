@@ -19,6 +19,10 @@ extern"C" {
 #define bool int; // sly
 #endif
 
+#ifndef DLLEXPORT_gadgetlib
+# define DLLEXPORT_gadgetlib
+#endif
+	
 
 DLLEXPORT_gadgetlib
 bool ggt_FreeDirfuncBuffer(TCHAR *p);

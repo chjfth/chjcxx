@@ -5,6 +5,11 @@
 extern"C" {
 #endif
 
+#ifndef DLLEXPORT_gadgetlib
+# define DLLEXPORT_gadgetlib
+#endif
+	
+
 //! Flags saying how to round an MBCS or UTF-8 string
 enum ggt_RoundMbcs_et {
 	ggt_RoundHeadUp = 1, ggt_RoundHeadDown = 0,

@@ -22,6 +22,10 @@ extern"C" {
 # endif
 #endif
 
+#ifndef DLLEXPORT_gadgetlib
+# define DLLEXPORT_gadgetlib
+#endif
+	
 
 /* Leap year is any year divisible by four, but not by 100 unless also
  * divisible by 400
