@@ -159,7 +159,7 @@ gmu_uv_list_SUBPRJ_LINK_ALL_LEVEL += lib
 ######## Details of your sub-projects go here: ########
 
 lib_Makefile = $(gmu_ud_SRC_ROOT)/makelib/Makefile
-lib_MakeVarDefines = gmp_COMPILER_ID=$(gmp_COMPILER_ID)
+lib_MakeVarDefines = gmp_u_list_PLUGIN_TO_LOAD_AUX_PRE=PI_dll_from_lib
 # If the sub-project's makefiles are to be checked-out from some repository, assign it here.
 # >>>> For SVN checkout
 <subprj1-refname>_svnUrl_forMakefiles = # SVN Url for the checkout

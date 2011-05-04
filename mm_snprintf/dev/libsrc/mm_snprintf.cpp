@@ -11,7 +11,7 @@
 	//so you MUST #include it after <stdarg.h>
 
 #include <ps_TCHAR.h>
-#include "mm_snprintf.h"
+#include <mm_snprintf.h>
 #include "internal.h"
 #include "mm_psfunc.h"
 
@@ -439,18 +439,6 @@ int vasnprintf (char **ptr, size_t str_m, const char *fmt, va_list ap) {
  * specifically required, this module produces no code for snprintf/vsnprintf.
  */
 #if !defined(HAVE_SNPRINTF) || defined(PREFER_PORTABLE_SNPRINTF)
-
-int 
-portable_snprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, /*args*/ ...) 
-{
-	va_list ap;
-	int str_l;
-
-	va_start(ap, fmt);
-	str_l = portable_vsnprintf(str, str_m, fmt, ap);
-	va_end(ap);
-	return str_l;
-}
 
 int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap) 
 {
@@ -1101,6 +1089,18 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 	return (int) str_l;
 }
 #endif
+
+int 
+portable_snprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, /*args*/ ...) 
+{
+	va_list ap;
+	int str_l;
+
+	va_start(ap, fmt);
+	str_l = portable_vsnprintf(str, str_m, fmt, ap);
+	va_end(ap);
+	return str_l;
+}
 
 int asprintf(TCHAR **ptr, const TCHAR *fmt, /*args*/ ...) 
 {

@@ -48,9 +48,9 @@ gmp_u_list_PLUGIN_TO_LOAD += PI_winres_msvc
 	# Load resource(.rc) compiling plugin.
 
 # Load "make dll from lib" plugin, and load for subprjs as well(export ...).
-export gmp_u_list_PLUGIN_TO_LOAD_ENV_PRE += PI_windll_from_lib #(WDFL)Tell subprjs to load this plugin
-export gmi_WDFL_DO_AUTO_EXPORT = 1
-gmi_WDFL_COPY_AUTOSTUB_TO_DLLSRCROOT = 1
+gmp_u_list_PLUGIN_TO_LOAD += PI_dll_from_lib
+  export gmi_DFL_DO_AUTO_EXPORT = 1
+  gmi_DFL_COPY_AUTOSTUB_TO_DLLSRCROOT = 1
 
 #gmp_u_list_PLUGIN_TO_LOAD += PI_use_pch_msvc
 	# Precompile header plugin.
