@@ -43,6 +43,8 @@ ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),msvc wince),1)
 		# (note: consider using the generic PI_dll_from_lib instead)
   # gmp_u_list_PLUGIN_TO_LOAD += PI_sync_debug_info
 
+  gmi_DFL_COPY_AUTOSTUB_TO_DLLSRCROOT = 1# param of PI_dll_from_lib
+
 else ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),linuxgcc),1)
   # GCC compiling linux program
 
@@ -71,10 +73,8 @@ gmp_u_list_PLUGIN_TO_LOAD += PI_nls_version_sync
 # Load "make dll from lib" plugin, and load for subprjs as well(export ...).
 export gmp_u_list_PLUGIN_TO_LOAD_ENV_PRE += PI_dll_from_lib
   export gmi_DFL_DO_AUTO_EXPORT = 1
-  gmi_DFL_COPY_AUTOSTUB_TO_DLLSRCROOT = 1
   #export gmi_DFL_IS_DEEP_EXPORT = 1
-  	# Enable gmi_DFL_IS_DEEP_EXPORT=1 if you want this DLL to export functions 
-  	# from all levels of sub-projects. 
+  	# Enable this if you want this DLL to export functions from all levels of sub-projects. 
   	# If null, export only those of your immediate sub-projects.
 
 # Other plugins: PI_sync_devoutput PI_always_compile PI_file_precopy
