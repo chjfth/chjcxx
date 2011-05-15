@@ -175,7 +175,7 @@ gmu_up_list_EXTRA_OBJ_TO_LINK +=
 # the old project output-dir first in order for that change to work. )
 gmu_uv_list_SUBPRJ_LINK_FOR_PARENT += # <subprj-ref> ...
 
-<subprj-ref>_Makefile = # where the sub-project's makefile resides
+#<subprj-ref>_Makefile = # where the sub-project's makefile resides
 # If the sub-project's makefiles are to be checked-out from some repository, assign it here.
 
 ifneq (,$(isUseOnlyHeader_AnsiCTfuncs)) 
