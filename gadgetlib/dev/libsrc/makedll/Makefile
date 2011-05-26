@@ -13,7 +13,7 @@ endif
 # conflict will be detected by GMU if two or more projects have the same
 # gmu_G_Final_PrjName.
 ifndef gmu_PRJ_NAME
-  gmu_PRJ_NAME = gadgetlib-dll
+  gmu_PRJ_NAME = gadgetlib.dll
 endif
 
 # GMU-var: gmp_bc_IMAGE_TYPE
@@ -198,7 +198,7 @@ gmu_uv_list_SUBPRJ_LINK_ALL_LEVEL += libgadgetlib
 
 
 libgadgetlib_Makefile = $(gmu_ud_SRC_ROOT)/makelib/Makefile
-libgadgetlib_MakeVarDefines = gmp_COMPILER_ID=$(gmp_COMPILER_ID)
+libgadgetlib_MakeVarDefines = 
 	# command line options passed to sub-make
 # If the sub-project's makefiles are to be checked-out from some repository, assign it here.
 # >>>> For SVN checkout

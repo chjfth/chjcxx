@@ -14,7 +14,7 @@ endif
 # conflict will be detected by GMU if two or more projects have the same
 # gmu_G_Final_PrjName.
 ifndef gmu_PRJ_NAME
-  gmu_PRJ_NAME = gadgetlib-lib
+  gmu_PRJ_NAME = gadgetlib.lib
 endif
 
 # GMU-var: gmp_bc_IMAGE_TYPE
