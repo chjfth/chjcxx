@@ -5,7 +5,7 @@ else
   $(error gmu_DIR_GNUMAKEUNIPROC is not defined, You have to set up GnumakeUniproc environment to use this Makefile)
 endif
 
-gmu_PRJ_NAME = gadgetlib-ex-common-all
+gmu_PRJ_NAME = gadgetlib.ux-common-all
 
 
 # User-do: List subprj makefiles in , space separated.

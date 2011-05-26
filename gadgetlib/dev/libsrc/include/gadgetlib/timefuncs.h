@@ -3,15 +3,7 @@
 
 #include <time.h> // for `struct tm'
 
-#ifdef DONT_WANT_PS_TCHAR
-# if defined WIN32 || defined WINCE
-#  include <tchar.h> // The Microsoft way
-# else
-   typedef char TCHAR;
-# endif
-#else
 # include <ps_TCHAR.h>
-#endif
 
 
 #ifdef __cplusplus

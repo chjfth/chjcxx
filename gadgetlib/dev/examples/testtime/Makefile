@@ -13,7 +13,7 @@ endif
 # conflict will be detected by GMU if two or more projects have the same
 # gmu_G_Final_PrjName.
 ifndef gmu_PRJ_NAME
-  gmu_PRJ_NAME = gadgetlib-ex-mswin-exe_gadgetlib
+  gmu_PRJ_NAME = gadgetlib.ux-testtime
 endif
 
 # GMU-var: gmp_bc_IMAGE_TYPE
@@ -40,15 +40,33 @@ ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),msvc wince),1)
   # gmp_u_list_PLUGIN_TO_LOAD += PI_windll_from_lib   # make dll from lib
   # gmp_u_list_PLUGIN_TO_LOAD += PI_sync_debug_info
 
+  UserDllNameForLink = $(call gmpf_MakeDllNameForLink,$1$(gmp_G_UFilenameSuffix)--imp)
+	# For $1=gadgetlib :
+	# gadgetlib--imp.lib or gadgetlib_U--imp.lib (on Windows)
+  NlssdkDllSearchDir = $(NlssdkLibSearchDir)
+  UserLibNameForLink = $(call gmpf_MakeLibName,$1$(gmp_G_UDFilenameSuffix))
+	# For $1=gadgetlib :
+	# gadgetlib.lib , gadgetlib_D.lib , gadgetlib_U.lib or gadgetlib_U_D.lib
+
 else ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),linuxgcc),1)
   # GCC compiling linux program
 
   # gmp_u_list_PLUGIN_TO_LOAD += PI_gcc_strip_lo      # strip output executable
   # gmp_u_list_PLUGIN_TO_LOAD += PI_use_pch_gcc       # use precompile header
   
+  UserDllNameForLink = $(call gmpf_MakeUpSysLibsToLink,$1$(gmp_G_UFilenameSuffix))
+	# For $1=gadgetlib :
+	# libgadgetlib.so or libgadgetlib_U.so  (on Linux)
+  NlssdkDllSearchDir = $(NLSSDK_fs)/$(gmp_COMPILER_ID_VER)/$(if $(gmp_bc_DEBUG),bin-debug,bin-release)
+  UserLibNameForLink = $(call gmpf_MakeUpSysLibsToLink,$1_s$(gmp_G_UDFilenameSuffix))
+	# For $1=gadgetlib :
+	# -lgadgetlib_s , -lgadgetlib_s_D , -lgadgetlib_s_U or -lgadgetlib_s_U_D
+
 else # ... some other gmp_COMPILER_ID processing ...
 
 endif
+
+NlssdkLibSearchDir = $(NLSSDK_fs)/$(gmp_COMPILER_ID_VER)/lib
 
 # GMU-var: gmp_u_list_PLUGIN_TO_LOAD
 #	Designate plugins to load in this make-var, multiple plugin names separated
@@ -62,7 +80,7 @@ gmp_u_list_PLUGIN_TO_LOAD +=
 #	Define the link ouput filename for this project.
 # Decoration may be applied to this name which results in $(gmu_Gf_Final_LinkOutput).
 # Using function gmpf_MakeExeName to construct output name makes the name more portable.
-gmu_uf_LINK_OUTPUT = $(call gmpf_MakeExeName,exe_gadgetlib)
+gmu_uf_LINK_OUTPUT = $(call gmpf_MakeExeName,testtime)
 gmp_DECO_UNICODE_FOR_LINK_OUTPUT = 1
 	#Set this to 1 if you want a _U suffix on your output-image when gmp_bc_UNICODE=1
 gmp_DECO_DEBUG_FOR_LINK_OUTPUT = 1
@@ -84,7 +102,7 @@ dirNlssvn = $(dirThisRepo)/../..
 # * You cannot use ``../myfunc.c'', which actually resides in $(gmu_ud_SRC_ROOT)'s parent dir.
 # * You can use ``subdir1/../myfunc.c'' or ``subdir1/subdir2/../myfunc.c'', which are 
 #	still in $(gmu_ud_SRC_ROOT) or $(gmu_ud_SRC_ROOT)'s subdir.
-gmu_up_list_SRC_FROM_ROOT += exe_gadgetlib.cpp
+gmu_up_list_SRC_FROM_ROOT += testtime.cpp
 
 # GMU-var: gmu_ud_list_PRJ_HEADER
 #	Define header file dirs, multiple dirs should be separated by spaces or tabs.
@@ -94,9 +112,8 @@ gmu_up_list_SRC_FROM_ROOT += exe_gadgetlib.cpp
 #	1. They'll be passed to the compiler through ``-I <dir1> -I <dir2> ...'' .
 #	2. They'll be passed to `$(gmu_GCC_M_PREFIX)gcc -M' in favor of generating hdepend files.
 gmu_ud_list_PRJ_HEADER += \
-	$(dirThisRepo)/libsrc/include \
-	$(dirNlssvn)/CommonLib/common-include \
-	$(NLSSDK)/include
+	$(if $(NLSSVN_ALL_SOURCE), $(dirThisRepo)/libsrc/include $(dirNlssvn)/CommonLib/common-include) \
+	$(NLSSDK_fs)/include
 	# Don't write ``-I'' in this var; -I will be prependded automatically.
 
 gmp_CFLAGS_INCLUDES += # $(addprefix -I,<dir1> <dir2> ...)
@@ -128,8 +145,8 @@ gmu_u_GCC_M_OPTIONS +=
 #	Set linker options for this project in this var.
 gmp_LINKFLAGS += $(gmp_LINKFLAGS_preset)
   # There are some other make-vars for easy setting linker flags:
-  gmp_ud_list_EXTRALIB += 
-  	# list library paths here, compiler_config.mki will help you prepend(for example) 
+  gmp_ud_list_EXTRALIB += $(NlssdkLibSearchDir) # and/or $(NlssdkDllSearchDir)
+  	# list library paths here, compiler-config-mki will help you prepend(for example) 
   	# * -L for linuxgcc
   	# * /LIBPATH: for msvc
 
@@ -137,18 +154,21 @@ gmp_LINKFLAGS += $(gmp_LINKFLAGS_preset)
 gmu_up_list_EXTRA_OBJ_TO_LINK +=
 	# Extra object files to link
 
-gmp_bc_EXTRALIBS += # $(call gmpf_MakeUpSysLibsToLink,<lib-list>)
-	# Extra libs to link
-	# The reason for using gmpf_MakeUpSysLibsToLink: 
-	# $(call gmpf_MakeUpSysLibsToLink,comfun) will become(for example):
-	# * -lcomfun         for linuxgcc & mingw
-	# * comfun.lib       for msvc
+ifndef NLSSVN_ALL_SOURCE
+  gmp_bc_EXTRALIBS += $(call UserLibNameForLink,gadgetlib)
+# or  
+# gmp_bc_EXTRALIBS += $(call UserDllNameForLink,gadgetlib)
+endif
 
 gmp_bc_SYSLIBS += # $(call gmpf_MakeUpSysLibsToLink,<sys-lib-list>)
 	# List system libs in this make-var. 
 	# If more than one sys-lib are used, separate them with spaces.
 	#	note: The behavior of gmp_bc_SYSLIBS is exactly the same as gmp_bc_EXTRALIBS.
 	# It is used just to imply that they are system libs(provided by compiler of OS).
+	# The reason for using gmpf_MakeUpSysLibsToLink: 
+	# $(call gmpf_MakeUpSysLibsToLink,comfun) will become(for example):
+	# * -lcomfun         for linuxgcc & mingw
+	# * comfun.lib       for msvc
 
 
 #---------------------------------------------------------------------------
@@ -172,13 +192,14 @@ gmp_bc_SYSLIBS += # $(call gmpf_MakeUpSysLibsToLink,<sys-lib-list>)
 # in gmu_uv_list_SUBPRJ_LINK_FOR_PARENT in order for SSPs to be linked automatically
 # by you.
 
-#gmu_uv_list_SUBPRJ_TO_LINK += # <subprj1-refname> <subprj2-refname> ...
-# or
-gmu_uv_list_SUBPRJ_LINK_ALL_LEVEL += thelib
+ifdef NLSSVN_ALL_SOURCE
+  # Build our lib from source if we work with NLSSVN server.
+  gmu_uv_list_SUBPRJ_LINK_ALL_LEVEL += thelib
+endif
 
 
 thelib_Makefile = $(dirThisRepo)/libsrc/makelib/Makefile
-thelib_MakeVarDefines = gmp_COMPILER_ID=$(gmp_COMPILER_ID)
+thelib_MakeVarDefines = 
 # If the sub-project's makefiles are to be checked-out from some repository, assign it here.
 # >>>> For SVN checkout
 <subprj1-refname>_svnUrl_forMakefiles = # SVN Url for the checkout

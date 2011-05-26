@@ -13,7 +13,7 @@ endif
 # conflict will be detected by GMU if two or more projects have the same
 # gmu_G_Final_PrjName.
 ifndef gmu_PRJ_NAME
-  gmu_PRJ_NAME = gadgetlib.ux-exe_gadgetlib
+  gmu_PRJ_NAME = gadgetlib.ux-testRoundMbcs.cpp
 endif
 
 # GMU-var: gmp_bc_IMAGE_TYPE
@@ -80,7 +80,7 @@ gmp_u_list_PLUGIN_TO_LOAD +=
 #	Define the link ouput filename for this project.
 # Decoration may be applied to this name which results in $(gmu_Gf_Final_LinkOutput).
 # Using function gmpf_MakeExeName to construct output name makes the name more portable.
-gmu_uf_LINK_OUTPUT = $(call gmpf_MakeExeName,exe_gadgetlib)
+gmu_uf_LINK_OUTPUT = $(call gmpf_MakeExeName,testRoundMbcs)
 gmp_DECO_UNICODE_FOR_LINK_OUTPUT = 1
 	#Set this to 1 if you want a _U suffix on your output-image when gmp_bc_UNICODE=1
 gmp_DECO_DEBUG_FOR_LINK_OUTPUT = 1
@@ -102,7 +102,7 @@ dirNlssvn = $(dirThisRepo)/../..
 # * You cannot use ``../myfunc.c'', which actually resides in $(gmu_ud_SRC_ROOT)'s parent dir.
 # * You can use ``subdir1/../myfunc.c'' or ``subdir1/subdir2/../myfunc.c'', which are 
 #	still in $(gmu_ud_SRC_ROOT) or $(gmu_ud_SRC_ROOT)'s subdir.
-gmu_up_list_SRC_FROM_ROOT += exe_gadgetlib.cpp
+gmu_up_list_SRC_FROM_ROOT += testRoundMbcs.cpp
 
 # GMU-var: gmu_ud_list_PRJ_HEADER
 #	Define header file dirs, multiple dirs should be separated by spaces or tabs.

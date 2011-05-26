@@ -1,7 +1,7 @@
 
 ifdef gmu_DIR_GNUMAKEUNIPROC
   include $(gmu_DIR_GNUMAKEUNIPROC)/pattern1-concise-header.mki
-  include $(gmu_DIR_ROOT)/nlscan/nlssvn-prjs.mki
+  include $(gmu_DIR_ROOT)/nlscan/nlssvn-scalacon.mki
 else
   $(error gmu_DIR_GNUMAKEUNIPROC is not defined, You have to set up GnumakeUniproc environment to use this Makefile)
 endif

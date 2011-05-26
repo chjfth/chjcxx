@@ -5,12 +5,11 @@ else
   $(error gmu_DIR_GNUMAKEUNIPROC is not defined, You have to set up GnumakeUniproc environment to use this Makefile)
 endif
 
-gmu_PRJ_NAME = gadgetlib-ex-mswin-all
+gmu_PRJ_NAME = gadgetlib.ux-mswin-all
 
 
 # User-do: List subprj makefiles in subprj_makefiles, space separated.
 subprj_makefiles += \
-	mswin/exe_gadgetlib/Makefile \
 	Makefile-common-all \
 	
 
