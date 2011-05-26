@@ -1,5 +1,5 @@
 
-gmu_PRJ_NAME = gadgetlib-sdk
+gmu_PRJ_NAME = gadgetlib.LinuxgccSdk
 
 gmp_USER_POST_TARGETS += # <some make targets>
 	# If you'd like something to be done after all sub-projects is built, 

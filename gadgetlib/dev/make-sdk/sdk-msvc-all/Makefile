@@ -1,5 +1,5 @@
 
-gmu_PRJ_NAME = gadgetlib.sdk
+gmu_PRJ_NAME = gadgetlib.MsvcSdk
 
 gmp_COMPILER_ID=
 	# immune to environment gmp_COMPILER_ID inheritance 

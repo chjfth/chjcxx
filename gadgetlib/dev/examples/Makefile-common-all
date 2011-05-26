@@ -14,7 +14,7 @@ subprj_makefiles = \
 	
 
 
-$(call gmuf_AddSubprjs_PassCompilerId,$(subprj_makefiles))
+$(call gmuf_AddSubprjs_Concise,$(subprj_makefiles))
 include $(gmu_DIR_GNUMAKEUNIPROC)/pattern-container1.mks
 
 
