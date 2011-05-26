@@ -51,6 +51,7 @@ ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),msvc wince),1)
 
 else ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),linuxgcc),1)
   # GCC compiling linux program
+  gmu_DECO_SUFFIX_LINK_OUTPUT += _s
 
 gmu_up_list_SRC_FROM_ROOT += \
 	fstream-aux.cpp \
