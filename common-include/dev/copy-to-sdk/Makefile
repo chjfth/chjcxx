@@ -19,7 +19,7 @@ d_CopyToInclude = $(gmb_syncto)/include
 
 $(gmu_PRJ_NAME):
 	@echo "Copy common-include headers to $(d_CopyToInclude) ..."
-	@(call gmuf_MkdirIfNotExist,$(d_CopyToInclude))
+	@$(call gmuf_MkdirIfNotExist,$(d_CopyToInclude))
 	cp ../*.h $(d_CopyToInclude)
 
 
