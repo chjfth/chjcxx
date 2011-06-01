@@ -9,4 +9,4 @@ if [ "$gmb_syncto" == "" ]; then
 	export gmb_syncto=$curdir/nlssdk
 fi
 
-umake gmb_compiler_ids="" gmb_linuxgcc_vers="" "$@"
+umaketime gmb_compiler_ids="" gmb_linuxgcc_vers="" "$@"
