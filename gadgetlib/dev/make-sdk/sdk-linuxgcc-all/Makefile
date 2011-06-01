@@ -6,6 +6,9 @@ gmp_USER_POST_TARGETS += # <some make targets>
 	# you can your targets in this var, and executes your commands under
 	# these targets.
 
+gmp_COMPILER_ID=
+	# immune to environment gmp_COMPILER_ID inheritance 
+
 gmp_u_list_PLUGIN_TO_LOAD += PI_makesdk_2011
   gmi_MSDK1_up_BUILDSDK_INI = buildsdk.ini
 
