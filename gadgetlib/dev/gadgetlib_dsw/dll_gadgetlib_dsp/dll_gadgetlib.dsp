@@ -64,16 +64,10 @@ InputPath=.\Debug\gadgetlib.dll
 InputName=gadgetlib
 SOURCE="$(InputPath)"
 
-BuildCmds= \
-	copy "$(InputPath)" ..\..\binstore \
-	copy "$(ProjDir)\$(InputName)--imp.lib" ..\..\binstore \
-	
-
 "..\..\binstore\$(TargetName).dll" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-   $(BuildCmds)
-
-"..\..\binstore\$(InputName)--imp.lib" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-   $(BuildCmds)
+	copy "$(InputPath)" ..\..\binstore 
+	copy "$(ProjDir)\$(InputName)--imp.lib" ..\..\binstore 
+	
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "dll_gadgetlib - Win32 Debug_U export"
@@ -109,16 +103,10 @@ InputPath=.\Debug_U\gadgetlib_U.dll
 InputName=gadgetlib_U
 SOURCE="$(InputPath)"
 
-BuildCmds= \
-	copy "$(InputPath)" ..\..\binstore \
-	copy "$(ProjDir)\$(InputName)--imp.lib" ..\..\binstore \
-	
-
 "..\..\binstore\$(TargetName).dll" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-   $(BuildCmds)
-
-"..\..\binstore\$(InputName)--imp.lib" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-   $(BuildCmds)
+	copy "$(InputPath)" ..\..\binstore 
+	copy "$(ProjDir)\$(InputName)--imp.lib" ..\..\binstore 
+	
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "dll_gadgetlib - Win32 Release export"
@@ -154,16 +142,10 @@ InputPath=.\Release\gadgetlib.dll
 InputName=gadgetlib
 SOURCE="$(InputPath)"
 
-BuildCmds= \
-	copy "$(InputPath)" ..\..\binstore \
-	copy "$(ProjDir)\$(InputName)--imp.lib" ..\..\binstore \
-	
-
 "..\..\binstore\$(TargetName).dll" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-   $(BuildCmds)
-
-"..\..\binstore\$(InputName)--imp.lib" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-   $(BuildCmds)
+	copy "$(InputPath)" ..\..\binstore 
+	copy "$(ProjDir)\$(InputName)--imp.lib" ..\..\binstore 
+	
 # End Custom Build
 
 !ELSEIF  "$(CFG)" == "dll_gadgetlib - Win32 Release_U export"
@@ -199,16 +181,10 @@ InputPath=.\Release_U\gadgetlib_U.dll
 InputName=gadgetlib_U
 SOURCE="$(InputPath)"
 
-BuildCmds= \
-	copy "$(InputPath)" ..\..\binstore \
-	copy "$(ProjDir)\$(InputName)--imp.lib" ..\..\binstore \
-	
-
 "..\..\binstore\$(TargetName).dll" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-   $(BuildCmds)
-
-"..\..\binstore\$(InputName)--imp.lib" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-   $(BuildCmds)
+	copy "$(InputPath)" ..\..\binstore 
+	copy "$(ProjDir)\$(InputName)--imp.lib" ..\..\binstore 
+	
 # End Custom Build
 
 !ENDIF 
