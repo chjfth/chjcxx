@@ -1,5 +1,5 @@
 #include <stdarg.h>
-#include "mm_snprintf.h"
+#include <mm_snprintf.h>
 
 #undef mm_snprintf
 #undef mm_vsnprintf

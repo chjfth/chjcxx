@@ -4,7 +4,7 @@
 unsigned short
 mmsnprintf_getversion(void)
 {
-	return (PORTABLE_SNPRINTF_VERSION_MAJOR<<8) | PORTABLE_SNPRINTF_VERSION_MINOR;
+	return (mmsnprintf_vmajor<<8) | mmsnprintf_vminor;
 }
 
 
