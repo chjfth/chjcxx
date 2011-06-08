@@ -5,6 +5,9 @@
 
 #include <gadgetlib/timefuncs.h>
 
+#define DLL_AUTO_EXPORT_STUB
+extern"C" void gadgetlib_lib__wintime__DLL_AUTO_EXPORT_STUB(void){}
+
 // Partial code from Apache Portable Runtime(APR)
 
 /* Number of milliseconds between the beginning of the Windows epoch

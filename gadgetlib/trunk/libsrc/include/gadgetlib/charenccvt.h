@@ -37,6 +37,12 @@ enum { ggt_max_mbcs_byteslen = 6 };
 	/*!< I use 6 because an character represented in UTF-8 can be as long as 6 bytes.
 	*/
 
+#ifndef DLLEXPORT_gadgetlib
+# define DLLEXPORT_gadgetlib
+#endif
+
+
+DLLEXPORT_gadgetlib
 wchar_t ggt_mb2wc(const char *mb, int *pConBytes);
 	//!< Convert an MBCS char pointed to by mb to Unicode value.
 	/*!< ggt_mb2wc checks the bytes sequence pointed to by mb for an MBCS char, 
@@ -64,6 +70,7 @@ wchar_t ggt_mb2wc(const char *mb, int *pConBytes);
 		(wchar_t)-1 will also be returned.
 	*/
 
+DLLEXPORT_gadgetlib
 int ggt_mbs2wcs(const char *pmb, int mbbytes, wchar_t *pwc=0, int wcbufchars=0, int *pConMbBytes=0);
 	//!< Convert an MBCS string to Unicode string.
 	/*!<
@@ -130,6 +137,7 @@ struct ggt_cvt_map_st
 	int pos_wc; //!< the position counted in Unicode characters
 };
 
+DLLEXPORT_gadgetlib
 int ggt_mbs2wcs_go(const char *pmb, int mbbytes, wchar_t *pwc, int wcbufchars, 
 	wchar_t badfill=0, int *pBadCvts=0, struct ggt_cvt_map_st arBadCvt[]=0, int CvtBufsize=0);
 	//!< Convert an MBCS string to Unicode string, auto processing bad converts.
@@ -166,6 +174,7 @@ int ggt_mbs2wcs_go(const char *pmb, int mbbytes, wchar_t *pwc, int wcbufchars,
 	*/
 
 
+DLLEXPORT_gadgetlib
 int ggt_wc2mb(wchar_t wc, char *pmb);
 	//!< Convert a Unicode value to MBCS byte sequence.
 	/*!< 
@@ -191,6 +200,7 @@ int ggt_wc2mb(wchar_t wc, char *pmb);
 	 ggt_check_conversion_facility() .
 	*/
 
+DLLEXPORT_gadgetlib
 int ggt_wcs2mbs(const wchar_t *pwc, int wcchars, char *pmb=0, int mbbufbytes=0, int *pConWcChars=0);
 	//!< Convert an Unicode string to MBCS string .
 	/*!<
@@ -246,6 +256,7 @@ int ggt_wcs2mbs(const wchar_t *pwc, int wcchars, char *pmb=0, int mbbufbytes=0, 
 
 	*/
 
+DLLEXPORT_gadgetlib
 int ggt_wcs2mbs_go(const wchar_t *pwc, int wcchars, char *pmb=0, int mbbufbytes=0, 
 	const char *pszbadfill=0, int *pBadCvts=0, struct ggt_cvt_map_st arBadCvt[]=0, int CvtBufsize=0);
 	//!< Convert a Unicode string to MBCS string , auto processing bad converts.
@@ -284,6 +295,7 @@ int ggt_wcs2mbs_go(const wchar_t *pwc, int wcchars, char *pmb=0, int mbbufbytes=
 
 
 
+DLLEXPORT_gadgetlib
 char *ggt_charnext(const char *pchar);
 	//!< Determine what is the next character in a MBCS byte sequence. 
 	/*!< ... Almost the same to Windows API CharNext.
@@ -306,6 +318,7 @@ char *ggt_charnext(const char *pchar);
 		If *pchar=='\0', just return pchar.
 	*/
 
+DLLEXPORT_gadgetlib
 char *ggt_charprev(const char *pStartScan, const char *pCurChar);
 	//!< Find the character(may be a MBCS character) preceding pCurChar. 
 	/*!< Almost the same to Windows API CharPrev.

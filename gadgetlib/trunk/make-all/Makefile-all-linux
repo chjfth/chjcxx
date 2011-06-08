@@ -1,0 +1,30 @@
+
+ifdef gmu_DIR_GNUMAKEUNIPROC
+  include $(gmu_DIR_GNUMAKEUNIPROC)/pattern1-concise-header.mki
+else
+  $(error gmu_DIR_GNUMAKEUNIPROC is not defined, You have to set up GnumakeUniproc environment to use this Makefile)
+endif
+
+gmu_PRJ_NAME = gadgetlib-all-linux
+
+
+gmp_MKS_PATTERN_FILENAME_SUFFIX = -linux
+	# This will have u_subprjs-linux.mki(instead of u_subprjs.mki) included later.
+
+
+# Build that of DLL first, so that DLL project can tell LIB project to load PI_dll_from_lib.
+gmu_uv_list_ALL_SUBPRJ += dll
+dll_Makefile = ../libsrc/makedll/Makefile
+dll_MakeVarDefines = gmp_COMPILER_ID=$(gmp_COMPILER_ID)
+
+
+# User-do: List subprj makefiles in , space separated.
+subprj_makefiles += \
+	../examples/Makefile-linux-all \
+	
+
+
+$(call gmuf_AddSubprjs_PassCompilerId,$(subprj_makefiles))
+include $(gmu_DIR_GNUMAKEUNIPROC)/pattern-container1.mks
+
+

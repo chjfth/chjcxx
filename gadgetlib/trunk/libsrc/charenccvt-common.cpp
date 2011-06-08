@@ -4,6 +4,9 @@
 #include <in_char_op.h>
 #include <gadgetlib/charenccvt.h>
 
+#define DLL_AUTO_EXPORT_STUB
+extern"C" void gadgetlib_lib__charenccvt_common__DLL_AUTO_EXPORT_STUB(void){}
+
 
 int 
 ggt_mbs2wcs(const char *pmb, int mbbytes, wchar_t *pwc, int wcbufchars, int *pConMbBytes)

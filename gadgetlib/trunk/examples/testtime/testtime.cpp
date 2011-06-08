@@ -1,6 +1,5 @@
 #include <stdio.h>
 
-#define DONT_WANT_PS_TCHAR
 #include <gadgetlib/timefuncs.h> 
 
 int main()

@@ -15,8 +15,15 @@ extern"C" {
 // VC6 CRT used: 
 //	typedef struct _iobuf FILE;
 
+#ifndef DLLEXPORT_gadgetlib
+# define DLLEXPORT_gadgetlib
+#endif
+	
+
+DLLEXPORT_gadgetlib
 int ggt_fstream64_fseek(FILE *fp, __int64 offset, int origin);
 
+DLLEXPORT_gadgetlib
 __int64 ggt_fstream64_ftell(FILE *fp);
 
 

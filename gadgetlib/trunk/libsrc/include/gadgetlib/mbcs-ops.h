@@ -5,6 +5,11 @@
 extern"C" {
 #endif
 
+#ifndef DLLEXPORT_gadgetlib
+# define DLLEXPORT_gadgetlib
+#endif
+	
+
 //! Flags saying how to round an MBCS or UTF-8 string
 enum ggt_RoundMbcs_et {
 	ggt_RoundHeadUp = 1, ggt_RoundHeadDown = 0,
@@ -36,6 +41,7 @@ typedef int (*ggt_PROC_CharNext)(const char *pChk, void *pCallbackExtra);
 		Either case, by adding the ret-value to pChk, the caller knows where the next MBCS character is.
 	*/
 
+DLLEXPORT_gadgetlib
 char *ggt_RoundMbcsString(const char *pIn, int InBytes, const char *pStartScan,
 		ggt_RoundMbcs_et Flag, int *pResultBytes, int *pResultChars,  
 		ggt_PROC_CharNext procCharNext=0, void *pCallbackExtra=0);

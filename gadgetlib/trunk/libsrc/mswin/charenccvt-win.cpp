@@ -9,19 +9,37 @@
 #include <in_char_op.h>
 #include <gadgetlib/charenccvt.h>
 
+#define DLL_AUTO_EXPORT_STUB
+extern"C" void gadgetlib_lib__charenccvt_win__DLL_AUTO_EXPORT_STUB(void){}
+
 
 char *
 ggt_charnext(const char *pchar)
 {
+#ifndef WINCE
+	// PC Windows
 	char *pret = CharNextExA(CP_ACP, pchar, 0);
 	return pret;
+#else
+	// WinCE, WinCE do not have CharNextExA.
+	int conbytes = 0;
+	wchar_t wc = ggt_mb2wc(pchar, &conbytes);
+	if(wc==ggt_INVALID_WCHAR)
+		return (char*)pchar+1;
+	else
+		return (char*)pchar+conbytes;
+#endif
 }
 
 char *
 _ggt_charnext_on_illegal_lead_byte(const char *pchar)
 {
+#ifndef WINCE
 	char *pret = CharNextExA(CP_ACP, pchar, 0);
 	return pret;
+#else
+	return (char*)pchar+1;
+#endif
 }
 
 

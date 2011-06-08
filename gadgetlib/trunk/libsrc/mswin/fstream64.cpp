@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <gadgetlib/fstream64.h>
 
+#define DLL_AUTO_EXPORT_STUB
+
 extern"C" int __cdecl _fseeki64(FILE *, __int64, int);
 extern"C" __int64 __cdecl _ftelli64(FILE *);
 	// The above two are declared in MS CRT source INTERNEL.H

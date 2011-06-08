@@ -1,5 +1,8 @@
 #include <gadgetlib/timefuncs.h>
 
+#define DLL_AUTO_EXPORT_STUB
+extern"C" void gadgetlib_lib__time_common__DLL_AUTO_EXPORT_STUB(void){}
+
 __int64 
 ggt_OsMillisecElapsed(__int64 old_msec, __int64 new_msec)
 {
