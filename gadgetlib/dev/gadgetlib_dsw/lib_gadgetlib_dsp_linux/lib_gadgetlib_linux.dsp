@@ -41,7 +41,7 @@ RSC=rc.exe
 # PROP Intermediate_Dir "Debug"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "../../libsrc/include" /I "../../../../CommonLib/common-include" /I "$(NLSSDK)/include" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "_CRT_SECURE_NO_WARNINGS" /D DLLEXPORT_gadgetlib=__declspec(dllexport) /YX /Fd"gadgetlib_D.lib.pdb" /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "../../libsrc/include" /I "../../../../CommonLib/common-include" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "_CRT_SECURE_NO_WARNINGS" /D DLLEXPORT_gadgetlib=__declspec(dllexport) /YX /Fd"gadgetlib_D.lib.pdb" /FD /GZ /c
 # ADD BASE RSC /l 0x804 /d "_DEBUG"
 # ADD RSC /l 0x804 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -72,8 +72,8 @@ SOURCE="$(InputPath)"
 # PROP Output_Dir "Debug_U"
 # PROP Intermediate_Dir "Debug_U"
 # PROP Target_Dir ""
-# ADD BASE CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "../../libsrc/include" /I "$(NLSSDK)/include" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "../../libsrc/include" /I "../../../../CommonLib/common-include" /I "$(NLSSDK)/include" /D "UNICODE" /D "_UNICODE" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "_CRT_SECURE_NO_WARNINGS" /D DLLEXPORT_gadgetlib=__declspec(dllexport) /YX /Fd"gadgetlib_U_D.lib.pdb" /FD /GZ /c
+# ADD BASE CPP /nologo /MDd /W3 /Gm /GX /ZI /Od /I "../../libsrc/include" /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /I "../../libsrc/include" /I "../../../../CommonLib/common-include" /D "UNICODE" /D "_UNICODE" /D "_DEBUG" /D "WIN32" /D "_MBCS" /D "_LIB" /D "_CRT_SECURE_NO_WARNINGS" /D DLLEXPORT_gadgetlib=__declspec(dllexport) /YX /Fd"gadgetlib_U_D.lib.pdb" /FD /GZ /c
 # ADD BASE RSC /l 0x804 /d "_DEBUG"
 # ADD RSC /l 0x804 /d "_DEBUG"
 BSC32=bscmake.exe
