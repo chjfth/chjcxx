@@ -1,8 +1,8 @@
 
-ifdef gmu_DIR_GNUMAKEUNIPROC
-  include $(gmu_DIR_GNUMAKEUNIPROC)/pattern1-concise-header.mki
+ifdef gmu_DIR_ROOT
+  include $(gmu_DIR_ROOT)/nlscan/nlssvn-scalacon.mki
 else
-  $(error gmu_DIR_GNUMAKEUNIPROC is not defined, You have to set up GnumakeUniproc environment to use this Makefile)
+  $(error gmu_DIR_ROOT is not defined, You have to set up GnumakeUniproc environment to use this Makefile)
 endif
 
 # GMU-var: gmu_PRJ_NAME
@@ -40,10 +40,7 @@ ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),msvc wince),1)
   # gmp_u_list_PLUGIN_TO_LOAD += PI_windll_from_lib   # make dll from lib
   # gmp_u_list_PLUGIN_TO_LOAD += PI_sync_debug_info
 
-  UserDllNameForLink = $(call gmpf_MakeDllNameForLink,$1$(gmp_G_UFilenameSuffix)--imp)
-	# For $1=gadgetlib :
-	# gadgetlib--imp.lib or gadgetlib_U--imp.lib (on Windows)
-  NlssdkDllSearchDir = $(NlssdkLibSearchDir)
+  NlssdkDllSearchDirs = $(NlssdkLibSearchDirs)
   UserLibNameForLink = $(call gmpf_MakeLibName,$1$(gmp_G_UDFilenameSuffix))
 	# For $1=gadgetlib :
 	# gadgetlib.lib , gadgetlib_D.lib , gadgetlib_U.lib or gadgetlib_U_D.lib
@@ -54,10 +51,7 @@ else ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),linuxgcc),1)
   # gmp_u_list_PLUGIN_TO_LOAD += PI_gcc_strip_lo      # strip output executable
   # gmp_u_list_PLUGIN_TO_LOAD += PI_use_pch_gcc       # use precompile header
   
-  UserDllNameForLink = $(call gmpf_MakeUpSysLibsToLink,$1$(gmp_G_UFilenameSuffix))
-	# For $1=gadgetlib :
-	# libgadgetlib.so or libgadgetlib_U.so  (on Linux)
-  NlssdkDllSearchDir = $(NLSSDK_fs)/$(gmp_COMPILER_ID_VER)/$(if $(gmp_bc_DEBUG),bin-debug,bin-release)
+  NlssdkDllSearchDirs = $(NLSSDK_fs)/$(gmp_COMPILER_ID_VER)/$(if $(gmp_bc_DEBUG),bin-debug,bin-release)
   UserLibNameForLink = $(call gmpf_MakeUpSysLibsToLink,$1_s$(gmp_G_UDFilenameSuffix))
 	# For $1=gadgetlib :
 	# -lgadgetlib_s , -lgadgetlib_s_D , -lgadgetlib_s_U or -lgadgetlib_s_U_D
@@ -66,7 +60,7 @@ else # ... some other gmp_COMPILER_ID processing ...
 
 endif
 
-NlssdkLibSearchDir = $(NLSSDK_fs)/$(gmp_COMPILER_ID_VER)/lib
+NlssdkLibSearchDirs = $(NLSSDK_fs)/$(gmp_COMPILER_ID_VER)/lib
 
 # GMU-var: gmp_u_list_PLUGIN_TO_LOAD
 #	Designate plugins to load in this make-var, multiple plugin names separated
@@ -113,7 +107,7 @@ gmu_up_list_SRC_FROM_ROOT += testRoundMbcs.cpp
 #	2. They'll be passed to `$(gmu_GCC_M_PREFIX)gcc -M' in favor of generating hdepend files.
 gmu_ud_list_PRJ_HEADER += \
 	$(if $(NLSSVN_ALL_SOURCE), $(dirThisRepo)/libsrc/include $(dirNlssvn)/CommonLib/common-include) \
-	$(NLSSDK_fs)/include
+	$(NlssdkIncludeDirs)
 	# Don't write ``-I'' in this var; -I will be prependded automatically.
 
 gmp_CFLAGS_INCLUDES += # $(addprefix -I,<dir1> <dir2> ...)
@@ -145,7 +139,7 @@ gmu_u_GCC_M_OPTIONS +=
 #	Set linker options for this project in this var.
 gmp_LINKFLAGS += $(gmp_LINKFLAGS_preset)
   # There are some other make-vars for easy setting linker flags:
-  gmp_ud_list_EXTRALIB += $(NlssdkLibSearchDir) # and/or $(NlssdkDllSearchDir)
+  gmp_ud_list_EXTRALIB += $(NlssdkLibSearchDirs) # and/or $(NlssdkDllSearchDirs)
   	# list library paths here, compiler-config-mki will help you prepend(for example) 
   	# * -L for linuxgcc
   	# * /LIBPATH: for msvc
