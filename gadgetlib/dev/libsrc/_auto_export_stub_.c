@@ -30,4 +30,12 @@ void _ExportFunctionList(void)
 	extern void AnsiC_Tfuncs__AnsiC_Tfuncs__DLL_AUTO_EXPORT_STUB(void);
 	AnsiC_Tfuncs__AnsiC_Tfuncs__DLL_AUTO_EXPORT_STUB();
 	}
+	/* Auto-export functions from GMU project(gmu_PRJ_NAME): mmsnprintf.lib
+	*/
+	{
+	extern void mmsnprintf_lib__mm_snprintfA__DLL_AUTO_EXPORT_STUB(void);
+	extern void mmsnprintf_lib__mm_snprintfW__DLL_AUTO_EXPORT_STUB(void);
+	mmsnprintf_lib__mm_snprintfA__DLL_AUTO_EXPORT_STUB();
+	mmsnprintf_lib__mm_snprintfW__DLL_AUTO_EXPORT_STUB();
+	}
 }
