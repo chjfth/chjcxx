@@ -1,0 +1,20 @@
+
+ifdef gmu_DIR_GNUMAKEUNIPROC
+  include $(gmu_DIR_GNUMAKEUNIPROC)/pattern1-concise-header.mki
+else
+  $(error gmu_DIR_GNUMAKEUNIPROC is not defined, You have to set up GnumakeUniproc environment to use this Makefile)
+endif
+
+gmu_PRJ_NAME = gadgetlib.ux-common-all
+
+
+# User-do: List subprj makefiles in , space separated.
+subprj_makefiles = \
+	common/exe_gadgetlib/Makefile \
+	
+
+
+$(call gmuf_AddSubprjs_Concise,$(subprj_makefiles))
+include $(gmu_DIR_GNUMAKEUNIPROC)/pattern-container1.mks
+
+
