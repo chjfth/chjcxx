@@ -221,7 +221,7 @@
  *		- several comments rephrased and new ones added;
  *		- make compiler not complain about 'credits' defined but
  *		  not used;
- * 2006-10-03  V3.0 by Chj <chenjun@mail.nlscan.com>
+ * 2006-10-03  V3.0 by Chj <chenjun@nlscan.com>
  *		- SNPRINTF_LONGLONG_SUPPORT is always defined now, and "%lld", 
  *		  "%llu", "%llx", "%llX" can be used to format a 64-bit integer.
  *		  This is now system independent to the user due to the 
@@ -237,6 +237,9 @@
  *		  I'd like the behavior of this code more unified and constant.
  *		- Add mmsnprintf_getversion() to return the implementation version
  *		  of this code.
+ * 2008-XX-XX  V3.1 by Chj <chenjun@nlscan.com>
+ *		- Unicode compile support, one library supporting both char and wchar_t .
+ *		- New library availble on WinCE, as well as Windows, Linux.
  */
 
 
@@ -305,21 +308,6 @@ inline void mm_chrset(TCHAR *p, TCHAR c, int count)
 
 
 #define mm_GetEleQuan(array) ((int)(sizeof(array)/sizeof(array[0])))
-
-/* prototypes */
-
-#if defined(NEED_ASPRINTF)
-int asprintf   (char **ptr, const char *fmt, /*args*/ ...);
-#endif
-#if defined(NEED_VASPRINTF)
-int vasprintf  (char **ptr, const char *fmt, va_list ap);
-#endif
-#if defined(NEED_ASNPRINTF)
-int asnprintf  (char **ptr, size_t str_m, const char *fmt, /*args*/ ...);
-#endif
-#if defined(NEED_VASNPRINTF)
-int vasnprintf (char **ptr, size_t str_m, const char *fmt, va_list ap);
-#endif
 
 
 /*#if !defined(HAVE_SNPRINTF) || defined(PREFER_PORTABLE_SNPRINTF)
