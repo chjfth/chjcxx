@@ -247,36 +247,9 @@
  * data type (long long int) and length modifier 'll' (e.g. %lld).
  * If undefined, 'll' is recognized but treated as a single 'l'.
  *
- * If the system's sprintf does not handle 'll'
- * the SNPRINTF_LONGLONG_SUPPORT must not be defined!
- *
- * This is off by default as (long long int) is a language extension.
  */
 
 #define SNPRINTF_LONGLONG_SUPPORT
-
-/* Define NEED_VASNPRINTF macros if you need library extension
- * routines asprintf, vasprintf, asnprintf, vasnprintf respectively,
- * and your system library does not provide them. They are all small
- * wrapper routines around portable_vsnprintf. Defining any of the four
- * NEED_VASNPRINTF macros automatically turns off NEED_SNPRINTF_ONLY
- * and turns on PREFER_PORTABLE_SNPRINTF.
- *
- * Watch for name conflicts with the system library if these routines
- * are already present there.
- *
- * NOTE: vasprintf and vasnprintf routines need va_copy() from stdarg.h, as
- * specified by C99, to be able to traverse the same list of arguments twice.
- * I don't know of any other standard and portable way of achieving the same.
- * With some versions of gcc you may use __va_copy(). You might even get away
- * with "ap2 = ap", in this case you must not call va_end(ap2) !
- *   #define va_copy(ap2,ap) ap2 = ap
- */
-/* #define NEED_ASPRINTF   */
-/* #define NEED_ASNPRINTF  */
-/* #define NEED_VASPRINTF  */
-/* #define NEED_VASNPRINTF */
-
 
 /* ============================================= */
 /* NO USER SERVICABLE PARTS FOLLOWING THIS POINT */
