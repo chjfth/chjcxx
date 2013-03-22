@@ -120,9 +120,13 @@ ggt_SleepMillisec(int millisec)
 __int64 
 ggt_GetOsMillisec(void)
 {
-	return ggt_time64_millisec();
-		// The problem:
-		// If the user changes the system time when the system is running, I could get into trouble.
+	struct timespec ts;
+	if(clock_gettime(CLOCK_MONOTONIC, &ts) != 0) {
+		return 0; // 0 means fail!
+	}
+	
+	__int64 ret = ts.tv_sec*1000 + ts.tv_nsec/1000000;
+	return ret==0 ? 1 : ret;
 }
 
 int 
