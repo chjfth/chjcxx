@@ -23,19 +23,18 @@ MakeCleanupPtrClass(Cec_free_pUchar, void, free_unsigned_char_ptr, unsigned char
 
 //////////////////////////////////////////////////////////////////////////
 
-inline void _cpp_delete_pchar(char *pchar)
-{
-	delete []pchar;
-}
-
+inline void _cpp_delete_pchar(char *pchar) { delete []pchar; }
 MakeCleanupPtrClass(Cec_delete_pchar, void, _cpp_delete_pchar, char*)
 
-inline void _cpp_delete_pUchar(unsigned char *pUchar)
-{
-	delete []pUchar;
-}
-
+inline void _cpp_delete_pUchar(unsigned char *pUchar) { delete []pUchar; }
 MakeCleanupPtrClass(Cec_delete_pUchar, void, _cpp_delete_pUchar, unsigned char*)
+
+inline void _cpp_delete_int_array(int *p){ delete []p; }
+MakeCleanupPtrClass(Cec_delete_int, void, _cpp_delete_int_array, int*)
+
+inline void _cpp_delete_uint_array(unsigned int *p){ delete []p; }
+MakeCleanupPtrClass(Cec_delete_uint, void, _cpp_delete_uint_array, unsigned int*)
+
 
 
 // For `` FILE* ''
