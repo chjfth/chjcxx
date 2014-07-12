@@ -1367,7 +1367,7 @@ mm_dump_bytes(TCHAR *buf, int bufchars,
 		mmfill_strcpy(mmfill, _T("\n"));
 	}
 
-	TCHAR *fmthex = uppercase ? _T("%02X") : _T("%02x");
+	const TCHAR *fmthex = uppercase ? _T("%02X") : _T("%02x");
 
 	for(;;)
 	{
