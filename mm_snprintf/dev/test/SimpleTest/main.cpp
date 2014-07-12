@@ -55,7 +55,7 @@ int _tmain()
 	int i;
 	unsigned char bytes[256];
 	for(i=0; i<sizeof(bytes); i++) bytes[i]=i;
-	mprintA("%k%*.8b", "=", 18, bytes);
+	mprintA("%k%*.8B", "=", 18, bytes);
 
 
 	return 0;

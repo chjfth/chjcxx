@@ -1244,7 +1244,7 @@ mmfill_fill_chars(mmfill_st &f, TCHAR c, int n)
 	// fills f.pbuf until f.pbuf[] reaches bufmax; update f.produced by n
 	int nfill = Min(n, f.bufmax-f.produced);
 	if(nfill>0)
-		mmsnprintf_fillchar(f.pbuf, c, nfill);
+		mmsnprintf_fillchar(f.pbuf+f.produced, c, nfill);
 	f.produced += n;
 }
 
@@ -1255,7 +1255,7 @@ mmfill_strcpy(mmfill_st &f, const TCHAR *src)
 	int srclen = TMM_strlen(src);
 	int nfill = Min(srclen, f.bufmax-f.produced);
 	if(nfill>0)
-		mm_strncpy_(f.pbuf, src, nfill, false);
+		mm_strncpy_(f.pbuf+f.produced, src, nfill, false);
 
 	f.produced += srclen;
 	return f.pbuf + (f.produced - srclen);
@@ -1338,6 +1338,7 @@ mm_dump_bytes(TCHAR *buf, int bufchars,
 
 		// second: left-side ruler
 		TMM_sprintf(tmp, _T("%04X: "), consumed);
+		mmfill_strcpy(mmfill, tmp);
 
 		// third: hex dumps of current line with decoration
 		int colomn_remain = Min(dump_bytes-consumed, columns);
@@ -1357,6 +1358,12 @@ mm_dump_bytes(TCHAR *buf, int bufchars,
 		}
 
 		consumed += colomn_remain;
+
+		if(consumed==dump_bytes)
+			break;
+
+		mmfill_strcpy(mmfill, _T("\n"));
+		assert(consumed<dump_bytes);
 	}
 
 	return mmfill.produced;
