@@ -57,7 +57,14 @@ int _tmain()
 	int i;
 	unsigned char bytes[256];
 	for(i=0; i<sizeof(bytes); i++) bytes[i]=i;
-	mprintA("Hexdump1:\n%J%k%*.8b!\nHexdump2:\n%*.16B", 4, "_", 18, bytes, 34, bytes);
+//	mprintA("Hexdump1:\n%k%8r%*b!\n", "_", 4, 17, bytes);
+	mprintA("%k%K"
+		"%*.*R"
+		"%*b!\n"
+		,
+		"_", "<<>>",
+		7, 1, 4, 
+		18, bytes);
 
 	return 0;
 }
