@@ -388,6 +388,7 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 	int bdd_indents = 0; // bdd: byte-dump decoration
 	TCHAR bdd_hyphens[bdmax_hyphen+1]=_T(""); 
 	TCHAR bdd_left[bdmax_left+1]=_T(""), bdd_right[bdmax_right+1]=_T("");
+	bool is_print_ruler = false;
 
 	while (*p) 
 	{
@@ -914,13 +915,16 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 				break;
 			} // case 'd', 'u', 'o', 'x', 'X', 'p', 'f', 'g', 'G', 'e', 'E' 
 
-		case _T('j'):
+		case _T('j'): case _T('J'):
 			{
 				bdd_indents = va_arg(ap, int);
 				if(bdd_indents<0)
 					bdd_indents = 0;
 				else if(bdd_indents>64)
 					bdd_indents = 64;
+
+				if(fmt_spec==_T('J'))
+					is_print_ruler = true;
 				break;
 			}
 		case _T('k'): // lower-case 'k'
@@ -942,8 +946,7 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 				mm_strncpy_(bdd_right, brackets+leftlen, mmquan(bdd_right), true);
 				break;
 			}
-		case _T('b'):
-		case _T('B'): // These will do byte dump
+		case _T('b'): case _T('B'): // These will do byte dump
 			{	
 				int dump_bytes = min_field_width; 
 				int columns = precision;   // how many dumped bytes per line
@@ -951,9 +954,10 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 				int result_chars = mm_dump_bytes(str+str_l, str_m-str_l, 
 					pbytes, dump_bytes, fmt_spec==_T('B')?true:false,
 					bdd_hyphens, bdd_left, bdd_right,
-					columns, bdd_indents, true);
+					columns, bdd_indents, is_print_ruler);
 				str_l += result_chars;
-				continue; // is that ok?
+				p++; // step over the just processed conversion specifier
+				continue; 
 			}
 		default: /* unrecognized conversion specifier, keep format string as-is*/
 			{

@@ -15,9 +15,10 @@ double d = 1.2345678;
 void mprintA(const char *fmt, ...)
 {
 	char buf[2000];
+	int bufsize = sizeof(buf);
 	va_list args;
 	va_start(args, fmt);
-	mm_vsnprintfA(buf, sizeof(buf), fmt, args);
+	int ret = mm_vsnprintfA(buf, bufsize, fmt, args);
 	printf("%s\n", buf);
 	va_end(args);
 }
@@ -25,9 +26,10 @@ void mprintA(const char *fmt, ...)
 void mprintW(const wchar_t *fmt, ...)
 {
 	wchar_t buf[2000];
+	int bufsize = sizeof(buf)/sizeof(buf[0]);
 	va_list args;
 	va_start(args, fmt);
-	mm_vsnprintfW(buf, sizeof(buf), fmt, args);
+	int ret = mm_vsnprintfW(buf, bufsize, fmt, args);
 #if defined WIN32 || defined WINCE
 	wprintf(L"%s\n", buf);
 #else // linux
@@ -55,8 +57,7 @@ int _tmain()
 	int i;
 	unsigned char bytes[256];
 	for(i=0; i<sizeof(bytes); i++) bytes[i]=i;
-	mprintA("%k%*.8B", "=", 18, bytes);
-
+	mprintA("Hexdump1:\n%J%k%*.8b!\nHexdump2:\n%*.16B", 4, "_", 18, bytes, 34, bytes);
 
 	return 0;
 }
