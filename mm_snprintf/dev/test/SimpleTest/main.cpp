@@ -14,7 +14,7 @@ double d = 1.2345678;
 
 void mprintA(const char *fmt, ...)
 {
-	char buf[200];
+	char buf[2000];
 	va_list args;
 	va_start(args, fmt);
 	mm_vsnprintfA(buf, sizeof(buf), fmt, args);
@@ -24,7 +24,7 @@ void mprintA(const char *fmt, ...)
 
 void mprintW(const wchar_t *fmt, ...)
 {
-	wchar_t buf[200];
+	wchar_t buf[2000];
 	va_list args;
 	va_start(args, fmt);
 	mm_vsnprintfW(buf, sizeof(buf), fmt, args);
@@ -50,6 +50,13 @@ int _tmain()
 	mprintW(L"[%d]", 12);
 	mprintW(L"[%s]", L"xyz");
 	mprintW(L"float [%f, %g, %e]", d, d, d);
+
+	// [2014-07-12] bytes dump
+	int i;
+	unsigned char bytes[256];
+	for(i=0; i<sizeof(bytes); i++) bytes[i]=i;
+	mprintA("%k%*.8b", "=", 18, bytes);
+
 
 	return 0;
 }

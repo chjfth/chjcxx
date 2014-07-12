@@ -26,4 +26,9 @@ int mmsnprintf_IsFloatingType(TCHAR fmt_spec);
 
 void mmsnprintf_fillchar(TCHAR *pbuf, TCHAR c, int n);
 
+int mm_dump_bytes(TCHAR *buf, int bufchars, 
+			  const void *pbytes_, int dump_bytes, bool uppercase,
+			  const TCHAR *bdd_hyphens, const TCHAR *bdd_left, const TCHAR *bdd_right,
+			  int columns, int indents, bool ruler);
+
 #endif

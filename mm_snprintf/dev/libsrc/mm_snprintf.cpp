@@ -10,6 +10,51 @@
 	// 2. This file #defines va_copy macro if it is not defined in <stdarg.h>
 	//so you MUST #include it after <stdarg.h>
 
+/*
+//////////////////////////////
+// [2014-07-11] pending: Adding %b,%B support: byte dump in hex form
+// Use %b for lower-case hex-letter, use %B for upper-case hex-letter.
+// %b : dump all bytes on one line
+// %16b : dump on multiple lines, 16 bytes each line, 16 is variable
+// %4.16b : like %16b, but with 4 spaces preceding each line.
+//
+
+mm_snprintf("%*.*b", 4, 8, bytes);
+is identical to
+mm_snprintf("%4.8b", bytes);
+
+
+Default dump style is
+
+414243
+	// for "ABC"
+
+You can change dump style with %k or %k
+
+const char *bytes="ABC";
+mm_snprintf("%b", bytes);
+
+414243
+
+
+mm_snprintf("%k%b", " ", bytes);
+
+41 42 43
+
+mm_snprintf("%k%b", "--", bytes);
+
+41--42--43
+
+mm_snprintf("%K%b", "<>", bytes);
+
+<41><42><43>
+
+mm_snprintf("%K%k%b", "<>", "-", bytes);
+  
+<41>-<42>-<43>
+
+*/
+//////////////////////////////
 #include <ps_TCHAR.h>
 #include <mm_snprintf.h>
 #include "internal.h"
@@ -271,16 +316,42 @@
 //#include <errno.h> //[2008-05-16]Chj: WinCE don't have this.
 #include <ctype.h>
 
+#define Min(a,b) ((a) < (b) ? (a) : (b))
+#define Max(a,b) ((a) > (b) ? (a) : (b))
+
+enum // byte dump max values
+{
+	bdmax_hyphen = 8,
+	bdmax_left = 4,
+	bdmax_right = 4
+};
 
 #define fast_memcpy memcpy
 //#define fast_memset memset
-inline void mm_chrset(TCHAR *p, TCHAR c, int count)
+void mm_chrset(TCHAR *p, TCHAR c, int count)
 {
-	int i; for(i=0; i<count; i++) p[i] = c;
+	int i; 
+	for(i=0; i<count; i++) 
+		p[i] = c;
 }
 
+TCHAR * mm_strncpy_(TCHAR *dst, const TCHAR *src, int ndst, bool null_end)
+{
+	// ndst tells dst[] buffer size, in chars
+	// dst[] will always be NUL terminated if null_end=true
+	int srclen = TMM_strlen(src);
+	if(srclen>=ndst)
+	{
+		srclen = null_end ? ndst-1 : ndst;
+	}	
 
-#define mm_GetEleQuan(array) ((int)(sizeof(array)/sizeof(array[0])))
+	fast_memcpy(dst, src, TMM_strmemsize(srclen));
+	dst[srclen] = 0;
+	return dst;
+
+}
+
+#define mmquan(array) ((int)(sizeof(array)/sizeof(array[0])))
 
 
 /*#if !defined(HAVE_SNPRINTF) || defined(PREFER_PORTABLE_SNPRINTF)
@@ -314,6 +385,10 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 	if (!p) 
 		p = _T("");
 
+	int bdd_indents = 0; // bdd: byte-dump decoration
+	TCHAR bdd_hyphens[bdmax_hyphen+1]=_T(""); 
+	TCHAR bdd_left[bdmax_left+1]=_T(""), bdd_right[bdmax_right+1]=_T("");
+
 	while (*p) 
 	{
 		if (*p != _T('%')) 
@@ -337,7 +412,7 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 
 		// Remaining, for (*p=='%') [until end of the outer-most while]
 
-		const TCHAR *starting_p; // starting % position
+		const TCHAR *starting_p = NULL; // starting % position
 			// Record the position of the '%', so that(if linux behavior is used)
 			//when the type character following % is unrecognized(e.g. "%a"), 
 			//the whole format specifier is output, e.g. "%8.4a" is output as
@@ -384,8 +459,11 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 #ifndef _UNICODE
 		str_arg = credits;/* just to make compiler happy (defined but not used)*/
 #endif
+
+		// here, p points to '%'
 		str_arg = NULL;
-		starting_p = p; p++;  /* skip '%' */
+		starting_p = p; 
+		p++;  /* skip '%' */
 		/* parse flags */
 		while (*p == _T('0') || *p == _T('-') || *p == _T('+') ||
 			 *p == _T(' ') || *p == _T('#') || *p == _T('\'')) 
@@ -725,7 +803,7 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 					if(isFloatingType)
 					{
 						// Limit the precision so that not to overflow tmp[].
-						const int MaxPrecision = mm_GetEleQuan(tmp)-16;
+						const int MaxPrecision = mmquan(tmp)-16;
 
 						f_l += TMM_sprintf(f+f_l, _T(".%d"), precision<MaxPrecision ? precision : MaxPrecision); 
 							//For floating point number, we leave precision processing to system's sprintf.
@@ -836,6 +914,47 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 				break;
 			} // case 'd', 'u', 'o', 'x', 'X', 'p', 'f', 'g', 'G', 'e', 'E' 
 
+		case _T('j'):
+			{
+				bdd_indents = va_arg(ap, int);
+				if(bdd_indents<0)
+					bdd_indents = 0;
+				else if(bdd_indents>64)
+					bdd_indents = 64;
+				break;
+			}
+		case _T('k'): // lower-case 'k'
+			{
+				const TCHAR *hyphen = va_arg(ap, TCHAR*);
+				mm_strncpy_(bdd_hyphens, hyphen, mmquan(bdd_hyphens), true);
+				break;
+			}
+		case _T('K'): // upper-case 'K'
+			{
+				const TCHAR *brackets = va_arg(ap, TCHAR*);
+				int Klen = TMM_strlen(brackets);
+				int leftlen = Klen/2;
+				mm_strncpy_(bdd_left, brackets, mmquan(bdd_left), true);
+				if(leftlen<mmquan(bdd_left))
+					bdd_left[leftlen] = _T('\0');
+				else
+					bdd_left[mmquan(bdd_left)-1] = _T('\0');
+				mm_strncpy_(bdd_right, brackets+leftlen, mmquan(bdd_right), true);
+				break;
+			}
+		case _T('b'):
+		case _T('B'): // These will do byte dump
+			{	
+				int dump_bytes = min_field_width; 
+				int columns = precision;   // how many dumped bytes per line
+				const void *pbytes = va_arg(ap, void*);
+				int result_chars = mm_dump_bytes(str+str_l, str_m-str_l, 
+					pbytes, dump_bytes, fmt_spec==_T('B')?true:false,
+					bdd_hyphens, bdd_left, bdd_right,
+					columns, bdd_indents, true);
+				str_l += result_chars;
+				continue; // is that ok?
+			}
 		default: /* unrecognized conversion specifier, keep format string as-is*/
 			{
 				zero_padding = 0;  /* turn zero padding off for non-numeric convers. */
@@ -1109,3 +1228,137 @@ mmsnprintf_fillchar(TCHAR *pbuf, TCHAR c, int n)
 	for(i=0; i<n; i++)
 		pbuf[i] = c;
 }
+
+//////////////////////////////////////////////////////////////////////////
+
+struct mmfill_st
+{
+	TCHAR *pbuf;
+	int bufmax;
+	int produced; // may be larger than bufmax
+};
+
+void 
+mmfill_fill_chars(mmfill_st &f, TCHAR c, int n)
+{
+	// fills f.pbuf until f.pbuf[] reaches bufmax; update f.produced by n
+	int nfill = Min(n, f.bufmax-f.produced);
+	if(nfill>0)
+		mmsnprintf_fillchar(f.pbuf, c, nfill);
+	f.produced += n;
+}
+
+TCHAR *
+mmfill_strcpy(mmfill_st &f, const TCHAR *src)
+{
+	// copy src to f.pbuf until f.pbuf[] reaches bufmax; update f.produced by src length
+	int srclen = TMM_strlen(src);
+	int nfill = Min(srclen, f.bufmax-f.produced);
+	if(nfill>0)
+		mm_strncpy_(f.pbuf, src, nfill, false);
+
+	f.produced += srclen;
+	return f.pbuf + (f.produced - srclen);
+}
+
+int 
+mm_dump_bytes(TCHAR *buf, int bufchars, 
+	const void *pbytes_, int dump_bytes, bool uppercase,
+	const TCHAR *bdd_hyphens, const TCHAR *bdd_left, const TCHAR *bdd_right,
+	int columns, int indents, bool ruler)
+{
+	/*
+	Dump hex-represented byte content into buf[], but not exceeding bufchars.
+	If buf[] too small, no NUL required at buf[] end.
+
+	pbytes: point to byte buffer.
+	dump_bytes: bytes to dump.
+
+	columns: Consume that many bytes for one output line, 
+		use use this to add line breaks for large input bytes.
+
+	indents: spaces to add for every dump line output.
+
+	ruler: whether add horizontal and vertical ruler so that byte position in dump 
+		is easily recognized.
+		Ruler is something like:
+		
+		      00-01-02-03-04-05-06-07-08-09-0A-0B-0C-0D-0E-0F
+        0000: 30 31 32 33 34 35 36 37 38 39 3a 3b 3c 3d 3e 3f
+		0010: aa bb cc
+
+	Return: how many TCHARs will be output assuming buf[] is large enough.
+	*/
+
+	const unsigned char *pbytes = (unsigned char*)pbytes_;
+
+	if(columns<=0)
+		columns = 8;
+	else if(columns>256)
+		columns = 256;
+
+	int i, j;
+	TCHAR tmp[16]; // don't be less than 16
+	TCHAR bd[bdmax_left+2+bdmax_right+bdmax_hyphen];
+	int len_hyphens = TMM_strlen(bdd_hyphens);
+	int len_left = TMM_strlen(bdd_left);
+	int len_right = TMM_strlen(bdd_right);
+
+	int consumed = 0; // consumed source bytes
+	mmfill_st mmfill = {buf, bufchars, 0};
+
+	if(ruler)
+	{
+		// first: indents and left ruler spaces
+		mmfill_fill_chars(mmfill, _T(' '), indents+6); // 6 is the length of "0000: "
+
+		// second: horizontal marks
+		for(i=0; i<columns; i++)
+		{
+			mmfill_fill_chars(mmfill, _T('-'), len_left);
+			TMM_sprintf(tmp, _T("%02X"), i);
+			mmfill_strcpy(mmfill, tmp);
+			mmfill_fill_chars(mmfill, _T('-'), len_right);
+
+			if(i<columns-1)
+				mmfill_fill_chars(mmfill, _T('-'), len_hyphens);
+		}
+		
+		mmfill_strcpy(mmfill, _T("\n"));
+	}
+
+	TCHAR *fmthex = uppercase ? _T("%02X") : _T("%02x");
+
+	for(;;)
+	{
+		// Every cycle generates one output line
+
+		// first: indents
+		mmfill_fill_chars(mmfill, _T(' '), indents);
+
+		// second: left-side ruler
+		TMM_sprintf(tmp, _T("%04X: "), consumed);
+
+		// third: hex dumps of current line with decoration
+		int colomn_remain = Min(dump_bytes-consumed, columns);
+		for(j=0; j<colomn_remain; j++)
+		{
+			if(bdd_left[0])
+				mmfill_strcpy(mmfill, bdd_left);
+			
+			TMM_sprintf(tmp, fmthex, pbytes[consumed+j]);
+			mmfill_strcpy(mmfill, tmp);
+			
+			if(bdd_right[0])
+				mmfill_strcpy(mmfill, bdd_right);
+
+			if(j<colomn_remain-1)
+				mmfill_strcpy(mmfill, bdd_hyphens);
+		}
+
+		consumed += colomn_remain;
+	}
+
+	return mmfill.produced;
+}
+

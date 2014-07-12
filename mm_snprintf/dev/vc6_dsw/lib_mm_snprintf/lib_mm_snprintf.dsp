@@ -141,17 +141,7 @@ SOURCE=.\mm_snprintfA.cpp
 # Begin Source File
 
 SOURCE=.\mm_snprintfW.cpp
-
-!IF  "$(CFG)" == "lib_mm_snprintf - Win32 Release"
-
 # ADD CPP /D "_UNICODE" /D "UNICODE"
-
-!ELSEIF  "$(CFG)" == "lib_mm_snprintf - Win32 Debug"
-
-# ADD CPP /D "_UNICODE" /D "UNICODE"
-
-!ENDIF 
-
 # End Source File
 # Begin Source File
 
@@ -180,7 +170,7 @@ SOURCE="..\..\..\common-include\msvc\ps_TCHAR.h"
 !IF  "$(CFG)" == "lib_mm_snprintf - Win32 Release"
 
 # Begin Custom Build
-InputPath=..\..\..\common-include\msvc\ps_TCHAR.h
+InputPath="..\..\..\common-include\msvc\ps_TCHAR.h"
 
 "..\..\libsrc\include\ps_TCHAR.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	copy $(InputPath) ..\..\libsrc\include
@@ -190,7 +180,7 @@ InputPath=..\..\..\common-include\msvc\ps_TCHAR.h
 !ELSEIF  "$(CFG)" == "lib_mm_snprintf - Win32 Debug"
 
 # Begin Custom Build
-InputPath=..\..\..\common-include\msvc\ps_TCHAR.h
+InputPath="..\..\..\common-include\msvc\ps_TCHAR.h"
 
 "..\..\libsrc\include\ps_TCHAR.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
 	copy $(InputPath) ..\..\libsrc\include
