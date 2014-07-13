@@ -59,13 +59,13 @@ int _tmain()
 	for(i=0; i<sizeof(bytes); i++) bytes[i]=i;
 //	mprintA("Hexdump1:\n%k%8r%*b!\n", "_", 4, 17, bytes);
 
-	mprintA("%k%K"
-		"%*.*R"
-		"%M!\n"
+	mprintW(L"%k%K"
+		L"%*.*R"
+		L"%M!\n"
 		,
-		"_._", "<<>>",
-		4, 1, 8, 
-		"0123456789abcdefghijklmnopqr");
+		L"_", L"<>",
+		0, 1, 8, 
+		L"0123456789a");
 
 /*	mprintA("%k%K"
 		"%*.*R"

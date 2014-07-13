@@ -10,50 +10,6 @@
 	// 2. This file #defines va_copy macro if it is not defined in <stdarg.h>
 	//so you MUST #include it after <stdarg.h>
 
-/*
-//////////////////////////////
-// [2014-07-11] pending: Adding %b,%B support: byte dump in hex form
-// Use %b for lower-case hex-letter, use %B for upper-case hex-letter.
-// %b : dump all bytes on one line
-// %16b : dump on multiple lines, 16 bytes each line, 16 is variable
-// %4.16b : like %16b, but with 4 spaces preceding each line.
-//
-
-mm_snprintf("%*.*b", 4, 8, bytes);
-is identical to
-mm_snprintf("%4.8b", bytes);
-
-
-Default dump style is
-
-414243
-	// for "ABC"
-
-You can change dump style with %k or %k
-
-const char *bytes="ABC";
-mm_snprintf("%b", bytes);
-
-414243
-
-
-mm_snprintf("%k%b", " ", bytes);
-
-41 42 43
-
-mm_snprintf("%k%b", "--", bytes);
-
-41--42--43
-
-mm_snprintf("%K%b", "<>", bytes);
-
-<41><42><43>
-
-mm_snprintf("%K%k%b", "<>", "-", bytes);
-  
-<41>-<42>-<43>
-
-*/
 //////////////////////////////
 #include <ps_TCHAR.h>
 #include <mm_snprintf.h>
@@ -282,9 +238,12 @@ mm_snprintf("%K%k%b", "<>", "-", bytes);
  *		  I'd like the behavior of this code more unified and constant.
  *		- Add mmsnprintf_getversion() to return the implementation version
  *		  of this code.
- * 2008-XX-XX  V3.1 by Chj <chenjun@nlscan.com>
+ * 2008-05-26  V3.1 by Chj <chenjun@nlscan.com>
  *		- Unicode compile support, one library supporting both char and wchar_t .
- *		- New library availble on WinCE, as well as Windows, Linux.
+ *		- New library available on WinCE, as well as Windows, Linux.
+ * 2014-07-13  V4.0 by Chj <chenjun@nlscan.com>
+ *		- New memory-dump(memdump) format specifier %m %M .
+ *		- Control memdump decoration and format with %k %K %r %R
  */
 
 
@@ -968,8 +927,10 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 					pbytes = _T("");
 
 				int dump_bytes = min_field_width;  // i.e. the first * in "%*.*b"
-				if(dump_bytes==0)
-					dump_bytes = strlen((char*)pbytes);
+				if(dump_bytes==0) {
+					dump_bytes = strlen((TCHAR*)pbytes);
+						// Yes, for wchar version, take pbytes as wchar_t string.
+				}
 				
 				int result_chars = mm_dump_bytes(str+str_l, str_m-str_l, 
 					pbytes, dump_bytes, fmt_spec==_T('M')?true:false,
@@ -984,7 +945,7 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 			}
 		default: /* unrecognized conversion specifier, keep format string as-is*/
 			{
-				zero_padding = 0;  /* turn zero padding off for non-numeric convers. */
+				zero_padding = 0;  /* turn zero padding off for non-numeric converts. */
 
 				justify_left = 1; min_field_width = 0;                /* reset flags */
 
