@@ -54,19 +54,38 @@ int _tmain()
 	mprintW(L"float [%f, %g, %e]", d, d, d);
 
 	// [2014-07-12] bytes dump
+	const char *str="ABN";
 	int i;
-	unsigned char bytes[256];
-	for(i=0; i<sizeof(bytes); i++) bytes[i]=i;
+	unsigned char mem[256];
+	for(i=0; i<sizeof(mem); i++) mem[i]=i;
 //	mprintA("Hexdump1:\n%k%8r%*b!\n", "_", 4, 17, bytes);
 
-	mprintW(L"%k%K"
+//	mprintA("%9m", mem);
+
+//	mprintA("%*m", 9, mem);
+
+//	mprintA("%m", str);
+
+//	mprintA("%k%5m,%M", " ", mem, str);
+
+//	mprintA("%k%5m", "--", mem);
+
+//	mprintA("%K%5m", "<>", mem);
+
+//	mprintA("%k%K%5m", "-", "<>", mem);
+
+//	mprintA("%k%r%17m", " ", 8, mem);
+
+	mprintA("%k%R%17m", " ", 8, mem);
+
+/*	mprintW(L"%k%K"
 		L"%*.*R"
 		L"%M!\n"
 		,
 		L"_", L"<>",
 		0, 1, 8, 
 		L"0123456789a");
-
+*/
 /*	mprintA("%k%K"
 		"%*.*R"
 		"%B!\n"
