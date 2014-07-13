@@ -1315,6 +1315,7 @@ mm_dump_bytes(TCHAR *buf, int bufchars,
 
 	columns: Consume that many bytes for one output line, 
 		use use this to add line breaks for large input bytes.
+		If 0, dump all on one line.
 
 	indents: spaces to add for every dump line output.
 
@@ -1331,11 +1332,11 @@ mm_dump_bytes(TCHAR *buf, int bufchars,
 
 	const unsigned char *pbytes = (unsigned char*)pbytes_;
 
-	if(columns<=0)
-		columns = 8;
-	else if(columns>256)
-		columns = 256;
-
+	columns = Mid(0, columns, 256);
+	if(columns==0) {
+		columns = 0x7FFFffff;
+		ruler = false;
+	}
 	colskip = Mid(0, colskip, columns-1);
 
 	int i, j;

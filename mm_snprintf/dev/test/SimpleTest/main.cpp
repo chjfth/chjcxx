@@ -64,9 +64,17 @@ int _tmain()
 		"%B!\n"
 		,
 		"_._", "<<>>",
-		4, 1, 8, 
+		1, 2, 2, 
 		"0123456789abcdefghijklmnopqr");
 
+/*	mprintA("%k%K"
+		"%*.*R"
+		"%B!\n"
+		,
+		"_._", "<<>>",
+		4, 1, 8, 
+		"0123456789abcdefghijklmnopqr");
+*/
 /*	
 	mprintA("%k%K"
 		"%*.*R"
