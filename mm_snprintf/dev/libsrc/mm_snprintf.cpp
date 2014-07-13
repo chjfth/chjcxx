@@ -391,7 +391,7 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 	int bdd_indents = 0; // bdd: byte-dump decoration
 	TCHAR bdd_hyphens[bdmax_hyphen+1]=_T(""); 
 	TCHAR bdd_left[bdmax_left+1]=_T(""), bdd_right[bdmax_right+1]=_T("");
-	int bdf_columns = 16; // 16 is default, bdf: byte-dump format
+	int bdf_columns = 0;  // 0 means do not dump on multiple lines
 	int bdf_colskip = 0;  // byte dump first-line column skip 
 		// To have first byte appear at column 3 instead of column 0, you set bdf_colskip=3 .
 	bool is_print_ruler = false;
@@ -948,15 +948,18 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 			}
 		case _T('r'): case _T('R'):  // 'r'uler parameters for bytes dump
 			{
-				// "%16.3r", 4
+				// "%4.3r", 16    
+				//  or
+				// "%*.*r", min_field_width, precision, 16
 				// means 16-byte columns and skip 3 columns before first-byte dump 
 				// each line indents 4 spaces
-				if(min_field_width>0)
-					bdf_columns = min_field_width;
+				if(min_field_width>0) {
+					bdd_indents = min_field_width;
+					bdd_indents = Mid(0, bdd_indents, 64);
+				}
 				bdf_colskip = precision;
 
-				bdd_indents = va_arg(ap, int);
-				bdd_indents = Mid(0, bdd_indents, 64);
+				bdf_columns = va_arg(ap, int);
 
 				if(fmt_spec==_T('R'))
 					is_print_ruler = true;
