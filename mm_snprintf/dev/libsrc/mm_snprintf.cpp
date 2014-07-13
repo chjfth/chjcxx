@@ -388,12 +388,12 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 	if (!p) 
 		p = _T("");
 
-	int bdd_indents = 0; // bdd: byte-dump decoration
-	TCHAR bdd_hyphens[bdmax_hyphen+1]=_T(""); 
-	TCHAR bdd_left[bdmax_left+1]=_T(""), bdd_right[bdmax_right+1]=_T("");
-	int bdf_columns = 0;  // 0 means do not dump on multiple lines
-	int bdf_colskip = 0;  // byte dump first-line column skip 
-		// To have first byte appear at column 3 instead of column 0, you set bdf_colskip=3 .
+	int mdd_indents = 0; // mdd: memory-dump decoration
+	TCHAR mdd_hyphens[bdmax_hyphen+1]=_T(""); 
+	TCHAR mdd_left[bdmax_left+1]=_T(""), mdd_right[bdmax_right+1]=_T("");
+	int mdf_columns = 0;  // 0 means do not dump on multiple lines
+	int mdf_colskip = 0;  // memory-dump first-line column skip 
+		// To have first byte appear at column 3 instead of column 0, you set mdf_colskip=3 .
 	bool is_print_ruler = false;
 
 	while (*p) 
@@ -921,16 +921,10 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 				break;
 			} // case 'd', 'u', 'o', 'x', 'X', 'p', 'f', 'g', 'G', 'e', 'E' 
 
-/*		case _T('j'):
-			{
-				bdd_indents = va_arg(ap, int);
-				bdd_indents = Mid(0, bdd_indents, 64);
-				break;
-			}
-*/		case _T('k'): // lower-case 'k'
+		case _T('k'): // lower-case 'k'
 			{
 				const TCHAR *hyphen = va_arg(ap, TCHAR*);
-				mm_strncpy_(bdd_hyphens, hyphen, mmquan(bdd_hyphens), true);
+				mm_strncpy_(mdd_hyphens, hyphen, mmquan(mdd_hyphens), true);
 				break;
 			}
 		case _T('K'): // upper-case 'K'
@@ -938,12 +932,12 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 				const TCHAR *brackets = va_arg(ap, TCHAR*);
 				int Klen = TMM_strlen(brackets);
 				int leftlen = Klen/2;
-				mm_strncpy_(bdd_left, brackets, mmquan(bdd_left), true);
-				if(leftlen<mmquan(bdd_left))
-					bdd_left[leftlen] = _T('\0');
+				mm_strncpy_(mdd_left, brackets, mmquan(mdd_left), true);
+				if(leftlen<mmquan(mdd_left))
+					mdd_left[leftlen] = _T('\0');
 				else
-					bdd_left[mmquan(bdd_left)-1] = _T('\0');
-				mm_strncpy_(bdd_right, brackets+leftlen, mmquan(bdd_right), true);
+					mdd_left[mmquan(mdd_left)-1] = _T('\0');
+				mm_strncpy_(mdd_right, brackets+leftlen, mmquan(mdd_right), true);
 				break;
 			}
 		case _T('r'): case _T('R'):  // 'r'uler parameters for bytes dump
@@ -954,12 +948,12 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 				// means 16-byte columns and skip 3 columns before first-byte dump 
 				// each line indents 4 spaces
 				if(min_field_width>0) {
-					bdd_indents = min_field_width;
-					bdd_indents = Mid(0, bdd_indents, 64);
+					mdd_indents = min_field_width;
+					mdd_indents = Mid(0, mdd_indents, 64);
 				}
-				bdf_colskip = precision;
+				mdf_colskip = precision;
 
-				bdf_columns = va_arg(ap, int);
+				mdf_columns = va_arg(ap, int);
 
 				if(fmt_spec==_T('R'))
 					is_print_ruler = true;
@@ -967,7 +961,7 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 				min_field_width = precision = 0; // reset
 				break;
 			}
-		case _T('b'): case _T('B'): // These will do byte dump
+		case _T('m'): case _T('M'): // These will do byte dump
 			{	
 				const void *pbytes = va_arg(ap, void*);
 				if(!pbytes)
@@ -978,10 +972,10 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 					dump_bytes = strlen((char*)pbytes);
 				
 				int result_chars = mm_dump_bytes(str+str_l, str_m-str_l, 
-					pbytes, dump_bytes, fmt_spec==_T('B')?true:false,
-					bdd_hyphens, bdd_left, bdd_right,
-					bdf_columns, bdf_colskip, is_print_ruler,
-					bdd_indents);
+					pbytes, dump_bytes, fmt_spec==_T('M')?true:false,
+					mdd_hyphens, mdd_left, mdd_right,
+					mdf_columns, mdf_colskip, is_print_ruler,
+					mdd_indents);
 				str_l += result_chars;
 
 				min_field_width = precision = 0; // reset
@@ -1302,7 +1296,7 @@ mmfill_strcpy(mmfill_st &f, const TCHAR *src)
 int 
 mm_dump_bytes(TCHAR *buf, int bufchars, 
 	const void *pbytes_, int dump_bytes, bool uppercase,
-	const TCHAR *bdd_hyphens, const TCHAR *bdd_left, const TCHAR *bdd_right,
+	const TCHAR *mdd_hyphens, const TCHAR *mdd_left, const TCHAR *mdd_right,
 	int columns, int colskip, bool ruler,
 	int indents)
 {
@@ -1341,9 +1335,9 @@ mm_dump_bytes(TCHAR *buf, int bufchars,
 
 	int i, j;
 	TCHAR tmp[16]; // don't be less than 16
-	int len_hyphens = TMM_strlen(bdd_hyphens);
-	int len_left = TMM_strlen(bdd_left);
-	int len_right = TMM_strlen(bdd_right);
+	int len_hyphens = TMM_strlen(mdd_hyphens);
+	int len_left = TMM_strlen(mdd_left);
+	int len_right = TMM_strlen(mdd_right);
 
 	int dump_width_perbyte = len_left+2+len_right+len_hyphens;
 
@@ -1397,17 +1391,17 @@ mm_dump_bytes(TCHAR *buf, int bufchars,
 			// columns remain for this dump line
 		for(j=0; j<colomn_remain; j++)
 		{
-			if(bdd_left[0])
-				mmfill_strcpy(mmfill, bdd_left);
+			if(mdd_left[0])
+				mmfill_strcpy(mmfill, mdd_left);
 			
 			TMM_sprintf(tmp, fmthex, pbytes[consumed+j]);
 			mmfill_strcpy(mmfill, tmp);
 			
-			if(bdd_right[0])
-				mmfill_strcpy(mmfill, bdd_right);
+			if(mdd_right[0])
+				mmfill_strcpy(mmfill, mdd_right);
 
 			if(j<colomn_remain-1)
-				mmfill_strcpy(mmfill, bdd_hyphens);
+				mmfill_strcpy(mmfill, mdd_hyphens);
 		}
 		colskip = 0;
 
