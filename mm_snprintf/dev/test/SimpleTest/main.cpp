@@ -76,7 +76,14 @@ int _tmain()
 
 //	mprintA("%k%r%17m", " ", 8, mem);
 
-	mprintA("%k%R%17m", " ", 8, mem);
+//	mprintA("%k%R%17m", " ", 8, mem);
+
+//	mprintA("%k%4r%17m", " ", 8, mem);
+//	mprintA("%k%4R%17m", " ", 8, mem);
+
+//	mprintA("%k%0.3r%17m", " ", 8, mem);
+	mprintA("%k%*.*R%17m", " ", 4, 3, 8, mem);
+
 
 /*	mprintW(L"%k%K"
 		L"%*.*R"

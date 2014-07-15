@@ -928,7 +928,7 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 
 				int dump_bytes = min_field_width;  // i.e. the first * in "%*.*b"
 				if(dump_bytes==0) {
-					dump_bytes = strlen((TCHAR*)pbytes);
+					dump_bytes = TMM_strlen((TCHAR*)pbytes)*sizeof(TCHAR);
 						// Yes, for wchar version, take pbytes as wchar_t string.
 				}
 				
