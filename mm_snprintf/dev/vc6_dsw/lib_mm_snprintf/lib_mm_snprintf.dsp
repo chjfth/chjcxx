@@ -120,8 +120,12 @@ BuildCmds= \
 InputPath=..\..\libsrc\mm_snprintf.cpp
 
 BuildCmds= \
+	attrib -R .\mm_snprintfA.cpp \
 	copy $(InputPath) .\mm_snprintfA.cpp \
+	attrib +R .\mm_snprintfA.cpp \
+	attrib -R .\mm_snprintfW.cpp \
 	copy $(InputPath) .\mm_snprintfW.cpp \
+	attrib +R .\mm_snprintfW.cpp \
 	
 
 ".\mm_snprintfA.cpp" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
