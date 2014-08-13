@@ -243,7 +243,7 @@
  *		- New library available on WinCE, as well as Windows, Linux.
  * 2014-07-13  V4.0 by Chj <chenjun@nlscan.com>
  *		- New memory-dump(memdump) format specifier %m %M .
- *		- Control memdump decoration and format with %k %K %r %R
+ *		- Control memdump decoration and format with %k %K %r %R %v
  */
 
 
