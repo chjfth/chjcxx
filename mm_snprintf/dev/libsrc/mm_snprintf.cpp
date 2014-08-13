@@ -938,8 +938,6 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 						// Yes, for wchar version, take pbytes as wchar_t string.
 				}
 
-				unsigned int imagine_addr = precision;
-				
 				int result_chars = mm_dump_bytes(str+str_l, str_m-str_l, 
 					pbytes, dump_bytes, fmt_spec==_T('M')?true:false,
 					mdd_hyphens, mdd_left, mdd_right,

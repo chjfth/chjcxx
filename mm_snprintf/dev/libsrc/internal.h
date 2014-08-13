@@ -4,8 +4,8 @@
 #include <ps_TCHAR.h>
 
 enum {
-	mmsnprintf_vmajor = 3,
-	mmsnprintf_vminor = 2,
+	mmsnprintf_vmajor = 4,
+	mmsnprintf_vminor = 0,
 	mmsnprintf_vbuild = 0,
 };
 
