@@ -86,8 +86,13 @@ int _tmain()
 
 //	mprintA("%0*lld\n", 6, (__int64)345); // 00345 
 
-//	mprintA("%k%*.*R%v%17m!", " ", 4, 3, 8, 0x7777123, mem);
-	mprintW(L"%k%*.*R%v%17m!", " ", 4, 3, 8, 0x7777123, mem);
+//	mprintA("%k%R%v%17m", " ", 8, (void*)0x1400, mem);
+
+	mprintA("%k%*.*R%v%17m", " ", 4, 3, 8, (void*)0x427c00, mem);
+	mprintA("\n");
+	mprintA("%k%*.*r%v%17m", " ", 4, 3, 8, (void*)0x427c00, mem);
+//	mprintW(L"%k%*.*R%v%17m", " ", 4, 3, 8, 0x7777123, mem);
+
 
 /*	mprintW(L"%k%K"
 		L"%*.*R"
