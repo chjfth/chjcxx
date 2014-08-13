@@ -354,6 +354,7 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 	int mdf_colskip = 0;  // memory-dump first-line column skip 
 		// To have first byte appear at column 3 instead of column 0, you set mdf_colskip=3 .
 	bool is_print_ruler = false;
+	void *imagine_maddr = 0;
 
 	while (*p) 
 	{
@@ -920,26 +921,34 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 				min_field_width = precision = 0; // reset
 				break;
 			}
+		case _T('v'):
+			{
+				imagine_maddr = va_arg(ap, void*);
+				break;
+			}
 		case _T('m'): case _T('M'): // These will do byte dump
 			{	
 				const void *pbytes = va_arg(ap, void*);
 				if(!pbytes)
 					pbytes = _T("");
 
-				int dump_bytes = min_field_width;  // i.e. the first * in "%*.*b"
+				int dump_bytes = min_field_width;  // i.e. the first * in "%*.*m"
 				if(dump_bytes==0) {
 					dump_bytes = TMM_strlen((TCHAR*)pbytes)*sizeof(TCHAR);
 						// Yes, for wchar version, take pbytes as wchar_t string.
 				}
+
+				unsigned int imagine_addr = precision;
 				
 				int result_chars = mm_dump_bytes(str+str_l, str_m-str_l, 
 					pbytes, dump_bytes, fmt_spec==_T('M')?true:false,
 					mdd_hyphens, mdd_left, mdd_right,
 					mdf_columns, mdf_colskip, is_print_ruler,
-					mdd_indents);
+					mdd_indents, imagine_maddr);
 				str_l += result_chars;
 
 				min_field_width = precision = 0; // reset
+				imagine_maddr = 0;
 				p++; // step over the just processed conversion specifier
 				continue; 
 			}
@@ -1254,12 +1263,14 @@ mmfill_strcpy(mmfill_st &f, const TCHAR *src)
 //	return left+2+right+hyphen;
 //}
 
+
 int 
-mm_dump_bytes(TCHAR *buf, int bufchars, 
+mm_dump_bytes(TCHAR *buf, int bufbytes, 
 	const void *pbytes_, int dump_bytes, bool uppercase,
 	const TCHAR *mdd_hyphens, const TCHAR *mdd_left, const TCHAR *mdd_right,
 	int columns, int colskip, bool ruler,
-	int indents)
+	int indents, 
+	const void *imagine_addr_)
 {
 	/*
 	Dump hex-represented byte content into buf[], but not exceeding bufchars.
@@ -1278,9 +1289,14 @@ mm_dump_bytes(TCHAR *buf, int bufchars,
 		is easily recognized.
 		Ruler is something like:
 		
-		      00-01-02-03-04-05-06-07-08-09-0A-0B-0C-0D-0E-0F
+		------00-01-02-03-04-05-06-07-08-09-0A-0B-0C-0D-0E-0F
         0000: 30 31 32 33 34 35 36 37 38 39 3a 3b 3c 3d 3e 3f
 		0010: aa bb cc
+         ^
+		 ^
+		 ^
+		 I call this address-column, default adcol_digits=4
+
 
 	Return: how many TCHARs will be output assuming buf[] is large enough.
 	*/
@@ -1294,22 +1310,27 @@ mm_dump_bytes(TCHAR *buf, int bufchars,
 	}
 	colskip = Mid(0, colskip, columns-1);
 
+	const int ex2 = 2;
 	int i, j;
-	TCHAR tmp[16]; // don't be less than 16
+	TCHAR tmp[20]; // don't be less than 20
 	int len_hyphens = TMM_strlen(mdd_hyphens);
 	int len_left = TMM_strlen(mdd_left);
 	int len_right = TMM_strlen(mdd_right);
 
 	int dump_width_perbyte = len_left+2+len_right+len_hyphens;
 
+	const char *imagine_addr = (const char*)imagine_addr_;
+	int adcol_digits = cal_adcol_digits(imagine_addr, bufbytes);
+
 	int consumed = 0; // consumed source bytes
-	mmfill_st mmfill = {buf, bufchars, 0};
+	mmfill_st mmfill = {buf, bufbytes, 0};
 
 	if(ruler)
 	{
 		// first: indents and left ruler spaces
 		mmfill_fill_chars(mmfill, _T(' '), indents); 
-		mmfill_fill_chars(mmfill, _T('-'), 6); // 6 is the length of "0000: "
+		mmfill_fill_chars(mmfill, _T('-'), adcol_digits+ex2); 
+			// 2 is for ": " following the address column digits
 
 		// second: horizontal marks
 		for(i=0; i<columns; i++)
@@ -1326,6 +1347,8 @@ mm_dump_bytes(TCHAR *buf, int bufchars,
 		mmfill_strcpy(mmfill, _T("\n"));
 	}
 
+	const char *imagine_addr_to_print = imagine_addr-colskip;
+
 	const TCHAR *fmthex = uppercase ? _T("%02X") : _T("%02x");
 
 	for(;;)
@@ -1335,19 +1358,21 @@ mm_dump_bytes(TCHAR *buf, int bufchars,
 		// first: indents
 		mmfill_fill_chars(mmfill, _T(' '), indents);
 
-		// second: left-side ruler
+		// second: address column
 		if(ruler)
 		{
-			TMM_sprintf(tmp, _T("%04X: "), consumed);
-			mmfill_strcpy(mmfill, tmp);
+			TMM_sprintf(tmp, _T("%p: "), imagine_addr_to_print);
+			int tlen = TMM_strlen(tmp);
+			mmfill_strcpy(mmfill, tmp+tlen-ex2-adcol_digits); // leading verbose '0' s trimmed
 		}
 
+		// third: column-skip blank area
 		if(colskip>0)
 		{
 			mmfill_fill_chars(mmfill, _T(' '), dump_width_perbyte*colskip);
 		}
 
-		// third: hex dumps of current line with decoration
+		// fourth: hex dumps of current line with decoration
 		int colomn_remain = Min(dump_bytes-consumed, columns-colskip);
 			// columns remain for this dump line
 		for(j=0; j<colomn_remain; j++)
@@ -1373,6 +1398,8 @@ mm_dump_bytes(TCHAR *buf, int bufchars,
 
 		mmfill_strcpy(mmfill, _T("\n"));
 		assert(consumed<dump_bytes);
+
+		imagine_addr_to_print += columns;
 	}
 
 	return mmfill.produced;
