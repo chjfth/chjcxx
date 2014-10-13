@@ -337,7 +337,7 @@ static char credits[] = "\n\
 int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap) 
 {
 
-	size_t str_l = 0;
+	size_t str_l = 0; // how many output length has been filled, assuming enough output buffer
 	const TCHAR *p = fmt;
 
 /* In contrast with POSIX, the ISO C99 now says
@@ -950,6 +950,18 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 				p++; // step over the just processed conversion specifier
 				continue; 
 			}
+		case _T('w'):
+			{
+				// consume two arguments for 'w'
+				const TCHAR *dig_fmt = va_arg(ap, TCHAR*);
+				va_list dig_args = va_arg(ap, va_list);
+				int fills = mm_vsnprintf(str+str_l, 
+					str_m>str_l ? str_m-str_l : 0, 
+					dig_fmt, dig_args);
+				str_l += fills;
+				p++;
+				continue;
+			}
 		default: /* unrecognized conversion specifier, keep format string as-is*/
 			{
 				zero_padding = 0;  /* turn zero padding off for non-numeric converts. */
@@ -972,7 +984,12 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 				}
 				break;
 			}
-		} // switch (fmt_spec) // BIG CHUNK OF PROCESS!!
+		} // switch (fmt_spec) // BIG CHUNK OF PROCESS!! 
+		
+		// chj hint: When to use 'break' and when to use 'continue' in the above 'switch'?
+		// If str_l has not been update, you should execute the code below,
+		// otherwise, you can 'continue' to process next fmt-specifier.
+		// Note: If you 'continue', be sure to prepend 'p++' .
 
 		if (*p) 
 			p++;      /* step over the just processed conversion specifier */

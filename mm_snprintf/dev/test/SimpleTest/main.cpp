@@ -1,4 +1,6 @@
+#include <assert.h>
 #include <stdarg.h>
+#include <string.h>
 #include <stdio.h>
 #include <locale.h>
 
@@ -12,7 +14,7 @@
 __int64 i64 = DECL_INT64(0x912345678); // decimal 38960125560
 double d = 1.2345678;
 
-void mprintA(const char *fmt, ...)
+int mprintA(const char *fmt, ...)
 {
 	char buf[2000];
 	int bufsize = sizeof(buf);
@@ -21,9 +23,10 @@ void mprintA(const char *fmt, ...)
 	int ret = mm_vsnprintfA(buf, bufsize, fmt, args);
 	printf("%s\n", buf);
 	va_end(args);
+	return ret;
 }
 
-void mprintW(const wchar_t *fmt, ...)
+int mprintW(const wchar_t *fmt, ...)
 {
 	wchar_t buf[2000];
 	int bufsize = sizeof(buf)/sizeof(buf[0]);
@@ -36,9 +39,10 @@ void mprintW(const wchar_t *fmt, ...)
 	wprintf(L"%S\n", buf);
 #endif
 	va_end(args);
+	return ret;
 }
 
-int _tmain()
+int test_memdump()
 {
 //	setlocale(LC_ALL, "");
 
@@ -119,5 +123,38 @@ int _tmain()
 		7, 1, 4, 
 		18, bytes);
 */
+	return 0;
+}
+
+
+int print_with_prefix_suffix(char *buf, int bufsize, char *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	int alen = mm_snprintfA(buf, bufsize, "%c%w%s", '[', fmt, args, "]"); // %w consumes two arguments
+	va_end(args);
+	return alen;
+}
+
+int test_w_specifier()
+{
+	char buf[100]; 
+	int bufsize = sizeof(buf);
+	int alen = print_with_prefix_suffix(buf, bufsize,
+		"Hello '%%%c' spec", 'w'); // 15
+	if(alen==17 && strcmp(buf, "[Hello '%w' spec]")==0)
+		printf("test_w_specifier() ok\n");
+	else
+	{
+		printf("test_w_specifier() ERROR\n");
+		assert(0);
+	}
+	return 0;
+}
+
+int _tmain()
+{
+	test_memdump();
+	test_w_specifier();
 	return 0;
 }
