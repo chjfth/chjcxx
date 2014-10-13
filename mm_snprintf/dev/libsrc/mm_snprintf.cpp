@@ -953,11 +953,22 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 		case _T('w'):
 			{
 				// consume two arguments for 'w'
+#ifndef __ARMCC_VERSION 				
+				// this should be ok for most compilers
 				const TCHAR *dig_fmt = va_arg(ap, TCHAR*);
-				va_list dig_args = va_arg(ap, va_list);
+				va_list dig_args = va_arg(ap, va_list); 
 				int fills = mm_vsnprintf(str+str_l, 
 					str_m>str_l ? str_m-str_l : 0, 
-					dig_fmt, dig_args);
+					dig_fmt, dig_args);				
+#else 
+				// tweak for compatibility of the 1998-old ARM SDT 2.50 compiler:
+				const TCHAR *dig_fmt = va_arg(ap, TCHAR*);
+				void *dig_args = va_arg(ap, void*);
+				int fills = mm_vsnprintf(str+str_l, 
+					str_m>str_l ? str_m-str_l : 0, 
+					dig_fmt, (char**)dig_args); 
+					// Cannot write ``(va_list)dig_args)`` because va_list type is an array type
+#endif
 				str_l += fills;
 				p++;
 				continue;
