@@ -84,7 +84,7 @@ int mm_asnprintf (char **ptr, size_t str_m, const char *fmt, ...);
 int mm_vasnprintf(char **ptr, size_t str_m, const char *fmt, va_list ap);
 */
 
-#ifdef _UNICODE
+#if (defined _UNICODE) || (defined UNICODE)
 # define mm_snprintf mm_snprintfW
 # define mm_vsnprintf mm_vsnprintfW
 #else

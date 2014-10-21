@@ -1387,10 +1387,14 @@ mm_dump_bytes(TCHAR *buf, int bufbytes,
 		// second: address column
 		if(ruler)
 		{
-			TMM_sprintf(tmp, _T("%p: "), imagine_addr_to_print);
-				// use "%p" so to adapt 32-bit & 64-bit system automatically
-			int tlen = TMM_strlen(tmp);
-			mmfill_strcpy(mmfill, tmp+tlen-ex2-adcol_digits); // leading verbose '0' s trimmed
+			mm_snprintf(tmp, sizeof(tmp), 
+				is64bit ? _T("%016llX") : _T("%08X"), 
+				is64bit ? (unsigned __int64)imagine_addr_to_print : (unsigned int)imagine_addr_to_print
+				);
+				// avoid using "%p" because Linux will prefix "0x" while MSVC does not
+			int droplen = (is64bit?16:8)-adcol_digits;
+			mmfill_strcpy(mmfill, tmp+droplen); // leading verbose '0's dropped
+			mmfill_strcpy(mmfill, _T(": "));
 		}
 
 		// third: column-skip blank area

@@ -1,3 +1,7 @@
+#ifdef __linux__
+#define UNICODE
+#endif
+
 #include <assert.h>
 #include <stdarg.h>
 #include <string.h>
@@ -7,9 +11,19 @@
 #include <wchar.h> // for wprintf under linux
 #include <ps_TCHAR.h> // for _tmain macro
 //#include <ps_TypeDecl.h>
+
 #include <mm_snprintf.h>
 
-//#if
+
+#ifdef UNICODE
+#define t(str) L##str 
+#define mprint mprintW
+#define t_strcmp wcscmp
+#else
+#define t(str) str
+#define mprint mprintA
+#define t_strcmp strcmp
+#endif
 
 __int64 i64 = (__int64)(0x912345678); // decimal 38960125560
 double d = 1.2345678;
@@ -49,7 +63,7 @@ int test_memdump()
 	// [2014-07-12] bytes dump
 	const char *str="ABN";
 	int i;
-	unsigned char mem[256];
+	unsigned char mem[1024];
 	for(i=0; i<sizeof(mem); i++) mem[i]=i;
 //	mprintA("Hexdump1:\n%k%8r%*b!\n", "_", 4, 17, bytes);
 
@@ -77,13 +91,13 @@ int test_memdump()
 //	mprintA("%k%0.3r%17m", " ", 8, mem);
 //	mprintA("%k%*.*R%17m", " ", 4, 3, 8, mem);
 
-//	mprintA("%0*lld\n", 6, (__int64)345); // 00345 
+	mprint(t("%0*lld\n"), 6, (__int64)345); // 00345 
 
 //	mprintA("%k%R%v%17m", " ", 8, (void*)0x1400, mem);
 
-	mprintA("%k%*.*R%v%17m", " ", 4, 3, 8, (void*)0x427c00, mem);
-	mprintA("\n");
-	mprintA("%k%*.*r%v%17m", " ", 4, 3, 8, (void*)0x427c00, mem);
+	mprint(t("%k%*.*R%v%17m"), t(" "), 4, 3, 8, (void*)0x427c00, mem);
+	mprint(t(""));
+	mprint(t("%k%*.*r%v%17m"), t(" "), 4, 3, 8, (void*)0x427c00, mem);
 //	mprintW(L"%k%*.*R%v%17m", " ", 4, 3, 8, 0x7777123, mem);
 
 
@@ -116,26 +130,27 @@ int test_memdump()
 }
 
 
-int print_with_prefix_suffix(char *buf, int bufsize, const char *fmt, ...)
+int print_with_prefix_suffix(TCHAR *buf, int bufsize, const TCHAR *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
-	int alen = mm_snprintfA(buf, bufsize, "%c%w%s", '[', fmt, args, "]"); // %w consumes two arguments
+	int alen = mm_snprintf(buf, bufsize, 
+		t("%c%w%s"), t('['), fmt, args, t("]")); // %w consumes two arguments
 	va_end(args);
 	return alen;
 }
 
 int test_w_specifier()
 {
-	char buf[100]; 
-	int bufsize = sizeof(buf);
+	TCHAR buf[100]; 
+	int bufsize = sizeof(buf)/sizeof(buf[0]);
 	int alen = print_with_prefix_suffix(buf, bufsize,
-		"Hello '%%%c' spec", 'w'); // 15
-	if(alen==17 && strcmp(buf, "[Hello '%w' spec]")==0)
-		printf("test_w_specifier() ok\n");
+		t("Hello '%%%c' spec"), t('w')); // 15
+	if(alen==17 && t_strcmp(buf, t("[Hello '%w' spec]"))==0)
+		mprint(t("test_w_specifier() ok\n"));
 	else
 	{
-		printf("test_w_specifier() ERROR\n");
+		mprint(t("test_w_specifier() ERROR\n"));
 		assert(0);
 	}
 	return 0;
@@ -161,6 +176,9 @@ int _tmain()
 	test_v3();
 	
 	test_memdump();
+
+	mprint(t("")); // print a empty line
+
 	test_w_specifier();
 	return 0;
 }

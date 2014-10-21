@@ -20,6 +20,7 @@ enum {
 # define mmsnprintf_fillchar mmsnprintf_fillcharA
 #endif
 
+#define is64bit (sizeof(void*)==8)
 
 int mmsnprintf_IsFloatingType(TCHAR fmt_spec);
 //int mmsnprintf_IsFloatingTypeW(wchar_t fmt_spec);
