@@ -46,17 +46,6 @@ int test_memdump()
 {
 //	setlocale(LC_ALL, "");
 
-#if defined WIN32 || defined WINCE
-	mprintA("__int64 [%lld, 0x%llx]", i64, i64);
-#else // linux
-	mprintW(L"__int64 [%lld, 0x%llx]", i64, i64);
-	// glibc ban mixing printf and wprintf, so avoid using mprintA here.
-#endif
-
-	mprintW(L"[%d]", 12);
-	mprintW(L"[%s]", L"xyz");
-	mprintW(L"float [%f, %g, %e]", d, d, d);
-
 	// [2014-07-12] bytes dump
 	const char *str="ABN";
 	int i;
@@ -127,7 +116,7 @@ int test_memdump()
 }
 
 
-int print_with_prefix_suffix(char *buf, int bufsize, char *fmt, ...)
+int print_with_prefix_suffix(char *buf, int bufsize, const char *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
@@ -152,8 +141,25 @@ int test_w_specifier()
 	return 0;
 }
 
+void test_v3()
+{
+#if defined WIN32 || defined WINCE
+	mprintA("__int64 [%lld, 0x%llx]", i64, i64);
+#else // linux
+	mprintW(L"__int64 [%lld, 0x%llx]", i64, i64);
+	// glibc ban mixing printf and wprintf, so avoid using mprintA here.
+#endif
+
+	mprintW(L"[%d]", 12);
+	mprintW(L"[%s]", L"xyz");
+	mprintW(L"float [%f, %g, %e]", d, d, d);
+
+}
+
 int _tmain()
 {
+	test_v3();
+	
 	test_memdump();
 	test_w_specifier();
 	return 0;
