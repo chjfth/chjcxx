@@ -1356,7 +1356,7 @@ mm_dump_bytes(TCHAR *buf, int bufbytes,
 		// first: indents and left ruler spaces
 		mmfill_fill_chars(mmfill, _T(' '), indents); 
 		mmfill_fill_chars(mmfill, _T('-'), adcol_digits+ex2); 
-			// 2 is for ": " following the address column digits
+			// ex2 is for ": " following the address column digits
 
 		// second: horizontal marks
 		for(i=0; i<columns; i++)
@@ -1388,6 +1388,7 @@ mm_dump_bytes(TCHAR *buf, int bufbytes,
 		if(ruler)
 		{
 			TMM_sprintf(tmp, _T("%p: "), imagine_addr_to_print);
+				// use "%p" so to adapt 32-bit & 64-bit system automatically
 			int tlen = TMM_strlen(tmp);
 			mmfill_strcpy(mmfill, tmp+tlen-ex2-adcol_digits); // leading verbose '0' s trimmed
 		}
