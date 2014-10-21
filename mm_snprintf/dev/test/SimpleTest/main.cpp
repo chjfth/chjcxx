@@ -6,12 +6,12 @@
 
 #include <wchar.h> // for wprintf under linux
 #include <ps_TCHAR.h> // for _tmain macro
-#include <ps_TypeDecl.h>
+//#include <ps_TypeDecl.h>
 #include <mm_snprintf.h>
 
 //#if
 
-__int64 i64 = DECL_INT64(0x912345678); // decimal 38960125560
+__int64 i64 = (__int64)(0x912345678); // decimal 38960125560
 double d = 1.2345678;
 
 int mprintA(const char *fmt, ...)
