@@ -1042,7 +1042,7 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 			if (n > 0) {
 				if (str_l < str_m) {
 					int /*size_t*/ avail = str_m-str_l;
-					mm_chrset(str+str_l, _T('0'), TMM_strmembytes(n>avail?avail:n));
+					mm_chrset(str+str_l, _T('0'), (n>avail?avail:n));
 				}
 				str_l += n;
 			}
@@ -1339,6 +1339,7 @@ mm_dump_bytes(TCHAR *buf, int bufbytes,
 	const int ex2 = 2;
 	int i, j;
 	TCHAR tmp[20]; // don't be less than 20
+	const int tmpchars = sizeof(tmp)/sizeof(tmp[0]);
 	int len_hyphens = TMM_strlen(mdd_hyphens);
 	int len_left = TMM_strlen(mdd_left);
 	int len_right = TMM_strlen(mdd_right);
@@ -1387,7 +1388,7 @@ mm_dump_bytes(TCHAR *buf, int bufbytes,
 		// second: address column
 		if(ruler)
 		{
-			mm_snprintf(tmp, sizeof(tmp), 
+			mm_snprintf(tmp, tmpchars, 
 				is64bit ? _T("%016llX") : _T("%08X"), 
 				is64bit ? (unsigned __int64)imagine_addr_to_print : (unsigned int)imagine_addr_to_print
 				);
