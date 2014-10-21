@@ -1,5 +1,6 @@
 #ifdef __linux__
 #define UNICODE
+#define _tmain main
 #endif
 
 #include <assert.h>
