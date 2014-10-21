@@ -88,7 +88,7 @@ typedef unsigned short wchar_t;
 #endif
 
 
-#ifdef UNICODE
+#if (defined _UNICODE) || (defined UNICODE)
 
 #ifndef __T
  #define __T(x)	L##x
@@ -105,7 +105,7 @@ typedef wchar_t TCHAR;
 #endif
 
 
-#else	/* ================ Not _UNICODE ================ */
+#else	/* ================ Not Unicode ================ */
 
 
 #ifndef __T

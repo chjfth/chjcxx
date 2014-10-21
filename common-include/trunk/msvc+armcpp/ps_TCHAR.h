@@ -18,7 +18,7 @@ typedef unsigned short wchar_t;
 	// So that wchar_t can be used without including <tchar.h>
 #endif
 
-#ifdef UNICODE
+#if (defined _UNICODE) || (defined UNICODE)
 
 #ifndef __T
  #define __T(x)	L##x
@@ -35,7 +35,7 @@ typedef wchar_t TCHAR;
 #endif
 
 
-#else	/* ================ Not _UNICODE ================ */
+#else	/* ================ Not Unicode ================ */
 
 
 #ifndef __T

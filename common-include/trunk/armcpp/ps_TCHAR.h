@@ -3,7 +3,7 @@
 
 // IMPORTANT: See mswin/ps_TCHAR.h for important comment of using this header.
 
-#ifdef _UNICODE		/* ================ _UNICODE ================ */
+#if (defined _UNICODE) || (defined UNICODE)
 
 #ifndef __T
  #define __T(x)	L##x
@@ -16,7 +16,7 @@
 
 
 
-#else	/* ================ Not _UNICODE ================ */
+#else	/* ================ Not Unicode ================ */
 
 
 

@@ -84,7 +84,7 @@
 	//string.h to get the definition of wchar_t.
 
 
-#ifdef _UNICODE
+#if (defined _UNICODE) || (defined UNICODE)
 
 #ifndef __T
  #define __T(x)	L##x
@@ -113,7 +113,7 @@
 #endif
 
 
-#else	/* ================ Not _UNICODE ================ */
+#else	/* ================ Not Unicode ================ */
 
 
 
