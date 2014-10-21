@@ -1,5 +1,8 @@
-#ifdef __linux__
+#ifndef USE_char_ONLY
 #define UNICODE
+#endif
+
+#ifdef __linux__
 #define _tmain main
 #endif
 
@@ -97,6 +100,7 @@ int test_memdump()
 //	mprintA("%k%R%v%17m", " ", 8, (void*)0x1400, mem);
 
 	mprint(t("%k%*.*R%v%17m"), t(" "), 4, 3, 8, (void*)0xF, mem);
+	mprint(t("%k%*.*R%v%17m"), t(" "), 4, 3, 8, (void*)0x427c00, mem);
 	mprint(t(""));
 	mprint(t("%k%*.*r%v%17m"), t(" "), 4, 3, 8, (void*)0x427c00, mem);
 //	mprintW(L"%k%*.*R%v%17m", " ", 4, 3, 8, 0x7777123, mem);
