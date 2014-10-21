@@ -305,7 +305,7 @@ TCHAR * mm_strncpy_(TCHAR *dst, const TCHAR *src, int ndst, bool null_end)
 		srclen = null_end ? ndst-1 : ndst;
 	}	
 	
-	fast_memcpy(dst, src, TMM_strmemsize(srclen));
+	fast_memcpy(dst, src, TMM_strmembytes(srclen));
 	
 	if(srclen<ndst)
 		dst[srclen] = 0;
@@ -370,7 +370,7 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 			size_t n = !q ? TMM_strlen(p) : (q-p);
 			if (str_l < str_m) {
 				size_t avail = str_m-str_l;
-				fast_memcpy(str+str_l, p, TMM_strmemsize(n>avail?avail:n));
+				fast_memcpy(str+str_l, p, TMM_strmembytes(n>avail?avail:n));
 			}
 			p += n; str_l += n;
 
@@ -1033,7 +1033,7 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 			if (n > 0) {
 				if (str_l < str_m) {
 					int /*size_t*/ avail = str_m-str_l;
-					fast_memcpy(str+str_l, str_arg, TMM_strmemsize(n>avail?avail:n));
+					fast_memcpy(str+str_l, str_arg, TMM_strmembytes(n>avail?avail:n));
 				}
 				str_l += n;
 			}
@@ -1042,7 +1042,7 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 			if (n > 0) {
 				if (str_l < str_m) {
 					int /*size_t*/ avail = str_m-str_l;
-					mm_chrset(str+str_l, _T('0'), TMM_strmemsize(n>avail?avail:n));
+					mm_chrset(str+str_l, _T('0'), TMM_strmembytes(n>avail?avail:n));
 				}
 				str_l += n;
 			}
@@ -1054,7 +1054,7 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 			if (str_l < str_m) {
 				int /*size_t*/ avail = str_m-str_l;
 				fast_memcpy(str+str_l, str_arg+zero_padding_insertion_ind,
-					TMM_strmemsize(n>avail?avail:n));
+					TMM_strmembytes(n>avail?avail:n));
 			}
 			str_l += n;
 		}

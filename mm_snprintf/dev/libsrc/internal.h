@@ -9,7 +9,7 @@ enum {
 	mmsnprintf_vbuild = 0,
 };
 
-#define TMM_strmemsize(chars) ((chars)*sizeof(TCHAR))
+#define TMM_strmembytes(chars) ((chars)*sizeof(TCHAR))
 
 
 #ifdef _UNICODE
