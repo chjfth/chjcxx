@@ -13,7 +13,7 @@
 # gmu_G_Final_PrjName.
 ############################################################################
 ifndef gmu_PRJ_NAME
-  gmu_PRJ_NAME = mmsnprintf_SimpleTest
+  gmu_PRJ_NAME = mm_snprintf-test
 endif
 
 ############################################################################
@@ -32,7 +32,7 @@ endif
 # from $(gmu_DIR_GNUMAKEUNIPROC)/pattern1cfg/plugins .
 ############################################################################
 gmp_u_list_PLUGIN_TO_LOAD += 
-	# PI_sync_devoutput PI_always_compile
+
 
 include $(gmu_DIR_GNUMAKEUNIPROC)/pattern1.mks
 
