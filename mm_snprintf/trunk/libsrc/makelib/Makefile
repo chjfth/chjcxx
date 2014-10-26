@@ -29,8 +29,10 @@ ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),msvc wince mingw),1)
 	# 1: Use static CRT lib (compiler option /MT or /MTd)
 	# (null): use DLL CRT lib (compiler option /MD or /MDd)
 
-  gmp_CFLAGS_NON_CODE_GEN += /W3 \
-	-D_CRT_SECURE_NO_WARNINGS -D_CRT_NON_CONFORMING_SWPRINTFS
+  ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),msvc wince),1)
+    gmp_CFLAGS_NON_CODE_GEN += /W3 \
+      -D_CRT_SECURE_NO_WARNINGS -D_CRT_NON_CONFORMING_SWPRINTFS
+  endif
   
   gmu_up_list_SRC_FROM_ROOT += msvc/mm_psfunc.cpp
   gmu_ud_list_PRJ_HEADER += $(gmu_ud_SRC_ROOT)/msvc
