@@ -386,7 +386,8 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 			//"%8.4a", not just "a" .
 
 		size_t min_field_width = 0, precision = 0;
-		int zero_padding = 0, precision_specified = 0, justify_left = 0;
+		bool min_field_specified = false, precision_specified = false;
+		int zero_padding = 0, justify_left = 0;
 		int alternate_form = 0;
 		int force_sign = 0; // whether reserve a char space(filled with ' ' or '+') for positive indication.
 		int space_for_positive = 1; // use ' ' to indicate positive number instead of using '+'
@@ -459,6 +460,7 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 				min_field_width = -j; 
 				justify_left = 1; 
 			}
+			min_field_specified = true;
 		} 
 		else if (TMM_isdigit(*p)) {
 			/* size_t could be wider than unsigned int;
@@ -467,18 +469,19 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 			while (TMM_isdigit(*p)) 
 				uj = 10*uj + (unsigned int)(*p++ - _T('0'));
 			min_field_width = uj;
+			min_field_specified = true;
 		}
 
 		/* parse precision */
 		if (*p == _T('.')) {
-			p++; precision_specified = 1;
+			p++; precision_specified = true;
 			if (*p == _T('*')) {
 			  int j = va_arg(ap, int);
 			  p++;
 			  if (j >= 0) 
 				  precision = j;
 			  else {
-				precision_specified = 0; precision = 0;
+				precision_specified = false; precision = 0;
 			 /* NOTE:
 			  *   Solaris 2.6 man page claims that in this case the precision
 			  *   should be set to 0.  Digital Unix 4.0, HPUX 10 and BSD man page
@@ -775,7 +778,7 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 						f_l += TMM_sprintf(f+f_l, _T(".%d"), precision<MaxPrecision ? precision : MaxPrecision); 
 							//For floating point number, we leave precision processing to system's sprintf.
 
-						precision_specified = 0; precision = 0;
+						precision_specified = false; precision = 0;
 							// !!! As if we have not specified the precision 
 							//so that the "precision processing for integers" will not take place.
 						
@@ -864,7 +867,7 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 					 /* precision is increased to force the first character to be zero,
 						except if a zero value is formatted with an explicit precision
 						of zero */
-					  precision = num_of_digits+1; precision_specified = 1;
+					  precision = num_of_digits+1; precision_specified = true;
 					}
 				}
 				
@@ -932,10 +935,20 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 				if(!pbytes)
 					pbytes = _T("");
 
-				int dump_bytes = min_field_width;  // i.e. the first * in "%*.*m"
-				if(dump_bytes==0) {
-					dump_bytes = TMM_strlen((TCHAR*)pbytes)*sizeof(TCHAR);
-						// Yes, for wchar version, take pbytes as wchar_t string.
+				int dump_bytes;  // i.e. the first * in "%*.*m"
+				if(min_field_specified) {
+					dump_bytes = min_field_width;
+				}
+				else {
+					if(min_field_width==0 && zero_padding) {
+						dump_bytes = 0; 
+							// for fmtspec "%0m", the "0" before "m" is considered
+							// zeropadding instead of min_field_witdth
+					}
+					else {
+						dump_bytes = TMM_strlen((TCHAR*)pbytes)*sizeof(TCHAR);
+							// Yes, for wchar version, take pbytes as wchar_t string.
+					}
 				}
 
 				int result_chars = mm_dump_bytes(str+str_l, str_m-str_l, 
@@ -945,7 +958,7 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 					mdd_indents, imagine_maddr);
 				str_l += result_chars;
 
-				min_field_width = precision = 0; // reset
+				min_field_width = precision = 0; // reset (must?)
 				imagine_maddr = 0;
 				p++; // step over the just processed conversion specifier
 				continue; 

@@ -65,7 +65,7 @@ int test_memdump()
 //	setlocale(LC_ALL, "");
 
 	// [2014-07-12] bytes dump
-	const char *str="ABN";
+	const TCHAR *str=t("ABN");
 	int i;
 	unsigned char mem[1024];
 	for(i=0; i<sizeof(mem); i++) mem[i]=i;
@@ -75,7 +75,10 @@ int test_memdump()
 
 //	mprintA("%*m", 9, mem);
 
-//	mprintA("%m", str);
+	mprint(t("%m"), str);
+	mprint(t("[%0m]"), str); // should print only "[]" (mm4.1)
+	mprint(t("[%*m]"), 0, str); // should print only "[]" (mm4.1)
+	
 
 //	mprintA("%k%5m,%M", " ", mem, str);
 
@@ -95,7 +98,7 @@ int test_memdump()
 //	mprintA("%k%0.3r%17m", " ", 8, mem);
 //	mprintA("%k%*.*R%17m", " ", 4, 3, 8, mem);
 
-	mprint(t("%0*lld\n"), 6, (__int64)345); // 00345 
+	mprint(t("%0*lld%s\n"), 6, (__int64)345, "!"); // 00345! 
 
 //	mprintA("%k%R%v%17m", " ", 8, (void*)0x1400, mem);
 
