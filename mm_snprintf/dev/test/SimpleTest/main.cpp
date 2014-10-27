@@ -71,36 +71,36 @@ int test_memdump()
 	for(i=0; i<sizeof(mem); i++) mem[i]=i;
 //	mprintA("Hexdump1:\n%k%8r%*b!\n", "_", 4, 17, bytes);
 
-//	mprintA("%9m", mem);
+//	mprint(t("%9m"), mem);
 
-//	mprintA("%*m", 9, mem);
+//	mprint(t("%*m"), 9, mem);
 
-	mprint(t("%m"), str);
-	mprint(t("[%0m]"), str); // should print only "[]" (mm4.1)
-	mprint(t("[%*m]"), 0, str); // should print only "[]" (mm4.1)
+//	mprint(t("%m"), str);
+//	mprint(t("[%0m]"), str); // should print only "[]" (mm4.1)
+//	mprint(t("[%*m]"), 0, str); // should print only "[]" (mm4.1)
 	
 
-//	mprintA("%k%5m,%M", " ", mem, str);
+//	mprint(t("%k%5m,%M"), t(" "), mem, str);
 
-//	mprintA("%k%5m", "--", mem);
+//	mprint(t("%k%5m"), t("--"), mem);
 
-//	mprintA("%K%5m", "<>", mem);
+//	mprint(t("%K%5m"), t("<>"), mem);
 
-//	mprintA("%k%K%5m", "-", "<>", mem);
+//	mprint(t("%k%K%5m"), t("-"), t("<>"), mem);
 
-//	mprintA("%k%r%17m", " ", 8, mem);
+//	mprint(t("%k%r%17m"), t(" "), 8, mem);
 
-//	mprintA("%k%R%17m", " ", 8, mem);
+//	mprint(t("%k%R%17m"), t(" "), 8, mem);
 
-//	mprintA("%k%4r%17m", " ", 8, mem);
-//	mprintA("%k%4R%17m", " ", 8, mem);
+//	mprint(t("%k%4r%17m"), t(" "), 8, mem);
+//	mprint(t("%k%4R%17m"), t(" "), 8, mem);
 
-//	mprintA("%k%0.3r%17m", " ", 8, mem);
-//	mprintA("%k%*.*R%17m", " ", 4, 3, 8, mem);
+//	mprint(t("%k%0.3r%17m"), t(" "), 8, mem);
+//	mprint(t("%k%*.*R%17m"), t(" "), 4, 3, 8, mem);
 
-	mprint(t("%0*lld%s\n"), 6, (__int64)345, "!"); // 00345! 
+//	mprint(t("%0*lld%s\n"), 6, (__int64)345, "!"); // 00345! 
 
-//	mprintA("%k%R%v%17m", " ", 8, (void*)0x1400, mem);
+//	mprint(t("%k%R%v%17m"), t(" "), 8, (void*)0x1400, mem);
 
 	mprint(t("%k%*.*R%v%17m"), t(" "), 4, 3, 8, (void*)0xF, mem);
 	mprint(t("%k%*.*R%v%17m"), t(" "), 4, 3, 8, (void*)0x427c00, mem);
