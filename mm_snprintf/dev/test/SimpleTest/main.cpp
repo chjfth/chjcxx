@@ -143,7 +143,7 @@ int print_with_prefix_suffix(TCHAR *buf, int bufsize, const TCHAR *fmt, ...)
 	va_list args;
 	va_start(args, fmt);
 	int alen = mm_snprintf(buf, bufsize, 
-		t("%c%w%s"), t('['), fmt, args, t("]")); // %w consumes two arguments
+		t("%c%w%s"), t('['), fmt, &args, t("]")); // %w consumes two arguments
 	va_end(args);
 	return alen;
 }

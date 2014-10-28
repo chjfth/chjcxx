@@ -5,8 +5,8 @@
 
 enum {
 	mmsnprintf_vmajor = 4,
-	mmsnprintf_vminor = 1,
-	mmsnprintf_vbuild = 0,
+	mmsnprintf_vminor = 2,
+	mmsnprintf_vbuild = 0
 };
 
 #define TMM_strmembytes(chars) ((chars)*sizeof(TCHAR))
