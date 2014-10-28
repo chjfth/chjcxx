@@ -31,7 +31,7 @@ cal_adcol_digits(const void *imagine_addr, int bufbytes)
 	char *p = addrstr;
 	while( *p=='0' ) p++;
 	
-	int slen = strlen(p);
+	int slen = (Int)strlen(p);
 	return slen>4 ? slen : 4;
 }
 

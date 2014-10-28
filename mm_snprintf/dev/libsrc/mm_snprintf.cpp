@@ -387,10 +387,10 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 
 		Int min_field_width = 0, precision = 0;
 		bool min_field_specified = false, precision_specified = false;
-		int zero_padding = 0, justify_left = 0;
-		int alternate_form = 0;
-		int force_sign = 0; // whether reserve a char space(filled with ' ' or '+') for positive indication.
-		int space_for_positive = 1; // use ' ' to indicate positive number instead of using '+'
+		bool zero_padding = false, justify_left = false;
+		bool alternate_form = false;
+		bool force_sign = false; // whether reserve a char space(filled with ' ' or '+') for positive indication.
+		bool space_for_positive = true; // use ' ' to indicate positive number instead of using '+'
 			/* If both the ' ' and '+' flags appear, the ' ' flag should be ignored. */
 		TCHAR length_modifier = _T('\0');   
 			/* allowed values: \0, h, l, L , Chj: ll is allowed(encoded as '2').
@@ -437,13 +437,13 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 			 *p == _T(' ') || *p == _T('#') || *p == _T('\'')) 
 		{
 			switch (*p) {
-			case _T('0'): zero_padding = 1; break;
-			case _T('-'): justify_left = 1; break;
-			case _T('+'): force_sign = 1; space_for_positive = 0; break;
-			case _T(' '): force_sign = 1;
+			case _T('0'): zero_padding = true; break;
+			case _T('-'): justify_left = true; break;
+			case _T('+'): force_sign = true; space_for_positive = false; break;
+			case _T(' '): force_sign = true;
 			/* If both the ' ' and '+' flags appear, the ' ' flag should be ignored */
 					  break;
-			case _T('#'): alternate_form = 1; break;
+			case _T('#'): alternate_form = true; break;
 			case _T('\''): break;
 			}
 			p++;
@@ -458,7 +458,7 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 				min_field_width = j;
 			else { //[2006-10-02] same as MSVCRT
 				min_field_width = -j; 
-				justify_left = 1; 
+				justify_left = true; 
 			}
 			min_field_specified = true;
 		} 
@@ -692,7 +692,7 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 					if(double_arg>0) arg_sign = 1;
 					else if(double_arg<0) arg_sign = -1;
 
-					alternate_form = 0;
+					alternate_form = false;
 					//[2006-10-03]Chj Set/clear More vars? Seems enough.
 				}
 
@@ -705,7 +705,7 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 				*/
 
 				if (precision_specified) 
-					zero_padding = 0;
+					zero_padding = false;
 
 				if (fmt_spec == _T('d') || isFloatingType) {
 					if (force_sign && arg_sign >= 0)
@@ -977,9 +977,9 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 			}
 		default: /* unrecognized conversion specifier, keep format string as-is*/
 			{
-				zero_padding = 0;  /* turn zero padding off for non-numeric converts. */
+				zero_padding = false;  /* turn zero padding off for non-numeric converts. */
 
-				justify_left = 1; min_field_width = 0;                /* reset flags */
+				justify_left = true; min_field_width = 0;                /* reset flags */
 
 //#if defined(LINUX_COMPATIBLE) //[2006-10-03]Chj: I think the Linux-like behavior is more faithful to user.
 				/* keep the entire format string unchanged */
