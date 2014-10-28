@@ -9,6 +9,8 @@ enum {
 	mmsnprintf_vbuild = 0
 };
 
+typedef int Int;
+
 #define TMM_strmembytes(chars) ((chars)*sizeof(TCHAR))
 
 

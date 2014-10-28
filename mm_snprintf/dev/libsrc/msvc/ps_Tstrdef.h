@@ -4,7 +4,7 @@
 #include <tchar.h>
 
 #define TMM_strchr _tcschr
-#define TMM_strlen _tcslen
+#define TMM_strlen(str) ((int)_tcslen(str))
 
 #ifndef WINCE
 # define TMM_isdigit _istdigit

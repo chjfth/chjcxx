@@ -385,7 +385,7 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 			//the whole format specifier is output, e.g. "%8.4a" is output as
 			//"%8.4a", not just "a" .
 
-		size_t min_field_width = 0, precision = 0;
+		Int min_field_width = 0, precision = 0;
 		bool min_field_specified = false, precision_specified = false;
 		int zero_padding = 0, justify_left = 0;
 		int alternate_form = 0;
@@ -405,7 +405,7 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 			//later limit the precision before invoking system's sprintf.
 
 		const TCHAR *str_arg = NULL; /* string address in case of string argument */
-		size_t str_arg_l = 0;       /* natural field width of arg without padding
+		Int str_arg_l = 0;       /* natural field width of arg without padding
 								   and sign */
 		TCHAR uchar_arg; //unsigned char uchar_arg;
 		/* unsigned char argument value - only defined for c conversion.
@@ -414,11 +414,11 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 		   for a function like snprintf, since we just copy the char value.
 		*/
 
-		size_t number_of_zeros_to_pad = 0;
+		Int number_of_zeros_to_pad = 0;
 		/* number of zeros to be inserted for numeric conversions
 		   as required by the precision or minimal field width */
 
-		size_t zero_padding_insertion_ind = 0;
+		Int zero_padding_insertion_ind = 0;
 		/* index into tmp[] where zero padding is to be inserted */
 
 		TCHAR fmt_spec = _T('\0');
@@ -582,7 +582,7 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 					else if (precision == 0) 
 						str_arg_l = 0; //Chj: Yes, no characters from the string will be printed if `precision' is zero.
 					else { // `precision' specified and > 0 
-						size_t lenInput = TMM_strlen(str_arg);
+						Int lenInput = TMM_strlen(str_arg);
 						str_arg_l = lenInput<precision ? lenInput : precision;
 					}
 				}
@@ -857,7 +857,7 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 					}
 				}
 				
-				size_t num_of_digits = str_arg_l - zero_padding_insertion_ind;
+				Int num_of_digits = str_arg_l - zero_padding_insertion_ind;
 				if (alternate_form && fmt_spec == _T('o')
 					/* unless zero is already the first character */
 					&& !(zero_padding_insertion_ind < str_arg_l && tmp[zero_padding_insertion_ind] == _T('0'))
@@ -951,7 +951,7 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 					}
 				}
 
-				int result_chars = mm_dump_bytes(str+str_l, str_m-str_l, 
+				int result_chars = mm_dump_bytes(str+str_l, (Int)(str_m-str_l), 
 					pbytes, dump_bytes, fmt_spec==_T('M')?true:false,
 					mdd_hyphens, mdd_left, mdd_right,
 					mdf_columns, mdf_colskip, is_print_ruler,
@@ -983,7 +983,7 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 
 //#if defined(LINUX_COMPATIBLE) //[2006-10-03]Chj: I think the Linux-like behavior is more faithful to user.
 				/* keep the entire format string unchanged */
-				str_arg = starting_p; str_arg_l = p - starting_p;
+				str_arg = starting_p; str_arg_l = (Int)(p - starting_p);
 				/* well, not exactly so for Linux, which does something inbetween,
 				* and I don't feel an urge to imitate it: "%+++++hy" -> "%+y"  */
 // #else
@@ -1013,7 +1013,7 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 			int n = min_field_width - (str_arg_l+number_of_zeros_to_pad);
 			if (n > 0) {
 				if (str_l < str_m) {
-					int /*size_t*/ avail = str_m-str_l;
+					Int avail = (Int)(str_m-str_l);
 					mmsnprintf_fillchar(str+str_l, 
 						zero_padding ? _T('0') : _T(' '), 
 						n>avail?avail:n);
@@ -1034,7 +1034,7 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 			int n = zero_padding_insertion_ind;
 			if (n > 0) {
 				if (str_l < str_m) {
-					int /*size_t*/ avail = str_m-str_l;
+					Int avail = (Int)(str_m-str_l);
 					fast_memcpy(str+str_l, str_arg, TMM_strmembytes(n>avail?avail:n));
 				}
 				str_l += n;
@@ -1043,7 +1043,7 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 			n = number_of_zeros_to_pad;
 			if (n > 0) {
 				if (str_l < str_m) {
-					int /*size_t*/ avail = str_m-str_l;
+					Int avail = (Int)(str_m-str_l);
 					mm_chrset(str+str_l, _T('0'), (n>avail?avail:n));
 				}
 				str_l += n;
@@ -1054,7 +1054,7 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 		int n = str_arg_l - zero_padding_insertion_ind;
 		if (n > 0) {
 			if (str_l < str_m) {
-				int /*size_t*/ avail = str_m-str_l;
+				Int avail = (Int)(str_m-str_l);
 				fast_memcpy(str+str_l, str_arg+zero_padding_insertion_ind,
 					TMM_strmembytes(n>avail?avail:n));
 			}
@@ -1066,7 +1066,7 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 			int n = min_field_width - (str_arg_l+number_of_zeros_to_pad);
 			if (n > 0) {
 				if (str_l < str_m) {
-					int /*size_t*/ avail = str_m-str_l; //Chj
+					Int avail = (Int)(str_m-str_l); //Chj
 					mmsnprintf_fillchar(str+str_l, _T(' '), (n>avail?avail:n));
 				}
 				str_l += n;
