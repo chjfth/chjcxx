@@ -21,12 +21,19 @@ cal_adcol_digits(const void *imagine_addr, int bufbytes)
 		return default_digits;
 	
 	char addrstr[20];
-	mm_snprintfA(addrstr, sizeof(addrstr), 
-		is64bit ? "%016llX" : "%08X", 
-		is64bit ? (unsigned __int64)addr_end : (unsigned int)addr_end
-		);
+	if(is64bit)
+	{
+		mm_snprintfA(addrstr, sizeof(addrstr), "%016llX", (unsigned __int64)addr_end);
 		// avoid using "%p" because Linux will prefix "0x" while MSVC does not
-	
+	}
+	else
+	{
+		mm_snprintfA(addrstr, sizeof(addrstr), "%08X", 
+			(unsigned int)(unsigned __int64)addr_end
+			);
+		// direct cast from pointer to unsigned int is banned by gcc 4.5 x64
+	}
+
 	// ignore leading zeros from "%p" output
 	char *p = addrstr;
 	while( *p=='0' ) p++;

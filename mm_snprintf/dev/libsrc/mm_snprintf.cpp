@@ -1390,11 +1390,18 @@ mm_dump_bytes(TCHAR *buf, int bufbytes,
 		// second: address column
 		if(ruler)
 		{
-			mm_snprintf(tmp, tmpchars, 
-				is64bit ? _T("%016llX") : _T("%08X"), 
-				is64bit ? (unsigned __int64)imagine_addr_to_print : (unsigned int)imagine_addr_to_print
-				);
+			if(is64bit)
+			{
+				mm_snprintf(tmp, tmpchars, _T("%016llX"), (unsigned __int64)imagine_addr_to_print);
 				// avoid using "%p" because Linux will prefix "0x" while MSVC does not
+			}
+			else
+			{
+				mm_snprintf(tmp, tmpchars, _T("%08X"), 
+					(unsigned int)(unsigned __int64)imagine_addr_to_print
+					);
+				// direct cast from pointer to unsigned int is banned by gcc 4.5 x64
+			}
 			int droplen = (is64bit?16:8)-adcol_digits;
 			mmfill_strcpy(mmfill, tmp+droplen); // leading verbose '0's dropped
 			mmfill_strcpy(mmfill, _T(": "));
