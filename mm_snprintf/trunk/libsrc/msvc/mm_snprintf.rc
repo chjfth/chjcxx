@@ -6,8 +6,8 @@ VS_VERSION_INFO		VERSIONINFO
 #else
 VS_VERSION_INFO		VERSIONINFO	MOVEABLE IMPURE LOADONCALL DISCARDABLE
 #endif
-  FILEVERSION 3,2,0,0
-  PRODUCTVERSION 3,2,0,0
+  FILEVERSION 4,2,0,0
+  PRODUCTVERSION 4,2,0,0
   FILEFLAGSMASK		VS_FFI_FILEFLAGSMASK
 #ifdef _DEBUG
   FILEFLAGS		VS_FF_DEBUG
@@ -24,10 +24,10 @@ BEGIN
     //language ID = U.S. English, char set = Windows, Multilingual
     BEGIN
       VALUE "FileDescription",	"mmsnprintf API\0"
-      VALUE "FileVersion",	"3.2.0.0 \0"
+      VALUE "FileVersion",	"4.2.0.0 \0"
       VALUE "LegalCopyright",	"NLSCAN and Mark Martinec\0"
       VALUE "ProductName",	"mmsnprintf\0"
-      VALUE "ProductVersion",	"3.2.0.0 \0"
+      VALUE "ProductVersion",	"4.2.0.0 \0"
       VALUE "Comments","A cross platform snprintf API library\0"
     END
   END
