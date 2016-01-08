@@ -22,6 +22,9 @@ endif
 # Common image-types are: LIB, DLL and EXE.
 gmp_bc_IMAGE_TYPE = LIB
 
+gmp_RELEASE_DONT_OPTIMIZE = 1
+	# GMU 0.99
+
 # Compiler specific settings below.
 ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),msvc wince),1)
   # msvc, wince compiler 
