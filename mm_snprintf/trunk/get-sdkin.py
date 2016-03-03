@@ -26,11 +26,12 @@ except KeyError:
 #if not svndatetime:
 
 svnurl = NLSSVN + "/CommonLib/common-include/trunk"
-svnlocal = mydir + ("/sdkin/"+sdkvariant+"/CommonLib/common-include").replace('/', os.sep)
+svnlocal = mydir + ("/sdkin/"+sdkvariant+"/common-include").replace('/', os.sep)
 
 optlist, arglist = getopt.getopt(sys.argv[1:], 'f')
 optdict = dict(optlist)
 optforce = '--force' if ('-f' in optdict) else ''
+opt_no_recursive = True
 
 try:
 	if optforce:
@@ -42,7 +43,13 @@ try:
 		if os.path.isdir(svnlocal):
 			shutil.rmtree(svnlocal)
 	
-	svncmd = 'svn export %s "%s@{%s}" "%s"'%(optforce, svnurl, svndatetime, svnlocal)
+	svncmd = 'svn export %s %s "%s@{%s}" "%s"'%(
+		"--depth=files" if opt_no_recursive else "",
+		optforce, 
+		svnurl, 
+		svndatetime, 
+		svnlocal
+		)
 
 	print "Running cmd: \n  " + svncmd
 	ret = subprocess.check_call(shlex.split(svncmd))

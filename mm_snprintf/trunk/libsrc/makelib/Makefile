@@ -25,6 +25,7 @@ gmp_bc_IMAGE_TYPE = LIB
 # Compiler specific settings below.
 ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),msvc wince mingw),1)
   # msvc, wince compiler 
+  sdkvariant = mswin
   gmp_bc_CRT_STATIC_LIB = 1
 	# 1: Use static CRT lib (compiler option /MT or /MTd)
 	# (null): use DLL CRT lib (compiler option /MD or /MDd)
@@ -46,6 +47,7 @@ ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),msvc wince mingw),1)
 
 else ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),linuxgcc),1)
   # GCC compiling linux program
+  sdkvariant = linux
   gmu_DECO_SUFFIX_LINK_OUTPUT += _s
 
   gmu_up_list_SRC_FROM_ROOT += glibc/mm_psfunc.cpp glibc/wscfunc.cpp
@@ -57,6 +59,7 @@ else ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),linuxgcc),1)
 else ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),armcpp),1)
 
   # armcpp
+  sdkvariant = uBase
   MMSNPRINTF_NO_UNICODE = 1
   gmu_up_list_SRC_FROM_ROOT += glibc/mm_psfunc.cpp
   gmu_ud_list_PRJ_HEADER += $(gmu_ud_SRC_ROOT)/armcpp
@@ -67,9 +70,9 @@ endif
 #	Designate plugins to load in this make-var, multiple plugin names separated
 # by spaces. Plugins are searched from $(gmp_ud_list_CUSTOM_MKI) and then
 # from $(gmu_DIR_GNUMAKEUNIPROC)/pattern1cfg/plugins .
-gmp_u_list_PLUGIN_TO_LOAD += PI_copy_psTCHARh
-gmi_CTCH_dirNlssvn = $(gmu_ud_SRC_ROOT)/../../..
-gmi_CTCH_dirCopyTo = $(gmu_ud_SRC_ROOT)/include
+																							#gmp_u_list_PLUGIN_TO_LOAD += PI_copy_psTCHARh
+																							#gmi_CTCH_dirNlssvn = $(gmu_ud_SRC_ROOT)/../../..
+																							#gmi_CTCH_dirCopyTo = $(gmu_ud_SRC_ROOT)/include
 
 # Other plugins: PI_sync_devoutput PI_always_compile PI_file_precopy
 
@@ -100,9 +103,7 @@ override gmp_bc_UNICODE :=
 # not to this mki file. Normally, $(CURDIR) is your start-up makefile directory.
 gmu_ud_SRC_ROOT = ..
 dirThisRepo = ../..
-dirNlssvn = $(dirThisRepo)/../..
-dirCommonLib = $(dirNlssvn)/CommonLib
-dirCommonInclude = $(dirCommonLib)/common-include
+dirCommonInclude = $(dirThisRepo)/sdkin/$(sdkvariant)/common-include
 
 snprintfW_fromroot = makelib/mm_snprintfW.cpp
 
@@ -163,36 +164,12 @@ gmp_CFLAGS_NON_CODE_GEN += $(gmp_CFLAGS_NON_CODE_GEN_preset)
 gmu_u_GCC_M_OPTIONS +=
 
 
-# List extra objs to link in gmu_up_list_EXTRA_OBJ_TO_LINK:
-gmu_up_list_EXTRA_OBJ_TO_LINK +=
+sdkout_ps_TCHAR = $(gmu_ud_SRC_ROOT)/include/ps_TCHAR.h
+gmp_USER_POST_TARGETS += $(sdkout_ps_TCHAR)
 
-
-# GMU-vars: gmu_uv_list_SUBPRJ_LINK_FOR_PARENT
-#	If your LIB project wants its sub-projects to be linked by
-# its parent EXE project, the LIB project can assign those sub-projects in 
-# this variable, so that your parent EXE project don't have to know what
-# (further sub-projects) your current LIB project are depending on.
-# It's amazing, really.
-# ( note: If you don't use gmu_uv_list_SUBPRJ_LINK_FOR_PARENT at first,
-# and later enable gmu_uv_list_SUBPRJ_LINK_FOR_PARENT, then you must clean 
-# the old project output-dir first in order for that change to work. )
-gmu_uv_list_SUBPRJ_LINK_FOR_PARENT += # <subprj-ref> ...
-
-<subprj-ref>_Makefile = # where the sub-project's makefile resides
-# If the sub-project's makefiles are to be checked-out from some repository, assign it here.
-# >>>> For SVN checkout
-<subprj-ref>_svnUrl_forMakefiles = # SVN Url for the checkout
-	# Hint: $(call gmuf_MakeSvnRepositoryPath,<SVN-path-prefix-var>,<remaining-repository-path>)
-<subprj-ref>_svnLocalDir_forMakefiles = # Local dir corresponding to the whole SVN URL
-<subprj-ref>_svnRev = # Revision to use(string after svn's -r switch)
-# <<<< For SVN checkout
-# >>>> For CVS checkout
-<subprj-ref>_cvsRoot_forMakefiles = # CVSROOT for the checkout
-	# Hint: $(call gmuf_MakeCvsRepositoryPath,<CVS-server-var>,<repository-path-on-CVS-server>)
-<subprj-ref>_cvsModuleDir_forMakefiles = # CVS module name or module dir to checkout
-<subprj-ref>_cvsLocalDir_forMakefiles = # Local dir corresponding to CVSROOT
-<subprj-ref>_cvsTag_forMakefiles = # Tag or branch to checkout(string after cvs's -r switch)
-# <<<< For CVS checkout
+$(sdkout_ps_TCHAR): $(dirCommonInclude)/ps_TCHAR.h
+	-cp --force -p $< $@
+#Note:	``cp -p`` to preserve read-only attribute
 
 
 # ----------- below for plugin PI_sync_devoutput -----------
@@ -203,7 +180,7 @@ gmi_SYDO_ud_SYNC_HEADER_FROM = $(gmu_ud_SRC_ROOT)/include
 
 gmi_SYDO_up_list_SYNC_HEADER += mm_snprintf.h
 	# List filepaths of the header files to sync. ( relative to $(gmi_SYDO_ud_SYNC_HEADER_FROM) )
-gmi_SYDO_up_list_SYNC_HEADER += $(if $(findstring PI_copy_psTCHARh,$(gmp_u_list_PLUGIN_TO_LOAD)),ps_TCHAR.h)
+gmi_SYDO_up_list_SYNC_HEADER += ps_TCHAR.h
 
 # gmi_SYDO_ud_SYNC_HEADER_TO = # (suggested to set as env-var or by parent project)
 	# Where the headers will be sync-ed to.
