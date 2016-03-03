@@ -8,8 +8,8 @@ set CURPATH=%CURPATH:\=/%
 :set gmi_SYDO_SHOW_COPY_CMD=1
 
 IF "%gmb_syncto%" == "" (
-	echo SET gmb_syncto=%CURPATH%/nlssdk
-         SET gmb_syncto=%CURPATH%/nlssdk
+	echo SET gmb_syncto=%CURPATH%/sdkout
+         SET gmb_syncto=%CURPATH%/sdkout
   )
 
 @echo on
