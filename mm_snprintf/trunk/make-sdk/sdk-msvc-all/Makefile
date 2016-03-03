@@ -6,13 +6,23 @@
 gmu_PRJ_NAME = mmsnprintf.sdk
 
 
-gmp_USER_POST_TARGETS += # <some make targets>
-	# If you'd like something to be done after all sub-projects is built, 
-	# you can your targets in this var, and executes your commands under
-	# these targets.
-
 gmp_u_list_PLUGIN_TO_LOAD += PI_makesdk_2011
 gmi_MSDK1_up_BUILDSDK_INI = buildsdk.ini
+
+
+gmp_u_list_PLUGIN_TO_LOAD += PI_sc_pdb_sew_svn
+  gmi_SCPSS_ud_PDB = $(gmu_ud_OUTPUT_ROOT)
+  gmi_SCPSS_ud_source = ../..
+  gmi_SCPSS_PRODUCT_NAME = mm_snprintf
+  gmi_SCPSS_PRODUCT_VER = 4.2# optional?
+  gmi_SCPSS_SYMSTORE_TARGET_DIR = $(CURDIR)/WebSymbols
+  gmu_up_list_STARTUP_CLEAR_FILES += $(gmi_SCPSS_SYMSTORE_TARGET_DIR)/index2.txt
+	# Create index2.txt to have a three-tier directory structure.
+  gmi_SCPSS_SVNHOST_TABLE = # use default
+  gmi_SCPSS_list_REPOSIE_TABLE_SVNURL = # use default
+
+gmp_USER_POST_TARGETS += gmit_SCPSS_SEW_PDB
+	
 
 
 include $(gmu_DIR_GNUMAKEUNIPROC)/pattern1-container.mks

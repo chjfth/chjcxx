@@ -1,5 +1,7 @@
 @echo off
 setlocal
+call %DIR_NLS_BUILD_ENV%\gmp-cenv-all.bat
+
 for /F "usebackq delims=" %%i IN (`cd`) DO set CURPATH=%%i
 set CURPATH=%CURPATH:\=/%
 
