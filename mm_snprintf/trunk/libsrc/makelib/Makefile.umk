@@ -25,7 +25,6 @@ gmp_bc_IMAGE_TYPE = LIB
 # Compiler specific settings below.
 ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),msvc wince mingw),1)
   # msvc, wince compiler 
-  sdkvariant = mswin
   gmp_bc_CRT_STATIC_LIB = 1
 	# 1: Use static CRT lib (compiler option /MT or /MTd)
 	# (null): use DLL CRT lib (compiler option /MD or /MDd)
@@ -47,7 +46,6 @@ ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),msvc wince mingw),1)
 
 else ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),linuxgcc),1)
   # GCC compiling linux program
-  sdkvariant = linux
   gmu_DECO_SUFFIX_LINK_OUTPUT += _s
 
   gmu_up_list_SRC_FROM_ROOT += glibc/mm_psfunc.cpp glibc/wscfunc.cpp
@@ -59,7 +57,6 @@ else ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),linuxgcc),1)
 else ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),armcpp),1)
 
   # armcpp
-  sdkvariant = uBase
   MMSNPRINTF_NO_UNICODE = 1
   gmu_up_list_SRC_FROM_ROOT += glibc/mm_psfunc.cpp
   gmu_ud_list_PRJ_HEADER += $(gmu_ud_SRC_ROOT)/armcpp
@@ -103,7 +100,7 @@ override gmp_bc_UNICODE :=
 # not to this mki file. Normally, $(CURDIR) is your start-up makefile directory.
 gmu_ud_SRC_ROOT = ..
 dirThisRepo = ../..
-dirCommonInclude = $(dirThisRepo)/sdkin/$(sdkvariant)/common-include
+dirCommonInclude = $(dirThisRepo)/sdkin/common-include
 
 snprintfW_fromroot = makelib/mm_snprintfW.cpp
 
@@ -164,13 +161,6 @@ gmp_CFLAGS_NON_CODE_GEN += $(gmp_CFLAGS_NON_CODE_GEN_preset)
 gmu_u_GCC_M_OPTIONS +=
 
 
-sdkout_ps_TCHAR = $(gmu_ud_SRC_ROOT)/include/ps_TCHAR.h
-gmp_USER_POST_TARGETS += $(sdkout_ps_TCHAR)
-
-$(sdkout_ps_TCHAR): $(dirCommonInclude)/ps_TCHAR.h
-	-cp --force -p $< $@
-#Note:	``cp -p`` to preserve read-only attribute
-
 
 # ----------- below for plugin PI_sync_devoutput -----------
 
@@ -180,7 +170,6 @@ gmi_SYDO_ud_SYNC_HEADER_FROM = $(gmu_ud_SRC_ROOT)/include
 
 gmi_SYDO_up_list_SYNC_HEADER += mm_snprintf.h
 	# List filepaths of the header files to sync. ( relative to $(gmi_SYDO_ud_SYNC_HEADER_FROM) )
-gmi_SYDO_up_list_SYNC_HEADER += ps_TCHAR.h
 
 # gmi_SYDO_ud_SYNC_HEADER_TO = # (suggested to set as env-var or by parent project)
 	# Where the headers will be sync-ed to.

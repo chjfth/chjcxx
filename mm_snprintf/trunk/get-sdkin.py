@@ -1,13 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-svndatetime = "2016-03-03 21:26:20"
-sdkvariant = "mswin"
-
-#========================================
-
 import os
 import sys
+import time
 import getopt
 import subprocess
 import shlex
@@ -26,12 +22,20 @@ except KeyError:
 #if not svndatetime:
 
 svnurl = NLSSVN + "/CommonLib/common-include/trunk"
-svnlocal = mydir + ("/sdkin/"+sdkvariant+"/common-include").replace('/', os.sep)
+svnlocal = mydir + ("/sdkin/common-include").replace('/', os.sep)
 
-optlist, arglist = getopt.getopt(sys.argv[1:], 'f')
+optlist, arglist = getopt.getopt(sys.argv[1:], 'f', ['force', 'datetime='])
 optdict = dict(optlist)
-optforce = '--force' if ('-f' in optdict) else ''
-opt_no_recursive = True
+optforce = '--force' if ('-f' in optdict or '--force' in optdict) else ''
+opt_no_recursive = False # to delete
+
+if '--datetime' in optdict:
+	svndatetime = optdict['--datetime']
+	if svndatetime=='now':
+		svndatetime = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+else:
+	sys.stderr.write('Error: "--datetime" is required, at least you should pass "--datetime=now"')
+	exit(1)
 
 try:
 	if optforce:
@@ -40,6 +44,7 @@ try:
 			for file in files:
 				os.chmod(root+os.sep+file, stat.S_IWRITE)
 
+		# Then remove the whole tree.
 		if os.path.isdir(svnlocal):
 			shutil.rmtree(svnlocal)
 	

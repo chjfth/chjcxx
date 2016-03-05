@@ -207,7 +207,7 @@ gmp_bc_SYSLIBS += # $(call gmpf_MakeUpSysLibsToLink,<sys-lib-list>)
 gmu_uv_list_SUBPRJ_LINK_ALL_LEVEL += libmmsnprintf
 
 
-libmmsnprintf_Makefile = $(gmu_ud_SRC_ROOT)/makelib/Makefile
+libmmsnprintf_Makefile = $(gmu_ud_SRC_ROOT)/makelib/Makefile.umk
 libmmsnprintf_MakeVarDefines = 
 	# command line options passed to sub-make
 # If the sub-project's makefiles are to be checked-out from some repository, assign it here.
@@ -217,13 +217,6 @@ libmmsnprintf_MakeVarDefines =
 <subprj1-refname>_svnLocalDir_forMakefiles = # Local dir corresponding to the whole SVN URL
 <subprj1-refname>_svnRev_forMakefiles = # Revision to use(string after svn's -r switch)
 # <<<< For SVN checkout
-# >>>> For CVS checkout
-<subprj1-refname>_cvsRoot_forMakefiles = # CVSROOT for the checkout
-	# Hint: $(call gmuf_MakeCvsRepositoryPath,<CVS-server-var>,<repository-path-on-CVS-server>)
-<subprj1-refname>_cvsModuleDir_forMakefiles = # CVS module name or module dir to checkout
-<subprj1-refname>_cvsLocalDir_forMakefiles = # Local dir corresponding to CVSROOT
-<subprj1-refname>_cvsTag_forMakefiles = # Tag or branch to checkout(string after cvs's -r switch)
-# <<<< For CVS checkout
 
 # NOTE for novice: Don't try to make sub-projects' output libs listed in gmp_ALL_TO_LINK,
 # those libs will be listed in gmp_ALL_TO_LINK automatically.
