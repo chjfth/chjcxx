@@ -11,7 +11,7 @@ gmi_MSDK1_up_BUILDSDK_INI = buildsdk.ini
 
 
 gmp_u_list_PLUGIN_TO_LOAD += PI_sc_pdb_sew_svn
-  gmi_SCPSS_ud_PDB = $(gmu_ud_OUTPUT_ROOT)
+  gmi_SCPSS_ud_PDB = $(gmb_syncto)
   gmi_SCPSS_ud_source = ../..
   gmi_SCPSS_PRODUCT_NAME = mm_snprintf
   gmi_SCPSS_PRODUCT_VER = 4.2# optional?
@@ -22,7 +22,6 @@ gmp_u_list_PLUGIN_TO_LOAD += PI_sc_pdb_sew_svn
   gmi_SCPSS_list_REPOSIE_TABLE_SVNURL = # use default
 
 gmp_USER_POST_TARGETS += gmit_SCPSS_SEW_PDB
-	
 
 
 include $(gmu_DIR_GNUMAKEUNIPROC)/pattern1-container.mks
