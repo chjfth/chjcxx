@@ -1,5 +1,5 @@
-#ifndef __ps_TCHAR_h_20160305_
-#define __ps_TCHAR_h_20160305_
+#ifndef __ps_TCHAR_h_INCLUDED_
+#define __ps_TCHAR_h_INCLUDED_
 
 /*!
 	This header file is intended to be included by any source file(.h or .cpp)
