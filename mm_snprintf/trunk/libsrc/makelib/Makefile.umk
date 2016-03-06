@@ -69,8 +69,8 @@ endif
 # from $(gmu_DIR_GNUMAKEUNIPROC)/pattern1cfg/plugins .
 gmp_u_list_PLUGIN_TO_LOAD += PI_file_precopy
   gmi_FPCP_upp_list_COPY += \
-	$(gmu_ud_SRC_ROOT)/mm_snprintf.cpp|mm_snprintfA.cpp \
-	$(gmu_ud_SRC_ROOT)/mm_snprintf.cpp|mm_snprintfW.cpp \
+	$(gmu_ud_SRC_ROOT)/mm_snprintf.cpp|$(gmu_ud_SRC_ROOT)/_do_not_edit/mm_snprintfA.cpp \
+	$(gmu_ud_SRC_ROOT)/mm_snprintf.cpp|$(gmu_ud_SRC_ROOT)/_do_not_edit/mm_snprintfW.cpp \
 	# For plugin PI_file_precopy
 
 # Other plugins: PI_sync_devoutput PI_always_compile PI_file_precopy
@@ -104,7 +104,7 @@ gmu_ud_SRC_ROOT = ..
 dirThisRepo = ../..
 dirCommonInclude = $(dirThisRepo)/sdkin/common-include
 
-snprintfW_fromroot = makelib/mm_snprintfW.cpp
+snprintfW_fromroot = _do_not_edit/mm_snprintfW.cpp
 	# Note: snprintfW_fromroot will also be used in u_post_gmucore.mki .
 
 # GMU-var: gmu_up_list_SRC_FROM_ROOT
@@ -116,7 +116,7 @@ snprintfW_fromroot = makelib/mm_snprintfW.cpp
 # * You can use ``subdir1/../myfunc.c'' or ``subdir1/subdir2/../myfunc.c'', which are 
 #	still in $(gmu_ud_SRC_ROOT) or $(gmu_ud_SRC_ROOT)'s subdir.
 gmu_up_list_SRC_FROM_ROOT += \
-	makelib/mm_snprintfA.cpp \
+	_do_not_edit/mm_snprintfA.cpp \
 	$(if $(MMSNPRINTF_NO_UNICODE),,$(snprintfW_fromroot)) \
 	internal.cpp \
 	oldname.cpp \
