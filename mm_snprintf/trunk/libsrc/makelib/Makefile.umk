@@ -102,7 +102,7 @@ override gmp_bc_UNICODE :=
 # not to this mki file. Normally, $(CURDIR) is your start-up makefile directory.
 gmu_ud_SRC_ROOT = ..
 dirThisRepo = ../..
-dirCommonInclude = $(dirThisRepo)/sdkin/common-include
+dirCommonInclude = $(dirThisRepo)/sdkin/include
 
 snprintfW_fromroot = _do_not_edit/mm_snprintfW.cpp
 	# Note: snprintfW_fromroot will also be used in u_post_gmucore.mki .
