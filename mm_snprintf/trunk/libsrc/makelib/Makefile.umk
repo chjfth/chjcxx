@@ -67,9 +67,11 @@ endif
 #	Designate plugins to load in this make-var, multiple plugin names separated
 # by spaces. Plugins are searched from $(gmp_ud_list_CUSTOM_MKI) and then
 # from $(gmu_DIR_GNUMAKEUNIPROC)/pattern1cfg/plugins .
-																							#gmp_u_list_PLUGIN_TO_LOAD += PI_copy_psTCHARh
-																							#gmi_CTCH_dirNlssvn = $(gmu_ud_SRC_ROOT)/../../..
-																							#gmi_CTCH_dirCopyTo = $(gmu_ud_SRC_ROOT)/include
+gmp_u_list_PLUGIN_TO_LOAD += PI_file_precopy
+  gmi_FPCP_upp_list_COPY += \
+	$(gmu_ud_SRC_ROOT)/mm_snprintf.cpp|mm_snprintfA.cpp \
+	$(gmu_ud_SRC_ROOT)/mm_snprintf.cpp|mm_snprintfW.cpp \
+	# For plugin PI_file_precopy
 
 # Other plugins: PI_sync_devoutput PI_always_compile PI_file_precopy
 
@@ -103,6 +105,7 @@ dirThisRepo = ../..
 dirCommonInclude = $(dirThisRepo)/sdkin/common-include
 
 snprintfW_fromroot = makelib/mm_snprintfW.cpp
+	# Note: snprintfW_fromroot will also be used in u_post_gmucore.mki .
 
 # GMU-var: gmu_up_list_SRC_FROM_ROOT
 #	Define your source files to compile, source files(dir prefix allowed) separated by spaces or tabs.
@@ -118,10 +121,6 @@ gmu_up_list_SRC_FROM_ROOT += \
 	internal.cpp \
 	oldname.cpp \
 
-gmi_FPCP_upp_list_COPY += \
-	$(gmu_ud_SRC_ROOT)/mm_snprintf.cpp|mm_snprintfA.cpp \
-	$(gmu_ud_SRC_ROOT)/mm_snprintf.cpp|mm_snprintfW.cpp \
-	# For plugin PI_file_precopy
 
 # GMU-var: gmu_ud_list_PRJ_HEADER
 #	Define header file dirs, multiple dirs should be separated by spaces or tabs.

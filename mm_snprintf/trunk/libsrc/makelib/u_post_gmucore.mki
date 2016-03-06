@@ -1,4 +1,8 @@
 
+ifeq (,$(snprintfW_fromroot))
+  $(error snprintfW_fromroot is null value, unexpected! This makefile needs fix)
+endif
+
 # For mm_snprintfW.cpp, add -D_UNICODE compiler option:
 #$(info =======$(call gmuf_CnCXX_ListToObjList,mm_snprintfW.cpp)=======)
 $(call gmuf_CnCXX_ListToObjList,$(snprintfW_fromroot)): \
