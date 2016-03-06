@@ -1,6 +1,10 @@
 @echo off
 setlocal
 
+set gmu_DO_SHOW_VERBOSE=1 
+set gmu_DO_SHOW_COMPILE_CMD=1 
+set gmu_DO_SHOW_LINK_CMD=1
+
 REM [optional] gmb_syncto=...
 REM -- will receive default in scalacon-make-sdk.bat
 REM set gmb_syncto=%CD%/sdkout
