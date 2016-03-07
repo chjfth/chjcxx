@@ -5,9 +5,9 @@ set gmu_DO_SHOW_VERBOSE=1
 set gmu_DO_SHOW_COMPILE_CMD=1
 set gmu_DO_SHOW_LINK_CMD=1
 
-REM [optional] gmb_syncto=...
+REM gmb_syncto=... (set SDK output dir)
 REM -- will receive default in scalacon-make-sdk.bat
-REM set gmb_syncto=%CD%/sdkout
+set gmb_syncto=../../sdkout
 
 REM set gmb_compiler_ids=msvc
 REM set gmb_msvc_vers=vc100
