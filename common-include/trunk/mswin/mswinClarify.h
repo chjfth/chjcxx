@@ -63,6 +63,7 @@
 
 /////////////////////////////////////////////////////////////
 
+/* PENDING: These should be in a lib, instead of in header.
 inline
 int cl_MessageBoxPrintf(HWND hwnd, TCHAR *szCaption, TCHAR * szFormat, ...)
 {
@@ -111,6 +112,6 @@ int cl_MessageBoxIdsPrintf(HWND hwnd, HINSTANCE hInstanceWithIds,
 	return MessageBox(hwnd, tsText, idsCaption?tsCaption:NULL, 0);
 }
 
-
+*/
 
 #endif
