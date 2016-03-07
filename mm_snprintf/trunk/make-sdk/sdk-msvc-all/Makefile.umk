@@ -20,6 +20,7 @@ gmp_u_list_PLUGIN_TO_LOAD += PI_sc_pdb_sew_svn
 	# Create index2.txt to have a three-tier directory structure.
   gmi_SCPSS_SVNHOST_TABLE = # use default
   gmi_SCPSS_list_REPOSIE_TABLE_SVNURL = # use default
+  gmi_SCPSS_SAVE_SSTRACKS_DIR = !..
 
 gmp_USER_POST_TARGETS += gmit_SCPSS_SEW_PDB
 
