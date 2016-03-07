@@ -97,7 +97,7 @@ gmp_u_list_DLL_EXPORT_SYM += DLLEXPORT_mmsnprintf
 #	Define the link ouput filename for this project.
 # Decoration may be applied to this name which results in $(gmu_Gf_Final_LinkOutput).
 # Using function gmpf_MakeExeName to construct output name makes the name more portable.
-gmu_uf_LINK_OUTPUT = $(call gmpf_MakeDllNameForLink,mmsnprintf)
+gmu_uf_LINK_OUTPUT = $(call gmpf_MakeDllNameForLink,mm_snprintf)
 gmp_DECO_UNICODE_FOR_LINK_OUTPUT = 1
 	#Set this to 1 if you want a _U suffix on your output-image when gmp_bc_UNICODE=1
 gmp_DECO_DEBUG_FOR_LINK_OUTPUT = 

@@ -20,4 +20,4 @@ REM [optional] CMD_GETSDKIN
 REM -- used by scalacon-make-sdk.bat, will be NULL if not set.
 set CMD_GETSDKIN=scalacon-get-sdkin.py --ini=../../get-sdkin.ini --force
 
-scalacon-make-sdk %*
+scalacon-make-sdk.bat %*
