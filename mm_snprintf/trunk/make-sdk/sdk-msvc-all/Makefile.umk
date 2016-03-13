@@ -1,31 +1,14 @@
 include $(gmu_DIR_GNUMAKEUNIPROC)/CommonFunctions.mki
 
-gmu_PRJ_NAME = mmsnprintf.sdk
+gmu_PRJ_NAME = mm_snprintf.sdk
 
-dirThisRepo = ../..
+# Refer to PI_makesdk_2016.mki to know what gmb_xxx vars needs to be defined from environment.
 
-gmp_u_list_PLUGIN_TO_LOAD += PI_makesdk_2011
-gmi_MSDK1_up_BUILDSDK_INI = buildsdk.ini
+gmb_thisrepo = ../..
+	# set it to the root directory of this SDK's source tree, used by PI_makesdk_2016.
 
-$(call gmuf_AnounceExportEnvvar,gmb_ThisRepo=$(call gmuf_GetAbsDirRelaToCurdir,../..))
-	# gmb_ThisRepo will be used by example code's makefile.
-
-gmp_u_list_PLUGIN_TO_LOAD += PI_sc_pdb_sew_svn
-  gmi_SCPSS_ud_PDB = $(gmb_syncto)
-  gmi_SCPSS_ud_source = $(dirThisRepo)
-  gmi_SCPSS_PRODUCT_NAME = mm_snprintf
-  gmi_SCPSS_SYMSTORE_TARGET_DIR = $(dirThisRepo)/WebSymbols
-  gmu_up_list_STARTUP_CLEAR_FILES += $(gmi_SCPSS_SYMSTORE_TARGET_DIR)/index2.txt
-	# Create index2.txt to have a three-tier directory structure.
-  gmi_SCPSS_SVNHOST_TABLE = # use default
-  gmi_SCPSS_list_REPOSIE_TABLE_SVNURL = # use default
-  # 
-  #gmi_SCPSS_PICK_CHERRIES = * // (this repo has no sdkin, no need to set this)
-  #gmi_SCPSS_PICK_SSTREAMS_DIR = $(dirThisRepo)/sdkin/vc100,$(dirThisRepo)/sdkin/vc80,$(dirThisRepo)/sdkin/vc60
-  gmi_SCPSS_SAVE_SSTREAMS_DIR = !..
-
-gmp_USER_POST_TARGETS += gmit_SCPSS_SEW_PDB
-
+gmp_u_list_PLUGIN_TO_LOAD += PI_makesdk_2016
+  gmi_MSDK_up_BUILDSDK_INI = $(if $(gmb_buildsdk_ini),$(gmb_buildsdk_ini),buildsdk.ini)
 
 include $(gmu_DIR_GNUMAKEUNIPROC)/pattern1-container.mks
 
