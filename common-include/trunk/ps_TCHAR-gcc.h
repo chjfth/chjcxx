@@ -21,9 +21,9 @@
 #endif
 
 
-#ifndef _tmain
-# define _tmain wmain //Just write it here, although wmain is not the recognized on Linux
-#endif
+//#ifndef _tmain
+//# define _tmain wmain // wmain is not recognized on Linux
+//#endif
 
 
 #else	/* ================ Not Unicode ================ */
@@ -40,9 +40,9 @@
 #endif
 
 
-#ifndef _tmain
-# define _tmain main
-#endif
+//#ifndef _tmain
+//# define _tmain main
+//#endif
 
 
 #endif 
