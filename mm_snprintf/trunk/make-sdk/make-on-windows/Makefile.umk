@@ -1,14 +1,14 @@
 include $(gmu_DIR_GNUMAKEUNIPROC)/CommonFunctions.mki
 
-gmu_PRJ_NAME = mm_snprintf.sdk
+ifeq (,$(strip $(gmb_sdkname)))
+  $(error You have to define gmb_sdkname)
+else
+  gmu_PRJ_NAME = SDK.$(gmb_sdkname)
+endif
 
 # Refer to PI_makesdk_2016.mki to know what gmb_xxx vars needs to be defined from environment.
 
-gmb_thisrepo = ../..
-	# set it to the root directory of this SDK's source tree, used by PI_makesdk_2016.
-
 gmp_u_list_PLUGIN_TO_LOAD += PI_makesdk_2016
-  gmi_MSDK_up_BUILDSDK_INI = $(if $(gmb_buildsdk_ini),$(gmb_buildsdk_ini),buildsdk.ini)
 
 include $(gmu_DIR_GNUMAKEUNIPROC)/pattern1-container.mks
 

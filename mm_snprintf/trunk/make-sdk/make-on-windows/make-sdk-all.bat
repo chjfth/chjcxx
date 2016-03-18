@@ -5,9 +5,14 @@ set gmu_DO_SHOW_VERBOSE=1
 set gmu_DO_SHOW_COMPILE_CMD=1
 set gmu_DO_SHOW_LINK_CMD=1
 
-REM gmb_buildsdk_ini=... (set the INI file used by PI_makesdk_2016)
-REM -- will receive default "buildsdk.ini" in Makefile.umk
-rem set gmb_buildsdk_ini=buildsdk.ini
+REM gmb_sdkname=... (required, used by Makefile.umk)
+set gmb_sdkname=mm_snprintf
+
+REM gmb_thisrepo=... (tell the root dir of this SDK) 
+set gmb_thisrepo=../..
+
+REM gmb_buildsdk_ini=... (set the INI file required by PI_makesdk_2016)
+set gmb_buildsdk_ini=buildsdk.ini
 
 REM gmb_dirname_sdkin=... (set dirname to receive input SDKs)
 REM -- default is null. Set it only if you use input SDKs.
@@ -34,6 +39,4 @@ REM -- used by scalacon-make-sdk.bat, will be NULL if not set.
 set CMD_GETSDKIN=scalacon-get-sdkin.py --ini=../../get-sdkin.ini --force
 
 call scalacon-make-sdk.bat %*
-
-copy %batdir%\_gmulog.txt ..\..\%gmb_dirname_sdkout%
 
