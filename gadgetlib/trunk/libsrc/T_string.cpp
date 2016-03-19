@@ -1,6 +1,6 @@
-#include <string.h>
 #include <stdlib.h>
-
+#include <string.h>
+#include <wchar.h>
 
 #include <ps_TCHAR.h>
 #include <gadgetlib/T_string.h>

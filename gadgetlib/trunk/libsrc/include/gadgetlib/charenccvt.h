@@ -138,7 +138,7 @@ struct ggt_cvt_map_st
 };
 
 DLLEXPORT_gadgetlib
-int ggt_mbs2wcs_go(const char *pmb, int mbbytes, wchar_t *pwc, int wcbufchars, 
+int ggt_mbs2wcs_go(const char *pmb, int mbbytes, wchar_t *pwc=0, int wcbufchars=0, 
 	wchar_t badfill=0, int *pBadCvts=0, struct ggt_cvt_map_st arBadCvt[]=0, int CvtBufsize=0);
 	//!< Convert an MBCS string to Unicode string, auto processing bad converts.
 	/*!< This function is similar to ggt_mbs2wcs, except that when invalid MBCS byte sequence

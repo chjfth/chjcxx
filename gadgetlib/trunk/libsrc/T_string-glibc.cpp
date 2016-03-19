@@ -1,5 +1,5 @@
-//#define __USE_ISOC99 // so that
 #include <stdlib.h>
+#include <wchar.h>
 
 #include <ps_TCHAR.h>
 #include <gadgetlib/T_string.h>
