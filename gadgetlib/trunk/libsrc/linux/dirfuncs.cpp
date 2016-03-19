@@ -1,15 +1,15 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <wchar.h>
 #include <string.h>
 #include <unistd.h>
 
 #include <TScaWithLocalBuf.h>
 
-#include <AnsiC_Tfuncs/AnsiC_Tfuncs.h>
-
+#include <ps_TCHAR.h>
+#include <gadgetlib/T_string.h>
 #include <gadgetlib/charenccvt.h>
-
 #include <gadgetlib/dirfuncs.h>
 
 bool 

@@ -1,11 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <AnsiC_Tfuncs/AnsiC_Tfuncs.h>
-//#include <tchar.h>
-
 #include <windows.h>
 
+#include <ps_TCHAR.h>
+#include <gadgetlib/T_string.h>
 #include <gadgetlib/dirfuncs.h>
 
 #define DLL_AUTO_EXPORT_STUB

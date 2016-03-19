@@ -1,9 +1,15 @@
 
 ifdef gmu_DIR_GNUMAKEUNIPROC
   include $(gmu_DIR_GNUMAKEUNIPROC)/pattern1-concise-header.mki
-  include $(gmu_DIR_ROOT)/nlscan/nlssvn-scalacon.mki
 else
   $(error gmu_DIR_GNUMAKEUNIPROC is not defined, You have to set up GnumakeUniproc environment to use this Makefile)
+endif
+
+ifndef gmb_dirname_sdkin
+  gmb_dirname_sdkin = sdkin
+endif
+ifndef gmb_dirname_sdkout
+  gmb_dirname_sdkout = sdkout
 endif
 
 # GMU-var: gmu_PRJ_NAME
@@ -21,8 +27,8 @@ endif
 #	Define the "image-type" to generated for this project.
 # Common image-types are: LIB, DLL and EXE.
 gmp_bc_IMAGE_TYPE = LIB
-
-gmp_RELEASE_DONT_OPTIMIZE = 1
+	
+#gmp_RELEASE_DONT_OPTIMIZE = 1
 	# GMU 0.99
 
 # Compiler specific settings below.
@@ -39,9 +45,10 @@ ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),msvc wince),1)
 	mswin/wintime.cpp \
 	mswin/dirfuncs.cpp \
 	mswin/charenccvt-win.cpp \
+	T_string-msvc.cpp \
 	# WinCE 5.0 still don't provide fopen etc, so don't add fstream-aux.cpp .
 
-  gmu_ud_list_PRJ_HEADER += 
+  gmu_ud_list_PRJ_HEADER += # $(gmu_ud_SRC_ROOT)/mswin 
 
   # gmp_u_list_PLUGIN_TO_LOAD += PI_winres_msvc       # compile Windows resource(.rc)
   # gmp_u_list_PLUGIN_TO_LOAD += PI_use_pch_msvc      # use precompile header
@@ -56,33 +63,25 @@ else ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),linuxgcc),1)
   # GCC compiling linux program
   gmu_DECO_SUFFIX_LINK_OUTPUT += _s
 
-gmu_up_list_SRC_FROM_ROOT += \
+  gmu_up_list_SRC_FROM_ROOT += \
 	fstream-aux.cpp \
 	linux/linuxtime.cpp \
 	linux/dirfuncs.cpp \
+	T_string-glibc.cpp \
 
-  gmu_ud_list_PRJ_HEADER += 
+  gmu_ud_list_PRJ_HEADER += # $(gmu_ud_SRC_ROOT)/linux 
 
   # gmp_u_list_PLUGIN_TO_LOAD += PI_gcc_strip_lo      # strip output executable
   # gmp_u_list_PLUGIN_TO_LOAD += PI_use_pch_gcc       # use precompile header
   
-else ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),armcpp),1)
-
-  # armcpp
-  gmu_up_list_SRC_FROM_ROOT += 
-  gmu_ud_list_PRJ_HEADER += 
-
 endif
 
 # GMU-var: gmp_u_list_PLUGIN_TO_LOAD
 #	Designate plugins to load in this make-var, multiple plugin names separated
 # by spaces. Plugins are searched from $(gmp_ud_list_CUSTOM_MKI) and then
 # from $(gmu_DIR_GNUMAKEUNIPROC)/pattern1cfg/plugins .
-gmp_u_list_PLUGIN_TO_LOAD += PI_copy_psTCHARh
-gmi_CTCH_dirNlssvn = $(gmu_ud_SRC_ROOT)/../../..
-gmi_CTCH_dirCopyTo = $(gmu_ud_SRC_ROOT)/include
-
-# Other plugins: PI_sync_devoutput PI_always_compile PI_file_precopy
+gmp_u_list_PLUGIN_TO_LOAD += 
+	# Other plugins: PI_sync_devoutput PI_always_compile PI_file_precopy
 
 
 gmp_u_list_DLL_EXPORT_SYM += DLLEXPORT_gadgetlib
@@ -107,9 +106,7 @@ gmp_DECO_DEBUG_FOR_LINK_OUTPUT = 1
 # not to this mki file. Normally, $(CURDIR) is your start-up makefile directory.
 gmu_ud_SRC_ROOT = ..
 dirThisRepo = ../..
-dirNlssvn = $(dirThisRepo)/../..
-dirCommonLib = $(dirNlssvn)/CommonLib
-dirCommonInclude = $(dirCommonLib)/common-include
+dirSdkInclude = $(dirThisRepo)/$(gmb_dirname_sdkin)/include
 
 # GMU-var: gmu_up_list_SRC_FROM_ROOT
 #	Define your source files to compile, source files(dir prefix allowed) separated by spaces or tabs.
@@ -125,6 +122,8 @@ gmu_up_list_SRC_FROM_ROOT += \
 	charenccvt-common.cpp \
 	gsm0338cvt.cpp \
 	mbcs-ops.cpp \
+	T_string.cpp \
+
 
 # GMU-var: gmu_ud_list_PRJ_HEADER
 #	Define header file dirs, multiple dirs should be separated by spaces or tabs.
@@ -136,7 +135,7 @@ gmu_up_list_SRC_FROM_ROOT += \
 gmu_ud_list_PRJ_HEADER += \
 	$(gmu_ud_SRC_ROOT)/include \
 	$(gmu_ud_SRC_ROOT) \
-	$(dirCommonInclude)
+	$(dirSdkInclude)
 	# Don't write ``-I'' in this var; -I will be prependded automatically.
 
 gmp_CFLAGS_INCLUDES += # $(addprefix -I,<dir1> <dir2> ...)
@@ -179,23 +178,14 @@ gmu_up_list_EXTRA_OBJ_TO_LINK +=
 # the old project output-dir first in order for that change to work. )
 gmu_uv_list_SUBPRJ_LINK_FOR_PARENT += # <subprj-ref> ...
 
-#<subprj-ref>_Makefile = # where the sub-project's makefile resides
+<subprj-ref>_Makefile = # where the sub-project's makefile resides
 # If the sub-project's makefiles are to be checked-out from some repository, assign it here.
-
-ifneq (,$(isUseOnlyHeader_AnsiCTfuncs)) 
-  # PS: [2009-04-21]isUseOnlyHeader_AnsiCTfuncs is only defined in lib-ubase.mki .
-  $(call NlssvnUseHeader,AnsiC_Tfuncs) # by dirfuncs, strlen etc
-else
-  $(call NlssvnLinkSubprjForParent,AnsiC_Tfuncs,-lib) # by dirfuncs, strlen etc
-endif
-
-$(call NlssvnLinkSubprjForParent,mmsnprintf,-lib)
-$(call NlssvnUseHeader,CommonInclude)
-
-ifneq (,$(isUBase))
-  $(call NlssvnUseHeader,uBaseIII)
-endif
-
+# >>>> For SVN checkout
+<subprj-ref>_svnUrl_forMakefiles = # SVN Url for the checkout
+	# Hint: $(call gmuf_MakeSvnRepositoryPath,<SVN-path-prefix-var>,<remaining-repository-path>)
+<subprj-ref>_svnLocalDir_forMakefiles = # Local dir corresponding to the whole SVN URL
+<subprj-ref>_svnRev = # Revision to use(string after svn's -r switch)
+# <<<< For SVN checkout
 
 
 # ----------- below for plugin PI_sync_devoutput -----------
@@ -206,7 +196,6 @@ gmi_SYDO_ud_SYNC_HEADER_FROM = $(gmu_ud_SRC_ROOT)/include
 
 gmi_SYDO_up_list_SYNC_HEADER += gadgetlib
 	# List filepaths of the header files to sync. ( relative to $(gmi_SYDO_ud_SYNC_HEADER_FROM) )
-gmi_SYDO_up_list_SYNC_HEADER += $(if $(findstring PI_copy_psTCHARh,$(gmp_u_list_PLUGIN_TO_LOAD)),ps_TCHAR.h)
 
 # gmi_SYDO_ud_SYNC_HEADER_TO = # (suggested to set as env-var or by parent project)
 	# Where the headers will be sync-ed to.

@@ -1,6 +1,9 @@
 #include <stdio.h>
 
-#ifdef WIN32 // <io.h> only available on PC Windows, not WinCE
+#ifdef _WIN32 
+// Note: _WIN32 is defined for PC Windows and WinCE, 
+// but <io.h> is only available on PC Windows, not WinCE.
+// Looking for a reserved macro that distinguishes between the two.
 # include <io.h>
 #else // Unix style below
 # include <unistd.h>
@@ -18,7 +21,11 @@ ggt_fstream_change_file_size(FILE *fp, int newsize)
 	if(newsize<0)
 		return false;
 
+#ifdef _MSC_VER
+	int fd = _fileno(fp);
+#else
 	int fd = fileno(fp);
+#endif
 	if(fd<0)
 		return false;
 
