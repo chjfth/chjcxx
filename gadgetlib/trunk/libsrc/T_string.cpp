@@ -6,6 +6,7 @@
 #include <gadgetlib/T_string.h>
 
 #define DLL_AUTO_EXPORT_STUB
+extern"C" void gadgetlib_lib__T_string__DLL_AUTO_EXPORT_STUB(void){}
 
 int 
 T_strlen(const TCHAR *str)
