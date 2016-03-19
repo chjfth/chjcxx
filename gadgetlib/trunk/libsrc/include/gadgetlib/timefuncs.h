@@ -91,6 +91,8 @@ DLLEXPORT_gadgetlib
 __int64 ggt_GetOsMillisec(void);
 	//!< Get number of milliseconds since the device booted, excluding any time that the system was suspended.
 	/*!< According to actual OS behavior, this counter may wrap to 0 when it reaches some limit.
+	 If it wraps to 0, the function should return 1.
+	 Return value 0 is used when this function fails.
 	 ggt_OsMillisecWrapLimit() tells this wrap limit.
 	 To compare two [ time points returned by this func ], call ggt_OsMillisecElapsed().
 	*/

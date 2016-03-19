@@ -3,8 +3,8 @@
 
 enum {
 	gadgetlib_vmajor = 0,
-	gadgetlib_vminor = 0,
-	gadgetlib_vbuild = 4,
+	gadgetlib_vminor = 5,
+	gadgetlib_vbuild = 0,
 
 	gadgetlib_nlsr_version = 0x00
 };
