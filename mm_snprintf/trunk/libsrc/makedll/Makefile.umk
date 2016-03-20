@@ -71,9 +71,9 @@ export gmp_COMPILER_ID
 #	Designate plugins to load in this make-var, multiple plugin names separated
 # by spaces. Plugins are searched from $(gmp_ud_list_CUSTOM_MKI) and then
 # from $(gmu_DIR_GNUMAKEUNIPROC)/pattern1cfg/plugins .
-gmp_u_list_PLUGIN_TO_LOAD += PI_nls_version_sync
-  gmi_NLVS_upp_list_SYNC += \
-	$(gmu_ud_SRC_ROOT)/internal.h|$(call gmif_NLVS_WinRcListToSyncList,$(gmi_RCVC_up_list_WINRC_FROM_ROOT))
+gmp_u_list_PLUGIN_TO_LOAD += PI_sc_version_sync
+  gmi_SCVS_upp_list_SYNC += \
+	$(gmu_ud_SRC_ROOT)/internal.h|$(call gmif_SCVS_WinRcListToSyncList,$(gmi_RCVC_up_list_WINRC_FROM_ROOT))
 
 # Load "make dll from lib" plugin, and load for subprjs as well(export ...).
 export gmp_u_list_PLUGIN_TO_LOAD += PI_dll_from_lib #(PL)
