@@ -1,5 +1,6 @@
 #ifndef __ps_TCHAR_h_gcc_
 #define __ps_TCHAR_h_gcc_
+#ifndef __SCALACON_MSVC_MAKING_DUMB_PDB__ // used by this SDK's Makefile.umk
 
   // NOTE: If you're writing platform-independent code, you should #include <ps_TCHAR.h> instead.
 
@@ -49,5 +50,6 @@
 // Unicode-or-not <<<<<<<
 
 
+#endif // __SCALACON_MSVC_MAKING_DUMB_PDB__
 #endif // include once guard
 
