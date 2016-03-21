@@ -1,0 +1,14 @@
+include $(gmu_DIR_GNUMAKEUNIPROC)/CommonFunctions.mki
+
+ifeq (,$(strip $(gmb_sdkname)))
+  $(error You have to define gmb_sdkname)
+else
+  gmu_PRJ_NAME = SDK.$(gmb_sdkname)
+endif
+
+# Refer to PI_makesdk_2016.mki to know what gmb_xxx vars needs to be defined from environment.
+
+gmp_u_list_PLUGIN_TO_LOAD += PI_makesdk_2016
+
+include $(gmu_DIR_GNUMAKEUNIPROC)/pattern1-container.mks
+
