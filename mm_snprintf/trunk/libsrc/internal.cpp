@@ -1,4 +1,5 @@
 #include <string.h>
+#include <DlOpe.h>
 #include "mm_snprintf.h"
 #include "internal.h"
 
