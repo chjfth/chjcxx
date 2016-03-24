@@ -151,7 +151,7 @@ gmu_u_GCC_M_OPTIONS +=
 #	Set linker options for this project in this var.
 gmp_LINKFLAGS += $(gmp_LINKFLAGS_preset)
   # There are some other make-vars for easy setting linker flags:
-  gmp_ud_list_EXTRALIB += $(dirThisRepo)/$(gmb_dirname_sdkin)/$(SDKLIB_CV)
+  gmp_ud_list_EXTRALIB += $(dirThisRepo)/$(gmb_dirname_sdkin)/$(SDKLIB_CIDVER)
   	# list library paths here, compiler_config.mki will help you prepend(for example) 
   	# * -L for linuxgcc
   	# * /LIBPATH: for msvc
