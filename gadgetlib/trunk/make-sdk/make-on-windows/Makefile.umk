@@ -9,6 +9,9 @@ endif
 # Refer to PI_makesdk_2016.mki to know what gmb_xxx vars needs to be defined from environment.
 
 gmp_u_list_PLUGIN_TO_LOAD += PI_makesdk_2016
+  gmi_MSDK_ud_SELF_DOTH_FROM_REPO = libsrc/include
+    # This means all offering SDK interface headers(.h) are in $(gmb_thisrepo)/libsrc/include .
+    # This option is required for the magical .h PDB-sewing to work for your SDK users.
 
 include $(gmu_DIR_GNUMAKEUNIPROC)/pattern1-container.mks
 
