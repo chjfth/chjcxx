@@ -11,6 +11,17 @@ extern"C" {
 #endif
 
 DLLEXPORT_gadgetlib
+int T_printf(const TCHAR *fmt, ...);
+	// return the value of mm_vsnprintf's return
+
+DLLEXPORT_gadgetlib
+int T_printf_stderr(const TCHAR *fmt, ...);
+
+DLLEXPORT_gadgetlib
+int T_printf_query_bufsize(void);
+
+
+DLLEXPORT_gadgetlib
 int T_strlen(const TCHAR *str);
 
 DLLEXPORT_gadgetlib

@@ -51,9 +51,9 @@ ggt_mbs2wcs(const char *pmb, int mbbytes, wchar_t *pwc, int wcbufchars, int *pCo
 	}
 
 	if(pConMbBytes)
-		*pConMbBytes = pmb_adv - pmb;
+		*pConMbBytes = (int)(pmb_adv - pmb);
 
-	return pwc_adv - pwc;
+	return (int)(pwc_adv - pwc);
 
 }
 
@@ -75,10 +75,10 @@ ggt_mbs2wcs_go(const char *pmb, int mbbytes, wchar_t *pwc, int wcbufchars,
 
 	for(;;)
 	{
-		int mb_done = pmb_adv - pmb;
-		int wc_done = pwc_adv - pwc;
+		int mb_done = (int)(pmb_adv - pmb);
+		int wc_done = (int)(pwc_adv - pwc);
 
-		int mb_this_do = pmb_end_-pmb_adv; //mbbytes-mb_done;
+		int mb_this_do = (int)(pmb_end_-pmb_adv); //mbbytes-mb_done;
 
 		wc_consume = ggt_mbs2wcs(
 			pmb_adv, mb_this_do, pwc_adv, wcbufchars-wc_done,
@@ -92,8 +92,8 @@ ggt_mbs2wcs_go(const char *pmb, int mbbytes, wchar_t *pwc, int wcbufchars,
 		{
 			if(nBadCvt<CvtBufsize)
 			{
-				arBadCvt[nBadCvt].pos_mb = pmb_adv-pmb;
-				arBadCvt[nBadCvt].pos_wc = pwc_adv-pwc;
+				arBadCvt[nBadCvt].pos_mb = (int)(pmb_adv-pmb);
+				arBadCvt[nBadCvt].pos_wc = (int)(pwc_adv-pwc);
 			}
 			nBadCvt++;
 
@@ -114,7 +114,7 @@ ggt_mbs2wcs_go(const char *pmb, int mbbytes, wchar_t *pwc, int wcbufchars,
 	if(pBadCvts)
 		*pBadCvts = nBadCvt;
 
-	return pwc_adv-pwc;
+	return (int)(pwc_adv-pwc);
 }
 
 
@@ -123,7 +123,7 @@ wc_strlen(const wchar_t *pwc)
 {
 	const wchar_t *pwc_o = pwc;
 	for(; *pwc; pwc++);
-	return pwc-pwc_o;
+	return (int)(pwc-pwc_o);
 }
 
 int 
@@ -145,7 +145,7 @@ ggt_wcs2mbs(const wchar_t *pwc, int wcchars, char *pmb, int mbbufbytes, int *pCo
 
 	for(; pwc_adv<pwc_end_; pwc_adv++)
 	{
-		int mbbuf_remain = pmb_buf_end_-pmb_adv;
+		int mbbuf_remain = (int)(pmb_buf_end_-pmb_adv);
 		if(mbbuf_remain>=ggt_max_mbcs_byteslen)
 		{	// convert into user buffer directly
 			consume = ggt_wc2mb(*pwc_adv, pmb_adv);
@@ -166,9 +166,9 @@ ggt_wcs2mbs(const wchar_t *pwc, int wcchars, char *pmb, int mbbufbytes, int *pCo
 	}
 
 	if(pConWcChars)
-		*pConWcChars = pwc_adv - pwc;
+		*pConWcChars = (int)(pwc_adv - pwc);
 
-	return pmb_adv - pmb;
+	return (int)(pmb_adv - pmb);
 }
 
 int ggt_wcs2mbs_go(const wchar_t *pwc, int wcchars, char *pmb, int mbbufbytes, 
@@ -190,10 +190,10 @@ int ggt_wcs2mbs_go(const wchar_t *pwc, int wcchars, char *pmb, int mbbufbytes,
 
 	for(;;)
 	{
-		int wc_done = pwc_adv - pwc;
-		int mb_done = pmb_adv - pmb;
+		int wc_done = (int)(pwc_adv - pwc);
+		int mb_done = (int)(pmb_adv - pmb);
 
-		int wc_this_do = pwc_end_-pwc_adv;
+		int wc_this_do = (int)(pwc_end_-pwc_adv);
 
 		mb_consume = ggt_wcs2mbs(
 			pwc_adv, wc_this_do, pmb_adv, mbbufbytes-mb_done,
@@ -207,8 +207,8 @@ int ggt_wcs2mbs_go(const wchar_t *pwc, int wcchars, char *pmb, int mbbufbytes,
 		{
 			if(nBadCvt<CvtBufsize)
 			{
-				arBadCvt[nBadCvt].pos_mb = pmb_adv-pmb;
-				arBadCvt[nBadCvt].pos_wc = pwc_adv-pwc;
+				arBadCvt[nBadCvt].pos_mb = (int)(pmb_adv-pmb);
+				arBadCvt[nBadCvt].pos_wc = (int)(pwc_adv-pwc);
 			}
 			nBadCvt++;
 
@@ -229,7 +229,7 @@ int ggt_wcs2mbs_go(const wchar_t *pwc, int wcchars, char *pmb, int mbbufbytes,
 	if(pBadCvts)
 		*pBadCvts = nBadCvt;
 
-	return pmb_adv - pmb;
+	return (int)(pmb_adv - pmb);
 }
 
 
