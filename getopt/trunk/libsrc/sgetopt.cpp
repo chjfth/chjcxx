@@ -573,6 +573,8 @@ sgetopt(sgetopt_info *si, int argc, TCHAR *const *argv, const TCHAR *optstring)
 /* Compile with -DTEST to make an executable for use in testing
 the above definition of `getopt'.  */
 
+#include <ctype.h>
+
 int
 _tmain (int argc, TCHAR **argv)
 {
@@ -589,7 +591,7 @@ _tmain (int argc, TCHAR **argv)
 			break;
 
 		switch (c)
-		{
+		{{
 		case '0':
 		case '1':
 		case '2':
@@ -615,15 +617,23 @@ _tmain (int argc, TCHAR **argv)
 			break;
 
 		case 'c':
-			printf ("option c with value `%s'\n", si->optarg);
+			printf ("option c with value '%s'\n", si->optarg);
 			break;
 
 		case '?':
+		{
+			if (si->optopt == 'c')
+				fprintf (stderr, "Option -%c requires an argument.\n", si->optopt);
+			else if (isprint (si->optopt))
+				fprintf (stderr, "Unknown option '-%c'.\n", si->optopt);
+			else
+				fprintf (stderr, "Unknown option character '\\x%x'.\n",	si->optopt);		
 			break;
+		}
 
 		default:
 			printf ("?? getopt returned character code 0%o ??\n", c);
-		}
+		}}
 	}
 
 	if (si->optind < argc)
