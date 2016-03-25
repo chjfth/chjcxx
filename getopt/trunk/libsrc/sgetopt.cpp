@@ -83,7 +83,7 @@ static TCHAR *posixly_correct = NULL;
    `si->first_nonopt' and `si->last_nonopt' are relocated so that they describe
    the new indices of the non-options in ARGV after they are moved.  */
 static void
-exchange(sgetopt_info *si, TCHAR **argv)
+exchange(sgetopt_ctx *si, TCHAR **argv)
 {
 	int bottom = si->first_nonopt;
 	int middle = si->last_nonopt;
@@ -140,7 +140,7 @@ exchange(sgetopt_info *si, TCHAR **argv)
 
 /* Initialize the internal data when the first call is made.  */
 static const TCHAR *
-_sgetopt_initialize (sgetopt_info *si, const TCHAR *optstring)
+_sgetopt_initialize (sgetopt_ctx *si, const TCHAR *optstring)
 {
 	/* Start processing options with ARGV-element 1 (since ARGV-element 0
 	is the program name); the sequence of previously skipped
@@ -231,7 +231,7 @@ _sgetopt_initialize (sgetopt_info *si, const TCHAR *optstring)
 */
 int
 _sgetopt_internal (
-	sgetopt_info *si,
+	sgetopt_ctx *si,
 	int argc,
 	TCHAR *const *argv,
 	const TCHAR *optstring,
@@ -523,10 +523,11 @@ _sgetopt_internal (
 					else
 						c = '?';
 				}
-				else
+				else {
 					/* We already incremented `si->optind' once;
 					increment it again when taking next ARGV-elt as argument.  */
 					si->optarg = argv[si->optind++];
+				}
 				si->nextchar = NULL;
 			}
 		}
@@ -534,20 +535,20 @@ _sgetopt_internal (
 	}
 }
 
-sgetopt_info *
+sgetopt_ctx *
 sgetopt_info_create()
 {
-	sgetopt_info *si = (sgetopt_info*)malloc(sizeof(sgetopt_info));
+	sgetopt_ctx *si = (sgetopt_ctx*)malloc(sizeof(sgetopt_ctx));
 	if(!si)
 		return NULL;
 
-	memset(si, 0, sizeof(sgetopt_info));
+	memset(si, 0, sizeof(sgetopt_ctx));
 	si->signature = SIGNATURE;
 	return si;
 }
 
 sgetopt_err_et
-sgetopt_info_delete(sgetopt_info *si)
+sgetopt_info_delete(sgetopt_ctx *si)
 {
 	if(si->signature!=SIGNATURE)
 		return sgetopt_fail;
@@ -557,7 +558,7 @@ sgetopt_info_delete(sgetopt_info *si)
 }
 
 int
-sgetopt(sgetopt_info *si, int argc, TCHAR *const *argv, const TCHAR *optstring)
+sgetopt(sgetopt_ctx *si, int argc, TCHAR *const argv[], const TCHAR *optstring)
 {
 	return _sgetopt_internal (si,
 		argc, argv, optstring,
@@ -566,8 +567,28 @@ sgetopt(sgetopt_info *si, int argc, TCHAR *const *argv, const TCHAR *optstring)
 		0);
 }
 
+int 
+sgetopt_long(sgetopt_ctx *si, 
+	int argc, TCHAR * const argv[], const TCHAR *optstring,
+	const sgetopt_option *longopts, int *longindex)
+{
+	return _sgetopt_internal(si,
+		argc, argv, optstring,
+		longopts, longindex,
+		0);
+}
 
-#define TEST
+int 
+sgetopt_long_only(sgetopt_ctx *si, 
+	int argc, TCHAR * const argv[], const TCHAR *optstring,
+	const sgetopt_option *longopts, int *longindex)
+{
+	return _sgetopt_internal(si,
+		argc, argv, optstring,
+		longopts, longindex,
+		1);
+}
+
 #ifdef TEST
 
 /* Compile with -DTEST to make an executable for use in testing
@@ -580,7 +601,7 @@ _tmain (int argc, TCHAR **argv)
 {
 	int c;
 	int digit_optind = 0;
-	sgetopt_info *si = sgetopt_info_create();
+	sgetopt_ctx *si = sgetopt_info_create();
 
 	while (1)
 	{
