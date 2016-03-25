@@ -9,6 +9,8 @@ extern"C" {
 
 typedef struct _sgetopt_info
 {
+	unsigned int signature;
+	
 	TCHAR *optarg; // =NULL
 	/* For communication from `getopt' to the caller.
 	   When `getopt' finds an option that takes an argument,
@@ -68,6 +70,15 @@ typedef struct _sgetopt_info
 } sgetopt_info;
 
 
+typedef struct _sgetopt_option {
+	const char *name;
+	int         has_arg;
+	int        *flag;
+	int         val;
+} sgetopt_option;
+
+
+enum sgetopt_err_et { sgetopt_ok=0, sgetopt_fail=-1 };
 
 #ifdef __cplusplus
 } // extern"C" {
