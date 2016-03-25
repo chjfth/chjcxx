@@ -87,7 +87,7 @@ _tmain()
 		case 0:
 			printf("long option --%s", app_long_options[longindex].name);
 			if(si->optarg)
-				printf(" with arg %s", si->optarg);
+				printf("=%s", si->optarg);
 			printf("\n");
 
 			break;
@@ -111,7 +111,7 @@ _tmain()
 			break;
 
 		case 'c':
-			printf ("option -c with value '%s'\n", si->optarg);
+			printf ("option -c : '%s'\n", si->optarg);
 			break;
 
 		case '?':
