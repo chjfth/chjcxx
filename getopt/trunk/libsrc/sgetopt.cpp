@@ -155,7 +155,7 @@ _sgetopt_initialize (sgetopt_ctx *si, const TCHAR *optstring)
 
 	//  posixly_correct = getenv ("POSIXLY_CORRECT");
 
-	/* Determine how to handle the ordering of options and nonoptions.  */
+	/* Determine how to handle the ordering of options and non-options.  */
 
 	if (optstring[0] == '-')
 	{

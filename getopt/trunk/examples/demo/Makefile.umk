@@ -1,0 +1,8 @@
+gmu_PRJ_NAME = sgetopt-demo$(if $(MAKE_LIB),-libdev)
+
+gmu_uf_LINK_OUTPUT = $(call gmpf_MakeExeName,demo)
+
+gmu_up_list_SRC_FROM_ROOT += demo.cpp
+
+include ../share.mki
+

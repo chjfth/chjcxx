@@ -1,0 +1,8 @@
+gmu_PRJ_NAME = sgetopt-verify$(if $(MAKE_LIB),-libdev)
+
+gmu_uf_LINK_OUTPUT = $(call gmpf_MakeExeName,sgetopt-verify)
+
+gmu_up_list_SRC_FROM_ROOT += verify.cpp
+
+include ../share.mki
+
