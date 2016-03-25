@@ -447,12 +447,12 @@ _sgetopt_internal (
 				{
 					if (argv[si->optind][1] == '-') {
 						/* --option */
-						fprintf (stderr, "%s: unrecognized option `--%s'\n",
+						fprintf (stderr, "%s: unrecognized option '--%s'\n",
 							argv[0], si->nextchar);
 					}
 					else {
 						/* +option or -option */
-						fprintf (stderr, "%s: unrecognized option `%c%s'\n",
+						fprintf (stderr, "%s: unrecognized option '%c%s'\n",
 							argv[0], argv[si->optind][0], si->nextchar);
 					}
 				}
@@ -478,9 +478,9 @@ _sgetopt_internal (
 			{
 				if (posixly_correct)
 					/* 1003.2 specifies the format of this message.  */
-					fprintf (stderr, "%s: illegal option -- %c\n", argv[0], c);
+					fprintf (stderr, "%s: illegal option '-%c'\n", argv[0], c);
 				else
-					fprintf (stderr, "%s: invalid option -- %c\n", argv[0], c);
+					fprintf (stderr, "%s: invalid option '-%c'\n", argv[0], c);
 			}
 			si->optopt = c;
 			return '?';
@@ -497,6 +497,7 @@ _sgetopt_internal (
 				}
 				else
 					si->optarg = NULL;
+				
 				si->nextchar = NULL;
 			}
 			else

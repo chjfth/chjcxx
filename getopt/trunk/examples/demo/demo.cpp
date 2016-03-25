@@ -20,9 +20,16 @@ static sgetopt_option long_options[] =
 int
 _tmain(int argc, TCHAR **argv)
 {
-	int c;
+	if(argc==1)
+	{
+		printf("No options given.\n");
+		return 0;
+	}
+
+	int c = 0;
 	int digit_optind = 0;
 	sgetopt_ctx *si = sgetopt_info_create();
+	si->opterr = 1;
 
 	while (1)
 	{
