@@ -6,6 +6,9 @@
 #include <gadgetlib/T_string.h>
 #include <getopt/sgetopt.h>
 
+#define DLL_AUTO_EXPORT_STUB
+extern"C" void sgetopt_lib__sgetopt__DLL_AUTO_EXPORT_STUB(void){}
+
 // [2016-03-25] Chj: Copied and modified from:
 // http://www.opensource.apple.com/source/bc/bc-18/bc/lib/getopt.c?txt
 // Chj's major change: 
