@@ -23,6 +23,12 @@ TCHAR * T_strncpy(TCHAR *dst, const TCHAR *src, int count);
 DLLEXPORT_gadgetlib
 int T_strcmp(const TCHAR *str1, const TCHAR *str2);
 
+DLLEXPORT_gadgetlib
+TCHAR * T_strstr(const TCHAR *str1, const TCHAR *str2);
+
+DLLEXPORT_gadgetlib
+TCHAR * T_strchr(const TCHAR *str, TCHAR chr);
+
 
 //DLLEXPORT_gadgetlib
 //int T_printf wprintf // set-aside due to %s/%S difference between Windows and GLibc

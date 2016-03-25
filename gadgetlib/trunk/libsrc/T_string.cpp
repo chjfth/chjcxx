@@ -8,6 +8,8 @@
 #define DLL_AUTO_EXPORT_STUB
 extern"C" void gadgetlib_lib__T_string__DLL_AUTO_EXPORT_STUB(void){}
 
+#define _CRT_SECURE_NO_WARNINGS // to disable warning on VC++
+
 int 
 T_strlen(const TCHAR *str)
 {
@@ -55,6 +57,26 @@ T_strcmp(const TCHAR *str1, const TCHAR *str2)
 	return ret;
 }
 
+
+TCHAR * 
+T_strstr(const TCHAR *str1, const TCHAR *str2)
+{
+#ifdef UNICODE
+	return (TCHAR*)wcsstr(str1, str2);
+#else
+	return (TCHAR*)strstr(str1, str2);
+#endif
+}
+
+TCHAR * 
+T_strchr(const TCHAR *str, TCHAR chr)
+{
+#ifdef UNICODE
+	return (TCHAR*)wcschr(str, chr);
+#else
+	return (TCHAR*)strchr(str, chr);
+#endif
+}
 
 
 //DLLEXPORT_gadgetlib
