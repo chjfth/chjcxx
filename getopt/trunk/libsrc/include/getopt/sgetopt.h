@@ -10,6 +10,10 @@ extern"C" {
 
 // Note: user of this header should #include <ps_TCHAR.h> first to get TCHAR definition.
 
+#ifndef DLLEXPORT_sgetopt
+#define DLLEXPORT_sgetopt
+#endif
+
 typedef struct _sgetopt_ctx
 {
 	unsigned int signature;
@@ -83,17 +87,21 @@ typedef struct _sgetopt_option {
 
 enum sgetopt_err_et { sgetopt_ok=0, sgetopt_fail=-1 };
 
-sgetopt_ctx *sgetopt_info_create();
+DLLEXPORT_sgetopt
+sgetopt_ctx *sgetopt_ctx_create();
 
-sgetopt_err_et sgetopt_info_delete(sgetopt_ctx *si);
+DLLEXPORT_sgetopt
+sgetopt_err_et sgetopt_ctx_delete(sgetopt_ctx *si);
 
-
+DLLEXPORT_sgetopt
 int	sgetopt(sgetopt_ctx *si, int argc, TCHAR *const argv[], const TCHAR *optstring);
 
+DLLEXPORT_sgetopt
 int sgetopt_long(sgetopt_ctx *si, 
 	int argc, TCHAR * const argv[], const TCHAR *optstring,
 	const sgetopt_option *longopts, int *longindex);
 
+DLLEXPORT_sgetopt
 int sgetopt_long_only(sgetopt_ctx *si, 
 	int argc, TCHAR * const argv[], const TCHAR *optstring,
 	const sgetopt_option *longopts, int *longindex);

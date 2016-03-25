@@ -28,7 +28,7 @@ _tmain(int argc, TCHAR **argv)
 
 	int c = 0;
 	int digit_optind = 0;
-	sgetopt_ctx *si = sgetopt_info_create();
+	sgetopt_ctx *si = sgetopt_ctx_create();
 	si->opterr = 1;
 
 	while (1)
@@ -101,7 +101,7 @@ _tmain(int argc, TCHAR **argv)
 		printf ("\n");
 	}
 
-	sgetopt_info_delete(si);
+	sgetopt_ctx_delete(si);
 	return (0);
 }
 

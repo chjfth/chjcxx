@@ -537,7 +537,7 @@ _sgetopt_internal (
 }
 
 sgetopt_ctx *
-sgetopt_info_create()
+sgetopt_ctx_create()
 {
 	sgetopt_ctx *si = (sgetopt_ctx*)malloc(sizeof(sgetopt_ctx));
 	if(!si)
@@ -549,7 +549,7 @@ sgetopt_info_create()
 }
 
 sgetopt_err_et
-sgetopt_info_delete(sgetopt_ctx *si)
+sgetopt_ctx_delete(sgetopt_ctx *si)
 {
 	if(si->signature!=SIGNATURE)
 		return sgetopt_fail;
@@ -602,7 +602,7 @@ _tmain (int argc, TCHAR **argv)
 {
 	int c;
 	int digit_optind = 0;
-	sgetopt_ctx *si = sgetopt_info_create();
+	sgetopt_ctx *si = sgetopt_ctx_create();
 
 	while (1)
 	{
@@ -666,7 +666,7 @@ _tmain (int argc, TCHAR **argv)
 		printf ("\n");
 	}
 
-	sgetopt_info_delete(si);
+	sgetopt_ctx_delete(si);
 	exit (0);
 }
 
