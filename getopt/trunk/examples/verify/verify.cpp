@@ -1,6 +1,8 @@
 #include <stdio.h>
+#include <stdarg.h>
 
 #include <ps_TCHAR.h>
+#include <gadgetlib/T_string.h>
 #include <mm_snprintf.h>
 #include <getopt/sgetopt.h>
 
@@ -19,7 +21,31 @@ static sgetopt_option app_long_options[] =
 	{0, 0, 0, 0}
 };
 
+struct verify_st
+{
+	const TCHAR *input;
+	const TCHAR *output;
+};
+
+verify_st gar_verifies[] =
+{
+	{
+		_T("-a -b param0 -c val --add=yes --delete no param1 param2"), _T(
+		"option -a\n"
+		"option -b\n"
+		"option -c : 'val'\n"
+		"long option --add=yes\n"
+		"long option --delete=no\n"
+		"non-option ARGV-elements: param0 param1 param2 \n"
+		)
+	},
+
+};
+
 const TCHAR *case1_argvstr=_T("-a -b param0 -c val --add=yes --delete no param1 param2");
+
+const int GBUFO_CHARS = 4000; // output text buffer
+TCHAR gbufo[GBUFO_CHARS];
 
 const int GBUF_CHARS = 200;
 TCHAR gbuf[GBUF_CHARS];
@@ -37,7 +63,7 @@ int my_split_argvstr(const TCHAR *argvstr)
 	int argcount = 0;
 	for(;;)
 	{
-		while( issep(*pbuf) )
+		while( issep(*pbuf) && *pbuf )
 			pbuf++;
 		
 		if(*pbuf==_T('\0'))
@@ -45,7 +71,7 @@ int my_split_argvstr(const TCHAR *argvstr)
 		
 		gargv[argcount++] = pbuf;
 
-		while( !issep(*pbuf) )
+		while( !issep(*pbuf) && *pbuf)
 			pbuf++;
 		
 		if(*pbuf==_T('\0'))
@@ -58,7 +84,20 @@ int my_split_argvstr(const TCHAR *argvstr)
 	return argcount;
 }
 
+void mm_strcat_reset()
+{
+	gbufo[0] = _T('\0');
+}
 
+void mm_strcat(const TCHAR *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+
+	mm_snprintf(gbufo, GBUFO_CHARS, _T("%s%w"), gbufo, fmt, &args);
+
+	va_end(args);
+}
 
 int
 _tmain()
@@ -70,6 +109,8 @@ _tmain()
 	int digit_optind = 0;
 	sgetopt_ctx *si = sgetopt_ctx_create();
 	si->opterr = 1;
+
+	mm_strcat_reset();
 
 	while (1)
 	{
@@ -85,10 +126,10 @@ _tmain()
 		switch (c)
 		{{
 		case 0:
-			printf("long option --%s", app_long_options[longindex].name);
+			mm_strcat(_T("long option --%s"), app_long_options[longindex].name);
 			if(si->optarg)
-				printf("=%s", si->optarg);
-			printf("\n");
+				mm_strcat(_T("=%s"), si->optarg);
+			mm_strcat(_T("\n"));
 
 			break;
 
@@ -97,51 +138,63 @@ _tmain()
 		case '2':
 		case '3':
 			if (digit_optind != 0 && digit_optind != this_option_optind)
-				printf ("digits occur in two different argv-elements.\n");
+				mm_strcat(_T("digits occur in two different argv-elements.\n"));
 			digit_optind = this_option_optind;
-			printf ("option %c\n", c);
+			mm_strcat(_T("option %c\n", c));
 			break;
 
 		case 'a':
-			printf ("option -a\n");
+			mm_strcat(_T("option -a\n"));
 			break;
 
 		case 'b':
-			printf ("option -b\n");
+			mm_strcat(_T("option -b\n"));
 			break;
 
 		case 'c':
-			printf ("option -c : '%s'\n", si->optarg);
+			mm_strcat(_T("option -c : '%s'\n"), si->optarg);
 			break;
 
 		case '?':
 		{
 			if (si->optopt == 'c')
-				fprintf (stderr, "Option -%c requires an argument.\n", si->optopt);
+				mm_strcat(_T("Option -%c requires an argument.\n"), si->optopt);
 			else if (isprint (si->optopt))
-				fprintf (stderr, "Unknown option '-%c'.\n", si->optopt);
+				mm_strcat(_T("Unknown option '-%c'.\n"), si->optopt);
 			else {
 				// fprintf (stderr, "Unknown option character '\\x%x'.\n",	si->optopt);	
-				fprintf(stderr, "Bad option %s\n", argv[si->optind-1]); 
+				mm_strcat(_T("Bad option %s\n"), argv[si->optind-1]); 
 					// Chj: looks ok, can output invalid long options.
 			}
 			break;
 		}
 
 		default:
-			printf ("?? getopt returned character code 0x%X ??\n", c);
+			mm_strcat(_T("?? getopt returned character code 0x%X ??\n"), c);
 		}}
 	}
 
 	if (si->optind < argc)
 	{
-		printf ("non-option ARGV-elements: ");
+		mm_strcat(_T("non-option ARGV-elements: "));
 		while (si->optind < argc)
-			printf ("%s ", argv[si->optind++]);
-		printf ("\n");
+			mm_strcat(_T("%s "), argv[si->optind++]);
+		mm_strcat(_T("\n"));
 	}
 
 	sgetopt_ctx_delete(si);
-	return (0);
+
+	int compre = T_strcmp(gar_verifies[0].output, gbufo);
+
+/*
+	int i;
+	for(i=0; gbufo[i]; i++)
+	{
+		if(gar_verifies[0].output[i]!=gbufo[i])
+			printf("XXXXXXX@%d\n", i);
+	}
+*/
+
+	return compre;
 }
 
