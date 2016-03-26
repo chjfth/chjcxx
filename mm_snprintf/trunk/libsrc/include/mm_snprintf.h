@@ -5,9 +5,6 @@
 extern"C"{
 #endif
 
-//#define PORTABLE_SNPRINTF_VERSION_MAJOR 2 
-//#define PORTABLE_SNPRINTF_VERSION_MINOR 2 
-	// Now, these are defined in the source, and queried by mmsnprintf_getversion().
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -93,11 +90,11 @@ int mm_vasnprintf(char **ptr, size_t str_m, const char *fmt, va_list ap);
 #if (defined _UNICODE) || (defined UNICODE)
 # define mm_snprintf mm_snprintfW
 # define mm_vsnprintf mm_vsnprintfW
-# define mm_strcat mm_strcatA
+# define mm_strcat mm_strcatW
 #else
 # define mm_snprintf mm_snprintfA
 # define mm_vsnprintf mm_vsnprintfA
-# define mm_strcat mm_strcatW
+# define mm_strcat mm_strcatA
 #endif
 
 

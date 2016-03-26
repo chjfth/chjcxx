@@ -5,7 +5,7 @@
 
 enum {
 	mmsnprintf_vmajor = 4,
-	mmsnprintf_vminor = 2,
+	mmsnprintf_vminor = 3,
 	mmsnprintf_vbuild = 0
 };
 

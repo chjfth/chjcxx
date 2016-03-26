@@ -23,7 +23,7 @@
 # define assert(a) 
 #endif
 
-// Chj: redefine the function names :
+// Chj: redefine the function names to be mm_... :
 #ifdef _UNICODE
 #  define portable_snprintf  mm_snprintfW
 #  define portable_vsnprintf mm_vsnprintfW
