@@ -58,7 +58,7 @@ typedef struct _sgetopt_ctx
 	// Internal members starts from here:
 	//
 	
-	char *nextchar; 
+	TCHAR *nextchar; 
 	/* The next char to be scanned in the option-element
 	   in which the last option character we returned was found.
 	   This allows us to pick up the scan where we left off.
@@ -78,7 +78,7 @@ typedef struct _sgetopt_ctx
 enum { has_arg_no=0, has_arg_yes=1 };
 
 typedef struct _sgetopt_option {
-	const char *name;
+	const TCHAR *name;
 	int         has_arg;	// [input] has_arg_no or has_arg_yes, =2 not supported
 	int        *flag;
 	int         val;

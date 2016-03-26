@@ -5,6 +5,7 @@
 #include <ps_TCHAR.h>
 #include <gadgetlib/T_string.h>
 #include <getopt/sgetopt.h>
+#include <mm_snprintf.h>
 
 #define DLL_AUTO_EXPORT_STUB
 extern"C" void sgetopt_lib__sgetopt__DLL_AUTO_EXPORT_STUB(void){}
@@ -15,7 +16,7 @@ extern"C" void sgetopt_lib__sgetopt__DLL_AUTO_EXPORT_STUB(void){}
 // * Make all getopt operation into a sgetopt_info object.
 // * Error is not fprintf to stderr, but saved to sgetopt_info.
 // * Make the library stramphibian(i.e. TCHAR operation£©
-// You can imagine the 's' prefix as "super".
+// You can imagine the _T('s') prefix as "super".
 //
 // Usage example: 
 // * http://www.gnu.org/software/libc/manual/html_node/Example-of-Getopt.html
@@ -157,12 +158,12 @@ _sgetopt_initialize (sgetopt_ctx *si, const TCHAR *optstring)
 
 	/* Determine how to handle the ordering of options and non-options.  */
 
-	if (optstring[0] == '-')
+	if (optstring[0] == _T('-'))
 	{
 		ordering = RETURN_IN_ORDER;
 		++optstring;
 	}
-	else if (optstring[0] == '+')
+	else if (optstring[0] == _T('+'))
 	{
 		ordering = REQUIRE_ORDER;
 		++optstring;
@@ -229,7 +230,7 @@ _sgetopt_initialize (sgetopt_ctx *si, const TCHAR *optstring)
 	It is only valid when a long-named option has been found by the most
 	recent call.
 
-	If LONG_ONLY is nonzero, '-' as well as '--' can introduce
+	If LONG_ONLY is nonzero, _T('-') as well as '--' can introduce
 	long-named options.  
 */
 int
@@ -266,7 +267,7 @@ _sgetopt_internal (
 			and extend the range of non-options previously skipped.  */
 
 			while (si->optind < argc
-				&& (argv[si->optind][0] != '-' || argv[si->optind][1] == '\0'))
+				&& (argv[si->optind][0] != _T('-') || argv[si->optind][1] == '\0'))
 				si->optind++;
 			si->last_nonopt = si->optind;
 		}
@@ -276,7 +277,7 @@ _sgetopt_internal (
 		then exchange with previous non-options as if it were an option,
 		then skip everything else like a non-option.  */
 
-		if (si->optind != argc && !strcmp (argv[si->optind], "--"))
+		if (si->optind != argc && !T_strcmp(argv[si->optind], _T("--")))
 		{
 			si->optind++;
 
@@ -304,7 +305,7 @@ _sgetopt_internal (
 		/* If we have come to a non-option and did not permute it,
 		either stop the scan or describe it to the caller and pass it by.  */
 
-		if ((argv[si->optind][0] != '-' || argv[si->optind][1] == '\0'))
+		if ((argv[si->optind][0] != _T('-') || argv[si->optind][1] == '\0'))
 		{
 			if (ordering == REQUIRE_ORDER)
 				return EOF;
@@ -316,7 +317,7 @@ _sgetopt_internal (
 		Skip the initial punctuation.  */
 
 		si->nextchar = (argv[si->optind] + 1
-			+ (longopts != NULL && argv[si->optind][1] == '-'));
+			+ (longopts != NULL && argv[si->optind][1] == _T('-')));
 	}
 
 	/* Decode the current option-ARGV-element.  */
@@ -335,7 +336,7 @@ _sgetopt_internal (
 	This distinction seems to be the most useful approach.  */
 
 	if (longopts != NULL
-		&& (argv[si->optind][1] == '-'
+		&& (argv[si->optind][1] == _T('-')
 		|| (long_only && (argv[si->optind][2] || !T_strchr (optstring, argv[si->optind][1]))))
 		)
 	{
@@ -347,13 +348,13 @@ _sgetopt_internal (
 		int indfound;
 		int option_index;
 
-		for (nameend = si->nextchar; *nameend && *nameend != '='; nameend++)
+		for (nameend = si->nextchar; *nameend && *nameend != _T('='); nameend++)
 			/* Do nothing.  */ ;
 
 		/* Test all long options for either exact match
 		or abbreviated matches.  */
 		for (p = longopts, option_index = 0; p->name; p++, option_index++)
-			if (!strncmp (p->name, si->nextchar, nameend - si->nextchar))
+			if (!T_strncmp (p->name, si->nextchar, nameend - si->nextchar))
 			{
 				if (nameend - si->nextchar == T_strlen (p->name))
 				{
@@ -381,7 +382,7 @@ _sgetopt_internal (
 					argv[0], argv[si->optind]);
 				si->nextchar += T_strlen (si->nextchar);
 				si->optind++;
-				return '?';
+				return _T('?');
 			}
 
 			if (pfound != NULL)
@@ -398,19 +399,21 @@ _sgetopt_internal (
 					{
 						if (si->opterr)
 						{
-							if (argv[si->optind - 1][1] == '-')
+							if (argv[si->optind - 1][1] == _T('-')) {
 								/* --option */
-								fprintf (stderr,
-								"%s: option `--%s' doesn't allow an argument\n",
-								argv[0], pfound->name);
-							else
+								mm_snprintf(si->errmsg, sizeof(si->errmsg),
+									_T("%s: option `--%s' doesn't allow an argument\n"),
+									argv[0], pfound->name);
+							}
+							else {
 								/* +option or -option */
-								fprintf (stderr,
-								"%s: option `%c%s' doesn't allow an argument\n",
-								argv[0], argv[si->optind - 1][0], pfound->name);
+								mm_snprintf(si->errmsg, sizeof(si->errmsg),
+									_T("%s: option `%c%s' doesn't allow an argument\n"),
+									argv[0], argv[si->optind - 1][0], pfound->name);
+							}
 						}
 						si->nextchar += T_strlen (si->nextchar);
-						return '?';
+						return _T('?');
 					}
 				}
 				else if (pfound->has_arg == 1)
@@ -420,11 +423,12 @@ _sgetopt_internal (
 					else
 					{
 						if (si->opterr) {
-							fprintf (stderr, "%s: option `%s' requires an argument\n",
+							mm_snprintf(si->errmsg, sizeof(si->errmsg),
+								_T("%s: option `%s' requires an argument\n"),
 								argv[0], argv[si->optind - 1]);
 						}
 						si->nextchar += T_strlen (si->nextchar);
-						return optstring[0] == ':' ? ':' : '?';
+						return optstring[0] == _T(':') ? _T(':') : _T('?');
 					}
 				}
 				si->nextchar += T_strlen (si->nextchar);
@@ -443,25 +447,27 @@ _sgetopt_internal (
 			or the option starts with '--' or is not a valid short
 			option, then it's an error.
 			Otherwise interpret it as a short option.  */
-			if (!long_only || argv[si->optind][1] == '-'
+			if (!long_only || argv[si->optind][1] == _T('-')
 				|| T_strchr (optstring, *si->nextchar) == NULL)
 			{
 				if (si->opterr)
 				{
-					if (argv[si->optind][1] == '-') {
+					if (argv[si->optind][1] == _T('-')) {
 						/* --option */
-						fprintf (stderr, "%s: unrecognized option '--%s'\n",
+						mm_snprintf(si->errmsg, sizeof(si->errmsg),
+							_T("%s: unrecognized option '--%s'\n"),
 							argv[0], si->nextchar);
 					}
 					else {
 						/* +option or -option */
-						fprintf (stderr, "%s: unrecognized option '%c%s'\n",
+						mm_snprintf(si->errmsg, sizeof(si->errmsg),
+							_T("%s: unrecognized option '%c%s'\n"),
 							argv[0], argv[si->optind][0], si->nextchar);
 					}
 				}
-				si->nextchar = (TCHAR *) "";
+				si->nextchar = (TCHAR *) _T("");
 				si->optind++;
-				return '?';
+				return _T('?');
 			}
 	}
 
@@ -475,22 +481,26 @@ _sgetopt_internal (
 		if (*si->nextchar == '\0')
 			++si->optind;
 
-		if (temp == NULL || c == ':')
+		if (temp == NULL || c == _T(':'))
 		{
 			if (si->opterr)
 			{
-				if (posixly_correct)
+				if (posixly_correct) {
 					/* 1003.2 specifies the format of this message.  */
-					fprintf (stderr, "%s: illegal option '-%c'\n", argv[0], c);
-				else
-					fprintf (stderr, "%s: invalid option '-%c'\n", argv[0], c);
+					mm_snprintf(si->errmsg, sizeof(si->errmsg),
+						_T("%s: illegal option '-%c'\n"), argv[0], c);
+				}
+				else {
+					mm_snprintf(si->errmsg, sizeof(si->errmsg),
+						_T("%s: invalid option '-%c'\n"), argv[0], c);
+				}
 			}
 			si->optopt = c;
-			return '?';
+			return _T('?');
 		}
-		if (temp[1] == ':')
+		if (temp[1] == _T(':'))
 		{
-			if (temp[2] == ':')
+			if (temp[2] == _T(':'))
 			{
 				/* This is an option that accepts an argument optionally.  */
 				if (*si->nextchar != '\0')
@@ -518,14 +528,15 @@ _sgetopt_internal (
 					if (si->opterr)
 					{
 						/* 1003.2 specifies the format of this message.  */
-						fprintf (stderr, "%s: option requires an argument -- %c\n",
+						mm_snprintf(si->errmsg, sizeof(si->errmsg),
+							_T("%s: option requires an argument -- %c\n"),
 							argv[0], c);
 					}
 					si->optopt = c;
-					if (optstring[0] == ':')
-						c = ':';
+					if (optstring[0] == _T(':'))
+						c = _T(':');
 					else
-						c = '?';
+						c = _T('?');
 				}
 				else {
 					/* We already incremented `si->optind' once;
@@ -617,37 +628,37 @@ _tmain (int argc, TCHAR **argv)
 
 		switch (c)
 		{{
-		case '0':
-		case '1':
-		case '2':
-		case '3':
-		case '4':
-		case '5':
-		case '6':
-		case '7':
-		case '8':
-		case '9':
+		case _T('0'):
+		case _T('1'):
+		case _T('2'):
+		case _T('3'):
+		case _T('4'):
+		case _T('5'):
+		case _T('6'):
+		case _T('7'):
+		case _T('8'):
+		case _T('9'):
 			if (digit_optind != 0 && digit_optind != this_option_optind)
 				printf ("digits occur in two different argv-elements.\n");
 			digit_optind = this_option_optind;
 			printf ("option %c\n", c);
 			break;
 
-		case 'a':
+		case _T('a'):
 			printf ("option a\n");
 			break;
 
-		case 'b':
+		case _T('b'):
 			printf ("option b\n");
 			break;
 
-		case 'c':
+		case _T('c'):
 			printf ("option c with value '%s'\n", si->optarg);
 			break;
 
-		case '?':
+		case _T('?'):
 		{
-			if (si->optopt == 'c')
+			if (si->optopt == _T('c'))
 				fprintf (stderr, "Option -%c requires an argument.\n", si->optopt);
 			else if (isprint (si->optopt))
 				fprintf (stderr, "Unknown option '-%c'.\n", si->optopt);
