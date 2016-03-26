@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include <stdarg.h>
+#include <ctype.h>
 
+#include <commdefs.h>
 #include <ps_TCHAR.h>
 #include <gadgetlib/T_string.h>
 #include <mm_snprintf.h>
 #include <getopt/sgetopt.h>
-
-#include <ctype.h>
 
 static const TCHAR *app_short_options = _T("abc:d:0123");
 
@@ -27,20 +27,111 @@ struct verify_st
 	const TCHAR *output;
 };
 
-verify_st gar_verifies[] =
+// Use this struct array to add more test cases.
+verify_st gar_verify_cases[] =
 {
 	{
 		_T("-a -b param0 -c val --add=yes --delete no param1 param2"), _T(
-		"option -a\n"
-		"option -b\n"
-		"option -c : 'val'\n"
-		"long option --add=yes\n"
-		"long option --delete=no\n"
-		"non-option ARGV-elements: param0 param1 param2 \n"
-		)
+			"option -a\n"
+			"option -b\n"
+			"option -c : 'val'\n"
+			"long option --add=yes\n"
+			"long option --delete=no\n"
+			"non-option ARGV-elements: param0 param1 param2\n"
+			)
 	},
-
+	{	// the same option twice:
+		_T("-a -c val1 -b -c val2 param1 --file=file1 --file=file2"), _T(
+			"option -a\n"
+			"option -c : 'val1'\n"
+			"option -b\n"
+			"option -c : 'val2'\n"
+			"long option --file=file1\n"
+			"long option --file=file2\n"
+			"non-option ARGV-elements: param1\n"
+			)
+	},
+	{	// inject some invalid short options:
+		_T("-x -b -c 11"), _T(
+			"Bad option '-x'\n"
+			"option -b\n"
+			"option -c : '11'\n"			
+			)
+	},
+	{	// inject some invalid long options:
+		_T("--badopt --badget popo"), _T(
+			"Bad option '--badopt'\n"
+			"Bad option '--badget'\n"
+			"non-option ARGV-elements: popo\n"
+			)
+	},
+	{	// inject some invalid short and long options:
+		_T("-x -b -c 11 --badopt --badget xxoo"), _T(
+			"Bad option '-x'\n"
+			"option -b\n"
+			"option -c : '11'\n"
+			"Bad option '--badopt'\n"
+			"Bad option '--badget'\n"
+			"non-option ARGV-elements: xxoo\n"
+			)
+	},
+	{	// = between --add and foo can be omitted
+		_T("-c -b --add foo bar.ini"), _T(
+			"option -c : '-b'\n"
+			"long option --add=foo\n"
+			"non-option ARGV-elements: bar.ini\n"
+			)
+	},
+	{	// appearance of -- stops options
+		_T("-b -- -a --verbose"), _T(
+			"option -b\n"
+			"non-option ARGV-elements: -a --verbose\n"
+			)
+	},
+	{	// option's argument missing (short)
+		_T("coco -c"), _T(
+			"Option '-c' missing an argument\n"
+			"non-option ARGV-elements: coco\n"
+			)
+	},
+	{	// option's argument missing (long)
+		_T("codo --file"), _T(
+			"Option '--file' missing an argument\n"
+			"non-option ARGV-elements: codo\n"
+			)
+	},
 };
+
+
+bool is_app_option(const TCHAR *opt)
+{
+	// Check if opt is a defined(=expected) option.
+	// opt is one argv[n] element
+	int i=0;
+	if(opt[0]==_T('-') && opt[1]==_T('-'))
+	{
+		// long option format
+		for(i=0; app_long_options[i].name!=NULL; i++)
+		{
+			if( T_strcmp(app_long_options[i].name, opt+2)==0 )
+				return true;
+		}
+		return false;
+	}
+	else if(opt[0]==_T('-'))
+	{
+		// short option format
+		int len = T_strlen(app_short_options);
+		for(i=0; i<len; i++)
+		{
+			if( app_short_options[i]==opt[1] )
+				return true;
+		}
+		return false;
+	}
+	return false;
+}
+
 
 const TCHAR *case1_argvstr=_T("-a -b param0 -c val --add=yes --delete no param1 param2");
 
@@ -89,7 +180,7 @@ void mm_strcat_reset()
 	gbufo[0] = _T('\0');
 }
 
-void mm_strcat(const TCHAR *fmt, ...)
+void mm_Strcat(const TCHAR *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
@@ -99,16 +190,11 @@ void mm_strcat(const TCHAR *fmt, ...)
 	va_end(args);
 }
 
-int
-_tmain()
+sgetopt_err_et verify_one_case(int argc, TCHAR *argv[], const TCHAR *boilerplate)
 {
-	int argc = my_split_argvstr(case1_argvstr);
-	TCHAR **argv = gargv;
-
 	int c = 0;
 	int digit_optind = 0;
 	sgetopt_ctx *si = sgetopt_ctx_create();
-	si->opterr = 1;
 
 	mm_strcat_reset();
 
@@ -126,10 +212,10 @@ _tmain()
 		switch (c)
 		{{
 		case 0:
-			mm_strcat(_T("long option --%s"), app_long_options[longindex].name);
+			mm_Strcat(_T("long option --%s"), app_long_options[longindex].name);
 			if(si->optarg)
-				mm_strcat(_T("=%s"), si->optarg);
-			mm_strcat(_T("\n"));
+				mm_Strcat(_T("=%s"), si->optarg);
+			mm_Strcat(_T("\n"));
 
 			break;
 
@@ -138,63 +224,104 @@ _tmain()
 		case '2':
 		case '3':
 			if (digit_optind != 0 && digit_optind != this_option_optind)
-				mm_strcat(_T("digits occur in two different argv-elements.\n"));
+				mm_Strcat(_T("digits occur in two different argv-elements.\n"));
 			digit_optind = this_option_optind;
-			mm_strcat(_T("option %c\n", c));
+			mm_Strcat(_T("option %c\n"), c);
 			break;
 
 		case 'a':
-			mm_strcat(_T("option -a\n"));
+			mm_Strcat(_T("option -a\n"));
 			break;
 
 		case 'b':
-			mm_strcat(_T("option -b\n"));
+			mm_Strcat(_T("option -b\n"));
 			break;
 
 		case 'c':
-			mm_strcat(_T("option -c : '%s'\n"), si->optarg);
+			mm_Strcat(_T("option -c : '%s'\n"), si->optarg);
 			break;
 
 		case '?':
 		{
-			if (si->optopt == 'c')
-				mm_strcat(_T("Option -%c requires an argument.\n"), si->optopt);
-			else if (isprint (si->optopt))
-				mm_strcat(_T("Unknown option '-%c'.\n"), si->optopt);
-			else {
-				// fprintf (stderr, "Unknown option character '\\x%x'.\n",	si->optopt);	
-				mm_strcat(_T("Bad option %s\n"), argv[si->optind-1]); 
-					// Chj: looks ok, can output invalid long options.
-			}
+			const TCHAR *problem_opt = argv[si->optind-1];
+			if(is_app_option(problem_opt))
+				mm_Strcat(_T("Option '%s' missing an argument\n"), problem_opt); 
+			else
+				mm_Strcat(_T("Bad option '%s'\n"), problem_opt); 
+				// Chj: looks ok, can output invalid long options.
 			break;
 		}
 
 		default:
-			mm_strcat(_T("?? getopt returned character code 0x%X ??\n"), c);
+			mm_Strcat(_T("?? getopt returned character code 0x%X ??\n"), c);
 		}}
 	}
 
 	if (si->optind < argc)
 	{
-		mm_strcat(_T("non-option ARGV-elements: "));
+		mm_Strcat(_T("non-option ARGV-elements: "));
 		while (si->optind < argc)
-			mm_strcat(_T("%s "), argv[si->optind++]);
-		mm_strcat(_T("\n"));
+		{
+			if(si->optind == argc-1)
+				mm_Strcat(_T("%s"), argv[si->optind++]);
+			else
+				mm_Strcat(_T("%s "), argv[si->optind++]); // an extra tail space
+		}
+		mm_Strcat(_T("\n"));
 	}
 
 	sgetopt_ctx_delete(si);
 
-	int compre = T_strcmp(gar_verifies[0].output, gbufo);
+	int compre = T_strcmp(gbufo, boilerplate);
 
-/*
-	int i;
-	for(i=0; gbufo[i]; i++)
+	if(compre!=0)
 	{
-		if(gar_verifies[0].output[i]!=gbufo[i])
-			printf("XXXXXXX@%d\n", i);
-	}
+/*
+		int i;
+		for(i=0; gbufo[i]; i++)
+		{
+			if(gar_verifies[0].output[i]!=gbufo[i])
+				printf("XXXXXXX@%d\n", i);
+		}
 */
+	}
 
-	return compre;
+	return compre==0 ? sgetopt_ok : sgetopt_fail;
 }
+
+int _tmain()
+{
+	int casecount = GetEleQuan_i(gar_verify_cases);
+
+	int i;
+	for(i=0; i<casecount; i++)
+	{
+		int argc = my_split_argvstr(gar_verify_cases[i].input); // outputs gargv[]
+		
+		if(verify_one_case(argc, gargv, gar_verify_cases[i].output)!=sgetopt_ok)
+			break;
+	}
+
+	if(i==casecount)
+	{
+		printf("sgetopt: All %d cases verify success.\n", i);
+		return 0; // success
+	}
+	else
+	{
+		printf("sgetopt: Case idx %d verify fail!\n", i);
+		
+		printf("========= Input command line ==========\n");
+		printf("%s\n", gar_verify_cases[i].input);
+
+		printf("=========== Expected output ===========\n");
+		printf("%s\n", gar_verify_cases[i].output);
+
+		printf("====== Program output (mismatch) ======\n");
+		printf("%s\n", gbufo);
+
+		return 4; // fail
+	}
+}
+
 
