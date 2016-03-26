@@ -3,6 +3,7 @@
 
 #include <ps_TCHAR.h>
 #include <gadgetlib/T_string.h>
+#include <gadgetlib/charenccvt.h>
 #include <getopt/sgetopt.h>
 
 static const TCHAR *app_short_options = _T("abc:d:0123");
@@ -57,7 +58,7 @@ int main(int argc, char *ansi_argv[])
 	// We need to have argv[] always match TCHAR.
 
 #if (defined UNICODE || defined _UNICODE) && (!defined _MSC_VER) // the linux case
-	wchar_t **argv = ggt_argvs_utf8_to_wchars(argc, argv);
+	wchar_t **argv = ggt_argvs_utf8_to_wchars(argc, ansi_argv);
 #endif
 	if(argc==1)
 	{
@@ -141,7 +142,7 @@ int main(int argc, char *ansi_argv[])
 	sgetopt_ctx_delete(si);
 
 #if (defined UNICODE || defined _UNICODE) && (!defined _MSC_VER) // the linux case
-	ggt_argvs_free_wchars(argc, argv);
+	ggt_argvs_free_wchars(argv);
 #endif
 
 	return (0);
