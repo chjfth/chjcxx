@@ -248,7 +248,6 @@ sgetopt_err_et verify_one_case(int argc, TCHAR *argv[], const TCHAR *boilerplate
 				mm_Strcat(_T("Option '%s' missing an argument\n"), problem_opt); 
 			else
 				mm_Strcat(_T("Bad option '%s'\n"), problem_opt); 
-				// Chj: looks ok, can output invalid long options.
 			break;
 		}
 
