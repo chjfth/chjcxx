@@ -1,9 +1,14 @@
 #define _CRT_SECURE_NO_WARNINGS // to disable warning on VC++ (have to put it before sys headers)
 
+#ifdef _MSC_VER
+# include <tchar.h>
+#endif
+
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <wchar.h>
 
 #include <ps_TCHAR.h>
@@ -33,8 +38,9 @@ T_printf(const TCHAR *fmt, ...)
 #else
 	printf("%s", buf);
 #endif
-
 	va_end(args);
+
+	fflush(stdout);
 	return ret;
 }
 
@@ -55,8 +61,9 @@ T_printf_stderr(const TCHAR *fmt, ...)
 #else
 	fprintf(stderr, "%s", buf);
 #endif
-
 	va_end(args);
+
+	fflush(stderr);
 	return ret;
 }
 
@@ -112,6 +119,65 @@ T_strcmp(const TCHAR *str1, const TCHAR *str2)
 	int ret = strcmp(str1, str2);
 #endif
 	return ret;
+}
+
+int 
+T_stricmp(const TCHAR *str1, const TCHAR *str2, size_t count)
+{
+#if _MSC_VER >= 1400 // For VS2005+
+	return _tcsicmp(str1, str2);
+#else
+	int i;
+	for(i=0; ; i++)
+	{
+		TCHAR c1 = toupper(str1[i]);
+		TCHAR c2 = toupper(str2[i]);
+		
+		if(c1 < c2)
+			return -1;
+		else if(c1 > c2)
+			return 1;
+
+		if(!c1 && !c2)
+			return 0;
+	}
+	return 0; // first count characters same
+#endif
+}
+
+int 
+T_strncmp(const TCHAR *str1, const TCHAR *str2, size_t count)
+{
+#ifdef UNICODE
+	int ret = wcsncmp(str1, str2, count);
+#else
+	int ret = strncmp(str1, str2, count);
+#endif
+	return ret;
+}
+
+int 
+T_strnicmp(const TCHAR *str1, const TCHAR *str2, size_t count)
+{
+#if _MSC_VER >= 1400 // For VS2005+
+	return _tcsnicmp(str1, str2, count);
+#else
+	int i;
+	for(i=0; i<count; i++)
+	{
+		TCHAR c1 = toupper(str1[i]);
+		TCHAR c2 = toupper(str2[i]);
+		
+		if(c1 < c2)
+			return -1;
+		else if(c1 > c2)
+			return 1;
+
+		if(!c1 && !c2)
+			return 0;
+	}
+	return 0; // first count characters same
+#endif
 }
 
 

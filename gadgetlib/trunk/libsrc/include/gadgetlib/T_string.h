@@ -34,15 +34,20 @@ TCHAR * T_strncpy(TCHAR *dst, const TCHAR *src, int count);
 DLLEXPORT_gadgetlib
 int T_strcmp(const TCHAR *str1, const TCHAR *str2);
 
+DLLEXPORT_gadgetlib // i: case-insensitive compare
+int T_stricmp(const TCHAR *str1, const TCHAR *str2, size_t count);
+
+DLLEXPORT_gadgetlib
+int T_strncmp(const TCHAR *str1, const TCHAR *str2, size_t count);
+	
+DLLEXPORT_gadgetlib
+int T_strnicmp(const TCHAR *str1, const TCHAR *str2, size_t count);
+
 DLLEXPORT_gadgetlib
 TCHAR * T_strstr(const TCHAR *str1, const TCHAR *str2);
 
 DLLEXPORT_gadgetlib
 TCHAR * T_strchr(const TCHAR *str, TCHAR chr);
-
-
-//DLLEXPORT_gadgetlib
-//int T_printf wprintf // set-aside due to %s/%S difference between Windows and GLibc
 
 
 //// Functions from stdlib.h
