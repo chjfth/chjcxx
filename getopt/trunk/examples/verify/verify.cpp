@@ -31,74 +31,74 @@ struct verify_st
 verify_st gar_verify_cases[] =
 {
 	{
-		_T("-a -b param0 -c val --add=yes --delete no param1 param2"), _T(
-			"option -a\n"
-			"option -b\n"
-			"option -c : 'val'\n"
-			"long option --add=yes\n"
-			"long option --delete=no\n"
-			"non-option ARGV-elements: param0 param1 param2\n"
-			)
+		_T("-a -b param0 -c val --add=yes --delete no param1 param2"),
+
+		_T("option -a\n")
+		_T("option -b\n")
+		_T("option -c : 'val'\n")
+		_T("long option --add=yes\n")
+		_T("long option --delete=no\n")
+		_T("non-option ARGV-elements: param0 param1 param2\n")
 	},
 	{	// the same option twice:
-		_T("-a -c val1 -b -c val2 param1 --file=file1 --file=file2"), _T(
-			"option -a\n"
-			"option -c : 'val1'\n"
-			"option -b\n"
-			"option -c : 'val2'\n"
-			"long option --file=file1\n"
-			"long option --file=file2\n"
-			"non-option ARGV-elements: param1\n"
-			)
+		_T("-a -c val1 -b -c val2 param1 --file=file1 --file=file2"),
+
+		_T("option -a\n")
+		_T("option -c : 'val1'\n")
+		_T("option -b\n")
+		_T("option -c : 'val2'\n")
+		_T("long option --file=file1\n")
+		_T("long option --file=file2\n")
+		_T("non-option ARGV-elements: param1\n")
 	},
 	{	// inject some invalid short options:
-		_T("-x -b -c 11"), _T(
-			"Bad option '-x'\n"
-			"option -b\n"
-			"option -c : '11'\n"			
-			)
+		_T("-x -b -c 11"),
+
+		_T("Bad option '-x'\n")
+		_T("option -b\n")
+		_T("option -c : '11'\n")			
 	},
 	{	// inject some invalid long options:
-		_T("--badopt --badget popo"), _T(
-			"Bad option '--badopt'\n"
-			"Bad option '--badget'\n"
-			"non-option ARGV-elements: popo\n"
-			)
+		_T("--badopt --badget popo"),
+
+		_T("Bad option '--badopt'\n")
+		_T("Bad option '--badget'\n")
+		_T("non-option ARGV-elements: popo\n")
 	},
 	{	// inject some invalid short and long options:
-		_T("-x -b -c 11 --badopt --badget xxoo"), _T(
-			"Bad option '-x'\n"
-			"option -b\n"
-			"option -c : '11'\n"
-			"Bad option '--badopt'\n"
-			"Bad option '--badget'\n"
-			"non-option ARGV-elements: xxoo\n"
-			)
+		_T("-x -b -c 11 --badopt --badget xxoo"),
+
+		_T("Bad option '-x'\n")
+		_T("option -b\n")
+		_T("option -c : '11'\n")
+		_T("Bad option '--badopt'\n")
+		_T("Bad option '--badget'\n")
+		_T("non-option ARGV-elements: xxoo\n")
 	},
 	{	// = between --add and foo can be omitted
-		_T("-c -b --add foo bar.ini"), _T(
-			"option -c : '-b'\n"
-			"long option --add=foo\n"
-			"non-option ARGV-elements: bar.ini\n"
-			)
+		_T("-c -b --add foo bar.ini"),
+
+		_T("option -c : '-b'\n")
+		_T("long option --add=foo\n")
+		_T("non-option ARGV-elements: bar.ini\n")
 	},
 	{	// appearance of -- stops options
-		_T("-b -- -a --verbose"), _T(
-			"option -b\n"
-			"non-option ARGV-elements: -a --verbose\n"
-			)
+		_T("-b -- -a --verbose"),
+
+		_T("option -b\n")
+		_T("non-option ARGV-elements: -a --verbose\n")
 	},
 	{	// option's argument missing (short)
-		_T("coco -c"), _T(
-			"Option '-c' missing an argument\n"
-			"non-option ARGV-elements: coco\n"
-			)
+		_T("coco -c"),
+
+		_T("Option '-c' missing an argument\n")
+		_T("non-option ARGV-elements: coco\n")
 	},
 	{	// option's argument missing (long)
-		_T("codo --file"), _T(
-			"Option '--file' missing an argument\n"
-			"non-option ARGV-elements: codo\n"
-			)
+		_T("codo --file"),
+
+		_T("Option '--file' missing an argument\n")
+		_T("non-option ARGV-elements: codo\n")
 	},
 };
 
@@ -293,9 +293,13 @@ int _tmain()
 {
 	int casecount = GetEleQuan_i(gar_verify_cases);
 
+	T_printf(_T("Verifying %d cases...\n"), casecount);
+
 	int i;
 	for(i=0; i<casecount; i++)
 	{
+		T_printf(_T("[Case %d] %s\n"), i, gar_verify_cases[i].input);
+
 		int argc = my_split_argvstr(gar_verify_cases[i].input); // outputs gargv[]
 		
 		if(verify_one_case(argc, gargv, gar_verify_cases[i].output)!=sgetopt_ok)
@@ -304,21 +308,21 @@ int _tmain()
 
 	if(i==casecount)
 	{
-		printf("sgetopt: All %d cases verify success.\n", i);
+		T_printf(_T("sgetopt: All %d cases verify success.\n"), i);
 		return 0; // success
 	}
 	else
 	{
-		printf("sgetopt: Case idx %d verify fail!\n", i);
-		
-		printf("========= Input command line ==========\n");
-		printf("%s\n", gar_verify_cases[i].input);
+		T_printf(_T("sgetopt: Case idx %d verify fail!\n"), i);
 
-		printf("=========== Expected output ===========\n");
-		printf("%s\n", gar_verify_cases[i].output);
+		T_printf(_T("========= Input command line ==========\n"));
+		T_printf(_T("%s\n"), gar_verify_cases[i].input);
 
-		printf("====== Program output (mismatch) ======\n");
-		printf("%s\n", gbufo);
+		T_printf(_T("=========== Expected output ===========\n"));
+		T_printf(_T("%s\n"), gar_verify_cases[i].output);
+
+		T_printf(_T("====== Program output (mismatch) ======\n"));
+		T_printf(_T("%s\n"), gbufo);
 
 		return 4; // fail
 	}

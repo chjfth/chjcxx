@@ -80,6 +80,9 @@
       <AdditionalLibraryDirectories>$(Solutiondir)..\sdkin\cidvers\vc100\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>gadgetlib_D.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <Lib>
+      <OutputFile>$(OutDir)$(TargetName)_D$(TargetExt)</OutputFile>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Unicode|Win32'">
     <ClCompile>
@@ -97,6 +100,9 @@
       <AdditionalLibraryDirectories>$(Solutiondir)..\sdkin\cidvers\vc100\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>gadgetlib_D.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <Lib>
+      <OutputFile>$(OutDir)$(TargetName)_U_D$(TargetExt)</OutputFile>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
