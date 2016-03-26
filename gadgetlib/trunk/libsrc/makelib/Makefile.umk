@@ -120,6 +120,7 @@ gmu_up_list_SRC_FROM_ROOT += \
 	gadgetlib.cpp \
 	time-common.cpp \
 	charenccvt-common.cpp \
+	charenccvt-utf8.cpp \
 	gsm0338cvt.cpp \
 	mbcs-ops.cpp \
 	T_string.cpp \

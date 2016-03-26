@@ -334,6 +334,66 @@ char *ggt_charprev(const char *pStartScan, const char *pCurChar);
 		Special: If pCurChar==pSstartScan, pCurChar is returned.
 	*/
 
+
+DLLEXPORT_gadgetlib
+int ggt_utf8_decode1char(const char *utf8s, int lim, unsigned int *pwc);
+
+
+DLLEXPORT_gadgetlib
+int ggt_decode_from_utf8(const char* utf8s, int utf8_bytes, wchar_t *wbuf, int wbuf_chars=0, 
+	int *pbytes_run=0);
+	//!< Convert(decode) a utf8 string into wchar_t string. 
+	/*!< 
+
+	@param[in] utf8s
+		Input utf8 string. This can be nul-terminated or not, depending on utf8_bytes param.
+		
+		If invalid utf8 sequence found, the conversion stops, and *pbytes_run will tell 
+		valid bytes already processed.
+
+	@param[in] utf8_bytes
+		Tells the input utf8 bytes.
+		* If -1, consider utf8s as nul-terminated, and the conversion result will be nul-terminated as well.
+		* If >=0, converting exactly that many bytes. 
+		
+		Note: If invalid utf8 sequence is encountered before the desired end, conversion stops after
+		converting the final valid sequence, and *pbytes_run will tell you where it stops.
+		So, when utf8_bytes is -1, success is identified by (*pbytes_run>0 && utf8s[*pbytes_run-1]=='\0') .
+		When utf8_bytes>=0, success is identified by (*pbytes_run==utf8_bytes) .
+	
+	@param[out] wbuf
+		wchar_t output buffer.
+		
+	@param[in] wbuf_chars
+		If 0, wbuf[] will not be written, and return value just tells how many wchar_t is required to 
+		hold the result, including possible one terminating NUL.
+		(If invlalid utf8 sequence encountered, return value will only indicate for those valid utf8 sequences.)
+		
+		If >0, tells your buffer size, in wchar_t count.
+
+	@param[out] pbytes_run (optional)
+		Report how many bytes of valid utf8 sequence is processed.
+
+	return
+		If wbuf_chars==0, return how many wchar_t are required to hold the decoding result.
+		If wbuf_chars>0, return how many wchar_t are actually stored into wbuf.
+		
+		When invalid input parameter detected, return -1.
+		
+		Note: wbuf is not guaranteed to be NUL-terminated.
+	
+	Note on Windows: if the decoded wchar_t exceeds 0xFFFF, I'll consider the input utf8 sequence as invalid.
+		
+	*/
+
+
+DLLEXPORT_gadgetlib
+wchar_t **ggt_argvs_utf8_to_wchars(int argc, char *argv[]);
+
+DLLEXPORT_gadgetlib
+void ggt_argvs_free_wchars(wchar_t **wargv);
+
+
 #ifdef __cplusplus
 } // extern"C" {
 #endif
