@@ -289,7 +289,11 @@ sgetopt_err_et verify_one_case(int argc, TCHAR *argv[], const TCHAR *boilerplate
 	return compre==0 ? sgetopt_ok : sgetopt_fail;
 }
 
+#ifdef _MSC_VER
 int _tmain()
+#else
+int main()
+#endif
 {
 	int casecount = GetEleQuan_i(gar_verify_cases);
 
