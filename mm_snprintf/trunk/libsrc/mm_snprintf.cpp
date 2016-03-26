@@ -1446,3 +1446,15 @@ mm_dump_bytes(TCHAR *buf, int bufbytes,
 	return mmfill.produced;
 }
 
+int 
+mm_strcat(TCHAR *dest, size_t bufsize, const TCHAR *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+
+	int ret = mm_snprintf(dest, bufsize, _T("%s%w"), dest, fmt, &args);
+
+	va_end(args);
+	
+	return ret;
+}

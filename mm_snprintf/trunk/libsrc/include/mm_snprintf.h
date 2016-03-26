@@ -50,6 +50,9 @@ int mm_asnprintfA(char **ptr, size_t max_alloc_size, const char *fmt, ...);
 DLLEXPORT_mmsnprintf
 int mm_vasnprintfA(char **ptr, size_t max_alloc_size, const char *fmt, va_list ap);
 
+DLLEXPORT_mmsnprintf
+int mm_strcatA(char *dest, size_t bufsize, const char *fmt, ...);
+
 
 #ifndef __CC_NORCROFT // workaround for the old ARM SDT 2.50 compiler, who don't support wchar_t
 
@@ -75,6 +78,9 @@ DLLEXPORT_mmsnprintf
 int mm_vasnprintfW(wchar_t **ptr, size_t max_alloc_size, const wchar_t *fmt, va_list ap);
 	// `max_alloc_size' also in count of wchar_t
 
+DLLEXPORT_mmsnprintf
+int mm_strcatW(wchar_t *dest, size_t bufsize, const wchar_t *fmt, ...);
+
 #endif // #ifndef __CC_NORCROFT 
 
 /*
@@ -87,9 +93,11 @@ int mm_vasnprintf(char **ptr, size_t str_m, const char *fmt, va_list ap);
 #if (defined _UNICODE) || (defined UNICODE)
 # define mm_snprintf mm_snprintfW
 # define mm_vsnprintf mm_vsnprintfW
+# define mm_strcat mm_strcatA
 #else
 # define mm_snprintf mm_snprintfA
 # define mm_vsnprintf mm_vsnprintfA
+# define mm_strcat mm_strcatW
 #endif
 
 
