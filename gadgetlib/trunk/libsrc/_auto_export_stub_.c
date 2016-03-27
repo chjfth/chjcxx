@@ -12,6 +12,7 @@ void _ExportFunctionList(void)
 	extern void gadgetlib__gadgetlib__DLL_AUTO_EXPORT_STUB(void);
 	extern void gadgetlib_lib__time_common__DLL_AUTO_EXPORT_STUB(void);
 	extern void gadgetlib_lib__charenccvt_common__DLL_AUTO_EXPORT_STUB(void);
+	extern void gadgetlib_lib__charenccvt_utf8__DLL_AUTO_EXPORT_STUB(void);
 	extern void gadgetlib_lib__gsm0338cvt__DLL_AUTO_EXPORT_STUB(void);
 	extern void gadgetlib_lib__mbcs_ops__DLL_AUTO_EXPORT_STUB(void);
 	extern void gadgetlib_lib__T_string__DLL_AUTO_EXPORT_STUB(void);
@@ -20,6 +21,7 @@ void _ExportFunctionList(void)
 	gadgetlib__gadgetlib__DLL_AUTO_EXPORT_STUB();
 	gadgetlib_lib__time_common__DLL_AUTO_EXPORT_STUB();
 	gadgetlib_lib__charenccvt_common__DLL_AUTO_EXPORT_STUB();
+	gadgetlib_lib__charenccvt_utf8__DLL_AUTO_EXPORT_STUB();
 	gadgetlib_lib__gsm0338cvt__DLL_AUTO_EXPORT_STUB();
 	gadgetlib_lib__mbcs_ops__DLL_AUTO_EXPORT_STUB();
 	gadgetlib_lib__T_string__DLL_AUTO_EXPORT_STUB();
