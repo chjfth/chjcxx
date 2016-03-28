@@ -1,1 +1,1 @@
-scalacon-get-sdkin.py --force --ini=%~dp0get-sdkin.ini --self= %*
+scalacon-get-sdkin.py --ini=%~dp0get-sdkin.ini --self= %*
