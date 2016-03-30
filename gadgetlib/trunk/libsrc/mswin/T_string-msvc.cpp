@@ -1,5 +1,6 @@
 #define _CRT_SECURE_NO_WARNINGS // to disable warning on VC++ (have to put it before sys headers)
 
+#include <assert.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
