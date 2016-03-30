@@ -50,16 +50,18 @@ bool is_app_option(const TCHAR *opt)
 
 
 #ifdef _MSC_VER
-int _tmain(int argc, TCHAR *argv[])
+int _tmain(int argc, TCHAR *init_argv[])
 #else
-int main(int argc, char *ansi_argv[])
+int main(int argc, char *init_argv[])
 #endif
 {
-	// We need to have argv[] always match TCHAR.
-
 #if (defined UNICODE || defined _UNICODE) && (!defined _MSC_VER) // the linux case
-	wchar_t **argv = ggt_argvs_utf8_to_wchars(argc, ansi_argv);
+	wchar_t **argv = ggt_argvs_utf8_to_wchars(argc, init_argv);
+#else
+	TCHAR **argv = init_argv;
 #endif
+	// Now argv matches TCHAR, this is our purpose.
+
 	if(argc==1)
 	{
 		T_printf(_T("No options given.\n"));
