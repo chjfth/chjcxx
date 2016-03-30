@@ -18,60 +18,6 @@
 #define DLL_AUTO_EXPORT_STUB
 extern"C" void gadgetlib_lib__T_string__DLL_AUTO_EXPORT_STUB(void){}
 
-#define TPRINTF_BUFSIZE 500 // 500 chars
-
-
-int 
-T_printf(const TCHAR *fmt, ...)
-{
-	TCHAR buf[TPRINTF_BUFSIZE];
-    va_list args;
-    va_start(args, fmt);
-	int ret = mm_vsnprintf(buf, TPRINTF_BUFSIZE, fmt, args);
-
-#ifdef UNICODE
- #ifdef __linux__
-	wprintf(L"%S", buf); // upper-case S
- #else
-	wprintf(L"%s", buf); // lower-case S
- #endif
-#else
-	printf("%s", buf);
-#endif
-	va_end(args);
-
-	fflush(stdout);
-	return ret;
-}
-
-int 
-T_printf_stderr(const TCHAR *fmt, ...)
-{
-	TCHAR buf[TPRINTF_BUFSIZE];
-    va_list args;
-    va_start(args, fmt);
-	int ret = mm_vsnprintf(buf, TPRINTF_BUFSIZE, fmt, args);
-
-#ifdef UNICODE
- #ifdef __linux__
-	fwprintf(stderr, L"%S", buf); // upper-case S
- #else
-	fwprintf(stderr, L"%s", buf); // lower-case S
- #endif
-#else
-	fprintf(stderr, "%s", buf);
-#endif
-	va_end(args);
-
-	fflush(stderr);
-	return ret;
-}
-
-int 
-T_printf_query_bufsize(void)
-{
-	return TPRINTF_BUFSIZE;
-}
 
 
 int 

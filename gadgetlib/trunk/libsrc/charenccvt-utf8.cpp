@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+#include <wchar.h>
 
 #include <gadgetlib/charenccvt.h>
 
@@ -12,11 +13,107 @@ typedef unsigned int u32;
 const int WCHAR_SIZE = sizeof(wchar_t);
 
 
+// MEMO: G:\AlienBuild\mad-0.14.2b\libid3tag\utf8.c: id3_utf8_decodechar() 
+// provides code for ggt_utf8_decode1char() and ggt_utf8_encode_1char()
+	
+int 
+ggt_utf8_encode_1char(u32 ucs4, char utf8seq[6])
+{
+	unsigned char *utf8 = (unsigned char*)utf8seq;
+	
+	if (ucs4 <= 0x0000007fL) {
+		utf8[0] = ucs4;
+
+		return 1;
+	}
+	else if (ucs4 <= 0x000007ffL) {
+		utf8[0] = 0xc0 | ((ucs4 >>  6) & 0x1f);
+		utf8[1] = 0x80 | ((ucs4 >>  0) & 0x3f);
+
+		return 2;
+	}
+	else if (ucs4 <= 0x0000ffffL) {
+		utf8[0] = 0xe0 | ((ucs4 >> 12) & 0x0f);
+		utf8[1] = 0x80 | ((ucs4 >>  6) & 0x3f);
+		utf8[2] = 0x80 | ((ucs4 >>  0) & 0x3f);
+
+		return 3;
+	}
+	else if (ucs4 <= 0x001fffffL) {
+		utf8[0] = 0xf0 | ((ucs4 >> 18) & 0x07);
+		utf8[1] = 0x80 | ((ucs4 >> 12) & 0x3f);
+		utf8[2] = 0x80 | ((ucs4 >>  6) & 0x3f);
+		utf8[3] = 0x80 | ((ucs4 >>  0) & 0x3f);
+
+		return 4;
+	}
+	else if (ucs4 <= 0x03ffffffL) {
+		utf8[0] = 0xf8 | ((ucs4 >> 24) & 0x03);
+		utf8[1] = 0x80 | ((ucs4 >> 18) & 0x3f);
+		utf8[2] = 0x80 | ((ucs4 >> 12) & 0x3f);
+		utf8[3] = 0x80 | ((ucs4 >>  6) & 0x3f);
+		utf8[4] = 0x80 | ((ucs4 >>  0) & 0x3f);
+
+		return 5;
+	}
+	else if (ucs4 <= 0x7fffffffL) {
+		utf8[0] = 0xfc | ((ucs4 >> 30) & 0x01);
+		utf8[1] = 0x80 | ((ucs4 >> 24) & 0x3f);
+		utf8[2] = 0x80 | ((ucs4 >> 18) & 0x3f);
+		utf8[3] = 0x80 | ((ucs4 >> 12) & 0x3f);
+		utf8[4] = 0x80 | ((ucs4 >>  6) & 0x3f);
+		utf8[5] = 0x80 | ((ucs4 >>  0) & 0x3f);
+
+		return 6;
+	}
+	else
+		return 0;
+}
+
+int 
+ggt_encode_to_utf8(const wchar_t *wcs, int wccount, char *utf8out, int utf8bufsize,
+	int *pwcs_used)
+{
+	// wchar_t => UTF8
+	
+	if(wcs==NULL || wccount<-1 || utf8bufsize<0)
+		return -1;
+	
+	int max_wchars = wccount;
+	if(wccount==-1)
+		max_wchars = wcslen(wcs)+1;
+
+	const wchar_t *wcs_adv = wcs;
+	int remain_wchars = max_wchars;
+	int bytes_stored = 0;
+	
+	while(remain_wchars>0)
+	{
+		u32 wc = *wcs_adv;
+		char utf8seq[6];
+		int utf8bytes = ggt_utf8_encode_1char(wc, utf8seq);
+		
+		if( utf8bufsize>0 && (bytes_stored+utf8bytes > utf8bufsize) )
+			break;
+		
+		if(utf8bufsize>0)
+		{
+			memcpy(utf8out+bytes_stored, utf8seq, utf8bytes);
+		}
+
+		wcs_adv++;
+		remain_wchars--;
+		bytes_stored += utf8bytes;
+	}
+
+	if(pwcs_used)
+		*pwcs_used = (int)(wcs_adv - wcs);
+	return bytes_stored;
+}
+
 int 
 ggt_utf8_decode1char(const char *utf8s, int lim, u32 *pwc)
 {
-	// MEMO: G:\AlienBuild\mad-0.14.2b\libid3tag\utf8.c: id3_utf8_decodechar()
-	
 	// pwc: pointer to output wide-char.
 	// lim(limit): only check for lim bytes for valid utf8 sequence.
 	// return utf8 sequence length, 0 if sequence invalid.
@@ -113,16 +210,15 @@ int
 ggt_decode_from_utf8(const char* utf8s, int utf8_bytes, wchar_t *wbuf, int wbuf_chars, 
 	int *pbytes_run)
 {
+	// UTF8 => wchar_t
+	
 	if(utf8s==NULL || utf8_bytes<-1 || wbuf_chars<0)
 		return -1;
 	
 	int max_bytes = utf8_bytes;
 	if(utf8_bytes==-1)
-		max_bytes = strlen(utf8s);
+		max_bytes = strlen(utf8s)+1;
 	
-
-//	int runs_all = 0;
-//	int adv = 0;
 	u32 wc = 0;
 	const char *utf8s_adv = utf8s;
 	int remain_bytes = max_bytes;
@@ -161,6 +257,8 @@ ggt_decode_from_utf8(const char* utf8s, int utf8_bytes, wchar_t *wbuf, int wbuf_
 }
 
 
+// ======================================================================
+
 wchar_t **
 ggt_argvs_utf8_to_wchars(int argc, char *argv[])
 {
@@ -193,4 +291,7 @@ ggt_argvs_free_wchars(wchar_t **wargv)
 	}
 	delete[] wargv;
 }
+
+
+
 

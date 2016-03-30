@@ -336,43 +336,90 @@ char *ggt_charprev(const char *pStartScan, const char *pCurChar);
 
 
 DLLEXPORT_gadgetlib
+int ggt_utf8_encode_1char(unsigned int ucs4, char utf8seq[6]);
+
+DLLEXPORT_gadgetlib
+int ggt_encode_to_utf8(const wchar_t *wcs, int wccount, char *utf8out, int utf8bufsize,
+	int *pwcs_used=0);
+	//!< Convert(encode) a wchar_t string into utf8 byte sequence. 
+	/*!< 
+
+	@param[in] wcs
+		Input wchar_t string. This can be NUL-terminated or not, depending on wccount param.
+		
+		If unsupported wchar_t encountered(surrogate pair), the conversion stops, and *pwcs_used will tell 
+		valid wchar_t's already processed.
+
+	@param[in] wccount
+		Tells the length of input wchar_t string.
+		If -1, consider wcs as NUL-terminated, and the convertion result will be nul-terminated as well.
+		If >=0, converting exactly that many wchar_t's.
+		
+	
+	@param[out] utf8out 
+		utf8 output buffer.
+	
+	@param[in] utf8bufsize
+		utf8out's buffer size in bytes.
+		If 0, utf8out[] will not be written to, and return value just tells how many bytes are required to
+		hold the result, include possible one terminating nul char.
+	
+	@param[out] pwcs_used
+		Report how many wchar_t's are consumed from wcs.
+	
+	return
+		If utf8bufsize==0, return how any bytes are required to hold the encoding result.
+		If utf8bufsize>0, return how many bytes are actually stored into utf8out.
+		
+		When invalid input parameter detected, return -1.
+		
+		Note: I will not store "partial" utf8 sequence into output buffer. For example, a wchar_t encodes to 
+		threes utf8 bytes, and I will not store any of the three bytes if remaining output buffer is one or two.
+		
+		Note: utf8out is not guaranteed to be nul-terminated.
+
+	Note on Windows: Currently this function can not cope with Unicode surrogate pair. 
+	(TO IMPROVE LATER)
+	*/
+
+DLLEXPORT_gadgetlib
 int ggt_utf8_decode1char(const char *utf8s, int lim, unsigned int *pwc);
 
 
 DLLEXPORT_gadgetlib
 int ggt_decode_from_utf8(const char* utf8s, int utf8_bytes, wchar_t *wbuf, int wbuf_chars=0, 
-	int *pbytes_run=0);
+	int *pbytes_used=0);
 	//!< Convert(decode) a utf8 string into wchar_t string. 
 	/*!< 
 
 	@param[in] utf8s
 		Input utf8 string. This can be nul-terminated or not, depending on utf8_bytes param.
 		
-		If invalid utf8 sequence found, the conversion stops, and *pbytes_run will tell 
+		If invalid utf8 sequence found, the conversion stops, and *pbytes_used will tell 
 		valid bytes already processed.
 
 	@param[in] utf8_bytes
-		Tells the input utf8 bytes.
-		* If -1, consider utf8s as nul-terminated, and the conversion result will be nul-terminated as well.
+		Tells the length of input utf8 bytes.
+		* If -1, consider utf8s as nul-terminated, and the conversion result will be NUL-terminated as well.
 		* If >=0, converting exactly that many bytes. 
 		
 		Note: If invalid utf8 sequence is encountered before the desired end, conversion stops after
-		converting the final valid sequence, and *pbytes_run will tell you where it stops.
-		So, when utf8_bytes is -1, success is identified by (*pbytes_run>0 && utf8s[*pbytes_run-1]=='\0') .
-		When utf8_bytes>=0, success is identified by (*pbytes_run==utf8_bytes) .
+		converting the final valid sequence, and *pbytes_used will tell you where it stops.
+		So, when utf8_bytes is -1, success is identified by (*pbytes_used>0 && utf8s[*pbytes_used-1]=='\0') .
+		When utf8_bytes>=0, success is identified by (*pbytes_used==utf8_bytes) .
 	
 	@param[out] wbuf
 		wchar_t output buffer.
 		
 	@param[in] wbuf_chars
-		If 0, wbuf[] will not be written, and return value just tells how many wchar_t is required to 
+		If 0, wbuf[] will not be written to, and return value just tells how many wchar_t's are required to 
 		hold the result, including possible one terminating NUL.
 		(If invlalid utf8 sequence encountered, return value will only indicate for those valid utf8 sequences.)
 		
 		If >0, tells your buffer size, in wchar_t count.
 
-	@param[out] pbytes_run (optional)
-		Report how many bytes of valid utf8 sequence is processed.
+	@param[out] pbytes_used (optional)
+		Report how many bytes of valid utf8 sequence are consumed.
 
 	return
 		If wbuf_chars==0, return how many wchar_t are required to hold the decoding result.
@@ -385,6 +432,7 @@ int ggt_decode_from_utf8(const char* utf8s, int utf8_bytes, wchar_t *wbuf, int w
 	Note on Windows: if the decoded wchar_t exceeds 0xFFFF, I'll consider the input utf8 sequence as invalid.
 		
 	*/
+
 
 
 DLLEXPORT_gadgetlib

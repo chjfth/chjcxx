@@ -45,7 +45,7 @@ ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),msvc wince),1)
 	mswin/wintime.cpp \
 	mswin/dirfuncs.cpp \
 	mswin/charenccvt-win.cpp \
-	T_string-msvc.cpp \
+	mswin/T_string-msvc.cpp \
 	# WinCE 5.0 still don't provide fopen etc, so don't add fstream-aux.cpp .
 
   gmu_ud_list_PRJ_HEADER += # $(gmu_ud_SRC_ROOT)/mswin 
@@ -67,7 +67,7 @@ else ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),linuxgcc),1)
 	fstream-aux.cpp \
 	linux/linuxtime.cpp \
 	linux/dirfuncs.cpp \
-	T_string-glibc.cpp \
+	linux/T_string-glibc.cpp \
 
   gmu_ud_list_PRJ_HEADER += # $(gmu_ud_SRC_ROOT)/linux 
 
