@@ -36,7 +36,7 @@ REM set gmb_run_example_on_compiler_vers=vc80 vc100x64
 
 REM [optional] CMD_GETSDKIN
 REM -- used by scalacon-make-sdk.bat, will be NULL if not set.
-set CMD_GETSDKIN=scalacon-get-sdkin.py --ini=../../get-sdkin.ini
+set CMD_GETSDKIN=scalacon-get-sdkin.py --ini=../../get-sdkin.ini --force
 
 set gmb_ignore_uxm=1
 REM -- because this SDK has not prepared user example yet.
