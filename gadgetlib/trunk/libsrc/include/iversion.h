@@ -4,7 +4,7 @@
 enum {
 	gadgetlib_vmajor = 0,
 	gadgetlib_vminor = 5,
-	gadgetlib_vbuild = 0,
+	gadgetlib_vbuild = 1,
 
 	gadgetlib_nlsr_version = 0x00
 };
