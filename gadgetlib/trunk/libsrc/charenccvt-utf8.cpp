@@ -81,7 +81,7 @@ ggt_encode_to_utf8(const wchar_t *wcs, int wccount, char *utf8out, int utf8bufsi
 	
 	int max_wchars = wccount;
 	if(wccount==-1)
-		max_wchars = wcslen(wcs)+1;
+		max_wchars = (int)wcslen(wcs)+1;
 
 	const wchar_t *wcs_adv = wcs;
 	int remain_wchars = max_wchars;
@@ -126,7 +126,7 @@ ggt_utf8_decode1char(const char *utf8s, int lim, u32 *pwc)
 	if (lim>=1 && (utf8[0] & 0x80) == 0x00) 
 	{
 		*pwc = utf8[0];
-		return utf8 - start + 1;
+		return (int)(utf8 - start) + 1;
 	}
 	else if (lim>=2 &&
 		(utf8[0] & 0xe0) == 0xc0 &&
@@ -137,7 +137,7 @@ ggt_utf8_decode1char(const char *utf8s, int lim, u32 *pwc)
 			((utf8[1] & 0x3f) << 0);
 		
 //		if (*pwc >= 0x00000080L) // chj: for the abnormal but not-harmful case of (utf8[0] & 0x1f)==0, just let it go.
-			return utf8 - start + 2;
+			return (int)(utf8 - start) + 2;
 	}
 	else if (lim>=3 &&
 		(utf8[0] & 0xf0) == 0xe0 &&
@@ -149,7 +149,7 @@ ggt_utf8_decode1char(const char *utf8s, int lim, u32 *pwc)
 				((utf8[1] & 0x3fL) <<  6) |
 				((utf8[2] & 0x3fL) <<  0);
 //		if (*pwc >= 0x00000800L)
-			return utf8 - start + 3;
+			return (int)(utf8 - start) + 3;
 	}
 	else if (lim>=4 &&
 		(utf8[0] & 0xf8) == 0xf0 &&
@@ -163,7 +163,7 @@ ggt_utf8_decode1char(const char *utf8s, int lim, u32 *pwc)
 			((utf8[2] & 0x3fL) <<  6) |
 			((utf8[3] & 0x3fL) <<  0);
 //		if (*pwc >= 0x00010000L)
-			return utf8 - start + 4;
+			return (int)(utf8 - start) + 4;
 	}
 	else if (lim>=5 &&
 		(utf8[0] & 0xfc) == 0xf8 &&
@@ -179,7 +179,7 @@ ggt_utf8_decode1char(const char *utf8s, int lim, u32 *pwc)
 			((utf8[3] & 0x3fL) <<  6) |
 			((utf8[4] & 0x3fL) <<  0);
 //		if (*pwc >= 0x00200000L)
-			return utf8 - start + 5;
+			return (int)(utf8 - start) + 5;
 	}
 	else if (lim>=6 &&
 		(utf8[0] & 0xfe) == 0xfc &&
@@ -197,7 +197,7 @@ ggt_utf8_decode1char(const char *utf8s, int lim, u32 *pwc)
 			((utf8[4] & 0x3fL) <<  6) |
 			((utf8[5] & 0x3fL) <<  0);
 //		if (*pwc >= 0x04000000L)
-			return utf8 - start + 6;
+			return (int)(utf8 - start) + 6;
 	}
 	else 
 	{
@@ -217,7 +217,7 @@ ggt_decode_from_utf8(const char* utf8s, int utf8_bytes, wchar_t *wbuf, int wbuf_
 	
 	int max_bytes = utf8_bytes;
 	if(utf8_bytes==-1)
-		max_bytes = strlen(utf8s)+1;
+		max_bytes = (int)strlen(utf8s)+1;
 	
 	u32 wc = 0;
 	const char *utf8s_adv = utf8s;

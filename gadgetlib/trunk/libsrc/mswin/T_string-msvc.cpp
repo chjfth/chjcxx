@@ -7,12 +7,14 @@
 #include <ctype.h>
 #include <tchar.h>
 #include <wchar.h>
+#include <locale.h>
 
 #include <ps_TCHAR.h>
 #include <mm_snprintf.h>
 #include <gadgetlib/T_string.h>
 
 #define DLL_AUTO_EXPORT_STUB
+extern"C" void gadgetlib_lib__T_string_msvc__DLL_AUTO_EXPORT_STUB(void){}
 
 #define TPRINTF_BUFSIZE 500 // 500 chars
 
