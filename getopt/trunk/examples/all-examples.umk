@@ -14,9 +14,9 @@ endif
 
 gmu_uv_list_ALL_SUBPRJ += demo verify
 
-demo_Makefile = ../demo/Makefile.umk
+demo_Makefile = ./demo/Makefile.umk
 
-verify_Makefile = ../verify/Makefile.umk
+verify_Makefile = ./verify/Makefile.umk
 
 
 ###### DON'T DELETE THIS FINAL include. ######
