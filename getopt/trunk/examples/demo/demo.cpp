@@ -134,7 +134,7 @@ int main(int argc, char *ansi_argv[])
 		T_printf(_T("non-option ARGV-elements: "));
 		while (si->optind < argc)
 		{
-			T_printf(_T("%s "), argv[si->optind++]); // an extra tail space
+			T_printf(_T("%s "), argv[si->optind++]);
 		}
 		T_printf(_T("\n"));
 	}
