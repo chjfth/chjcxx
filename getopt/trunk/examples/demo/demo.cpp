@@ -69,9 +69,10 @@ int main(int argc, char *init_argv[])
 	}
 
 	int c = 0;
-	int digit_optind = 0;
-	sgetopt_ctx *si = sgetopt_ctx_create();
-	si->opterr = 1;
+	int digit_optind = 0; // not important
+
+	sgetopt_ctx *si = sgetopt_ctx_create(); // important 
+	si->opterr = 1; // (optional)
 
 	while (1)
 	{
