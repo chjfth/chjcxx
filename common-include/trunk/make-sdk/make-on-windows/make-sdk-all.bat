@@ -27,9 +27,6 @@ REM gmb_dirname_sdkout=... (set this SDK output dirname)
 REM -- will receive default "sdkout" in PI_makesdk_2016
 set gmb_dirname_sdkout=sdkout
 
-REM [optional] gmu_SC_CHECKOUT_DATETIME=...
-REM -- will receive default in scalacon-make-sdk.bat
-
 set gmb_ignore_uxm=1
 
 call scalacon-make-sdk.bat %*
