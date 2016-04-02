@@ -26,7 +26,13 @@ void verify_timefuncs()
 	int i;
 	bool b;
 	__int64 today = 1459575155;
-	
+
+	printf("ggt_IsLeapYear ...\n");
+	assert(!ggt_IsLeapYear(1900));
+	assert( ggt_IsLeapYear(1996));
+	assert(!ggt_IsLeapYear(1999));
+	assert( ggt_IsLeapYear(2000));
+		
 	printf("ggt_gmtime ...\n");
 	
 	const int MyHour = 5;
@@ -34,7 +40,7 @@ void verify_timefuncs()
 	assert(b);
 	assert( ptm->tm_year==2016-1900 && ptm->tm_mon==3 && ptm->tm_mday==2 );
 	assert( ptm->tm_hour==MyHour && ptm->tm_min==32 && ptm->tm_sec==35 );
-	assert( ptm->tm_wday==6 && ptm->tm_yday==91);
+	assert( ptm->tm_wday==6 && ptm->tm_yday==92);
 	
 	memset(ptm, 0, sizeof(*ptm));
 	
@@ -50,12 +56,12 @@ void verify_timefuncs()
 	if(tz_minutes >= -MyHour*60) {
 		assert( ptm->tm_mday==2 );
 		assert( ptm->tm_hour==MyHour+tz_minutes/60 && ptm->tm_min==32 && ptm->tm_sec==35 );
-		assert( ptm->tm_wday==6 && ptm->tm_yday==91);
+		assert( ptm->tm_wday==6 && ptm->tm_yday==92);
 	} 
 	else {
 		assert( ptm->tm_mday==1 );
 		assert( ptm->tm_hour==24+(MyHour+tz_minutes/60) && ptm->tm_min==32 && ptm->tm_sec==35 );
-		assert( ptm->tm_wday==5 && ptm->tm_yday==90);
+		assert( ptm->tm_wday==5 && ptm->tm_yday==91);
 	}
 	
 	printf("ggt_gmtime (year 2038) ...\n");

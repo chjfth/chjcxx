@@ -14,3 +14,12 @@ ggt_OsMillisecElapsed(__int64 old_msec, __int64 new_msec)
 	
 	return delta;
 }
+
+int
+ggt_IsLeapYear(int y)
+{
+	// Leap year is any year divisible by four, 
+	// but not by 100 unless also divisible by 400
+
+	return y%4==0 ? ((y%400==0 || y%100!=0) ? 1 : 0) : 0;
+}

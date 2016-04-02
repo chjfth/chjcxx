@@ -23,10 +23,8 @@ extern"C" {
 	// Number of milliseconds between the beginning of the Windows epoch (Jan. 1, 1601) 
 	// and the Unix epoch (Jan. 1, 1970) 
 
-/* Leap year is any year divisible by four, but not by 100 unless also
- * divisible by 400
- */
-#define ggt_IsLeapYear(y) ((!(y % 4)) ? (((!(y % 400)) && (y % 100)) ? 1 : 0) : 0)
+DLLEXPORT_gadgetlib
+int ggt_IsLeapYear(int y);
 
 
 typedef int ggt_Minute_t;
