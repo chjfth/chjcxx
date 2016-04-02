@@ -1,0 +1,9 @@
+gmu_PRJ_NAME = gadgetlib-verify$(if $(MAKE_LIB),-libdev)
+
+gmu_uf_LINK_OUTPUT = $(call gmpf_MakeExeName,gadgetlib-verify)
+
+gmu_up_list_SRC_FROM_ROOT += verify.cpp \
+	verify-timefuncs.cpp \
+
+include ../share.mki
+
