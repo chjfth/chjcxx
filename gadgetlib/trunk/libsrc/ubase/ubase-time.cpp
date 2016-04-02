@@ -41,7 +41,7 @@ ggt_time64_local_millisec()
 }
 
 bool 
-ggt_gmtime(struct tm *ptm)
+ggt_gmtime_now(struct tm *ptm)
 {
 	__int64 t64 = U_time64();
 	if(t64==-1)
@@ -54,7 +54,7 @@ ggt_gmtime(struct tm *ptm)
 }
 
 bool 
-ggt_gmtime_millisec(struct tm *ptm, int *pMillisec)
+ggt_gmtime_now_millisec(struct tm *ptm, int *pMillisec)
 {
 	ggt_gmtime(ptm);
 	if(pMillisec)
@@ -64,7 +64,7 @@ ggt_gmtime_millisec(struct tm *ptm, int *pMillisec)
 }
 
 bool 
-ggt_localtime(struct tm *ptm)
+ggt_localtime_now(struct tm *ptm)
 {
 	__int64 t64 = U_time64();
 	if(t64==-1)
@@ -77,7 +77,7 @@ ggt_localtime(struct tm *ptm)
 }
 
 bool 
-ggt_localtime_millisec(struct tm *ptm, int *pMillisec)
+ggt_localtime_now_millisec(struct tm *ptm, int *pMillisec)
 {
 /*	bool b = ggt_gmtime_millisec(ptm, pMillisec); 
 	if(!b)

@@ -3,7 +3,8 @@
 
 #include <time.h> // for `struct tm'
 
-# include <ps_TCHAR.h>
+#include <ps_TCHAR.h>
+#include <ps_TypeDecl.h> // DECL_INT64()
 
 
 #ifdef __cplusplus
@@ -18,6 +19,9 @@ extern"C" {
 # define DLLEXPORT_gadgetlib
 #endif
 	
+#define ggt_DELTA_EPOCH_IN_MILLISEC DECL_INT64(11644473600000)
+	// Number of milliseconds between the beginning of the Windows epoch (Jan. 1, 1601) 
+	// and the Unix epoch (Jan. 1, 1970) 
 
 /* Leap year is any year divisible by four, but not by 100 unless also
  * divisible by 400
@@ -54,16 +58,21 @@ DLLEXPORT_gadgetlib
 __int64 ggt_time64_local_millisec(void);
 	//!< Similar to ggt_time64_local(), but express millisecond instead of second.
 
+DLLEXPORT_gadgetlib
+bool ggt_gmtime(__int64 epsec, struct tm *ptm);
 
 DLLEXPORT_gadgetlib
-bool ggt_gmtime(struct tm *ptm);
+bool ggt_localtime(__int64 epsec, struct tm *ptm);
+
+DLLEXPORT_gadgetlib
+bool ggt_gmtime_now(struct tm *ptm);
 	//!< Get current UTC time expressed in ANSI C struct tm, similar to ANSI C gmtime(). 
 	/*!< If gmtime() from your system lib does not support year 2038, use this instead.
 	*/
 
 DLLEXPORT_gadgetlib
-bool ggt_gmtime_millisec(struct tm *ptm, int *pMillisec);
-	//!< Similar to ggt_gmtime, but return millisecond as well. 
+bool ggt_gmtime_now_millisec(struct tm *ptm, int *pMillisec);
+	//!< Similar to ggt_gmtime_now, but return millisecond as well. 
 	/*!< The returned *pMillisec has the range from 0 to 999 . 
 	 If pMillisec is NULL, the millisecond value will not be returned.
 
@@ -72,12 +81,12 @@ bool ggt_gmtime_millisec(struct tm *ptm, int *pMillisec);
 	*/
 
 DLLEXPORT_gadgetlib
-bool ggt_localtime(struct tm *ptm);
+bool ggt_localtime_now(struct tm *ptm);
 	//!< Similar to ggt_gmtime, but expressed in local time.
 
 DLLEXPORT_gadgetlib
-bool ggt_localtime_millisec(struct tm *ptm, int *pMillisec);
-	//!< Similar to ggt_localtime, but return millisecond as well. 
+bool ggt_localtime_now_millisec(struct tm *ptm, int *pMillisec);
+	//!< Similar to ggt_localtime_now, but return millisecond as well. 
 
 
 DLLEXPORT_gadgetlib
@@ -116,9 +125,9 @@ enum ggt_Time_et {
 };
 
 DLLEXPORT_gadgetlib
-TCHAR *ggt_FormatTimeStr(__int64 t64sec, ggt_Time_et fmt, TCHAR *buf, int bufsize);
+TCHAR *ggt_FormatTimeStr(__int64 epsec, ggt_Time_et fmt, TCHAR *buf, int bufsize);
 	//!< Format time to string
-	/*!< t64sec is the seconds since Unix epoch. 
+	/*!< epsec is the seconds since Unix epoch. 
 		`fmt' can be 
 		- ggt_Year: outputs YYYY-MM-DD hh:mm:ss
 		- ggt_Month: outputs MM-DD hh:mm:ss

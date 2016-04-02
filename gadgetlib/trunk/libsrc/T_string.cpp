@@ -70,7 +70,7 @@ T_strcmp(const TCHAR *str1, const TCHAR *str2)
 int 
 T_stricmp(const TCHAR *str1, const TCHAR *str2, size_t count)
 {
-#if _MSC_VER >= 1400 // For VS2005+
+#if (_MSC_VER >= 1400) && (!defined _WIN32_WCE) // For VS2005+
 	return _tcsicmp(str1, str2);
 #else
 	int i;
@@ -105,7 +105,7 @@ T_strncmp(const TCHAR *str1, const TCHAR *str2, size_t count)
 int 
 T_strnicmp(const TCHAR *str1, const TCHAR *str2, size_t count)
 {
-#if _MSC_VER >= 1400 // For VS2005+
+#if _MSC_VER >= 1400 && (!defined _WIN32_WCE) // For VS2005+
 	return _tcsnicmp(str1, str2, count);
 #else
 	int i;

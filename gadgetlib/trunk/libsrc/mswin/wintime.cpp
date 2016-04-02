@@ -1,6 +1,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-
+#include <time.h>
+#include <assert.h>
 #include <mm_snprintf.h>
 
 #include <gadgetlib/timefuncs.h>
@@ -8,12 +9,23 @@
 #define DLL_AUTO_EXPORT_STUB
 extern"C" void gadgetlib_lib__wintime__DLL_AUTO_EXPORT_STUB(void){}
 
-// Partial code from Apache Portable Runtime(APR)
+static __int64 
+wintano_at_unix_epoc()
+{
+	static __int64 s_wintano = 0;
+	if(s_wintano>0)
+		return s_wintano;
 
-/* Number of milliseconds between the beginning of the Windows epoch
- * (Jan. 1, 1601) and the Unix epoch (Jan. 1, 1970) 
- */
-#define APR_DELTA_EPOCH_IN_MSEC 11644473600000i64
+	SYSTEMTIME st = {0};
+	st.wYear = 1970; st.wMonth = 1; st.wDay = 1;
+	FILETIME winft;
+	BOOL b = SystemTimeToFileTime(&st, &winft);
+	assert(b);
+
+	s_wintano = winft.dwLowDateTime + ((__int64)winft.dwHighDateTime<<32);
+	assert(s_wintano/1000==ggt_DELTA_EPOCH_IN_MILLISEC);
+	return ggt_DELTA_EPOCH_IN_MILLISEC;
+}
 
 static __int64 
 FileTime_to_int64_millisec(const FILETIME *input)
@@ -24,7 +36,7 @@ FileTime_to_int64_millisec(const FILETIME *input)
 	result = result << 32;
 	result |= input->dwLowDateTime;
 	result /= 10000;    /* Convert from 100 nano-sec periods to milliseconds. */
-	result -= APR_DELTA_EPOCH_IN_MSEC;  /* Convert from Windows epoch to Unix epoch */
+	result -= ggt_DELTA_EPOCH_IN_MILLISEC;  /* Convert from Windows epoch to Unix epoch */
 
 	return result;
 }
@@ -81,12 +93,42 @@ ggt_time64_local()
 	return ggt_time64_local_millisec()/1000;
 }
 
+bool 
+ggt_gmtime(__int64 epsec, struct tm *ptm)
+{
+	__int64 wintano = (ggt_DELTA_EPOCH_IN_MILLISEC+epsec*1000)*10000;
+	FILETIME winft = { (DWORD)wintano, (DWORD)(wintano>>32) };
+//	winft.dwLowDateTime=(DWORD)wintano; winft.dwHighDateTime=(DWORD)(wintano>>32);
+	SYSTEMTIME winst;
+	BOOL b = FileTimeToSystemTime(&winft, &winst);
+	if(!b)
+		return false;
+	
+	Winsystime_to_Ansi_tm(&winst, ptm, NULL);
+	return true;
+}
+
+bool 
+ggt_localtime(__int64 epsec, struct tm *ptm) //zzz
+{
+	__int64 wintano = (ggt_DELTA_EPOCH_IN_MILLISEC+epsec*1000)*10000;
+	FILETIME winft_local, winft={ (DWORD)wintano, (DWORD)(wintano>>32) };
+	FileTimeToLocalFileTime(&winft, &winft_local);
+	SYSTEMTIME winst;
+	BOOL b = FileTimeToSystemTime(&winft_local, &winst);
+	if(!b)
+		return false;
+	
+	Winsystime_to_Ansi_tm(&winst, ptm, NULL);
+	return true;
+}
+
 __int64 
 ggt_time64_millisec()
 {
     FILETIME time;
 
-#ifndef _WIN32_WCE
+#ifndef _WIN32_WCE // PC Windows
     GetSystemTimeAsFileTime(&time);
 #else
     SYSTEMTIME st;
@@ -109,13 +151,13 @@ ggt_time64_local_millisec()
 }
 
 bool 
-ggt_gmtime(struct tm *ptm)
+ggt_gmtime_now(struct tm *ptm)
 {
-	return ggt_gmtime_millisec(ptm, NULL);
+	return ggt_gmtime_now_millisec(ptm, NULL);
 }
 
 bool 
-ggt_gmtime_millisec(struct tm *ptm, int *pMillisec)
+ggt_gmtime_now_millisec(struct tm *ptm, int *pMillisec)
 {
     SYSTEMTIME st;
     GetSystemTime(&st);
@@ -126,13 +168,13 @@ ggt_gmtime_millisec(struct tm *ptm, int *pMillisec)
 }
 
 bool 
-ggt_localtime(struct tm *ptm)
+ggt_localtime_now(struct tm *ptm)
 {
-	return ggt_localtime_millisec(ptm, NULL);
+	return ggt_localtime_now_millisec(ptm, NULL);
 }
 
 bool 
-ggt_localtime_millisec(struct tm *ptm, int *pMillisec)
+ggt_localtime_now_millisec(struct tm *ptm, int *pMillisec)
 {
     SYSTEMTIME st;
     GetLocalTime(&st);
@@ -187,10 +229,10 @@ ggt_FormatTimeStr_Winsystime(const SYSTEMTIME &st, ggt_Time_et fmt, TCHAR *buf, 
 }
 
 TCHAR *
-ggt_FormatTimeStr(__int64 t64, ggt_Time_et fmt, TCHAR *buf, int bufsize)
+ggt_FormatTimeStr(__int64 epsec, ggt_Time_et fmt, TCHAR *buf, int bufsize)
 {
-	t64 *= 1000*10000; // translate sec to 100 nano-sec.
-	FILETIME ft = { (DWORD)t64, (DWORD)(t64>>32) };
+	__int64 wintano = (ggt_DELTA_EPOCH_IN_MILLISEC+epsec*1000)*10000; // translate sec to 100 nano-sec.
+	FILETIME ft = { (DWORD)wintano, (DWORD)(wintano>>32) };
 	SYSTEMTIME st;
 	FileTimeToSystemTime(&ft, &st);
 

@@ -50,8 +50,30 @@ ggt_time64_local_millisec()
 	return ggt_time64_millisec() - timezone*1000;
 }
 
+
 bool 
-ggt_gmtime(struct tm *ptm)
+ggt_gmtime(__int64 epsec, struct tm *ptm)
+{
+	time_t t = epsec;
+	struct tm *pret = gmtime_r(&t, ptm);
+	if(pret)
+		return true;
+	else
+		return false;
+}
+
+bool ggt_localtime(__int64 epsec, struct tm *ptm)
+{
+	time_t t = epsec;
+	struct tm *pret = localtime_r(&t, ptm);
+	if(pret)
+		return true;
+	else
+		return false;
+}
+
+bool 
+ggt_gmtime_now(struct tm *ptm)
 {
 	time_t t = time(NULL);
 	struct tm *pret = gmtime_r(&t, ptm);
@@ -62,7 +84,7 @@ ggt_gmtime(struct tm *ptm)
 }
 
 bool 
-ggt_gmtime_millisec(struct tm *ptm, int *pMillisec)
+ggt_gmtime_now_millisec(struct tm *ptm, int *pMillisec)
 {
    	timeval tv_abs;
 	int err = gettimeofday(&tv_abs, NULL);
@@ -80,7 +102,7 @@ ggt_gmtime_millisec(struct tm *ptm, int *pMillisec)
 }
 
 bool 
-ggt_localtime(struct tm *ptm)
+ggt_localtime_now(struct tm *ptm)
 {
 	time_t t = time(NULL);
 	struct tm *pret = localtime_r(&t, ptm);
@@ -91,7 +113,7 @@ ggt_localtime(struct tm *ptm)
 }
 
 bool 
-ggt_localtime_millisec(struct tm *ptm, int *pMillisec)
+ggt_localtime_now_millisec(struct tm *ptm, int *pMillisec)
 {
    	timeval tv_abs;
 	int err = gettimeofday(&tv_abs, NULL);
@@ -187,9 +209,9 @@ ggt_FormatTimeStr_Now(int isLocalTime, ggt_Time_et fmt, TCHAR *buf, int bufsize)
 	buf[0] = 0;
 
 	if(isLocalTime)
-		b = ggt_localtime(&tmNow);
+		b = ggt_localtime_now(&tmNow);
 	else
-		b = ggt_gmtime(&tmNow);
+		b = ggt_gmtime_now(&tmNow);
 
 	if(b)
 	{
