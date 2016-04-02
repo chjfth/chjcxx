@@ -26,9 +26,6 @@ REM set gmb_compiler_ids=msvc
 REM set gmb_msvc_vers=vc100
 REM set gmb_wince_vers=
 
-REM [optional] gmu_SC_CHECKOUT_DATETIME=...
-REM -- will receive default in scalacon-make-sdk.bat
-
 REM [optional] gmb_run_example_on_compiler_vers
 REM -- set this if you need to verify-run some example exe output
 REM Caution! When assigning two cvers, DO NOT enclose them in double-quotes. CMD set does not need the quotes.
@@ -40,5 +37,6 @@ set CMD_GETSDKIN=scalacon-get-sdkin.py --ini=../../get-sdkin.ini --force
 
 set gmb_ignore_uxm=1
 REM -- because this SDK has not prepared user example yet.
+
 call scalacon-make-sdk.bat %*
 
