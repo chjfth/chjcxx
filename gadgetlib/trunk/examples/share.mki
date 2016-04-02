@@ -75,7 +75,7 @@ gmp_u_list_PLUGIN_TO_LOAD +=
 #gmu_uf_LINK_OUTPUT = ### already defined in startup-makefile
 gmp_DECO_UNICODE_FOR_LINK_OUTPUT = 1
 	#Set this to 1 if you want a _U suffix on your output-image when gmp_bc_UNICODE=1
-gmp_DECO_DEBUG_FOR_LINK_OUTPUT = 
+gmp_DECO_DEBUG_FOR_LINK_OUTPUT = 1
 	#Set this to 1 if you want a _D suffix on your output-image when gmp_bc_DEBUG=1
 
 # GMU-var: gmu_ud_SRC_ROOT
@@ -83,7 +83,7 @@ gmp_DECO_DEBUG_FOR_LINK_OUTPUT =
 # You can use a relative dir here, but note, it is relative to make-var $(CURDIR),
 # not to this mki file. Normally, $(CURDIR) is your start-up makefile directory.
 gmu_ud_SRC_ROOT = .
-dirThisRepo = $(if $(gmb_thisrepo),$(gmb_thisrepo),../../..)
+dirThisRepo = $(if $(gmb_thisrepo),$(gmb_thisrepo),../..)
 
 # GMU-var: gmu_up_list_SRC_FROM_ROOT
 #	Define your source files to compile, source files(dir prefix allowed) separated by spaces or tabs.

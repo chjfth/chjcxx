@@ -14,7 +14,7 @@ s_DefaultCharNext(const char *pChk, void *pCallbackExtra)
 
 	const char *pnext = ggt_charnext(pChk);
 	assert(pnext>pChk);
-	return pnext-pChk;
+	return (int)(pnext-pChk);
 }
 
 char *ggt_RoundMbcsString(const char *pIn, int InBytes, const char *pStartScan,
@@ -85,7 +85,7 @@ char *ggt_RoundMbcsString(const char *pIn, int InBytes, const char *pStartScan,
 	}
 
 	if(pResultBytes)
-		*pResultBytes = pFinalEnd_ - pFinalHead;
+		*pResultBytes = (int)(pFinalEnd_ - pFinalHead);
 
 	if(pResultChars)
 		*pResultChars = nResultChars;

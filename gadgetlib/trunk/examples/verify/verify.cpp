@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <ps_TCHAR.h>
 
 #include "share.h"

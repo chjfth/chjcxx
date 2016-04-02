@@ -10,7 +10,7 @@ gmu_PRJ_NAME = gadgetlib.ux-common-all
 
 # User-do: List subprj makefiles in , space separated.
 subprj_makefiles = \
-	common/exe_gadgetlib/Makefile \
+	verify/Makefile.umk \
 	
 
 
