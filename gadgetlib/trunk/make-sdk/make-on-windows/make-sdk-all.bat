@@ -32,7 +32,7 @@ REM -- will receive default in scalacon-make-sdk.bat
 REM [optional] gmb_run_example_on_compiler_vers
 REM -- set this if you need to verify-run some example exe output
 REM Caution! When assigning two cvers, DO NOT enclose them in double-quotes. CMD set does not need the quotes.
-REM set gmb_run_example_on_compiler_vers=vc80 vc100x64
+set gmb_run_example_on_compiler_vers=vc80 vc100x64
 
 REM [optional] CMD_GETSDKIN
 REM -- used by scalacon-make-sdk.bat, will be NULL if not set.
