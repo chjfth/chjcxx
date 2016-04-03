@@ -22,6 +22,6 @@ int main()
 	
 	verify_timefuncs();
 	
-	printf("Verify success.\n");
+	T_printf(_T("Verify success.\n"));
 	return 0;
 }
