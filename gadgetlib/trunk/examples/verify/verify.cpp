@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <ps_TCHAR.h>
+#include <TScalableArray.h>
 
 #include "share.h"
 
