@@ -28,14 +28,14 @@ REM -- will receive default "sdkout" in PI_makesdk_2016
 set gmb_dirname_sdkout=sdkout
 
 REM set gmb_compiler_ids=msvc
-REM set gmb_msvc_vers=vc100
+REM set gmb_msvc_vers=vc80 vc100
 REM set gmb_planets_msvc_vc100=DUL
 REM set gmb_wince_vers=
 
-REM [optional] gmb_run_example_on_compiler_vers
+REM [optional] gmb_run_example_on_cidvers
 REM -- set this if you need to verify-run some example exe output
 REM Caution! When assigning two cvers, DO NOT enclose them in double-quotes. CMD set does not need the quotes.
-set gmb_run_example_on_compiler_vers=vc80 vc100x64
+set gmb_run_example_on_cidvers=vc80 vc100x64
 
 REM [optional] CMD_GETSDKIN
 REM -- used by scalacon-make-sdk.bat, will be NULL if not set.
