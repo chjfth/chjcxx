@@ -4,3 +4,5 @@ to mm_snprintfW.cpp. What's more, any time you do the change to mm_snprintf.cpp,
 you should synchronize it to mm_snprintfW.cpp .
 The build result will be one lib supporting both ANSI & Unicode version of 
 mm_snprintf functions.
+
+VS project to improve later.
