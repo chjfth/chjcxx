@@ -8,9 +8,7 @@ else
   $(error gmu_DIR_GNUMAKEUNIPROC is not defined, You have to set up GnumakeUniproc environment to use this Makefile)
 endif
 
-ifndef gmu_PRJ_NAME
-  gmu_PRJ_NAME = getopt-all-examples
-endif
+gmu_PRJ_NAME = getopt-all-examples
 
 gmu_uv_list_ALL_SUBPRJ += demo verify
 
