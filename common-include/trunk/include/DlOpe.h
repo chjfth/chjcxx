@@ -1,6 +1,9 @@
 #ifndef __DlOpe_h_20071014_h_
 #define __DlOpe_h_20071014_h_
 
+// Usage: http://wiki.dev.nls:8080/pages/viewpage.action?pageId=9371663
+
+
 #include <stddef.h>
 	//[2009-11-30] WinCE SDK in VS2005 needs <crtdef.h> for ptrdiff_t .
 	// crtdef.h is not ANSI standard, so we use <stddef.h> .
@@ -12,10 +15,26 @@ class DlOpe
 {
 public:
 	static Tnode* 
-	InitHead(Tnode* &r_pVHeadNode, Tnode* &r_pPrevNode)
+	InitHead(Tnode* &r_pVHeadNode, Tnode* &r_pPrevNode, Tnode* &r_pNextNode)
 	{
 		ptrdiff_t prev_offset = (ptrdiff_t) &( ((Tnode*)0)->*ofsPrev );
 		r_pVHeadNode = (Tnode*)((char*)&r_pPrevNode - prev_offset);
+
+		ptrdiff_t next_offset = (ptrdiff_t) &( ((Tnode*)0)->*ofsNext );
+		Tnode *VerifyHeadNode = (Tnode*)((char*)&r_pNextNode - next_offset);
+
+		assert(r_pVHeadNode==VerifyHeadNode);
+		//
+		// If the input &r_pPrevNode and &r_pNextNode have inconsistent relative memory location,
+		// this will assert fail.
+		// For example:
+		// If your node is defined as: 
+		//	struct SNode { int num; SNode *pprev, *pnext; };
+		// but your virtual head node is:
+		//	struct SHead { SNode *pPrev, *bad_stuff_here, *pNext; SNode *pVirtualHead; };
+		// then,
+		//	DlOpe<SNode, &SNode::pprev, &SNode::pnext>::InitHead(head.pVirtualHead, head.pPrev, head.pNext);
+		// will assert fail.
 
 		r_pVHeadNode->*ofsPrev = r_pVHeadNode->*ofsNext = r_pVHeadNode;
 		
