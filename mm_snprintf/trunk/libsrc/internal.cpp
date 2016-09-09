@@ -43,3 +43,14 @@ cal_adcol_digits(const void *imagine_addr, int bufbytes)
 	return slen>4 ? slen : 4;
 }
 
+
+int mm_free_buf(void *ptr)
+{
+#ifdef USE_CPP_NEW
+	delete ptr;
+#else
+	free(ptr);
+#endif
+	return 0;
+}
+

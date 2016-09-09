@@ -1,52 +1,11 @@
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>		// for malloc
-#include <stdarg.h>
-
-#include <ps_Tstrdef.h> 
-	//Note:
-	// 1. This, on MSVC6, may include <tchar.h>, so list it before <ps_TCHAR.h>
-	//otherwise, __T redefinition occurs.
-	// 2. This file #defines va_copy macro if it is not defined in <stdarg.h>
-	//so you MUST #include it after <stdarg.h>
-
-//////////////////////////////
-#include <ps_TCHAR.h>
-#include <mm_snprintf.h>
-#include "internal.h"
-#include "mm_psfunc.h"
-
-#define DLL_AUTO_EXPORT_STUB
-extern"C" void mmsnprintf_lib__mm_snprintfW__DLL_AUTO_EXPORT_STUB(void){}
-
-#ifdef NO_assert // specific for this library
-# undef assert
-# define assert(a) 
-#endif
-
-// Chj: redefine the function names to be mm_... :
-#ifdef _UNICODE
-#  define portable_snprintf  mm_snprintfW
-#  define portable_vsnprintf mm_vsnprintfW
-#  define asprintf mm_asprintfW
-#  define vasprintf mm_vasprintfW
-#  define asnprintf mm_asnprintfW
-#  define vasnprintf mm_vasnprintfW
-#else
-#  define portable_snprintf  mm_snprintfA
-#  define portable_vsnprintf mm_vsnprintfA
-#  define asprintf mm_asprintfA
-#  define vasprintf mm_vasprintfA
-#  define asnprintf mm_asnprintfA
-#  define vasnprintf mm_vasnprintfA
-#endif
-
-
 /*
- * snprintf.c - a portable implementation of snprintf
+ * mm_snprintf.cpp - a portable implementation of snprintf
  *
  * INITIAL AUTHOR
  *   Mark Martinec <mark.martinec@ijs.si>, April 1999.
+ *
+ * V3.0 and above updated by:
+ *	Chen Jun.
  *
  *   Copyright 1999, Mark Martinec. All rights reserved.
  *
@@ -242,9 +201,15 @@ extern"C" void mmsnprintf_lib__mm_snprintfW__DLL_AUTO_EXPORT_STUB(void){}
  * 2008-05-26  V3.1 by Chj <chenjun@nlscan.com>
  *		- Unicode compile support, one library supporting both char and wchar_t .
  *		- New library available on WinCE, as well as Windows, Linux.
- * 2014-07-13  V4.0 by Chj <chenjun@nlscan.com>
+ * 2014-07-13 V4.0 by Chj <chenjun@nlscan.com>
  *		- New memory-dump(memdump) format specifier %m %M .
  *		- Control memdump decoration and format with %k %K %r %R %v
+ * 2014-10-17 V4.2
+ *		- Creative %w format, recursive va_args formatting.
+ *
+ * 2016-09-09  V4.4 by Chj
+ *		- When compiling, USE_CPP_NEW determines whether C++ new is used for asprintf.
+ *		- Add mm_free_buffer() to free the buffer returned by asprintf.
  */
 
 
@@ -253,6 +218,56 @@ extern"C" void mmsnprintf_lib__mm_snprintfW__DLL_AUTO_EXPORT_STUB(void){}
  * If undefined, 'll' is recognized but treated as a single 'l'.
  *
  */
+
+// Some configuration macros:
+
+// USE_CPP_NEW:
+//	Use C++ new/delete for asprintf memory allocation.
+//	If not defined, use malloc/free.
+
+
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>		// for malloc
+#include <stdarg.h>
+
+#include <ps_Tstrdef.h> 
+	//Note:
+	// 1. This, on MSVC6, may include <tchar.h>, so list it before <ps_TCHAR.h>
+	//otherwise, __T redefinition occurs.
+	// 2. This file #defines va_copy macro if it is not defined in <stdarg.h>
+	//so you MUST #include it after <stdarg.h>
+
+//////////////////////////////
+#include <ps_TCHAR.h>
+#include <mm_snprintf.h>
+#include "internal.h"
+#include "mm_psfunc.h"
+
+#define DLL_AUTO_EXPORT_STUB
+
+#ifdef NO_assert // specific for this library
+# undef assert
+# define assert(a) 
+#endif
+
+// Chj: redefine the function names to be mm_... :
+#ifdef _UNICODE
+#  define portable_snprintf  mm_snprintfW
+#  define portable_vsnprintf mm_vsnprintfW
+#  define asprintf mm_asprintfW
+#  define vasprintf mm_vasprintfW
+#  define asnprintf mm_asnprintfW
+#  define vasnprintf mm_vasnprintfW
+#else
+#  define portable_snprintf  mm_snprintfA
+#  define portable_vsnprintf mm_vsnprintfA
+#  define asprintf mm_asprintfA
+#  define vasprintf mm_vasprintfA
+#  define asnprintf mm_asnprintfA
+#  define vasnprintf mm_vasnprintfA
+#endif
+
 
 #define SNPRINTF_LONGLONG_SUPPORT
 
@@ -1108,6 +1123,7 @@ portable_snprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, /*args*/ ...)
 	return str_l;
 }
 
+
 int asprintf(TCHAR **ptr, const TCHAR *fmt, /*args*/ ...) 
 {
 	va_list ap;
@@ -1123,7 +1139,12 @@ int asprintf(TCHAR **ptr, const TCHAR *fmt, /*args*/ ...)
 	if(str_l<0)
 		return -2;
 
-	*ptr = (TCHAR *) malloc( (str_m = (size_t)str_l + 1) * sizeof(TCHAR) );
+	size_t need_bytes = (str_m = (size_t)str_l + 1) * sizeof(TCHAR);
+#ifdef USE_CPP_NEW
+	*ptr = (TCHAR*)new unsigned char[need_bytes];
+#else
+	*ptr = (TCHAR*) malloc( need_bytes );
+#endif 
 	if (*ptr == NULL) {
 		str_l = -1; 
 	}
@@ -1154,7 +1175,12 @@ int vasprintf(TCHAR **ptr, const TCHAR *fmt, va_list ap)
 	if(str_l<0)
 		return -2;
 
-	*ptr = (TCHAR *) malloc( (str_m = (size_t)str_l + 1) *sizeof(TCHAR) );
+	size_t need_bytes = (str_m = (size_t)str_l + 1) *sizeof(TCHAR);
+#ifdef USE_CPP_NEW
+	*ptr = (TCHAR*)new unsigned char[need_bytes];
+#else
+	*ptr = (TCHAR*) malloc( need_bytes );
+#endif 
 	if (*ptr == NULL) { 
 		str_l = -1; 
 	}
@@ -1186,7 +1212,12 @@ int asnprintf (TCHAR **ptr, size_t str_m, const TCHAR *fmt, /*args*/ ...)
 	if (str_m == 0) {  /* not interested in resulting string, just return size */
 	} 
 	else {
-		*ptr = (TCHAR *) malloc(str_m * sizeof(TCHAR));
+		size_t need_bytes = str_m * sizeof(TCHAR);
+#ifdef USE_CPP_NEW
+		*ptr = (TCHAR*)new unsigned char[need_bytes];
+#else
+		*ptr = (TCHAR*) malloc( need_bytes );
+#endif 
 		if (*ptr == NULL) {
 			str_l = -1; 
 		}
@@ -1224,7 +1255,12 @@ int vasnprintf (TCHAR **ptr, size_t str_m, const TCHAR *fmt, va_list ap)
 	if (str_m == 0) {  /* not interested in resulting string, just return size */
 	} 
 	else {
-		*ptr = (TCHAR *) malloc(str_m * sizeof(TCHAR));
+		size_t need_bytes = str_m * sizeof(TCHAR);
+#ifdef USE_CPP_NEW
+		*ptr = (TCHAR*)new unsigned char[need_bytes];
+#else
+		*ptr = (TCHAR*) malloc( need_bytes );
+#endif 
 		if (*ptr == NULL) {
 			str_l = -1; 
 		}
