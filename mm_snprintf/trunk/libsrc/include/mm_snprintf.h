@@ -91,10 +91,18 @@ int mm_vasnprintf(char **ptr, size_t str_m, const char *fmt, va_list ap);
 # define mm_snprintf mm_snprintfW
 # define mm_vsnprintf mm_vsnprintfW
 # define mm_strcat mm_strcatW
+# define mm_asprintf mm_asprintfW
+# define mm_vasprintf mm_vasprintfW
+# define mm_asnprintf mm_asnprintfW
+# define mm_vasnprintf mm_vasnprintfW
 #else
 # define mm_snprintf mm_snprintfA
 # define mm_vsnprintf mm_vsnprintfA
 # define mm_strcat mm_strcatA
+# define mm_asprintf mm_asprintfA
+# define mm_vasprintf mm_vasprintfA
+# define mm_asnprintf mm_asnprintfA
+# define mm_vasnprintf mm_vasnprintfA
 #endif
 
 
