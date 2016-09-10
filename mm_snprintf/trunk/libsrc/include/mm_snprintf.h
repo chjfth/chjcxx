@@ -80,12 +80,12 @@ int mm_strcatW(wchar_t *dest, size_t bufsize, const wchar_t *fmt, ...);
 
 #endif // #ifndef __CC_NORCROFT 
 
-/*
-int mm_asprintf  (char **ptr, const char *fmt,  ...);
-int mm_vasprintf (char **ptr, const char *fmt, va_list ap);
-int mm_asnprintf (char **ptr, size_t str_m, const char *fmt, ...);
-int mm_vasnprintf(char **ptr, size_t str_m, const char *fmt, va_list ap);
-*/
+
+DLLEXPORT_mmsnprintf
+int mm_free_buf(void *ptr);
+	// Free the buffer pointer returned by mm_asprintf, mm_asnprintf, mm_vasprintf, mm_vasnprintf
+	// Return 0 on success.
+
 
 #if (defined _UNICODE) || (defined UNICODE)
 # define mm_snprintf mm_snprintfW
