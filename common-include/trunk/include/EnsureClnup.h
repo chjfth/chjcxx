@@ -50,6 +50,11 @@ public:
 		return m_t;
 	}
 
+	PTR_TYPE* operator&()
+	{
+		return &m_t;
+	}
+
 //	<*PTR_TYPE> operator[](int idx); 
 		// No need! When operator [] is used on this object, compiler can call ``operator PTR_TYPE()''
 		// automatically returning `m_t' so that `m_t[idx]' comes to the scene.
@@ -110,6 +115,8 @@ public:
 	}
 	
 };
+
+
 
 //////// Now, CEnsureCleanupPtrArray and CEnsureCleanupIntArray
 // If you have an array, in which every element should receive a cleanup operation, then use these two.
@@ -189,6 +196,7 @@ public:
 };
 
 
+
 #define MakeCleanupPtrClass(CecClassName, RET_TYPE_of_CleanupFunction, pCleanupFunction, PTR_TYPE) \
 	typedef CEnsureCleanupPtr< PTR_TYPE, RET_TYPE_of_CleanupFunction, pCleanupFunction > CecClassName;
 	// Note: There should be a space between pCleanupfunction and the right angle bracket, because
@@ -198,40 +206,7 @@ public:
 #define MakeCleanupIntClass(CecClassName, RET_TYPE_of_CleanupFunction, pCleanupFunction, INT_TYPE, IntValueInvalid) \
 	typedef CEnsureCleanupInt<INT_TYPE, RET_TYPE_of_CleanupFunction, pCleanupFunction, IntValueInvalid> CecClassName;
 
-#ifdef __ARMCC_VERSION
-	// For the old ARM SDT 2.50
-
-#define MakeCleanupPtrClass_delete(CecClassName, PTR_TYPE) \
-	inline void __delete_##CecClassName(PTR_TYPE p) { delete p; } \
-	MakeCleanupPtrClass(CecClassName, void, __delete_##CecClassName, PTR_TYPE)
-
-#else // not __ARMCC_VERSION
-
-template<typename PTR_TYPE>
-inline void _EnsureClnup_cpp_delete(PTR_TYPE p){ delete p; }
-	// The old ARM SDT 2.50 spouts error: 
-	//    Serious error: requires pointer argument: 'delete'
-
-#define MakeCleanupPtrClass_delete(CecClassName, PTR_TYPE) \
-	MakeCleanupPtrClass(CecClassName, void, _EnsureClnup_cpp_delete<PTR_TYPE>, PTR_TYPE)
-
-template<typename PTR_TYPE>
-inline void _EnsureClnup_cpp_array_delete(PTR_TYPE p){ delete []p; }
-
-#define MakeCleanupPtrClass_array_delete(CecClassName, PTR_TYPE) \
-	MakeCleanupPtrClass(CecClassName, void, _EnsureClnup_cpp_array_delete<PTR_TYPE>, PTR_TYPE)
-	// Note: In this macro name, I put "array" before "delete" because in ``delete []p'',
-	// ``[]'' is written before ``p'' .
-
-#endif // ! // __ARMCC_VERSION
-
-
-#define MakeCleanupClass_delete(ClassName) \
-	inline void __delete_##ClassName(ClassName *p) { delete p; } \
-	MakeCleanupPtrClass(Cec_##ClassName, void, __delete_##ClassName, ClassName*)
-
-
-
+//
 
 #define MakeCleanupPtrArrayClass(CecClassName, RET_TYPE_of_CleanupFunction, pCleanupFunction, USER_TYPE) \
 	typedef CEnsureCleanupPtrArray< USER_TYPE, RET_TYPE_of_CleanupFunction, pCleanupFunction > CecClassName;
@@ -240,9 +215,25 @@ inline void _EnsureClnup_cpp_array_delete(PTR_TYPE p){ delete []p; }
 	typedef CEnsureCleanupIntArray<USER_TYPE, RET_TYPE_of_CleanupFunction, pCleanupFunction, valInvalid> CecClassName;
 
 
-#define MakeCleanupPtrArrayClass_delete(CecClassName, PTR_TYPE) \
-	MakeCleanupPtrArrayClass(CecClassName, void, _EnsureClnup_cpp_delete<PTR_TYPE>, PTR_TYPE)
-	// BUG?!                   Shouldn't I use   _EnsureClnup_cpp_array_delete above ?
+
+/////////////////////////////////// C++ ///////////////////////////////////////
+
+
+template<typename PTR_TYPE>
+inline void _EnsureClnup_cpp_delete(PTR_TYPE p){ delete p; }
+//
+#define MakeCleanupPtrClass_delete(CecClassName, PTR_TYPE) \
+	MakeCleanupPtrClass(CecClassName, void, _EnsureClnup_cpp_delete<PTR_TYPE>, PTR_TYPE)
+
+
+template<typename PTR_TYPE>
+inline void _EnsureClnup_cpp_delete_array(PTR_TYPE p){ delete[] p; }
+//
+#define MakeCleanupPtrClass_delete_array(CecClassName, PTR_TYPE) \
+	MakeCleanupPtrClass(CecClassName, void, _EnsureClnup_cpp_delete_array<PTR_TYPE>, PTR_TYPE)
+
+
+
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -257,9 +248,6 @@ MakeCleanupPtrClass(Cec_pVoid, void, free, void*)
 	// Use ` void free(void*); ' to cleanup a buffer allocated by 
 	// ` void* malloc(size_t); ' .
 
-MakeCleanupClass_array(CecFpAr, int, fclose, FILE*, NULL)
-
-MakeCleanupClass_array(CecFhAr, int, close, int, -1)
 
 
 inline void free_unsigned_char_ptr(unsigned char * p){ free(p); }
