@@ -5,8 +5,8 @@
 
 enum {
 	mmsnprintf_vmajor = 4,
-	mmsnprintf_vminor = 3,
-	mmsnprintf_vbuild = 1
+	mmsnprintf_vminor = 4,
+	mmsnprintf_vbuild = 0
 };
 
 typedef int Int;

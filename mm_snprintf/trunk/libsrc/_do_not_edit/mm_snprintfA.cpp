@@ -245,6 +245,7 @@
 #include "mm_psfunc.h"
 
 #define DLL_AUTO_EXPORT_STUB
+extern"C" void mmsnprintf_lib__mm_snprintfA__DLL_AUTO_EXPORT_STUB(void){}
 
 #ifdef NO_assert // specific for this library
 # undef assert
