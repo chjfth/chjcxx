@@ -1,3 +1,4 @@
+#include <stdlib.h> // free()
 #include <string.h>
 #include <DlOpe.h> // this .h is only to test my magical .h PDB-sewing
 #include "mm_snprintf.h"

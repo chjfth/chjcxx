@@ -213,8 +213,8 @@
  * 2016-09-09  V4.4 by Chj
  *		- When compiling, USE_CPP_NEW determines whether C++ new is used for asprintf.
  *		- Add mm_free_buffer() to free the buffer returned by asprintf.
- *		- %w now has a way to correspond to only one *sprintf parameter(recommended).
- *		  and still compatible with the old(v4.2) way.
+ *		- %w now has a way to consume only ONE *sprintf parameter(recommended).
+ *		  and still compatible with the old(v4.2) two-param way.
  */
 
 
@@ -250,27 +250,11 @@
 #include "mm_psfunc.h"
 
 #define DLL_AUTO_EXPORT_STUB
+extern"C" void mmsnprintf_lib__mm_snprintfW__DLL_AUTO_EXPORT_STUB(void){}
 
 #ifdef NO_assert // specific for this library
 # undef assert
 # define assert(a) 
-#endif
-
-// Chj: redefine the function names to be mm_... :
-#ifdef _UNICODE
-#  define portable_snprintf  mm_snprintfW
-#  define portable_vsnprintf mm_vsnprintfW
-#  define asprintf mm_asprintfW
-#  define vasprintf mm_vasprintfW
-#  define asnprintf mm_asnprintfW
-#  define vasnprintf mm_vasnprintfW
-#else
-#  define portable_snprintf  mm_snprintfA
-#  define portable_vsnprintf mm_vsnprintfA
-#  define asprintf mm_asprintfA
-#  define vasprintf mm_vasprintfA
-#  define asnprintf mm_asnprintfA
-#  define vasnprintf mm_vasnprintfA
 #endif
 
 
@@ -337,25 +321,13 @@ TCHAR * mm_strncpy_(TCHAR *dst, const TCHAR *src, int ndst, bool null_end)
 #define mmquan(array) ((int)(sizeof(array)/sizeof(array[0])))
 
 
-/*#if !defined(HAVE_SNPRINTF) || defined(PREFER_PORTABLE_SNPRINTF)
-int portable_snprintf(char *str, size_t str_m, const char *fmt, ...);
-int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap);
-#endif
-*/
-/* declarations */
-
 static char credits[] = "\n\
 @(#)snprintf.c: Mark Martinec, <mark.martinec@ijs.si>, and Chen Jun.\n\
 @(#)snprintf.c: Copyright 1999, Mark Martinec. Frontier Artistic License applies.\n\
 @(#)snprintf.c: http://www.ijs.si/software/snprintf/\n";
 
-/*
- * If the system does have snprintf and the portable routine is not
- * specifically required, this module produces no code for snprintf/vsnprintf.
- */
-#if !defined(HAVE_SNPRINTF) || defined(PREFER_PORTABLE_SNPRINTF)
 
-int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap) 
+int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap) 
 {
 
 	size_t str_l = 0; // how many output length has been filled, assuming enough output buffer
@@ -1006,7 +978,7 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 				}
 				int fills = mm_vsnprintf(str+str_l, 
 					str_m>str_l ? str_m-str_l : 0, 
-					dig_fmt, *dig_args);
+					dig_fmt, *(va_list*)dig_args); // extra (va_list*) type-conversion(drop const) to make gcc 4.8 x64 happy.
 				str_l += fills;
 				p++;
 				continue;
@@ -1129,16 +1101,16 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 	 */
 	return (int) str_l;
 }
-#endif
+
 
 int 
-portable_snprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, /*args*/ ...) 
+mm_snprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, /*args*/ ...) 
 {
 	va_list ap;
 	int str_l;
 
 	va_start(ap, fmt);
-	str_l = portable_vsnprintf(str, str_m, fmt, ap);
+	str_l = mm_vsnprintf(str, str_m, fmt, ap);
 	va_end(ap);
 	return str_l;
 }
@@ -1152,7 +1124,7 @@ int asprintf(TCHAR **ptr, const TCHAR *fmt, /*args*/ ...)
 
 	*ptr = NULL;
 	va_start(ap, fmt);                            /* measure the required size */
-	str_l = portable_vsnprintf(NULL, (size_t)0, fmt, ap);
+	str_l = mm_vsnprintf(NULL, (size_t)0, fmt, ap);
 	va_end(ap);
 	
 	//assert(str_l >= 0);        /* possible integer overflow if str_m > INT_MAX */
@@ -1171,7 +1143,7 @@ int asprintf(TCHAR **ptr, const TCHAR *fmt, /*args*/ ...)
 	else {
 		int str_l2;
 		va_start(ap, fmt);
-		str_l2 = portable_vsnprintf(*ptr, str_m, fmt, ap);
+		str_l2 = mm_vsnprintf(*ptr, str_m, fmt, ap);
 		va_end(ap);
 		assert(str_l2 == str_l);
 	}
@@ -1187,7 +1159,7 @@ int vasprintf(TCHAR **ptr, const TCHAR *fmt, va_list ap)
 	{ 
 		va_list ap2;
 		va_copy(ap2, ap);  /* don't consume the original ap, we'll need it again */
-		str_l = portable_vsnprintf(NULL, (size_t)0, fmt, ap2);/*get required size*/
+		str_l = mm_vsnprintf(NULL, (size_t)0, fmt, ap2);/*get required size*/
 		va_end(ap2);
 	}
 	
@@ -1205,7 +1177,7 @@ int vasprintf(TCHAR **ptr, const TCHAR *fmt, va_list ap)
 		str_l = -1; 
 	}
 	else {
-		int str_l2 = portable_vsnprintf(*ptr, str_m, fmt, ap);
+		int str_l2 = mm_vsnprintf(*ptr, str_m, fmt, ap);
 		assert(str_l2 == str_l);
 	}
 	return str_l;
@@ -1218,7 +1190,7 @@ int asnprintf (TCHAR **ptr, size_t str_m, const TCHAR *fmt, /*args*/ ...)
 
 	*ptr = NULL;
 	va_start(ap, fmt);                            /* measure the required size */
-	str_l = portable_vsnprintf(NULL, (size_t)0, fmt, ap);
+	str_l = mm_vsnprintf(NULL, (size_t)0, fmt, ap);
 	va_end(ap);
 
 	//assert(str_l >= 0);        /* possible integer overflow if str_m > INT_MAX */
@@ -1244,7 +1216,7 @@ int asnprintf (TCHAR **ptr, size_t str_m, const TCHAR *fmt, /*args*/ ...)
 		else {
 		  int str_l2;
 		  va_start(ap, fmt);
-		  str_l2 = portable_vsnprintf(*ptr, str_m, fmt, ap);
+		  str_l2 = mm_vsnprintf(*ptr, str_m, fmt, ap);
 		  va_end(ap);
 		  assert(str_l2 == str_l);
 		}
@@ -1260,7 +1232,7 @@ int vasnprintf (TCHAR **ptr, size_t str_m, const TCHAR *fmt, va_list ap)
 	{ 
 		va_list ap2;
 		va_copy(ap2, ap);  /* don't consume the original ap, we'll need it again */
-		str_l = portable_vsnprintf(NULL, (size_t)0, fmt, ap2);/*get required size*/
+		str_l = mm_vsnprintf(NULL, (size_t)0, fmt, ap2);/*get required size*/
 		va_end(ap2);
 	}
 
@@ -1285,7 +1257,7 @@ int vasnprintf (TCHAR **ptr, size_t str_m, const TCHAR *fmt, va_list ap)
 			str_l = -1; 
 		}
 		else {
-			int str_l2 = portable_vsnprintf(*ptr, str_m, fmt, ap);
+			int str_l2 = mm_vsnprintf(*ptr, str_m, fmt, ap);
 			assert(str_l2 == str_l);
 		}
 	}
