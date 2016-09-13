@@ -250,7 +250,6 @@
 #include "mm_psfunc.h"
 
 #define DLL_AUTO_EXPORT_STUB
-extern"C" void mmsnprintf_lib__mm_snprintfW__DLL_AUTO_EXPORT_STUB(void){}
 
 #ifdef NO_assert // specific for this library
 # undef assert
@@ -1116,7 +1115,7 @@ mm_snprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, /*args*/ ...)
 }
 
 
-int asprintf(TCHAR **ptr, const TCHAR *fmt, /*args*/ ...) 
+int mm_asprintf(TCHAR **ptr, const TCHAR *fmt, /*args*/ ...) 
 {
 	va_list ap;
 	size_t str_m;
@@ -1150,7 +1149,7 @@ int asprintf(TCHAR **ptr, const TCHAR *fmt, /*args*/ ...)
 	return str_l;
 }
 
-int vasprintf(TCHAR **ptr, const TCHAR *fmt, va_list ap) 
+int mm_vasprintf(TCHAR **ptr, const TCHAR *fmt, va_list ap) 
 {
 	size_t str_m;
 	int str_l;
@@ -1183,7 +1182,7 @@ int vasprintf(TCHAR **ptr, const TCHAR *fmt, va_list ap)
 	return str_l;
 }
 
-int asnprintf (TCHAR **ptr, size_t str_m, const TCHAR *fmt, /*args*/ ...) 
+int mm_asnprintf (TCHAR **ptr, size_t str_m, const TCHAR *fmt, /*args*/ ...) 
 {
 	va_list ap;
 	int str_l;
@@ -1224,7 +1223,7 @@ int asnprintf (TCHAR **ptr, size_t str_m, const TCHAR *fmt, /*args*/ ...)
   return str_l;
 }
 
-int vasnprintf (TCHAR **ptr, size_t str_m, const TCHAR *fmt, va_list ap) 
+int mm_vasnprintf (TCHAR **ptr, size_t str_m, const TCHAR *fmt, va_list ap) 
 {
 	int str_l;
 
