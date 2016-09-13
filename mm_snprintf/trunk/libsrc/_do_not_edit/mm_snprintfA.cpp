@@ -207,9 +207,14 @@
  * 2014-10-17 V4.2
  *		- Creative %w format, recursive va_args formatting.
  *
+ * 2016-03-27  V4.3 by Chj
+ *		- Add mm_strcat, demonstrating the use of %w .
+ *
  * 2016-09-09  V4.4 by Chj
  *		- When compiling, USE_CPP_NEW determines whether C++ new is used for asprintf.
  *		- Add mm_free_buffer() to free the buffer returned by asprintf.
+ *		- %w now has a way to correspond to only one *sprintf parameter(recommended).
+ *		  and still compatible with the old(v4.2) way.
  */
 
 
@@ -245,7 +250,6 @@
 #include "mm_psfunc.h"
 
 #define DLL_AUTO_EXPORT_STUB
-extern"C" void mmsnprintf_lib__mm_snprintfA__DLL_AUTO_EXPORT_STUB(void){}
 
 #ifdef NO_assert // specific for this library
 # undef assert
@@ -982,12 +986,27 @@ int portable_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 			}
 		case _T('w'):
 			{
-				// consume two arguments for 'w'
-				const TCHAR *dig_fmt = va_arg(ap, TCHAR*);
-				va_list *dig_args = va_arg(ap, va_list*); 
+				// If mm_wpair_magic detected(v4.4+), consume only one parameter.
+				// If mm_wpair_magic not detected(v4.2+), consume two parameters.
+				
+				const TCHAR *dig_fmt = NULL;
+				const va_list *dig_args = NULL;
+				
+				const mm_wpair_st *wpair = va_arg(ap, mm_wpair_st*);
+				
+				if(wpair->magic==mm_wpair_magic) // magic detected
+				{
+					dig_fmt = (const TCHAR*)wpair->fmt; // BORING: cannot convert from 'const wchar_t *const ' to 'const TCHAR *'
+					dig_args = wpair->pargs;
+				}
+				else
+				{
+					dig_fmt = (const TCHAR*)wpair;
+					dig_args = va_arg(ap, va_list*); 
+				}
 				int fills = mm_vsnprintf(str+str_l, 
 					str_m>str_l ? str_m-str_l : 0, 
-					dig_fmt, *dig_args);				
+					dig_fmt, *dig_args);
 				str_l += fills;
 				p++;
 				continue;
@@ -1490,7 +1509,8 @@ mm_strcat(TCHAR *dest, size_t bufsize, const TCHAR *fmt, ...)
 	va_list args;
 	va_start(args, fmt);
 
-	int ret = mm_snprintf(dest, bufsize, _T("%s%w"), dest, fmt, &args);
+	mm_wpair_st wpair(fmt, &args);
+	int ret = mm_snprintf(dest, bufsize, _T("%s%w"), dest, &wpair);
 
 	va_end(args);
 	

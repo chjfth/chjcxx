@@ -80,11 +80,35 @@ int mm_strcatW(wchar_t *dest, size_t bufsize, const wchar_t *fmt, ...);
 
 #endif // #ifndef __CC_NORCROFT 
 
-
 DLLEXPORT_mmsnprintf
 int mm_free_buf(void *ptr);
 	// Free the buffer pointer returned by mm_asprintf, mm_asnprintf, mm_vasprintf, mm_vasnprintf
 	// Return 0 on success.
+
+// The struct used for %w, since v4.4
+//
+enum { mm_wpair_magic = 0xEF160913 };
+//
+struct mm_wpair_stA
+{
+	unsigned int magic;
+	const char *fmt;
+	const va_list *pargs;
+#ifdef __cplusplus
+	mm_wpair_stA(const char *f, const va_list *a) : magic(mm_wpair_magic), fmt(f), pargs(a) {}
+#define MM_WPAIR_PARAMA(fmt, args) &mm_wpair_stA((fmt), &(args)) // only for C++
+#endif
+};
+struct mm_wpair_stW
+{
+	unsigned int magic;
+	const wchar_t *fmt;
+	const va_list *pargs;
+#ifdef __cplusplus
+	mm_wpair_stW(const wchar_t *f, const va_list *a) : magic(mm_wpair_magic), fmt(f), pargs(a) {}
+	#define MM_WPAIR_PARAMW(fmt, args) &mm_wpair_stW((fmt), &(args)) // only for C++
+#endif
+};
 
 
 #if (defined _UNICODE) || (defined UNICODE)
@@ -95,6 +119,8 @@ int mm_free_buf(void *ptr);
 # define mm_vasprintf mm_vasprintfW
 # define mm_asnprintf mm_asnprintfW
 # define mm_vasnprintf mm_vasnprintfW
+# define mm_wpair_st mm_wpair_stW
+# define MM_WPAIR_PARAM MM_WPAIR_PARAMW
 #else
 # define mm_snprintf mm_snprintfA
 # define mm_vsnprintf mm_vsnprintfA
@@ -103,6 +129,8 @@ int mm_free_buf(void *ptr);
 # define mm_vasprintf mm_vasprintfA
 # define mm_asnprintf mm_asnprintfA
 # define mm_vasnprintf mm_vasnprintfA
+# define mm_wpair_st mm_wpair_stA
+# define MM_WPAIR_PARAM MM_WPAIR_PARAMA
 #endif
 
 
