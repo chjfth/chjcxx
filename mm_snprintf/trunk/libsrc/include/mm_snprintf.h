@@ -96,7 +96,7 @@ struct mm_wpair_stA
 	const va_list *pargs;
 #ifdef __cplusplus
 	mm_wpair_stA(const char *f, const va_list *a) : magic(mm_wpair_magic), fmt(f), pargs(a) {}
-#define MM_WPAIR_PARAMA(fmt, args) &mm_wpair_stA((fmt), &(args)) // only for C++
+	#define MM_WPAIR_PARAMA(fmt, args) &mm_wpair_stA((fmt), &(args)) // only for C++
 #endif
 };
 struct mm_wpair_stW
