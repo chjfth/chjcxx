@@ -23,6 +23,9 @@ typedef unsigned char Uint8;
 	while Uint8 implies a binary data ranging from 0~255.	*/
 typedef unsigned long Ulong;
 typedef unsigned short Ushort;
+
+typedef unsigned __int64 Uint64; // for gcc, please add compiler flag '-D__int64=long long'
+
 typedef int RE_CODE;	
 	// RE_CODE: result code, normally 0 as "no error" if using this type,
 	//some value other than 0 means an error code.
