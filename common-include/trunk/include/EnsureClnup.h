@@ -206,6 +206,16 @@ public:
 #define MakeCleanupIntClass(CecClassName, RET_TYPE_of_CleanupFunction, pCleanupFunction, INT_TYPE, IntValueInvalid) \
 	typedef CEnsureCleanupInt<INT_TYPE, RET_TYPE_of_CleanupFunction, pCleanupFunction, IntValueInvalid> CecClassName;
 
+#define MakeCleanupPtrClass_winapi(CecClassName, RetType, pCleanupFunction, PTR_TYPE) \
+	inline RetType pCleanupFunction ## _Ptr__plain(PTR_TYPE ptr){ return pCleanupFunction(ptr); } \
+	typedef CEnsureCleanupPtr< PTR_TYPE, RetType, pCleanupFunction ## _Ptr__plain > CecClassName;
+
+#define MakeCleanupIntClass_winapi(CecClassName, RetType, pCleanupFunction, INT_TYPE, IntValueInvalid) \
+	inline RetType pCleanupFunction ## _Int__plain(INT_TYPE h){ return pCleanupFunction(h); } \
+	typedef CEnsureCleanupInt<INT_TYPE, RetType, pCleanupFunction ## _Int__plain, IntValueInvalid> CecClassName;
+	// MakeCleanupIntClass_winapi provide a non-__stdcall wrapper so that CEnsureCleanupInt can be used smoothly.
+
+
 //
 
 #define MakeCleanupPtrArrayClass(CecClassName, RET_TYPE_of_CleanupFunction, pCleanupFunction, USER_TYPE) \
@@ -233,6 +243,14 @@ inline void _EnsureClnup_cpp_delete_array(PTR_TYPE p){ delete[] p; }
 	MakeCleanupPtrClass(CecClassName, void, _EnsureClnup_cpp_delete_array<PTR_TYPE>, PTR_TYPE)
 
 
+// Now define a class named CecRawMemory representing a void*-pointed memory block,
+// that would be de-allocated by C++-delete.
+MakeCleanupPtrClass_delete(Cec_NewMemory, void*)
+// 
+// Usage example:
+//
+//	Cec_RawMemory cec_memblock = new unsigned char[1000];
+//	memcpy(cec_memblock, src, 1000);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -243,10 +261,15 @@ MakeCleanupIntClass(Cec_LibcFh, int, close, int, -1)
 	// Use ` int close(int); ' to cleanup a file handle opened by 
 	// ` int open (const char *, int, ...); ' , and the invalid(default) value is -1 .
 
-
 MakeCleanupPtrClass(Cec_pVoid, void, free, void*)
 	// Use ` void free(void*); ' to cleanup a buffer allocated by 
 	// ` void* malloc(size_t); ' .
+
+// Windows API examples:
+MakeCleanupPtrClass_winapi(Cec_PTRHANDLE, BOOL, CloseHandle, HANDLE);
+	// This is for OpenProcess, who returns NULL as fail.
+MakeCleanupIntClass_winapi(Cec_FILEHANDLE, BOOL, CloseHandle, HANDLE, INVALID_HANDLE_VALUE); 
+	// This is for CreateFile, who returns INVALID_HANDLE_VALUE as fail. Damn M$.
 
 
 
