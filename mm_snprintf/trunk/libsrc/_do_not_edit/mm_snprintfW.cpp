@@ -210,11 +210,13 @@
  * 2016-03-27  V4.3 by Chj
  *		- Add mm_strcat, demonstrating the use of %w .
  *
- * 2016-09-09  V4.4 by Chj
+ * 2017-01-28  V4.4 by Chj
  *		- When compiling, USE_CPP_NEW determines whether C++ new is used for asprintf.
  *		- Add mm_free_buffer() to free the buffer returned by asprintf.
  *		- %w now has a way to consume only ONE *sprintf parameter(recommended).
  *		  and still compatible with the old(v4.2) two-param way.
+ *      - New function mm_snprintf_am(), updating pbuf and bufsize as a  
+ *        convenient way for concatenating formatted string.
  */
 
 
@@ -250,6 +252,7 @@
 #include "mm_psfunc.h"
 
 #define DLL_AUTO_EXPORT_STUB
+extern"C" void mmsnprintf_lib__mm_snprintfW__DLL_AUTO_EXPORT_STUB(void){}
 
 #ifdef NO_assert // specific for this library
 # undef assert
