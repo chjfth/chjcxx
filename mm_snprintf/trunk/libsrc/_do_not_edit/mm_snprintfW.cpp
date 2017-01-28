@@ -250,7 +250,6 @@
 #include "mm_psfunc.h"
 
 #define DLL_AUTO_EXPORT_STUB
-extern"C" void mmsnprintf_lib__mm_snprintfW__DLL_AUTO_EXPORT_STUB(void){}
 
 #ifdef NO_assert // specific for this library
 # undef assert
@@ -1262,6 +1261,42 @@ int mm_vasnprintf (TCHAR **ptr, size_t str_m, const TCHAR *fmt, va_list ap)
 		}
 	}
 	return str_l;
+}
+
+
+int 
+mm_snprintf_am(TCHAR * &pbuf, int &bufsize, const TCHAR *fmt, ...)
+{
+	if(bufsize<=0)
+		return 1<<31; // the smallest int
+	
+	va_list args;
+	va_start(args, fmt);
+	
+	int allchars = mm_vsnprintf(pbuf, bufsize, fmt, args);
+	
+	// move pbuf and bufsize within user's range
+	int ret = 0;
+	
+	if(allchars<bufsize)
+	{
+		ret = 0;
+
+		pbuf += allchars;
+		bufsize -= allchars;
+	}
+	else
+	{
+		ret = bufsize-1 - allchars;
+
+		pbuf += (bufsize-1);
+		bufsize = 1;
+		
+		// Example: Returning -3 means 3 TCHARs is truncated due to insufficient bufsize.
+	}
+	
+	va_end(args);
+	return ret;
 }
 
 

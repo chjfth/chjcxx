@@ -48,6 +48,9 @@ DLLEXPORT_mmsnprintf
 int mm_vasnprintfA(char **ptr, size_t max_alloc_size, const char *fmt, va_list ap);
 
 DLLEXPORT_mmsnprintf
+int mm_snprintf_amA(char * &pbuf, int &bufsize, const char *fmt, ...); // am means auto-update of pbuf & bufsize
+
+DLLEXPORT_mmsnprintf
 int mm_strcatA(char *dest, size_t bufsize, const char *fmt, ...);
 
 
@@ -76,9 +79,13 @@ int mm_vasnprintfW(wchar_t **ptr, size_t max_alloc_size, const wchar_t *fmt, va_
 	// `max_alloc_size' also in count of wchar_t
 
 DLLEXPORT_mmsnprintf
+int mm_snprintf_amW(wchar_t * &pbuf, int &bufsize, const wchar_t *fmt, ...); // am means auto-update of pbuf & bufsize
+
+DLLEXPORT_mmsnprintf
 int mm_strcatW(wchar_t *dest, size_t bufsize, const wchar_t *fmt, ...);
 
 #endif // #ifndef __CC_NORCROFT 
+
 
 DLLEXPORT_mmsnprintf
 int mm_free_buf(void *ptr);
@@ -112,6 +119,7 @@ struct mm_wpair_stW
 
 
 #if (defined _UNICODE) || (defined UNICODE)
+
 # define mm_snprintf mm_snprintfW
 # define mm_vsnprintf mm_vsnprintfW
 # define mm_strcat mm_strcatW
@@ -119,9 +127,13 @@ struct mm_wpair_stW
 # define mm_vasprintf mm_vasprintfW
 # define mm_asnprintf mm_asnprintfW
 # define mm_vasnprintf mm_vasnprintfW
+# define mm_snprintf_am mm_snprintf_amW
+//
 # define mm_wpair_st mm_wpair_stW
 # define MM_WPAIR_PARAM MM_WPAIR_PARAMW
+
 #else
+
 # define mm_snprintf mm_snprintfA
 # define mm_vsnprintf mm_vsnprintfA
 # define mm_strcat mm_strcatA
@@ -129,8 +141,11 @@ struct mm_wpair_stW
 # define mm_vasprintf mm_vasprintfA
 # define mm_asnprintf mm_asnprintfA
 # define mm_vasnprintf mm_vasnprintfA
+# define mm_snprintf_am mm_snprintf_amA
+//
 # define mm_wpair_st mm_wpair_stA
 # define MM_WPAIR_PARAM MM_WPAIR_PARAMA
+
 #endif
 
 
