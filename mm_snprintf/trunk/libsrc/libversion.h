@@ -13,10 +13,10 @@
 #define LIB_VMINORs CONST_NUM_TO_STR(LIB_VMINOR)
 #define LIB_VBUILDs CONST_NUM_TO_STR(LIB_VBUILD)
 
-#ifdef gmp_COMPILER_VER_msvc
-# define gmp_COMPILER_VER_msvc_str CONST_NUM_TO_STR(gmp_COMPILER_VER_msvc)
+#ifdef gmp_COMPILER_CIDVER
+# define gmp_COMPILER_CIDVER_str CONST_NUM_TO_STR(gmp_COMPILER_CIDVER)
 #else
-# define gmp_COMPILER_VER_msvc_str ""
+# define gmp_COMPILER_CIDVER_str ""
 #endif
 
 enum {
