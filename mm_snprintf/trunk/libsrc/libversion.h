@@ -5,14 +5,19 @@
 #define LIB_VMINOR 4
 #define LIB_VBUILD 0
 
-#define LIBVER_STR__(n) #n
-#define LIBVER_STR(n) LIBVER_STR__(n)
+#define CONST_NUM_TO_STR__(n) #n
+#define CONST_NUM_TO_STR(n) CONST_NUM_TO_STR__(n)
 
 // LIB_VMAJORs, LIB_VMINORs, LIB_VBUILDs can be used in .rc as (partial) string constant
-#define LIB_VMAJORs LIBVER_STR(LIB_VMAJOR)
-#define LIB_VMINORs LIBVER_STR(LIB_VMINOR)
-#define LIB_VBUILDs LIBVER_STR(LIB_VBUILD)
+#define LIB_VMAJORs CONST_NUM_TO_STR(LIB_VMAJOR)
+#define LIB_VMINORs CONST_NUM_TO_STR(LIB_VMINOR)
+#define LIB_VBUILDs CONST_NUM_TO_STR(LIB_VBUILD)
 
+#ifdef gmp_COMPILER_VER_msvc
+# define gmp_COMPILER_VER_msvc_str CONST_NUM_TO_STR(gmp_COMPILER_VER_msvc)
+#else
+# define gmp_COMPILER_VER_msvc_str ""
+#endif
 
 enum {
 	mmsnprintf_vmajor = LIB_VMAJOR,

@@ -16,7 +16,7 @@ ProductVersion LIB_VMAJOR, LIB_VMINOR, LIB_VBUILD, 0
 		{
 			VALUE "CompanyName", "Newland Auto-ID"
 			VALUE "ProductName",	 "mm_snprintf string formatting lib"
-			VALUE "FileDescription", "mm_snprintf string formatting lib"
+			VALUE "FileDescription", "mm_snprintf " gmp_COMPILER_VER_msvc_str
 			VALUE "FileVersion",    LIB_VMAJORs "." LIB_VMINORs "." LIB_VBUILDs ".0"
 			VALUE "ProductVersion",	LIB_VMAJORs "." LIB_VMINORs "." LIB_VBUILDs ".0"
 			VALUE "LegalCopyright",	"NLscan and Mark Martinec"
