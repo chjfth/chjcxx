@@ -1,6 +1,9 @@
 #ifndef __ENSURECLNUP_MSWIN_H
 #define __ENSURECLNUP_MSWIN_H
 
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+
 #include <EnsureClnup.h>
 
 
