@@ -3,12 +3,6 @@
 
 #include <ps_TCHAR.h>
 
-enum {
-	mmsnprintf_vmajor = 4,
-	mmsnprintf_vminor = 4,
-	mmsnprintf_vbuild = 0
-};
-
 typedef int Int;
 
 #define TMM_strmembytes(chars) ((chars)*sizeof(TCHAR))
