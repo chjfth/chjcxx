@@ -149,7 +149,18 @@ bool issep(TCHAR c) // is separator
 
 int my_split_argvstr(const TCHAR *argvstr)
 {
+	// Copy argstr into writable buffer gbuf[]
 	mm_snprintf(gbuf, GBUF_CHARS, _T("verify %s"), argvstr);
+
+	// Then split argvstr into chunks of sub-strings.
+	// Example: 
+	// Input:
+	//	a1 b2 c3
+	// Output:
+	//	gargv[0] -> "a1\0";
+	//	gargv[1] -> "b2\0";
+	//	gargv[2] -> "c3\0";
+
 	TCHAR *pbuf = gbuf;
 	int argcount = 0;
 	for(;;)
