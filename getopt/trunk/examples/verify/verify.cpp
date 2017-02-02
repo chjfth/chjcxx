@@ -233,7 +233,7 @@ sgetopt_err_et verify_one_case(int argc, TCHAR *argv[], const TCHAR *boilerplate
 		{
 			const TCHAR *problem_opt = argv[si->optind-1];
 			if(si->optind == argc)
-				mm_Strcat(_T("Option '%s' missing an argument\n"), problem_opt); 
+				mm_Strcat(_T("Option '%s' missing a value\n"), problem_opt); 
 			else
 				mm_Strcat(_T("Bad option '%s'\n"), problem_opt); 
 			break;
