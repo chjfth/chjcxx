@@ -97,8 +97,8 @@ verify_st gar_verify_cases[] =
 	{	// option's argument missing (short, with extra non-opt-ARGV)
 		_T("coco AA BB CC -c"),
 
-			_T("Option '-c' missing an argument\n")
-			_T("non-option ARGV-elements: coco AA BB CC\n")
+		_T("Option '-c' missing an argument\n")
+		_T("non-option ARGV-elements: coco AA BB CC\n")
 	},
 	{	// option's argument missing (long)
 		_T("codo --file"),
