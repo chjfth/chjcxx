@@ -94,6 +94,12 @@ verify_st gar_verify_cases[] =
 		_T("Option '-c' missing an argument\n")
 		_T("non-option ARGV-elements: coco\n")
 	},
+	{	// option's argument missing (short, with extra non-opt-ARGV)
+		_T("coco AA BB CC -c"),
+
+			_T("Option '-c' missing an argument\n")
+			_T("non-option ARGV-elements: coco AA BB CC\n")
+	},
 	{	// option's argument missing (long)
 		_T("codo --file"),
 
@@ -101,36 +107,6 @@ verify_st gar_verify_cases[] =
 		_T("non-option ARGV-elements: codo\n")
 	},
 };
-
-
-bool is_app_option(const TCHAR *opt)
-{
-	// Check if opt is a defined(=expected) option.
-	// opt is one argv[n] element
-	int i=0;
-	if(opt[0]==_T('-') && opt[1]==_T('-'))
-	{
-		// long option format
-		for(i=0; app_long_options[i].name!=NULL; i++)
-		{
-			if( T_strcmp(app_long_options[i].name, opt+2)==0 )
-				return true;
-		}
-		return false;
-	}
-	else if(opt[0]==_T('-'))
-	{
-		// short option format
-		int len = T_strlen(app_short_options);
-		for(i=0; i<len; i++)
-		{
-			if( app_short_options[i]==opt[1] )
-				return true;
-		}
-		return false;
-	}
-	return false;
-}
 
 
 const TCHAR *case1_argvstr=_T("-a -b param0 -c val --add=yes --delete no param1 param2");
@@ -256,7 +232,7 @@ sgetopt_err_et verify_one_case(int argc, TCHAR *argv[], const TCHAR *boilerplate
 		case '?':
 		{
 			const TCHAR *problem_opt = argv[si->optind-1];
-			if(is_app_option(problem_opt))
+			if(si->optind == argc)
 				mm_Strcat(_T("Option '%s' missing an argument\n"), problem_opt); 
 			else
 				mm_Strcat(_T("Bad option '%s'\n"), problem_opt); 
