@@ -32,7 +32,7 @@ extern"C" void sgetopt_lib__sgetopt__DLL_AUTO_EXPORT_STUB(void){}
    all application programs are extended to handle flexible argument order.
 
    Setting the environment variable POSIXLY_CORRECT disables permutation.
-   Then the behavior is completely standard.
+   Then the behavior is completely standard. // chj: POSIXLY_CORRECT is disabled in this cpp.
 
    GNU application programs can use a third alternative mode in which
    they can distinguish the relative order of options and other arguments.  */
@@ -41,8 +41,8 @@ extern"C" void sgetopt_lib__sgetopt__DLL_AUTO_EXPORT_STUB(void){}
 /* Describe how to deal with options that follow non-option ARGV-elements.
 
    If the caller did not specify anything,
-   the default is REQUIRE_ORDER if the environment variable
-   POSIXLY_CORRECT is defined, PERMUTE otherwise.
+   [ the default is REQUIRE_ORDER if the environment variable
+   POSIXLY_CORRECT is defined,] PERMUTE otherwise.
 
    REQUIRE_ORDER means don't recognize them as options;
    stop option processing when the first non-option is seen.
