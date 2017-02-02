@@ -41,7 +41,7 @@ verify_st gar_verify_cases[] =
 		_T("non-option ARGV-elements: param0 param1 param2\n")
 	},
 	{	// the same option twice:
-		_T("-a -c val1 -b -c val2 param1 --file=file1 --file=file2"),
+		_T("-a -c val1 -b -c val2 param1 --file=file1 --file file2"),
 
 		_T("option -a\n")
 		_T("option -c : 'val1'\n")
