@@ -154,7 +154,7 @@ int my_split_argvstr(const TCHAR *argvstr)
 	int argcount = 0;
 	for(;;)
 	{
-		while( issep(*pbuf) && *pbuf )
+		while( issep(*pbuf) )
 			pbuf++;
 		
 		if(*pbuf==_T('\0'))
