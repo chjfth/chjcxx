@@ -243,13 +243,13 @@ inline void _EnsureClnup_cpp_delete_array(PTR_TYPE p){ delete[] p; }
 	MakeCleanupPtrClass(CecClassName, void, _EnsureClnup_cpp_delete_array<PTR_TYPE>, PTR_TYPE)
 
 
-// Now define a class named CecRawMemory representing a void*-pointed memory block,
+// Now define a class named Cec_NewMemory representing a void*-pointed memory block,
 // that would be de-allocated by C++-delete.
 MakeCleanupPtrClass_delete(Cec_NewMemory, void*)
 // 
 // Usage example:
 //
-//	Cec_RawMemory cec_memblock = new unsigned char[1000];
+//	Cec_NewMemory cec_memblock = new unsigned char[1000];
 //	memcpy(cec_memblock, src, 1000);
 
 
