@@ -29,7 +29,7 @@
 #define t_strcmp strcmp
 #endif
 
-__int64 i64 = (__int64)(0x912345678); // decimal 38960125560
+__int64 i64 = (__int64)(0xF12345678); // decimal 64729929336
 double d = 1.2345678;
 
 int mprintA(const char *fmt, ...)
@@ -166,11 +166,15 @@ int test_w_specifier()
 
 void test_v3()
 {
+	mprintA("[% d][%d]", 34, -56);
+	mprintA("hex[+%x][%X]", 0xAB, 0xAB);
+	mprintA("hex[%+p][%P]", 0xEEEEeeee, 0xEEEEeeee);
+
 #if defined WIN32 || defined WINCE
 	mprintA("__int64 [%lld, 0x%llx]", i64, i64);
 #else // linux
 	mprintW(L"__int64 [%lld, 0x%llx]", i64, i64);
-	// glibc ban mixing printf and wprintf, so avoid using mprintA here.
+	// glibc bans mixing printf and wprintf, so avoid using mprintA here. (?)
 #endif
 
 	mprintW(L"[%d]", 12);
