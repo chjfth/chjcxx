@@ -41,7 +41,7 @@ RSC=rc.exe
 # PROP Intermediate_Dir "Release"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_MBCS" /D "_LIB" /YX /FD /c
-# ADD CPP /nologo /MT /W3 /GX /O2 /I "../../libsrc/msvc" /I "../../libsrc/include" /I "../../libsrc" /D "NDEBUG" /D "WIN32" /D "_LIB" /D DLLEXPORT_mmsnprintf=__declspec(dllexport) /YX /FD /c
+# ADD CPP /nologo /MT /W3 /GX /O2 /I "../../libsrc/msvc" /I "../../libsrc/include" /I "../../libsrc" /I "../../sdkin/include" /D "NDEBUG" /D "WIN32" /D "_LIB" /D DLLEXPORT_mmsnprintf=__declspec(dllexport) /YX /FD /c
 # ADD BASE RSC /l 0x804 /d "NDEBUG"
 # ADD RSC /l 0x804 /d "NDEBUG"
 BSC32=bscmake.exe
@@ -64,7 +64,7 @@ LIB32=link.exe -lib
 # PROP Intermediate_Dir "Debug"
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_MBCS" /D "_LIB" /YX /FD /GZ /c
-# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "../../libsrc/msvc" /I "../../libsrc/include" /I "../../libsrc" /D "_DEBUG" /D "WIN32" /D "_LIB" /D DLLEXPORT_mmsnprintf=__declspec(dllexport) /YX /FD /GZ /c
+# ADD CPP /nologo /MTd /W3 /Gm /GX /ZI /Od /I "../../libsrc/msvc" /I "../../libsrc/include" /I "../../libsrc" /I "../../sdkin/include" /D "_DEBUG" /D "WIN32" /D "_LIB" /D DLLEXPORT_mmsnprintf=__declspec(dllexport) /YX /FD /GZ /c
 # ADD BASE RSC /l 0x804 /d "_DEBUG"
 # ADD RSC /l 0x804 /d "_DEBUG"
 BSC32=bscmake.exe
@@ -166,37 +166,6 @@ SOURCE=..\..\libsrc\mm_psfunc.h
 # Begin Source File
 
 SOURCE=..\..\libsrc\include\mm_snprintf.h
-# End Source File
-# Begin Source File
-
-SOURCE="..\..\..\common-include\msvc\ps_TCHAR.h"
-
-!IF  "$(CFG)" == "lib_mm_snprintf - Win32 Release"
-
-# Begin Custom Build
-InputPath="..\..\..\common-include\msvc\ps_TCHAR.h"
-
-"..\..\libsrc\include\ps_TCHAR.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy $(InputPath) ..\..\libsrc\include
-
-# End Custom Build
-
-!ELSEIF  "$(CFG)" == "lib_mm_snprintf - Win32 Debug"
-
-# Begin Custom Build
-InputPath="..\..\..\common-include\msvc\ps_TCHAR.h"
-
-"..\..\libsrc\include\ps_TCHAR.h" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
-	copy $(InputPath) ..\..\libsrc\include
-
-# End Custom Build
-
-!ENDIF 
-
-# End Source File
-# Begin Source File
-
-SOURCE=..\..\libsrc\include\ps_TCHAR.h
 # End Source File
 # End Group
 # End Target
