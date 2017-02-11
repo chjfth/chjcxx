@@ -217,7 +217,12 @@
  *		  and still compatible with the old(v4.2) two-param way.
  *      - New function mm_snprintf_am(), updating pbuf and bufsize as a  
  *        convenient way for concatenating formatted string.
- */
+ *
+ * 2017-02-12  V4.5 by Chj
+ *      - Formatting integer using self-sufficient code, unsigned_ntos and signed_ntos,
+          so that CRT lib is not required(if you don't do floating-point formatting). 
+		- todo: thousand separator.
+*/
 
 
 /* Define SNPRINTF_LONGLONG_SUPPORT if you want to support
@@ -252,7 +257,6 @@
 #include "mm_psfunc.h"
 
 #define DLL_AUTO_EXPORT_STUB
-extern"C" void mmsnprintf_lib__mm_snprintfW__DLL_AUTO_EXPORT_STUB(void){}
 
 #ifdef NO_assert // specific for this library
 # undef assert
@@ -293,6 +297,9 @@ enum // byte dump max values
 	bdmax_right = 4
 };
 
+typedef __int64 Int64;
+typedef unsigned __int64 Uint64;
+
 #define fast_memcpy memcpy
 //#define fast_memset memset
 void mm_chrset(TCHAR *p, TCHAR c, int count)
@@ -323,11 +330,63 @@ TCHAR * mm_strncpy_(TCHAR *dst, const TCHAR *src, int ndst, bool null_end)
 #define mmquan(array) ((int)(sizeof(array)/sizeof(array[0])))
 
 
-static char credits[] = "\n\
-@(#)snprintf.c: Mark Martinec, <mark.martinec@ijs.si>, and Chen Jun.\n\
-@(#)snprintf.c: Copyright 1999, Mark Martinec. Frontier Artistic License applies.\n\
-@(#)snprintf.c: http://www.ijs.si/software/snprintf/\n";
+static int unsigned_ntos(Uint64 u64, 
+	bool ishex, bool ishex_uppercase, TCHAR buf[], int bufsize)
+{
+	// Deals with %d %u %U %x %X %p %P
+	// Returns required bufsize(not counting and not filling trailing NUL).
+	
+	assert(bufsize>1);
 
+	TCHAR rresult[24]; // reversed result
+	int i=0;
+	unsigned div = ishex ? 16 : 10;
+	for(;;)
+	{
+		unsigned __int64 quotient = u64/div;
+		unsigned remainder = (unsigned)(u64%div);
+
+		rresult[i] = _T('0')+remainder;
+		if(ishex && remainder>=10)
+		{
+			rresult[i] = (remainder-10) + (ishex_uppercase?_T('A'):_T('a'));
+		}
+
+		i++;
+
+		if(quotient==0)
+			break;
+		
+		u64 = quotient;
+	}
+
+	int len = i;
+	if(bufsize>len)
+		bufsize = len;
+
+	for(i=0; i<bufsize; i++)
+	{
+		buf[i] = rresult[len-1-i];
+	}
+	return len;
+}
+
+static int signed_ntos(Int64 i64, 
+	bool ishex, bool ishex_uppercase, TCHAR buf[], int bufsize)
+{
+	assert(bufsize>1);
+	
+	int filled = 0;
+	if(i64<0)
+	{
+		buf[0] = _T('-');
+		i64 = -i64;
+		filled = 1;
+	}
+
+	int ret = unsigned_ntos(i64, ishex, ishex_uppercase, buf+filled, bufsize-filled);
+	return ret+filled;
+}
 
 int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap) 
 {
@@ -418,10 +477,6 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 
 		TCHAR fmt_spec = _T('\0');
 		/* current conversion specifier character */
-
-#ifndef _UNICODE
-		str_arg = credits;/* just to make compiler happy (defined but not used)*/
-#endif
 
 		// here, p points to '%'
 		str_arg = NULL;
@@ -584,7 +639,8 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 				break; // end of process for type '%','c','s' .
 			}
 
-		case _T('d'): case _T('u'): case _T('o'): case _T('x'): case _T('X'): case _T('p'): 
+		case _T('d'): case _T('u'): case _T('o'): case _T('x'): case _T('X'): 
+		case _T('p'): case _T('P'): // [2017-02-11] Chj adds 'P', upper-case pointer value
 		case _T('f'): case _T('g'): case _T('G'): case _T('e'): case _T('E'):
 			{
 				/* NOTE: the u, o, x, X and p conversion specifiers imply
@@ -613,7 +669,7 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 				unsigned __int64 ulong_long_arg = 0;
 				  /* only defined for length modifier ll */
 #endif
-				if (fmt_spec == _T('p')) 
+				if (fmt_spec==_T('p') || fmt_spec==_T('P')) 
 				{
 				/* HPUX 10: An l, h, ll or L before any other conversion character
 				 *   (other than d, i, u, o, x, or X) is ignored.
@@ -702,7 +758,8 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 				if (precision_specified) 
 					zero_padding = false;
 
-				if (fmt_spec == _T('d') || isFloatingType) {
+				if (fmt_spec == _T('d') || isFloatingType) 
+				{
 					if (force_sign && arg_sign >= 0)
 						tmp[str_arg_l++] = space_for_positive ? _T(' ') : _T('+');
 					 /* leave negative numbers for sprintf to handle,
@@ -713,22 +770,28 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 // 					tmp[str_arg_l++] = space_for_positive ? ' ' : '+';
 // #endif //[2006-10-03]Chj: I do not use Linux's behavior here.
 				} 
-				else if (alternate_form) {
-					if (arg_sign != 0 && (fmt_spec == _T('x') || fmt_spec == _T('X') || fmt_spec==_T('p')) )
+				else if (alternate_form) 
+				{
+					if (arg_sign != 0 && 
+						(fmt_spec==_T('x') || fmt_spec==_T('X') || fmt_spec==_T('p') || fmt_spec==_T('P')) 
+						)
 					{ 
 						/* [2007-03-31]Chj: On MSVCRT 6.0(32-bit):
 							printf("[%+#p]", (void*)16);
 						 outputs:
 							[+0X00000010]
 						 Now, I make mm_snprintf follow this scheme(check for fmt_spec=='p')
-						 but with a minor change: outpout small 'x' instead of the capital one.
+						 but with a minor change: output small 'x' instead of the capital one.
 						 That is, mm_snprintf outputs:
 							[+0x00000010]
 						 Using small 'x' seems more reasonable, since it corresponds to the
 						 small type-char 'p'.
 						*/
 						tmp[str_arg_l++] = _T('0'); 
-						tmp[str_arg_l++] = fmt_spec==_T('p') ? _T('x') : fmt_spec; 
+						tmp[str_arg_l++] = 
+							fmt_spec==_T('x')||fmt_spec==_T('p') // if lower-case
+							? _T('x') : 
+							_T('X'); 
 					}
 					/* alternate form should have no effect for p conversion, but ... */
 				}
@@ -749,9 +812,9 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 // 					&& fmt_spec != 'p'
 // 				 /* HPUX 10 man page claims: With conversion character p the result of
 // 				  * converting a zero value with a precision of zero is a null string.
-// 				  * Actually HP returns all zeroes, and Linux returns(outputs) "(nil)". */
+// 				  * Actually HP returns all zeros, and Linux returns(outputs) "(nil)". */
 // #endif //[2006-10-03]Chj: I do not use Linux's behavior here.
-				) 
+					) 
 				{
 				 /* converted to null string */
 				 /* When zero value is formatted with an explicit precision 0,
@@ -779,47 +842,89 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 						
 						// length_modifier is ignored for floating type.
 					}
-					else if (!length_modifier) { }
-					else if (length_modifier==_T('2')) { // to format a 64-bit integer
-						/* [2006-10-02]Chj: We use an external routine to obtain the 
-						 format-string for 64-bit integer, because it differs on 
-						 different systems:
-						   * On Microsoft VC runtime: "%I64d" or "%I64u" or "%I64x"
-						   * On GNU glibc:   "%lld" or "%llu" or "%llx"
-						   * On ARM SDT/ADS: "%lld" or "%llu" or "%llx"
-						*/
-						char tmpI64fmt[8]; // Yes, not TCHAR here!
-						int lenI64fmt = mmps_i64_type_prefix(tmpI64fmt);
-						for(int i=0; i<lenI64fmt; i++)
-							f[f_l++] = tmpI64fmt[i];
+					else if (!length_modifier) {
+						// do nothing
 					}
-					else 
+// 					else if (length_modifier==_T('2')) { // to format a 64-bit integer
+// 						/* [2006-10-02]Chj: We use an external routine to obtain the 
+// 						 format-string for 64-bit integer, because it differs on 
+// 						 different systems:
+// 						   * On Microsoft VC runtime: "%I64d" or "%I64u" or "%I64x"
+// 						   * On GNU glibc:   "%lld" or "%llu" or "%llx"
+// 						   * On ARM SDT/ADS: "%lld" or "%llu" or "%llx"
+// 						*/
+// 						char tmpI64fmt[8]; // Yes, not TCHAR here!
+// 						int lenI64fmt = mmps_i64_type_prefix(tmpI64fmt);
+// 						for(int i=0; i<lenI64fmt; i++)
+// 							f[f_l++] = tmpI64fmt[i];
+// 					}
+					else {
 						f[f_l++] = length_modifier;
+					}
+
 
 					f[f_l++] = fmt_spec; f[f_l++] = '\0';
 
-					if (fmt_spec == _T('p')) {
-						str_arg_l += TMM_sprintf(tmp+str_arg_l, f, ptr_arg);
+					if (fmt_spec==_T('p')||fmt_spec==_T('P')) {
+						//str_arg_l += TMM_sprintf(tmp+str_arg_l, f, ptr_arg); // old
+						Uint64 u64 = (Uint64)ptr_arg;
+						if(sizeof(ptr_arg)==sizeof(unsigned)) {
+							u64 = (unsigned)u64;
+							// Quite tricky! Without this: When ptr_arg=0xEEEEeeee,
+							// on 32-bit VC6/VC10 and 32-bit gcc 4.7/4.8, I would get
+							// u64 = 0xFFFFFFFFeeeeeeee
+						}
+						str_arg_l += unsigned_ntos(u64, 
+							true, fmt_spec==_T('p')?false:true,
+							tmp+str_arg_l, mmquan(tmp)-str_arg_l
+							);
 					}
 					else if (fmt_spec == _T('d')) {  /* signed */
+						Int64 i64 = 0;
 						switch (length_modifier) {
 						case _T('\0'):
-						case _T('h'): str_arg_l+=TMM_sprintf(tmp+str_arg_l, f, int_arg);  break;
-						case _T('l'): str_arg_l+=TMM_sprintf(tmp+str_arg_l, f, long_arg); break;
+						case _T('h'): 
+							//str_arg_l+=TMM_sprintf(tmp+str_arg_l, f, int_arg); // old
+							i64 = int_arg;
+							break;
+						case _T('l'): 
+							//str_arg_l+=TMM_sprintf(tmp+str_arg_l, f, long_arg); 
+							i64 = long_arg;
+							break; // old
 #ifdef SNPRINTF_LONGLONG_SUPPORT
-						case _T('2'): str_arg_l+=TMM_sprintf(tmp+str_arg_l,f,long_long_arg); break;
+						case _T('2'): 
+							//str_arg_l+=TMM_sprintf(tmp+str_arg_l,f,long_long_arg); 
+							i64 = long_long_arg;
+							break;
 #endif
 						}
+						str_arg_l += signed_ntos(i64, false, false, 
+							tmp+str_arg_l, mmquan(tmp)-str_arg_l
+							);
 					} 
-					else if (!isFloatingType){  /* unsigned */
+					else if (!isFloatingType){  /* unsigned ( u,U,x,X ) */  
+						Uint64 u64 = 0;
 						switch (length_modifier) {
 						case '\0':
-						case 'h': str_arg_l+=TMM_sprintf(tmp+str_arg_l, f, uint_arg);  break;
-						case 'l': str_arg_l+=TMM_sprintf(tmp+str_arg_l, f, ulong_arg); break;
+						case 'h': 
+							//str_arg_l+=TMM_sprintf(tmp+str_arg_l, f, uint_arg);  
+							u64 = uint_arg;
+							break;
+						case 'l': 
+							//str_arg_l+=TMM_sprintf(tmp+str_arg_l, f, ulong_arg); 
+							u64 = ulong_arg;
+							break;
 #ifdef SNPRINTF_LONGLONG_SUPPORT
-						case '2': str_arg_l+=TMM_sprintf(tmp+str_arg_l,f,ulong_long_arg); break;
+						case '2': 
+							//str_arg_l+=TMM_sprintf(tmp+str_arg_l,f,ulong_long_arg); 
+							u64 = ulong_long_arg;
+							break;
 #endif
 						}
+						str_arg_l += unsigned_ntos(u64, 
+							fmt_spec==_T('x')||fmt_spec==_T('X')?true:false, fmt_spec==_T('X')?true:false,
+							tmp+str_arg_l, mmquan(tmp)-str_arg_l
+							);
 					}
 					else // floating type
 					{

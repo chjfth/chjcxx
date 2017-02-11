@@ -217,7 +217,12 @@
  *		  and still compatible with the old(v4.2) two-param way.
  *      - New function mm_snprintf_am(), updating pbuf and bufsize as a  
  *        convenient way for concatenating formatted string.
- */
+ *
+ * 2017-02-12  V4.5 by Chj
+ *      - Formatting integer using self-sufficient code, unsigned_ntos and signed_ntos,
+          so that CRT lib is not required(if you don't do floating-point formatting). 
+		- todo: thousand separator.
+*/
 
 
 /* Define SNPRINTF_LONGLONG_SUPPORT if you want to support
@@ -862,15 +867,12 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 
 					if (fmt_spec==_T('p')||fmt_spec==_T('P')) {
 						//str_arg_l += TMM_sprintf(tmp+str_arg_l, f, ptr_arg); // old
-						Uint64 u64 = 0;
+						Uint64 u64 = (Uint64)ptr_arg;
 						if(sizeof(ptr_arg)==sizeof(unsigned)) {
-							u64 = (unsigned)(Uint64)ptr_arg;
+							u64 = (unsigned)u64;
 							// Quite tricky! Without this: When ptr_arg=0xEEEEeeee,
-							// on 32-bit VC6/VC10 and 32-bit gcc 4.7, I would get
+							// on 32-bit VC6/VC10 and 32-bit gcc 4.7/4.8, I would get
 							// u64 = 0xFFFFFFFFeeeeeeee
-						}
-						else {
-							u64 = (Uint64)ptr_arg;
 						}
 						str_arg_l += unsigned_ntos(u64, 
 							true, fmt_spec==_T('p')?false:true,

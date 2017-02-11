@@ -88,9 +88,7 @@ gmp_DECO_DEBUG_FOR_LINK_OUTPUT =
 # You can use a relative dir here. Use . to represent the dir of this Makefile.
 ############################################################################
 gmu_ud_SRC_ROOT = .
-dirMmsnpr = $(gmu_ud_SRC_ROOT)/../..
-dirNlssvn = $(dirMmsnpr)/..
-dirCommonInclude = $(dirNlssvn)/common-include
+dirThisRepo = ../..
 
 ############################################################################
 # GMU-var: gmu_up_list_SRC_FROM_ROOT
@@ -113,7 +111,8 @@ gmu_up_list_SRC_FROM_ROOT += main.cpp
 #	1. They'll be passed to the compiler through ``-I <dir1> -I <dir2> ...'' .
 #	2. They'll be passed to `$(gmu_GCC_M_PREFIX)gcc -M' in favor of generating hdepend files.
 ############################################################################
-gmu_ud_list_PRJ_HEADER += $(dirMmsnpr)/libsrc/include
+gmu_ud_list_PRJ_HEADER += $(dirThisRepo)/libsrc/include \
+	$(dirThisRepo)/sdkin/include 
 	# Don't write ``-I'' in this var; -I will be prependded automatically.
 #gmp_ud_list_PS_HEADER_PARENT += $(dirCommonInclude)
 
@@ -209,7 +208,7 @@ gmu_uv_list_SUBPRJ_LINK_ALL_LEVEL += libmmsnpr
 
 ######## Details of your sub-projects go here: ########
 
-libmmsnpr_Makefile = $(dirMmsnpr)/libsrc/makelib/Makefile
+libmmsnpr_Makefile = $(dirThisRepo)/libsrc/makelib/Makefile.umk
 
 # NOTE for novice: Don't try to make sub-projects' output libs listed in gmp_ALL_TO_LINK,
 # those libs will be listed in gmp_ALL_TO_LINK automatically.
