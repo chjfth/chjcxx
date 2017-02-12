@@ -1537,7 +1537,7 @@ mm_dump_bytes(TCHAR *buf, int bufbytes,
 		for(i=0; i<columns; i++)
 		{
 			mmfill_fill_chars(mmfill, _T('-'), len_left);
-			TMM_sprintf(tmp, _T("%02X"), i);
+			mm_snprintf(tmp, mmquan(tmp), _T("%02X"), i);
 			mmfill_strcpy(mmfill, tmp);
 			mmfill_fill_chars(mmfill, _T('-'), len_right);
 
@@ -1593,7 +1593,7 @@ mm_dump_bytes(TCHAR *buf, int bufbytes,
 			if(mdd_left[0])
 				mmfill_strcpy(mmfill, mdd_left);
 			
-			TMM_sprintf(tmp, fmthex, pbytes[consumed+j]);
+			mm_snprintf(tmp, mmquan(tmp), fmthex, pbytes[consumed+j]);
 			mmfill_strcpy(mmfill, tmp);
 			
 			if(mdd_right[0])

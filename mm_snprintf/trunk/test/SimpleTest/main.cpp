@@ -166,7 +166,7 @@ int test_w_specifier()
 
 void test_v3()
 {
-	mprintA("[% d][%d]", 34, -56);
+	mprintA("[% d][%05d]", 34, -56); // [ 34][-0056]
 	mprintA("hex[+%x][%X]", 0xAB, 0xAB);
 	mprintA("hex[%+p][%P]", 0xEEEEeeee, 0xEEEEeeee);
 
