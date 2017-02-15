@@ -79,8 +79,8 @@ int mprintW(const wchar_t *cmp, const wchar_t *fmt, ...)
 
 	if(cmp && wcscmp(cmp, buf)!=0)
 	{
-		wprintf(L"\nExpect:\n%s", cmp);
-		wprintf(L"\nError:\n%s", buf);
+		wprintf(L"\nExpect:\n%S", cmp);
+		wprintf(L"\nError:\n%S", buf);
 		assert(0);
 	}
 
