@@ -1,7 +1,3 @@
-#ifndef USE_char_ONLY
-#define UNICODE
-#endif
-
 #ifdef __linux__
 #define _tmain main
 #endif
