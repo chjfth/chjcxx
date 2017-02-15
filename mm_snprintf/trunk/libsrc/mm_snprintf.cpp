@@ -215,10 +215,12 @@
  *      - New function mm_snprintf_am(), updating pbuf and bufsize as a  
  *        convenient way for concatenating formatted string.
  *
- * 2017-02-12  V4.5 by Chj
+ * 2017-02-15  V5.0 by Chj
  *      - Formatting integer using self-sufficient code, unsigned_ntos and signed_ntos,
           so that CRT lib is not required(if you don't do floating-point formatting). 
-		- todo: thousand separator.
+		- Thousand separator(thousep) support for integers. 
+		  %D,%U means "need thousep", default thousep string is " ", %T to customize.
+		  For %d %u %x %X %o %O %p %P, customize them with %_ and %T.
 */
 
 

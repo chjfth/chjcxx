@@ -310,6 +310,9 @@ void test_v5()
 	oks = t("[123456]");
 	mprint(oks, t("%T[%U]"), t(""), 123456); // deliberately using an empty %T string
 
+	oks = t("[123:456]");
+	mprint(oks, t("%t[%o]"), t(":"), 0123456); // octal
+
 	// trigger internal buffer overrun
 	int ret = 0;
 	TCHAR smbuf1[10];
