@@ -63,6 +63,24 @@ int mprintA(const char *cmp, const char *fmt, ...)
 	return ret;
 }
 
+int mprintNA(const char *cmp, char buf[], int bufsize, char *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	int ret = mm_vsnprintfA(buf, bufsize, fmt, args);
+	printf("%s\n", buf);
+	va_end(args);
+	
+	if(cmp && strcmp(cmp, buf)!=0)
+	{
+		printf("\nExpect:\n%s", cmp);
+		printf("\nError:\n%s", buf);
+		assert(0);
+	}
+	return ret;
+}
+
+
 int mprintW(const wchar_t *cmp, const wchar_t *fmt, ...)
 {
 	wchar_t buf[8000];
@@ -83,7 +101,6 @@ int mprintW(const wchar_t *cmp, const wchar_t *fmt, ...)
 		wprintf(L"\nError:\n%S", buf);
 		assert(0);
 	}
-
 	return ret;
 }
 
@@ -105,7 +122,6 @@ int mprintNW(const wchar_t *cmp, wchar_t buf[], int bufsize, const wchar_t *fmt,
 		wprintf(L"\nError:\n%s", buf);
 		assert(0);
 	}
-	
 	return ret;
 }
 
@@ -311,6 +327,12 @@ int _tmain()
 	// note: glibc bans mixing printf and wprintf, so avoid using mprintA here. (?)
 
 	setlocale(LC_ALL, "");
+
+#ifdef UNICODE
+	wprintf(L"Running Unicode build!\n");
+#else
+	printf("Running MBCS build!\n");
+#endif
 
 //	mprint(L"[12]", L"[%d]", 12);
 
