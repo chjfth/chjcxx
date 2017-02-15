@@ -208,7 +208,8 @@ void test_v3()
 	oks = "__int64 [64729929336, 0xf12345678]";
 	mprintA(oks, "__int64 [%lld, 0x%llx]", i64, i64);
 #else // linux
-	mprintW(L"__int64 [%lld, 0x%llx]", i64, i64);
+	okw = L"__int64 [64729929336, 0xf12345678]";
+	mprintW(okw, L"__int64 [%lld, 0x%llx]", i64, i64);
 	// glibc bans mixing printf and wprintf, so avoid using mprintA here. (?)
 #endif
 
