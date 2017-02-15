@@ -37,6 +37,8 @@ const char *oks = 0;
 __int64 i64 = (__int64)(0xF12345678); // decimal 64729929336
 double d = 1.2345678;
 
+#define IS64BIT ( sizeof(void*)==8 ? true : false )
+
 
 int mprintA(const char *cmp, const char *fmt, ...)
 {
@@ -48,8 +50,12 @@ int mprintA(const char *cmp, const char *fmt, ...)
 	printf("%s\n", buf);
 	va_end(args);
 
-	if(cmp)
-		assert(strcmp(cmp, buf)==0);
+	if(cmp && strcmp(cmp, buf)!=0)
+	{
+		printf("\nExpect:\n%s", cmp);
+		printf("\nError:\n%s", buf);
+		assert(0);
+	}
 
 	return ret;
 }
@@ -68,8 +74,12 @@ int mprintW(const wchar_t *cmp, const wchar_t *fmt, ...)
 #endif
 	va_end(args);
 
-	if(cmp)
-		assert(wcscmp(cmp, buf)==0);
+	if(cmp && wcscmp(cmp, buf)!=0)
+	{
+		wprintf(L"\nExpect:\n%s", cmp);
+		wprintf(L"\nError:\n%s", buf);
+		assert(0);
+	}
 
 	return ret;
 }
@@ -196,14 +206,17 @@ int test_w_specifier()
 
 void test_v3()
 {
-	oks = t("[ 34][-0056]");
-	mprint(oks, t("[% d][%05d]"), 34, -56);
+	oks = t("[+12][ 34][-0056]");
+	mprint(oks, t("[%+d][% d][%05d]"), 12, 34, -56);
+
+	oks = t("[  +12][   34][  -56]");
+	mprint(oks, t("[%+5d][% 5d][% 5d]"), 12, 34, -56);
 
 	oks = t("hex[+ab][AB]");
 	mprint(oks, t("hex[+%x][%X]"), 0xAB, 0xAB);
 	
-	oks = t("hex[eeeeeeee][EEEEEEEE]");
-	mprint(oks, t("hex[%+p][%P]"), 0xEEEEeeee, 0xEEEEeeee);
+	oks =  IS64BIT ? t("hex[00000000eeeeeeee][000000000FFFEEEE]") : t("hex[eeeeeeee][0FFFEEEE]");
+	mprint(oks, t("hex[%+p][%P]"), (void*)0xEEEEeeee, (void*)0x0FFFeeee);
 
 	oks = t("__int64 [64729929336, 0xf12345678]");
 	mprint(oks, t("__int64 [%lld, 0x%llx]"), i64, i64);
@@ -218,11 +231,22 @@ void test_v3()
 
 }
 
+void test_v5()
+{
+	oks = IS64BIT ? t("[0000000000000000]") : t("[00000000]");
+	mprint(oks, t("[%p]"), NULL);
+
+}
+
 int _tmain()
 {
 	// note: glibc bans mixing printf and wprintf, so avoid using mprintA here. (?)
 
 	setlocale(LC_ALL, "");
+
+//	mprint(L"[12]", L"[%d]", 12);
+
+	test_v5();
 
 	test_v3();
 	
@@ -233,3 +257,4 @@ int _tmain()
 	test_w_specifier();
 	return 0;
 }
+

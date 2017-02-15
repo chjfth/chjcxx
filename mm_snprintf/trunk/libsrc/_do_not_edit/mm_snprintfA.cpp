@@ -124,9 +124,6 @@
  *		- if a string precision is specified
  *		  make sure the string beyond the specified precision
  *		  will not be referenced (e.g. by strlen);
- * 1999-04-13	V1.2  Mark Martinec <mark.martinec@ijs.si>
- *		- support synonyms %D=%ld, %U=%lu, %O=%lo;
- *		- speed up the case of long format string with few conversions;
  * 1999-06-30	V1.3  Mark Martinec <mark.martinec@ijs.si>
  *		- fixed runaway loop (eventually crashing when str_l wraps
  *		  beyond 2^31) while copying format string without
@@ -252,6 +249,7 @@
 
 //////////////////////////////
 #include <ps_TCHAR.h>
+#include <_MINMAX_.h>
 #include <mm_snprintf.h>
 #include "internal.h"
 #include "mm_psfunc.h"
@@ -329,50 +327,86 @@ TCHAR * mm_strncpy_(TCHAR *dst, const TCHAR *src, int ndst, bool null_end)
 
 #define mmquan(array) ((int)(sizeof(array)/sizeof(array[0])))
 
-
+enum Radix_et{ RdxHex=0, RdxDec=1, RdxOct=2 };
 static int unsigned_ntos(Uint64 u64, 
-	bool ishex, bool ishex_uppercase, TCHAR buf[], int bufsize)
+	Radix_et radix, bool ishex_uppercase, int stuff_zero_max,
+	const TCHAR *psz_thousep, int thou_width,
+	TCHAR buf[], int bufsize)
 {
 	// Deals with %d %u %U %x %X %p %P
 	// Returns required bufsize(not counting and not filling trailing NUL).
+
+	// stuff_zero_max, for %p %P, normally 8 or 16
+
+	// psz_thousep: the string as thousand-separator, space, comma, dot etc.
+	// thou_width: thousand-chip width in chars, normally 3, but you can customize it.
 	
 	assert(bufsize>1);
 
-	TCHAR rresult[24]; // reversed result
-	int i=0;
-	unsigned div = ishex ? 16 : 10;
+	int digits_gened = 0; // digits generated
+	TCHAR rresult[80]; // reversed result
+	unsigned div = 10;
+	if(radix==RdxHex)
+		div = 16; 
+	else if(radix==RdxOct)
+		div = 8;
+
+	int len_thousep = 0;
+	if(psz_thousep)
+		len_thousep = TMM_strlen(psz_thousep);
+	
+	int thou_next_pos = thou_width;
+
+	int i=0; // 'i' is the filling position into rresult[], may go beyond rresult[]
 	for(;;)
 	{
+		if(thou_next_pos>0 && thou_next_pos==i)
+		{
+			// add thousand separator here (reversed order now)
+			for(int j=0; j<len_thousep; j++, i++)
+			{
+				if(i<mmquan(rresult))
+					rresult[i] = psz_thousep[len_thousep-1-j];
+			}
+			thou_next_pos = i + thou_width;
+		}
+
 		unsigned __int64 quotient = u64/div;
 		unsigned remainder = (unsigned)(u64%div);
 
-		rresult[i] = _T('0')+remainder;
-		if(ishex && remainder>=10)
+		if(i<mmquan(rresult))
 		{
-			rresult[i] = (remainder-10) + (ishex_uppercase?_T('A'):_T('a'));
+			rresult[i] = _T('0')+remainder;
+			if(radix==RdxHex && remainder>=10)
+			{
+				rresult[i] = (remainder-10) + (ishex_uppercase?_T('A'):_T('a'));
+			}
 		}
 
 		i++;
+		digits_gened++;
 
-		if(quotient==0)
+		if(quotient==0 && digits_gened>=stuff_zero_max)
 			break;
 		
 		u64 = quotient;
 	}
 
-	int len = i;
-	if(bufsize>len)
-		bufsize = len;
+	int ret = i;
+	int copylen = _MIN_(i, mmquan(rresult));
+	bufsize = _MIN_(bufsize, copylen);
 
 	for(i=0; i<bufsize; i++)
 	{
-		buf[i] = rresult[len-1-i];
+		buf[i] = rresult[copylen-1-i];
 	}
-	return len;
+	return ret;
 }
 
 static int signed_ntos(Int64 i64, 
-	bool ishex, bool ishex_uppercase, TCHAR buf[], int bufsize)
+	Radix_et radix, bool ishex_uppercase, int stuff_zero_max,
+	const TCHAR *psz_thousep, int thou_width,
+	TCHAR buf[], int bufsize)
 {
 	assert(bufsize>1);
 	
@@ -384,7 +418,11 @@ static int signed_ntos(Int64 i64,
 		filled = 1;
 	}
 
-	int ret = unsigned_ntos(i64, ishex, ishex_uppercase, buf+filled, bufsize-filled);
+	int ret = unsigned_ntos(i64, 
+		radix, ishex_uppercase, stuff_zero_max,
+		psz_thousep, thou_width,
+		buf+filled, bufsize-filled);
+
 	return ret+filled;
 }
 
@@ -410,8 +448,14 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 	bool is_print_ruler = false;
 	void *imagine_maddr = 0;
 
+	int thousep_width = 3; // %_ to modify
+	const TCHAR *psz_thousep = NULL; // thousand separator, (%t to modify)
+	const TCHAR *psz_THOUSEP = NULL; // only for %D, %U, %O, (%T to modify)
+	
+	
 	while (*p) 
 	{
+		// Copy a chunk of normal substring
 		if (*p != _T('%')) 
 		{
 		   /* if (str_l < str_m) str[str_l++] = *p++;    -- this would be sufficient */
@@ -474,6 +518,10 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 
 		Int zero_padding_insertion_ind = 0;
 		/* index into tmp[] where zero padding is to be inserted */
+
+		bool is_UorD = false;
+
+		///////
 
 		TCHAR fmt_spec = _T('\0');
 		/* current conversion specifier character */
@@ -570,25 +618,18 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 		// NOW, THE LENGTHY PROCESS OF fmt_spec(also called "type" in MSDN) STARTS.
 		//
 		
-		/* common synonyms: fmt_spec(also called "type" in MSDN): */
-		switch (fmt_spec) {
-		case _T('i'): 
-			fmt_spec = _T('d'); break; //[2006-10-02]Chj: Why not length_modifier = 'l'; ?
-		case _T('D'): 
-			fmt_spec = _T('d'); 
-			length_modifier = _T('l'); break;
-		case _T('U'): 
-			fmt_spec = _T('u'); 
-			length_modifier = _T('l'); break;
-		case _T('O'): 
-			fmt_spec = _T('o'); 
-			length_modifier = _T('l'); break;
-		default: break;
+		if(fmt_spec==_T('D') || fmt_spec==_T('U')) 
+		{
+			fmt_spec = fmt_spec==_T('D') ? _T('d') : _T('u'); 
+
+			is_UorD = true;
+			if(!psz_THOUSEP)
+				psz_THOUSEP = _T(" ");
 		}
 
 		/* get parameter value, do initial processing */
 		switch (fmt_spec) // BIG CHUNK OF PROCESS!!
-		{
+		{{
 		case _T('%'): /* % behaves similar to 's' regarding flags and field widths */
 			/*[2006-10-03]Chj: Mark Martinec processes the '%' here, which means
 			 "%3.1%" would be output as "  %", which is different from MSVCRT
@@ -875,11 +916,15 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 							// u64 = 0xFFFFFFFFeeeeeeee
 						}
 						str_arg_l += unsigned_ntos(u64, 
-							true, fmt_spec==_T('p')?false:true,
+							RdxHex, fmt_spec==_T('p')?false:true, sizeof(ptr_arg)*2,
+							psz_thousep, thousep_width,
 							tmp+str_arg_l, mmquan(tmp)-str_arg_l
 							);
 					}
 					else if (fmt_spec == _T('d')) {  /* signed */
+
+						const TCHAR *psz_thousep_now = is_UorD ? psz_THOUSEP : psz_thousep;
+						int thousep_width_now = is_UorD ? 3 : thousep_width;
 						Int64 i64 = 0;
 						switch (length_modifier) {
 						case _T('\0'):
@@ -898,11 +943,27 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 							break;
 #endif
 						}
-						str_arg_l += signed_ntos(i64, false, false, 
+						str_arg_l += signed_ntos(i64, 
+							RdxDec, false, 0,
+							psz_thousep_now, thousep_width,
 							tmp+str_arg_l, mmquan(tmp)-str_arg_l
 							);
 					} 
-					else if (!isFloatingType){  /* unsigned ( u,U,x,X ) */  
+					else if (!isFloatingType) {  /* unsigned ( u,U,x,X,o,O ) */  
+
+						const TCHAR *psz_thousep_now = is_UorD ? psz_THOUSEP : psz_thousep;
+						int thousep_width_now = is_UorD ? 3 : thousep_width;
+
+						Radix_et radix = RdxHex;
+						if(fmt_spec==_T('u')||fmt_spec==_T('U'))
+							radix = RdxDec;
+						else if(fmt_spec==_T('x')||fmt_spec==_T('X')) 
+							radix = RdxHex;
+						else {
+							radix = RdxOct;
+							assert( fmt_spec==_T('o')||fmt_spec==_T('O') );
+						}
+
 						Uint64 u64 = 0;
 						switch (length_modifier) {
 						case '\0':
@@ -922,7 +983,8 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 #endif
 						}
 						str_arg_l += unsigned_ntos(u64, 
-							fmt_spec==_T('x')||fmt_spec==_T('X')?true:false, fmt_spec==_T('X')?true:false,
+							radix, fmt_spec==_T('X')?true:false, false,
+							psz_thousep_now, thousep_width_now,
 							tmp+str_arg_l, mmquan(tmp)-str_arg_l
 							);
 					}
@@ -988,7 +1050,7 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 			{
 				const TCHAR *hyphen = va_arg(ap, TCHAR*);
 				mm_strncpy_(mdd_hyphens, hyphen, mmquan(mdd_hyphens), true);
-				break;
+				p++; continue; // v5.0 updated
 			}
 		case _T('K'): // upper-case 'K'
 			{
@@ -1001,7 +1063,7 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 				else
 					mdd_left[mmquan(mdd_left)-1] = _T('\0');
 				mm_strncpy_(mdd_right, brackets+leftlen, mmquan(mdd_right), true);
-				break;
+				p++; continue;
 			}
 		case _T('r'): case _T('R'):  // 'r'uler parameters for bytes dump
 			{
@@ -1022,12 +1084,12 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 					is_print_ruler = true;
 
 				min_field_width = precision = 0; // reset
-				break;
+				p++; continue;
 			}
 		case _T('v'):
 			{
 				imagine_maddr = va_arg(ap, void*);
-				break;
+				p++; continue;
 			}
 		case _T('m'): case _T('M'): // These will do byte dump
 			{	
@@ -1062,6 +1124,21 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 				imagine_maddr = 0;
 				p++; // step over the just processed conversion specifier
 				continue; 
+			}
+		case _T('T'):
+			{
+				psz_THOUSEP = va_arg(ap, TCHAR*);
+				p++; continue;
+			}
+		case _T('t'):
+			{
+				psz_thousep = va_arg(ap, TCHAR*);
+				p++; continue;
+			}
+		case _T('_'):
+			{
+				thousep_width = va_arg(ap, int);
+				p++; continue;
 			}
 		case _T('w'):
 			{
@@ -1112,12 +1189,12 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 				}
 				break;
 			}
-		} // switch (fmt_spec) // BIG CHUNK OF PROCESS!! 
-		
-		// chj hint: When to use 'break' and when to use 'continue' in the above 'switch'?
-		// If str_l has not been update, you should execute the code below,
+		}} // switch (fmt_spec) // BIG CHUNK OF PROCESS!! 
+		//
+		// Chj hint: When to use 'break' and when to use 'continue' in the above 'switch'?
+		// If str_l needs update but has not been update, you should execute the code below,
 		// otherwise, you can 'continue' to process next fmt-specifier.
-		// Note: If you 'continue', be sure to prepend 'p++' .
+		// Note: If you 'continue', be sure to do 'p++' first.
 
 		if (*p) 
 			p++;      /* step over the just processed conversion specifier */
