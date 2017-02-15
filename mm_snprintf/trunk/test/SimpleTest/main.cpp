@@ -79,22 +79,29 @@ int mprintNA(const char *cmp, char buf[], int bufsize, char *fmt, ...)
 
 int mprintW(const wchar_t *cmp, const wchar_t *fmt, ...)
 {
+
+#if defined WIN32 || defined WINCE
+#define FMT_WS L"%s"	// lower-case '%s'
+#else // linux
+#define FMT_WS L"%S"	// upper-case '%S'
+#endif
+
 	wchar_t buf[8000];
 	int bufsize = sizeof(buf)/sizeof(buf[0]);
 	va_list args;
 	va_start(args, fmt);
 	int ret = mm_vsnprintfW(buf, bufsize, fmt, args);
 #if defined WIN32 || defined WINCE
-	wprintf(L"%s\n", buf); // lower-case '%s'
+	wprintf(FMT_WS, L"\n", buf); 
 #else // linux
-	wprintf(L"%S\n", buf); // upper-case '%S'
+	wprintf(FMT_WS L"\n", buf);
 #endif
 	va_end(args);
 
 	if(cmp && wcscmp(cmp, buf)!=0)
 	{
-		wprintf(L"\nExpect:\n%S", cmp);
-		wprintf(L"\nError:\n%S", buf);
+		wprintf(L"\nExpect:\n" FMT_WS, cmp);
+		wprintf(L"\nError:\n" FMT_WS, buf);
 		assert(0);
 	}
 	return ret;
