@@ -32,21 +32,28 @@
 __int64 i64 = (__int64)(0xF12345678); // decimal 64729929336
 double d = 1.2345678;
 
-int mprintA(const char *fmt, ...)
+const char *oks = 0; 
+const wchar_t *okw = 0; 
+
+int mprintA(const char *cmp, const char *fmt, ...)
 {
-	char buf[2000];
+	char buf[8000];
 	int bufsize = sizeof(buf);
 	va_list args;
 	va_start(args, fmt);
 	int ret = mm_vsnprintfA(buf, bufsize, fmt, args);
 	printf("%s\n", buf);
 	va_end(args);
+
+	if(cmp)
+		assert(strcmp(cmp, buf)==0);
+
 	return ret;
 }
 
-int mprintW(const wchar_t *fmt, ...)
+int mprintW(const wchar_t *cmp, const wchar_t *fmt, ...)
 {
-	wchar_t buf[2000];
+	wchar_t buf[8000];
 	int bufsize = sizeof(buf)/sizeof(buf[0]);
 	va_list args;
 	va_start(args, fmt);
@@ -57,6 +64,10 @@ int mprintW(const wchar_t *fmt, ...)
 	wprintf(L"%S\n", buf);
 #endif
 	va_end(args);
+
+	if(cmp)
+		assert(wcscmp(cmp, buf)==0);
+
 	return ret;
 }
 
@@ -102,10 +113,28 @@ int test_memdump()
 
 //	mprint(t("%k%R%v%17m"), t(" "), 8, (void*)0x1400, mem);
 
-	mprint(t("%k%*.*R%v%17m"), t(" "), 4, 3, 8, (void*)0xF, mem);
-	mprint(t("%k%*.*R%v%17m"), t(" "), 4, 3, 8, (void*)0x427c00, mem);
-	mprint(t(""));
-	mprint(t("%k%*.*r%v%17m"), t(" "), 4, 3, 8, (void*)0x427c00, mem);
+	okw = 
+L"    ------00-01-02-03-04-05-06-07\n"
+L"    000C:          00 01 02 03 04\n"
+L"    0014: 05 06 07 08 09 0a 0b 0c\n"
+L"    001C: 0d 0e 0f 10";
+	mprint(okw, t("%k%*.*R%v%17m"), t(" "), 4, 3, 8, (void*)0xF, mem);
+
+	okw = 
+L"    --------00-01-02-03-04-05-06-07\n"
+L"    427BFD:          00 01 02 03 04\n"
+L"    427C05: 05 06 07 08 09 0a 0b 0c\n"
+L"    427C0D: 0d 0e 0f 10";
+	mprint(okw, t("%k%*.*R%v%17m"), t(" "), 4, 3, 8, (void*)0x427c00, mem);
+
+	mprint(NULL, t(""));
+
+	okw = 
+L"             00 01 02 03 04\n"
+L"    05 06 07 08 09 0a 0b 0c\n"
+L"    0d 0e 0f 10";
+	mprint(okw, t("%k%*.*r%v%17m"), t(" "), 4, 3, 8, (void*)0x427c00, mem);
+
 //	mprintW(L"%k%*.*R%v%17m", " ", 4, 3, 8, 0x7777123, mem);
 
 
@@ -155,10 +184,10 @@ int test_w_specifier()
 	int alen = print_with_prefix_suffix(buf, bufsize,
 		t("Hello '%%%c' spec"), t('w')); // 15
 	if(alen==17 && t_strcmp(buf, t("[Hello '%w' spec]"))==0)
-		mprint(t("test_w_specifier() ok\n"));
+		printf("test_w_specifier() ok\n");
 	else
 	{
-		mprint(t("test_w_specifier() ERROR\n"));
+		printf("test_w_specifier() ERROR\n");
 		assert(0);
 	}
 	return 0;
@@ -166,20 +195,30 @@ int test_w_specifier()
 
 void test_v3()
 {
-	mprintA("[% d][%05d]", 34, -56); // [ 34][-0056]
-	mprintA("hex[+%x][%X]", 0xAB, 0xAB);
-	mprintA("hex[%+p][%P]", 0xEEEEeeee, 0xEEEEeeee);
+	oks = "[ 34][-0056]";
+	mprintA(oks, "[% d][%05d]", 34, -56);
+
+	oks = "hex[+ab][AB]";
+	mprintA(oks, "hex[+%x][%X]", 0xAB, 0xAB);
+	
+	oks = "hex[eeeeeeee][EEEEEEEE]";
+	mprintA(oks, "hex[%+p][%P]", 0xEEEEeeee, 0xEEEEeeee);
 
 #if defined WIN32 || defined WINCE
-	mprintA("__int64 [%lld, 0x%llx]", i64, i64);
+	oks = "__int64 [64729929336, 0xf12345678]";
+	mprintA(oks, "__int64 [%lld, 0x%llx]", i64, i64);
 #else // linux
 	mprintW(L"__int64 [%lld, 0x%llx]", i64, i64);
 	// glibc bans mixing printf and wprintf, so avoid using mprintA here. (?)
 #endif
 
-	mprintW(L"[%d]", 12);
-	mprintW(L"[%s]", L"xyz");
-	mprintW(L"float [%f, %g, %e]", d, d, d);
+	okw = L"[12]";
+	mprintW(okw, L"[%d]", 12);
+
+	okw = L"[xyz]";
+	mprintW(okw, L"[%s]", L"xyz");
+
+	mprintW(NULL, L"float [%f, %g, %e]", d, d, d);
 
 }
 
@@ -189,7 +228,7 @@ int _tmain()
 	
 	test_memdump();
 
-	mprint(t("")); // print a empty line
+	mprint(NULL, t("")); // print a empty line
 
 	test_w_specifier();
 	return 0;
