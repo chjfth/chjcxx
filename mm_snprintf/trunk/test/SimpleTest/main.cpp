@@ -14,26 +14,29 @@
 
 #include <wchar.h> // for wprintf under linux
 #include <ps_TCHAR.h> // for _tmain macro
-//#include <ps_TypeDecl.h>
 
 #include <mm_snprintf.h>
 
 
 #ifdef UNICODE
+
 #define t(str) L##str 
+const wchar_t *oks = 0; 
 #define mprint mprintW
 #define t_strcmp wcscmp
+
 #else
+
+const char *oks = 0; 
 #define t(str) str
 #define mprint mprintA
 #define t_strcmp strcmp
+
 #endif
 
 __int64 i64 = (__int64)(0xF12345678); // decimal 64729929336
 double d = 1.2345678;
 
-const char *oks = 0; 
-const wchar_t *okw = 0; 
 
 int mprintA(const char *cmp, const char *fmt, ...)
 {
@@ -73,8 +76,6 @@ int mprintW(const wchar_t *cmp, const wchar_t *fmt, ...)
 
 int test_memdump()
 {
-//	setlocale(LC_ALL, "");
-
 	// [2014-07-12] bytes dump
 	const TCHAR *str=t("ABN");
 	int i;
@@ -113,27 +114,27 @@ int test_memdump()
 
 //	mprint(t("%k%R%v%17m"), t(" "), 8, (void*)0x1400, mem);
 
-	okw = 
-L"    ------00-01-02-03-04-05-06-07\n"
-L"    000C:          00 01 02 03 04\n"
-L"    0014: 05 06 07 08 09 0a 0b 0c\n"
-L"    001C: 0d 0e 0f 10";
-	mprint(okw, t("%k%*.*R%v%17m"), t(" "), 4, 3, 8, (void*)0xF, mem);
+	oks = t("\
+    ------00-01-02-03-04-05-06-07\n\
+    000C:          00 01 02 03 04\n\
+    0014: 05 06 07 08 09 0a 0b 0c\n\
+    001C: 0d 0e 0f 10");
+	mprint(oks, t("%k%*.*R%v%17m"), t(" "), 4, 3, 8, (void*)0xF, mem);
 
-	okw = 
-L"    --------00-01-02-03-04-05-06-07\n"
-L"    427BFD:          00 01 02 03 04\n"
-L"    427C05: 05 06 07 08 09 0a 0b 0c\n"
-L"    427C0D: 0d 0e 0f 10";
-	mprint(okw, t("%k%*.*R%v%17m"), t(" "), 4, 3, 8, (void*)0x427c00, mem);
+	oks = t("\
+    --------00-01-02-03-04-05-06-07\n\
+    427BFD:          00 01 02 03 04\n\
+    427C05: 05 06 07 08 09 0a 0b 0c\n\
+    427C0D: 0d 0e 0f 10");
+	mprint(oks, t("%k%*.*R%v%17m"), t(" "), 4, 3, 8, (void*)0x427c00, mem);
 
 	mprint(NULL, t(""));
 
-	okw = 
-L"             00 01 02 03 04\n"
-L"    05 06 07 08 09 0a 0b 0c\n"
-L"    0d 0e 0f 10";
-	mprint(okw, t("%k%*.*r%v%17m"), t(" "), 4, 3, 8, (void*)0x427c00, mem);
+	oks = t("\
+             00 01 02 03 04\n\
+    05 06 07 08 09 0a 0b 0c\n\
+    0d 0e 0f 10");
+	mprint(oks, t("%k%*.*r%v%17m"), t(" "), 4, 3, 8, (void*)0x427c00, mem);
 
 //	mprintW(L"%k%*.*R%v%17m", " ", 4, 3, 8, 0x7777123, mem);
 
@@ -195,36 +196,34 @@ int test_w_specifier()
 
 void test_v3()
 {
-	oks = "[ 34][-0056]";
-	mprintA(oks, "[% d][%05d]", 34, -56);
+	oks = t("[ 34][-0056]");
+	mprint(oks, t("[% d][%05d]"), 34, -56);
 
-	oks = "hex[+ab][AB]";
-	mprintA(oks, "hex[+%x][%X]", 0xAB, 0xAB);
+	oks = t("hex[+ab][AB]");
+	mprint(oks, t("hex[+%x][%X]"), 0xAB, 0xAB);
 	
-	oks = "hex[eeeeeeee][EEEEEEEE]";
-	mprintA(oks, "hex[%+p][%P]", 0xEEEEeeee, 0xEEEEeeee);
+	oks = t("hex[eeeeeeee][EEEEEEEE]");
+	mprint(oks, t("hex[%+p][%P]"), 0xEEEEeeee, 0xEEEEeeee);
 
-#if defined WIN32 || defined WINCE
-	oks = "__int64 [64729929336, 0xf12345678]";
-	mprintA(oks, "__int64 [%lld, 0x%llx]", i64, i64);
-#else // linux
-	okw = L"__int64 [64729929336, 0xf12345678]";
-	mprintW(okw, L"__int64 [%lld, 0x%llx]", i64, i64);
-	// glibc bans mixing printf and wprintf, so avoid using mprintA here. (?)
-#endif
+	oks = t("__int64 [64729929336, 0xf12345678]");
+	mprint(oks, t("__int64 [%lld, 0x%llx]"), i64, i64);
 
-	okw = L"[12]";
-	mprintW(okw, L"[%d]", 12);
+	oks = t("[12]");
+	mprint(oks, t("[%d]"), 12);
 
-	okw = L"[xyz]";
-	mprintW(okw, L"[%s]", L"xyz");
+	oks = t("[xyz]");
+	mprint(oks, t("[%s]"), t("xyz"));
 
-	mprintW(NULL, L"float [%f, %g, %e]", d, d, d);
+	mprint(NULL, t("float [%f, %g, %e]"), d, d, d);
 
 }
 
 int _tmain()
 {
+	// note: glibc bans mixing printf and wprintf, so avoid using mprintA here. (?)
+
+	setlocale(LC_ALL, "");
+
 	test_v3();
 	
 	test_memdump();
