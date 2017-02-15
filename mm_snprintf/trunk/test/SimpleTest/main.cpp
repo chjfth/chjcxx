@@ -91,11 +91,7 @@ int mprintW(const wchar_t *cmp, const wchar_t *fmt, ...)
 	va_list args;
 	va_start(args, fmt);
 	int ret = mm_vsnprintfW(buf, bufsize, fmt, args);
-#if defined WIN32 || defined WINCE
-	wprintf(FMT_WS, L"\n", buf); 
-#else // linux
 	wprintf(FMT_WS L"\n", buf);
-#endif
 	va_end(args);
 
 	if(cmp && wcscmp(cmp, buf)!=0)
