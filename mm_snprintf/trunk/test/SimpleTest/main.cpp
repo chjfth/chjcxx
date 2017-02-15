@@ -14,6 +14,7 @@
 
 #include <wchar.h> // for wprintf under linux
 #include <ps_TCHAR.h> // for _tmain macro
+#include <commdefs.h>
 
 #include <mm_snprintf.h>
 
@@ -23,6 +24,7 @@
 #define t(str) L##str 
 const wchar_t *oks = 0; 
 #define mprint mprintW
+#define mprintN mprintNW
 #define t_strcmp wcscmp
 
 #else
@@ -30,6 +32,7 @@ const wchar_t *oks = 0;
 const char *oks = 0; 
 #define t(str) str
 #define mprint mprintA
+#define mprintN mprintNA
 #define t_strcmp strcmp
 
 #endif
@@ -68,9 +71,9 @@ int mprintW(const wchar_t *cmp, const wchar_t *fmt, ...)
 	va_start(args, fmt);
 	int ret = mm_vsnprintfW(buf, bufsize, fmt, args);
 #if defined WIN32 || defined WINCE
-	wprintf(L"%s\n", buf);
+	wprintf(L"%s\n", buf); // lower-case '%s'
 #else // linux
-	wprintf(L"%S\n", buf);
+	wprintf(L"%S\n", buf); // upper-case '%S'
 #endif
 	va_end(args);
 
@@ -83,6 +86,29 @@ int mprintW(const wchar_t *cmp, const wchar_t *fmt, ...)
 
 	return ret;
 }
+
+int mprintNW(const wchar_t *cmp, wchar_t buf[], int bufsize, const wchar_t *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	int ret = mm_vsnprintfW(buf, bufsize, fmt, args);
+#if defined WIN32 || defined WINCE
+	wprintf(L"%s\n", buf); // lower-case '%s'
+#else // linux
+	wprintf(L"%S\n", buf); // upper-case '%S'
+#endif
+	va_end(args);
+	
+	if(cmp && wcscmp(cmp, buf)!=0)
+	{
+		wprintf(L"\nExpect:\n%s", cmp);
+		wprintf(L"\nError:\n%s", buf);
+		assert(0);
+	}
+	
+	return ret;
+}
+
 
 int test_memdump()
 {
@@ -236,6 +262,48 @@ void test_v5()
 	oks = IS64BIT ? t("[0000000000000000]") : t("[00000000]");
 	mprint(oks, t("[%p]"), NULL);
 
+	oks = t("[0]");
+	mprint(oks, t("[%D]"), 0);
+
+	oks = t("[1 234][567]");
+	mprint(oks, t("[%D][%D]"), 1234, 567);
+
+	oks = t("[1,234][56,789]");
+	mprint(oks, t("%T[%D][%D]"), t(","), 1234, 56789);
+
+	// Check for %_ %t
+	if(IS64BIT)
+	{
+		oks = t("[fffff980`08ee0d80][00001FFF`BFAF13D8]"); // windbg 64-bit pointer
+		mprint(oks, t("%_%t[%p][%P]"), 8, t("`"), 0xFFFFF98008EE0D80, 0x00001FFFBFAF13D8);
+	}
+	else
+	{
+		oks = t("[f8ee.0d80][BFAF.13D8]"); 
+		mprint(oks, t("%_%t[%p][%P]"), 4, t("."), 0xF8EE0D80, 0xBFAF13D8);
+	}
+
+
+	oks = t("[0xBA1.2345.6789][55,912,345,678][12.7867.0939.1241]"); 
+	mprint(oks, t("%_%t%T[0x%llX][%llU][%llu]"), 4, t("."), t(","), 
+		0xBA123456789, 55912345678 ,0xBA123456789);
+	
+	oks = t("[   0xba1 2345 6789]"); 
+	mprint(oks, t("%_%t[%#*llx]"), 4, t(" "), 18, 0xBA123456789); // [18-chars]
+	
+	// sorry, the padded '0's for %0*X is not thousand-separated
+	oks = t("[0x000ba1 2345 6789]");
+	mprint(oks, t("%_%t[%#0*llx]"), 4, t(" "), 18, 0xBA123456789);
+
+	oks = t("[123456]");
+	mprint(oks, t("%T[%U]"), t(""), 123456); // deliberately using an empty %T string
+
+	// trigger internal buffer overrun
+	int ret = 0;
+	TCHAR smbuf1[10];
+	oks = t("[123(*)45");
+	ret = mprintN(oks, smbuf1, GetEleQuan_i(smbuf1), t("%T[%U]"), t("(*)"), 123456);
+	assert(ret==11);
 }
 
 int _tmain()
@@ -246,8 +314,6 @@ int _tmain()
 
 //	mprint(L"[12]", L"[%d]", 12);
 
-	test_v5();
-
 	test_v3();
 	
 	test_memdump();
@@ -255,6 +321,9 @@ int _tmain()
 	mprint(NULL, t("")); // print a empty line
 
 	test_w_specifier();
+
+	test_v5();	
+	
 	return 0;
 }
 
