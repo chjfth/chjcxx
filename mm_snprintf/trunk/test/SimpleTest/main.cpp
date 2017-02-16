@@ -219,7 +219,7 @@ int test_memdump()
 }
 
 
-int print_with_prefix_suffix(TCHAR *buf, int bufsize, const TCHAR *fmt, ...)
+int print_with_prefix_suffix_oldstyle(TCHAR *buf, int bufsize, const TCHAR *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
@@ -229,14 +229,35 @@ int print_with_prefix_suffix(TCHAR *buf, int bufsize, const TCHAR *fmt, ...)
 	return alen;
 }
 
+int print_with_prefix_suffix(TCHAR *buf, int bufsize, const TCHAR *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	int alen = mm_snprintf(buf, bufsize, 
+		t("%c%w%s"), t('['), MM_WPAIR_PARAM(fmt, args), t("]"));
+	va_end(args);
+	return alen;
+}
+
 int test_w_specifier()
 {
 	TCHAR buf[100]; 
 	int bufsize = sizeof(buf)/sizeof(buf[0]);
+
 	int alen = print_with_prefix_suffix(buf, bufsize,
 		t("Hello '%%%c' spec"), t('w')); // 15
 	if(alen==17 && t_strcmp(buf, t("[Hello '%w' spec]"))==0)
 		printf("test_w_specifier() ok\n");
+	else
+	{
+		printf("test_w_specifier() ERROR\n");
+		assert(0);
+	}
+	
+	alen = print_with_prefix_suffix_oldstyle(buf, bufsize,
+		t("Hello '%%%c' spec"), t('w')); // 15
+	if(alen==17 && t_strcmp(buf, t("[Hello '%w' spec]"))==0)
+		printf("test_w_specifier() old-style ok\n");
 	else
 	{
 		printf("test_w_specifier() ERROR\n");
