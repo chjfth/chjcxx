@@ -307,7 +307,28 @@ void test_v5()
 	oks = t("[1,234][56,789]");
 	mprint(oks, t("%T[%D][%D]"), t(","), 1234, 56789);
 
+	// Disable thousep with a "" %T
+	oks = t("[1,234][56789]");
+	mprint(oks, t("%T[%D]%T[%D]"), t(","), 1234, t(""), 56789);
+	
+	// Switch thousep in the middle with another %T
+	oks = t("[1,234][56  789]");
+	mprint(oks, t("%T[%D]%T[%D]"), t(","), 1234, t("  "), 56789);
+
+	__int64 i64 = 4123;
+	unsigned __int64 u64 = -2;
+	oks = t("[4,123][18,446,744,073,709,551,614]");
+	mprint(oks, t("%T[%llD][%llU]"), t(","), i64, u64);
+
+
 	// Check for %_ %t
+
+	oks = t("[1 234][56 789]");
+	mprint(oks, t("%t[%d][%d]"), t(" "), 1234, 56789);
+
+	oks = t("[1,234][56789]");
+	mprint(oks, t("%t[%d]%t[%d]"), t(","), 1234, t(""), 56789);
+
 	if(IS64BIT)
 	{
 		oks = t("[fffff980`08ee0d80][00001FFF`BFAF13D8]"); // windbg 64-bit pointer
