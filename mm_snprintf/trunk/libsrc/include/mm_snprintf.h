@@ -103,6 +103,9 @@ struct mm_wpair_stA
 	const va_list *pargs;
 #ifdef __cplusplus
 	mm_wpair_stA(const char *f, const va_list *a) : magic(mm_wpair_magic), fmt(f), pargs(a) {}
+	// overload '&' to workaround gcc 4.8+ 'taking address of temporary' error
+	// Thanks to http://stackoverflow.com/a/11618639/151453 
+	mm_wpair_stA* operator&(){ return this; } 
 	#define MM_WPAIR_PARAMA(fmt, args) &mm_wpair_stA((fmt), &(args)) // only for C++
 #endif
 };
@@ -113,6 +116,7 @@ struct mm_wpair_stW
 	const va_list *pargs;
 #ifdef __cplusplus
 	mm_wpair_stW(const wchar_t *f, const va_list *a) : magic(mm_wpair_magic), fmt(f), pargs(a) {}
+	mm_wpair_stW* operator&(){ return this; }
 	#define MM_WPAIR_PARAMW(fmt, args) &mm_wpair_stW((fmt), &(args)) // only for C++
 #endif
 };
