@@ -212,8 +212,6 @@
  *		- Add mm_free_buffer() to free the buffer returned by asprintf.
  *		- %w now has a way to consume only ONE *sprintf parameter(recommended).
  *		  and still compatible with the old(v4.2) two-param way.
- *      - New function mm_snprintf_am(), updating pbuf and bufsize as a  
- *        convenient way for concatenating formatted string.
  *
  * 2017-02-15  V5.0 by Chj
  *      - Formatting integer using self-sufficient code, unsigned_ntos and signed_ntos,
@@ -221,6 +219,11 @@
 		- Thousand separator(thousep) support for integers. 
 		  %D,%U means "need thousep", default thousep string is " ", %T to customize.
 		  For %d %u %x %X %o %O %p %P, customize them with %_ and %T.
+*
+* 2017-02-25  V5.1 by Chj
+*      - New function mm_snprintf_am(), updating pbuf and bufremain as a  
+*        convenient way for concatenating formatted string.
+
 */
 
 
@@ -1452,38 +1455,28 @@ int mm_vasnprintf (TCHAR **ptr, size_t str_m, const TCHAR *fmt, va_list ap)
 
 
 int 
-mm_snprintf_am(TCHAR * &pbuf, int &bufsize, const TCHAR *fmt, ...)
+mm_snprintf_am(TCHAR * &pbuf, int &bufremain, const TCHAR *fmt, ...)
 {
-	if(bufsize<=0)
-		return 1<<31; // the smallest int
+	if(bufremain<=0)
+		return -1;
 	
 	va_list args;
 	va_start(args, fmt);
+	int allchars = mm_vsnprintf(pbuf, bufremain, fmt, args);
+	va_end(args);
 	
-	int allchars = mm_vsnprintf(pbuf, bufsize, fmt, args);
-	
-	// move pbuf and bufsize within user's range
-	int ret = 0;
-	
-	if(allchars<bufsize)
+	if(allchars<bufremain)
 	{
-		ret = 0;
-
 		pbuf += allchars;
-		bufsize -= allchars;
+		bufremain -= allchars;
 	}
 	else
 	{
-		ret = bufsize-1 - allchars;
-
-		pbuf += (bufsize-1);
-		bufsize = 1;
-		
-		// Example: Returning -3 means 3 TCHARs is truncated due to insufficient bufsize.
+		pbuf += (bufremain-1);
+		bufremain = 1;
 	}
 	
-	va_end(args);
-	return ret;
+	return allchars;
 }
 
 

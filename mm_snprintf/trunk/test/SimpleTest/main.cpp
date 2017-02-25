@@ -366,6 +366,22 @@ void test_v5()
 	assert(ret==11);
 }
 
+void test_am()
+{
+	const int bufsize = 5;
+	TCHAR buf[bufsize] = t("");
+	TCHAR *pbuf = buf;
+	int bufremain = bufsize;
+
+	int needed = mm_snprintf_am(pbuf, bufremain, t("%s"), t("012"));
+	assert(needed==3);
+	assert(pbuf==buf+3 && bufremain==bufsize-3);
+
+	needed += mm_snprintf_am(pbuf, bufremain, t("%d"), 345);
+	assert(needed==6);
+	assert(pbuf==buf+bufsize-1 && bufremain==1);
+}
+
 int _tmain()
 {
 	// note: glibc bans mixing printf and wprintf, so avoid using mprintA here. (?)
@@ -389,6 +405,8 @@ int _tmain()
 	test_w_specifier();
 
 	test_v5();	
+	
+	test_am();
 	
 	return 0;
 }
