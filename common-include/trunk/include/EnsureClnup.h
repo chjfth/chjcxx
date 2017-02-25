@@ -45,6 +45,11 @@ public:
 		return m_t;
 	}
 	
+	PTR_TYPE Ptr()
+	{
+		return m_t;
+	}
+	
 	PTR_TYPE operator->()
 	{
 		return m_t;
