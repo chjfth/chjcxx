@@ -89,6 +89,10 @@ SOURCE=..\..\libsrc\internal.cpp
 # End Source File
 # Begin Source File
 
+SOURCE=..\..\libsrc\libversion.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\..\libsrc\msvc\mm_psfunc.cpp
 # End Source File
 # Begin Source File
