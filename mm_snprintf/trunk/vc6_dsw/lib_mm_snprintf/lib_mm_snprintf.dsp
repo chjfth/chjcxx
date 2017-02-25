@@ -4,7 +4,7 @@
 
 # TARGTYPE "Win32 (x86) Static Library" 0x0104
 
-CFG=lib_mm_snprintf - Win32 Debug
+CFG=lib_mm_snprintf - Win32 Unicode
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
 !MESSAGE 
@@ -13,12 +13,12 @@ CFG=lib_mm_snprintf - Win32 Debug
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "lib_mm_snprintf.mak" CFG="lib_mm_snprintf - Win32 Debug"
+!MESSAGE NMAKE /f "lib_mm_snprintf.mak" CFG="lib_mm_snprintf - Win32 Unicode"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
-!MESSAGE "lib_mm_snprintf - Win32 Release" (based on "Win32 (x86) Static Library")
-!MESSAGE "lib_mm_snprintf - Win32 Debug" (based on "Win32 (x86) Static Library")
+!MESSAGE "lib_mm_snprintf - Win32 ANSI" (based on "Win32 (x86) Static Library")
+!MESSAGE "lib_mm_snprintf - Win32 Unicode" (based on "Win32 (x86) Static Library")
 !MESSAGE 
 
 # Begin Project
@@ -28,7 +28,7 @@ CFG=lib_mm_snprintf - Win32 Debug
 CPP=cl.exe
 RSC=rc.exe
 
-!IF  "$(CFG)" == "lib_mm_snprintf - Win32 Release"
+!IF  "$(CFG)" == "lib_mm_snprintf - Win32 ANSI"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
@@ -51,7 +51,7 @@ LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
 # ADD LIB32 /nologo /out:"mmsnprintf.lib"
 
-!ELSEIF  "$(CFG)" == "lib_mm_snprintf - Win32 Debug"
+!ELSEIF  "$(CFG)" == "lib_mm_snprintf - Win32 Unicode"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
@@ -78,8 +78,8 @@ LIB32=link.exe -lib
 
 # Begin Target
 
-# Name "lib_mm_snprintf - Win32 Release"
-# Name "lib_mm_snprintf - Win32 Debug"
+# Name "lib_mm_snprintf - Win32 ANSI"
+# Name "lib_mm_snprintf - Win32 Unicode"
 # Begin Group "Source Files"
 
 # PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
@@ -99,7 +99,7 @@ SOURCE=..\..\libsrc\msvc\mm_psfunc.cpp
 
 SOURCE=..\..\libsrc\mm_snprintf.cpp
 
-!IF  "$(CFG)" == "lib_mm_snprintf - Win32 Release"
+!IF  "$(CFG)" == "lib_mm_snprintf - Win32 ANSI"
 
 # PROP Ignore_Default_Tool 1
 # Begin Custom Build
@@ -117,7 +117,7 @@ BuildCmds= \
    $(BuildCmds)
 # End Custom Build
 
-!ELSEIF  "$(CFG)" == "lib_mm_snprintf - Win32 Debug"
+!ELSEIF  "$(CFG)" == "lib_mm_snprintf - Win32 Unicode"
 
 # PROP Ignore_Default_Tool 1
 # Begin Custom Build
