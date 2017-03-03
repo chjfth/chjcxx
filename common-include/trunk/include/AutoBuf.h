@@ -52,6 +52,14 @@ public:
 	typedef unsigned long BufLen_t; // in eles. 
 		// I choose the widest among short, int, long, considering 64-bit long is 8 bytes.
 
+	BufLen_t SizeMin()
+	{
+		if(m_ReqEle<=m_CurEle)
+			return m_ReqEle;
+		else
+			return m_CurEle;
+	}
+
 	BufLen_t Size() 
 	{ 
 		// AutoBuf user calls Size() to get a value to tell WinAPI his "current" buffer size
@@ -60,7 +68,7 @@ public:
 		// * If increase success, m_CurEle gets updated to be equal to m_ReqEle.
 		// * If increase fail, m_CurEle remains intact.
 		AdjustBuffer();
-		return m_CurEle; 
+		return SizeMin(); 
 	}
 
 	BufLen_t Size(BufLen_t uSize);
@@ -81,7 +89,7 @@ public:
 	}
 
 	bool IsOK(){
-		return m_CurEle==m_ReqEle;
+		return m_CurEle>=m_ReqEle;
 	}
 
 	typedef unsigned char *PBYTE_t;
@@ -224,7 +232,7 @@ CAutoBufBase::BufLen_t CAutoBufBase::Size(BufLen_t uSize)
 		m_ReqEle = uSize;
 		AdjustBuffer();
 	}
-	return m_CurEle; // m_ReqEle; // Chj: Should return "real" eles(in case increasing buffer fail)
+	return SizeMin();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
