@@ -333,11 +333,17 @@ void test_v5()
 	{
 		oks = t("[fffff980`08ee0d80][00001FFF`BFAF13D8]"); // windbg 64-bit pointer
 		mprint(oks, t("%_%t[%p][%P]"), 8, t("`"), 0xFFFFF98008EE0D80, 0x00001FFFBFAF13D8);
+
+		oks = t("[0xfffff980`08ee0d80][0X00001FFF`BFAF13D8]"); // windbg 64-bit pointer
+		mprint(oks, t("%_%t[%#p][%#P]"), 8, t("`"), 0xFFFFF98008EE0D80, 0x00001FFFBFAF13D8);
 	}
 	else
 	{
 		oks = t("[f8ee.0d80][BFAF.13D8]"); 
 		mprint(oks, t("%_%t[%p][%P]"), 4, t("."), 0xF8EE0D80, 0xBFAF13D8);
+
+		oks = t("[0xf8ee.0d80][0XBFAF.13D8]"); 
+		mprint(oks, t("%_%t[%#p][%#P]"), 4, t("."), 0xF8EE0D80, 0xBFAF13D8);
 	}
 
 
