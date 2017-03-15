@@ -94,6 +94,13 @@ public:
 		return pNodeToDel;
 	}
 
+	static bool 
+	isEmpty(Tnode* pNode)
+	{
+		Tnode *phead = pNode->*ofsHead;
+		return (phead == phead->*ofsNext) ? true : false;
+	}
+
 	static int 
 	nCount(Tnode* pNode)
 	{
@@ -104,9 +111,29 @@ public:
 		return n;
 	}
 
+	template<typename T> static Tnode*
+	nFind(Tnode *dlist, const T &pNeedle, T Tnode::*ofsNeedle)
+	{
+		Tnode *pHead = dlist->*ofsHead;
+		Tnode *pCurr = pHead->*ofsNext;
+		for(; pCurr!=pHead; pCurr=pCurr->*ofsNext) 
+		{
+			if(pNeedle==pCurr->*ofsNeedle)
+			{
+				return pCurr;
+			}
+		}
+		return NULL;
+	}
+
 };
 
-// Old Dlope from 2007: 
+
+
+
+
+
+// Old Dlope from 2007 (no back-to-head pointer): 
 
 template<typename Tnode, Tnode* Tnode::*ofsPrev, Tnode* Tnode::*ofsNext>
 class DlOpe
@@ -183,6 +210,12 @@ public:
 		NodeDel_(pNodeToDel->*ofsPrev, pNodeToDel->*ofsNext);
 		pNodeToDel->*ofsPrev = pNodeToDel->*ofsNext = pNodeToDel;
 		return pNodeToDel;
+	}
+
+	static bool 
+	isEmpty(Tnode &Node)
+	{
+		return (&Node==Node.*ofsNext) ? true : false;
 	}
 
 	static int 
