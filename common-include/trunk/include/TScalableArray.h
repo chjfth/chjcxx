@@ -286,15 +286,20 @@ template<typename T>
 T& 
 TScalableArray<T>::operator[](int pos) const 
 {
-	if(pos<0 || pos>=m_nCurEle) 
+	if(pos>=0 && pos<m_nCurEle)
 	{
-		//return s_InvlEle; // return the static invalid element
-		return *(T*)0; // User can determine whether the element returned is valid
-			// by checking whether its address is NULL.
+		return mar_Ele[pos];
+	}
+	else if(pos<0 && pos>=-m_nCurEle)
+	{
+		// Python style, index from array tail
+		return mar_Ele[m_nCurEle+pos];
 	}
 	else
 	{
-		return mar_Ele[pos];
+		// User can determine whether the element returned is valid
+		// by checking whether its address is NULL.
+		return *(T*)0; 
 	}
 }
 
