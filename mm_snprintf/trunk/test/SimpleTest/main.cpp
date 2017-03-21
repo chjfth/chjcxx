@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <locale.h>
+#include <time.h>
 
 #include <wchar.h> // for wprintf under linux
 #include <ps_TCHAR.h> // for _tmain macro
@@ -388,6 +389,33 @@ void test_am()
 	assert(pbuf==buf+bufsize-1 && bufremain==1);
 }
 
+int mm_ymdhms_from_ansi_time(void *param, TCHAR *buf, int bufsize)
+{
+	time_t now = *(time_t*)param;
+	struct tm* ptm = gmtime(&now);
+	int len = mm_snprintf(buf, bufsize, t("%04d-%02d-%02d %02d:%02d:%02d"),
+		ptm->tm_year+1900, ptm->tm_mon+1, ptm->tm_mday,
+		ptm->tm_hour, ptm->tm_min, ptm->tm_sec
+		);
+	return len;
+}
+
+void test_v6()
+{
+	time_t now_epoch = 0x7FFFffff;
+	oks = t("time_t overflows at UTC [2038-01-19 03:14:07]!");
+	mprint(oks, t("time_t overflows at UTC [%F]!"), 
+		MM_FPAIR_PARAM(mm_ymdhms_from_ansi_time, &now_epoch)
+		);
+
+	const int smallsize = 18;
+	TCHAR smallbuf[smallsize];
+	mm_snprintf(smallbuf, smallsize, t("[%F]"),
+		MM_FPAIR_PARAM(mm_ymdhms_from_ansi_time, &now_epoch));
+	assert( t_strcmp(smallbuf, t("[2038-01-19 03:14"))==0 );
+
+}
+
 int _tmain()
 {
 	// note: glibc bans mixing printf and wprintf, so avoid using mprintA here. (?)
@@ -413,6 +441,8 @@ int _tmain()
 	test_v5();	
 	
 	test_am();
+
+	test_v6();
 	
 	return 0;
 }

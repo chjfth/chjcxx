@@ -223,7 +223,10 @@
 * 2017-02-25  V5.1 by Chj
 *      - New function mm_snprintf_am(), updating pbuf and bufremain as a  
 *        convenient way for concatenating formatted string.
-
+*
+* 2017-03-21  V6.0 by Chj
+*      - %F to inject a function call. 
+  
 */
 
 
@@ -1172,6 +1175,30 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 				p++;
 				continue;
 			}
+		case _T('F'): // inject function call
+			{
+				FUNC_mm_fpair func = NULL;
+				void *func_param = NULL;
+
+				const mm_fpair_st *fpair = va_arg(ap, mm_fpair_st*);
+
+				if(fpair->magic==mm_fpair_magic)
+				{
+					func = (FUNC_mm_fpair)fpair->func;
+					func_param = fpair->func_param;
+				}
+
+				if(func)
+				{
+					int fills = func(func_param, 
+						str+str_l, 
+						str_m>str_l ? str_m-str_l : 0);
+					str_l += _MAX_(0, fills);
+				}
+				
+				p++;
+				continue;
+			}
 		default: /* unrecognized conversion specifier, keep format string as-is*/
 			{
 				zero_padding = false;  /* turn zero padding off for non-numeric converts. */
@@ -1181,7 +1208,7 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 //#if defined(LINUX_COMPATIBLE) //[2006-10-03]Chj: I think the Linux-like behavior is more faithful to user.
 				/* keep the entire format string unchanged */
 				str_arg = starting_p; str_arg_l = (Int)(p - starting_p);
-				/* well, not exactly so for Linux, which does something inbetween,
+				/* well, not exactly so for Linux, which does something in-between,
 				* and I don't feel an urge to imitate it: "%+++++hy" -> "%+y"  */
 // #else
 // 				/* discard the unrecognized conversion, just keep *

@@ -109,6 +109,7 @@ struct mm_wpair_stA
 	#define MM_WPAIR_PARAMA(fmt, args) &mm_wpair_stA((fmt), &(args)) // only for C++
 #endif
 };
+//
 struct mm_wpair_stW
 {
 	unsigned int magic;
@@ -120,6 +121,41 @@ struct mm_wpair_stW
 	#define MM_WPAIR_PARAMW(fmt, args) &mm_wpair_stW((fmt), &(args)) // only for C++
 #endif
 };
+
+
+// The struct used for %F (function call injection), since v6.0
+//
+enum { mm_fpair_magic = 0xEF170321 };
+//
+struct mm_fpair_stA
+{
+	unsigned int magic;
+	void *func; // actual function type is FUNC_mm_fpair
+	void *func_param;
+#ifdef __cplusplus
+	mm_fpair_stA(void *f, void *p) : magic(mm_fpair_magic), func(f), func_param(p) {}
+	mm_fpair_stA* operator&(){ return this; }
+#define MM_FPAIR_PARAMA(f, p) &mm_fpair_stA((f), (p)) // only for C++
+#endif
+};
+//
+struct mm_fpair_stW
+{
+	unsigned int magic;
+	void *func; // actual function type is FUNC_mm_fpair
+	void *func_param;
+#ifdef __cplusplus
+	mm_fpair_stW(void *f, void *p) : magic(mm_fpair_magic), func(f), func_param(p) {}
+	mm_fpair_stW* operator&(){ return this; }
+#define MM_FPAIR_PARAMW(f, p) &mm_fpair_stW((f), (p)) // only for C++
+#endif
+};
+//
+typedef int (*FUNC_mm_fpairA)(void *user_param, char *buf, int bufsize);
+typedef int (*FUNC_mm_fpairW)(void *user_param, wchar_t *buf, int bufsize);
+// -- Return value tells output characters count, assuming buffer is enough (not counting ending NUL).
+
+
 
 
 #if (defined _UNICODE) || (defined UNICODE)
@@ -135,6 +171,9 @@ struct mm_wpair_stW
 //
 # define mm_wpair_st mm_wpair_stW
 # define MM_WPAIR_PARAM MM_WPAIR_PARAMW
+# define mm_fpair_st mm_fpair_stW
+# define MM_FPAIR_PARAM MM_FPAIR_PARAMW
+# define FUNC_mm_fpair FUNC_mm_fpairW
 
 #else
 
@@ -149,6 +188,9 @@ struct mm_wpair_stW
 //
 # define mm_wpair_st mm_wpair_stA
 # define MM_WPAIR_PARAM MM_WPAIR_PARAMA
+# define mm_fpair_st mm_fpair_stA
+# define MM_FPAIR_PARAM MM_FPAIR_PARAMA
+# define FUNC_mm_fpair FUNC_mm_fpairA
 
 #endif
 
