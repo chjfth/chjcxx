@@ -403,17 +403,17 @@ int mm_ymdhms_from_ansi_time(void *param, TCHAR *buf, int bufsize)
 void test_v6()
 {
 	time_t now_epoch = 0x7FFFffff;
-	oks = t("time_t overflows at UTC [2038-01-19 03:14:07]!");
-	mprint(oks, t("time_t overflows at UTC [%F]!"), 
+	oks = t("time_t will overflow at UTC [2038-01-19 03:14:07]!");
+	mprint(oks, t("time_t will overflow at UTC [%F]!"), 
 		MM_FPAIR_PARAM(mm_ymdhms_from_ansi_time, &now_epoch)
 		);
 
 	const int smallsize = 18;
 	TCHAR smallbuf[smallsize];
-	mm_snprintf(smallbuf, smallsize, t("[%F]"),
+	int retlen = mm_snprintf(smallbuf, smallsize, t("[%F]"),
 		MM_FPAIR_PARAM(mm_ymdhms_from_ansi_time, &now_epoch));
 	assert( t_strcmp(smallbuf, t("[2038-01-19 03:14"))==0 );
-
+	assert( retlen==21 );
 }
 
 int _tmain()
