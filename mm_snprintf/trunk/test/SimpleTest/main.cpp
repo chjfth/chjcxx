@@ -60,7 +60,7 @@ int mprintA(const char *cmp, const char *fmt, ...)
 	return ret;
 }
 
-int mprintNA(const char *cmp, char buf[], int bufsize, char *fmt, ...)
+int mprintNA(const char *cmp, char buf[], int bufsize, const char *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
