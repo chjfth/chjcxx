@@ -135,7 +135,7 @@ struct mm_fpair_stA
 #ifdef __cplusplus
 	mm_fpair_stA(void *f, void *p) : magic(mm_fpair_magic), func(f), func_param(p) {}
 	mm_fpair_stA* operator&(){ return this; }
-#define MM_FPAIR_PARAMA(f, p) &mm_fpair_stA(((void*)f), (p)) // only for C++
+#define MM_FPAIR_PARAMA(f, p) &mm_fpair_stA( ((void*)(f)), ((void*)(p)) ) // only for C++
 #endif
 };
 //
@@ -147,7 +147,7 @@ struct mm_fpair_stW
 #ifdef __cplusplus
 	mm_fpair_stW(void *f, void *p) : magic(mm_fpair_magic), func(f), func_param(p) {}
 	mm_fpair_stW* operator&(){ return this; }
-#define MM_FPAIR_PARAMW(f, p) &mm_fpair_stW(((void*)f), (p)) // only for C++
+#define MM_FPAIR_PARAMW(f, p) &mm_fpair_stW( ((void*)(f)), ((void*)(p)) ) // only for C++
 #endif
 };
 //
