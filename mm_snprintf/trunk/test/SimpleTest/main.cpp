@@ -389,7 +389,7 @@ void test_am()
 	assert(pbuf==buf+bufsize-1 && bufremain==1);
 }
 
-int mm_ymdhms_from_ansi_time(void *param, TCHAR *buf, int bufsize)
+int mmF_ansitime2ymdhms(void *param, TCHAR *buf, int bufsize)
 {
 	time_t now = *(time_t*)param;
 	struct tm* ptm = gmtime(&now);
@@ -405,13 +405,13 @@ void test_v6()
 	time_t now_epoch = 0x7FFFffff;
 	oks = t("time_t will overflow at UTC [2038-01-19 03:14:07]!");
 	mprint(oks, t("time_t will overflow at UTC [%F]!"), 
-		MM_FPAIR_PARAM(mm_ymdhms_from_ansi_time, &now_epoch)
+		MM_FPAIR_PARAM(mmF_ansitime2ymdhms, &now_epoch)
 		);
 
 	const int smallsize = 18;
 	TCHAR smallbuf[smallsize];
 	int retlen = mm_snprintf(smallbuf, smallsize, t("[%F]"),
-		MM_FPAIR_PARAM(mm_ymdhms_from_ansi_time, &now_epoch));
+		MM_FPAIR_PARAM(mmF_ansitime2ymdhms, &now_epoch));
 	assert( t_strcmp(smallbuf, t("[2038-01-19 03:14"))==0 );
 	assert( retlen==21 );
 }
