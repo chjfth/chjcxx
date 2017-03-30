@@ -33,7 +33,7 @@ DLLEXPORT_gadgetlib
 ggt_Minute_t ggt_LocalTimeZone(void);
 	//!< Query local time zone.
 	/*!< Return time difference(in minutes) of local time to UTC.
-	 Example, for time zone of China(UTC+8), this functino returns 480 .
+	 Example, for time zone of China(UTC+8), this function returns 480 .
 	 On a system not supporting timezone, it should return 0.
 	 On a system supporting timezone but it fails, it should return -1.
 	*/
