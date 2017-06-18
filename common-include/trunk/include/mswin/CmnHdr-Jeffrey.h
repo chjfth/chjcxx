@@ -8,7 +8,8 @@ Purpose: Common header file containing handy macros and definitions
 ******************************************************************************/
 
 
-#pragma once   // Include this header file once per compilation unit
+#ifndef __CmnHdr_h__
+#define __CmnHdr_h__
 
 
 //////////////////////// Windows Version Build Option /////////////////////////
@@ -23,7 +24,9 @@ Purpose: Common header file containing handy macros and definitions
 
 // If we are not compiling for an x86 CPU, we always compile using Unicode.
 #ifndef _M_IX86
-#define UNICODE
+#ifndef UNICODE
+ #define UNICODE
+#endif
 #endif
 
 // To compile using Unicode on the x86 CPU, uncomment the line below.
@@ -31,7 +34,9 @@ Purpose: Common header file containing handy macros and definitions
 
 // When using Unicode Windows functions, use Unicode C-Runtime functions too.
 #ifdef UNICODE
-#define _UNICODE
+#ifndef _UNICODE
+ #define _UNICODE
+#endif
 #endif
 
 
@@ -51,6 +56,7 @@ Purpose: Common header file containing handy macros and definitions
 #pragma message("You are not using the latest Platform SDK header/library ")
 #pragma message("files. This may prevent the project from building correctly.")
 #endif
+#define PCTSTR LPCTSTR
 
 
 ////////////// Allow code to compile cleanly at warning level 4 ///////////////
@@ -170,9 +176,10 @@ inline void chFAIL(PSTR szMsg) {
 
 
 // Put up an assertion failure message box.
-inline void chASSERTFAIL(LPCSTR file, int line, PCSTR expr) {
+inline void chASSERTFAIL(LPCSTR file, int line, PCSTR expr) // un-tested
+{
    char sz[128];
-   wsprintfA(sz, "File %s, line %d : %s", file, line, expr);
+   wnsprintfA(sz, 128, "File %s, line %d : %s", file, line, expr);
    chFAIL(sz);
 }
 
@@ -271,5 +278,7 @@ static CUnicodeSupported g_UnicodeSupported;
 
 //#pragma comment(linker, "/subsystem:Windows")
 
+#endif // __CmnHdr_h__
 
 ///////////////////////////////// End of File /////////////////////////////////
+
