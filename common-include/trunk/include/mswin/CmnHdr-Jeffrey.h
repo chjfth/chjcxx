@@ -178,8 +178,8 @@ inline void chFAIL(PSTR szMsg) {
 // Put up an assertion failure message box.
 inline void chASSERTFAIL(LPCSTR file, int line, PCSTR expr) // un-tested
 {
-   char sz[128];
-   wnsprintfA(sz, 128, "File %s, line %d : %s", file, line, expr);
+   char sz[512];
+   wsprintfA(sz,"File %s, line %d : %s", file, line, expr);
    chFAIL(sz);
 }
 
