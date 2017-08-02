@@ -219,13 +219,13 @@
 		- Thousand separator(thousep) support for integers. 
 		  %D,%U means "need thousep", default thousep string is " ", %T to customize.
 		  For %d %u %x %X %o %O %p %P, customize them with %_ and %T.
-*
-* 2017-02-25  V5.1 by Chj
-*      - New function mm_snprintf_am(), updating pbuf and bufremain as a  
-*        convenient way for concatenating formatted string.
-*
-* 2017-03-21  V6.0 by Chj
-*      - %F to inject a function call. 
+ *
+ * 2017-02-25  V5.1 by Chj
+ *      - New function mm_snprintf_am(), updating pbuf and bufremain as a  
+ *        convenient way for concatenating formatted string.
+ *
+ * 2017-03-21  V6.0 by Chj
+ *      - %F to inject a function call. 
   
 */
 
