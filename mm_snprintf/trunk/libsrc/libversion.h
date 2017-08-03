@@ -2,7 +2,7 @@
 #define __mmsnprintf_libversion_h
 
 #define LIB_VMAJOR 6
-#define LIB_VMINOR 0
+#define LIB_VMINOR 1
 #define LIB_VBUILD 0
 
 #define CONST_NUM_TO_STR__(n) #n

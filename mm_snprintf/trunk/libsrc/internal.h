@@ -5,6 +5,8 @@
 
 typedef int Int;
 
+enum Fmt_et { fmt_unset, fmt_ptr, fmt_decimal_signed, fmt_decimal_unsigned, fmt_float };
+
 #define TMM_strmembytes(chars) ((chars)*sizeof(TCHAR))
 
 
