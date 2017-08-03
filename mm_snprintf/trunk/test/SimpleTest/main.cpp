@@ -267,6 +267,21 @@ int test_w_specifier()
 	return 0;
 }
 
+void test_fms_s()
+{
+	oks = t("[  abc]");
+	mprint(oks, t("[%*s]"), 5, t("abc")); // width extended by width-spec
+    
+	oks = t("[123]");
+	mprint(oks, t("[%*s]"), 2, t("123"));
+	
+    oks = t("[xyz]");
+	mprint(oks, t("[%.*s]"), 5, t("xyz"));
+
+	oks = t("[78]");
+    mprint(oks, t("[%.*s]"), 2, t("789")); // truncate by precision-spec
+}
+
 void test_v3()
 {
 	oks = t("[+12][ 34][-0056]");
@@ -403,8 +418,8 @@ int mmF_ansitime2ymdhms(void *param, TCHAR *buf, int bufsize)
 void test_v6()
 {
 	time_t now_epoch = 0x7FFFffff;
-	oks = t("time_t will overflow at UTC [2038-01-19 03:14:07]!");
-	mprint(oks, t("time_t will overflow at UTC [%F]!"), 
+	oks = t("time_t will overflow at UTC [2038-01-19 03:14:07].");
+	mprint(oks, t("time_t will overflow at UTC [%F]."), 
 		MM_FPAIR_PARAM(mmF_ansitime2ymdhms, &now_epoch)
 		);
 
@@ -430,6 +445,8 @@ int _tmain()
 
 //	mprint(L"[12]", L"[%d]", 12);
 
+	test_fms_s();
+
 	test_v3();
 	
 	test_memdump();
@@ -443,7 +460,10 @@ int _tmain()
 	test_am();
 
 	test_v6();
-	
+
+	printf("\n");
+	printf("All test cases passed.\n");
+
 	return 0;
 }
 
