@@ -275,11 +275,14 @@ void test_fms_s()
 	oks = t("[123]");
 	mprint(oks, t("[%*s]"), 2, t("123"));
 	
-    oks = t("[xyz]");
+	oks = t("[xyz]");
 	mprint(oks, t("[%.*s]"), 5, t("xyz"));
 
 	oks = t("[78]");
     mprint(oks, t("[%.*s]"), 2, t("789")); // truncate by precision-spec
+
+	oks = t("[   ]");
+	mprint(oks, t("[%3.0s]"), t("mmm"));
 }
 
 void test_v3()

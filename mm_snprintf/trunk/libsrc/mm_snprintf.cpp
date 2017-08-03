@@ -681,8 +681,8 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 					else if (precision == 0) 
 						str_arg_l = 0; //Chj: Yes, no characters from the string will be printed if `precision' is zero.
 					else { // `precision' specified and > 0 
-						Int lenInput = TMM_strlen(str_arg);
-						str_arg_l = lenInput<precision ? lenInput : precision;
+						const TCHAR *p0 = mm_memchr(str_arg, _T('\0'), precision);
+						str_arg_l = p0 ? (p0-str_arg) : precision;
 					}
 				}
 				break; // end of process for type '%','c','s' .
@@ -1729,4 +1729,19 @@ mm_strcat(TCHAR *dest, size_t bufsize, const TCHAR *fmt, ...)
 	va_end(args);
 	
 	return ret;
+}
+
+
+const TCHAR *
+mm_memchr(const TCHAR *buf, TCHAR c, size_t count)
+{
+	// memo: WinXP ntoskrnl does not have wmemchr, so I write mm_memchr() myself.
+
+	size_t i=0;
+	for(; i<count; i++)
+	{
+		if(buf[i]==c)
+			return buf+i;
+	}
+	return NULL;
 }

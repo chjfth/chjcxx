@@ -23,6 +23,9 @@ int mmsnprintf_IsFloatingType(TCHAR fmt_spec);
 
 void mmsnprintf_fillchar(TCHAR *pbuf, TCHAR c, int n);
 
+const TCHAR *mm_memchr(const TCHAR *buf, TCHAR c, size_t count);
+
+
 int cal_adcol_digits(const void *imagine_addr, int bufbytes);
 
 int mm_dump_bytes(TCHAR *buf, int bufchars, 
