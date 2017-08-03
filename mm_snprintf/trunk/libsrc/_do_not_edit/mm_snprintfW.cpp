@@ -219,13 +219,19 @@
 		- Thousand separator(thousep) support for integers. 
 		  %D,%U means "need thousep", default thousep string is " ", %T to customize.
 		  For %d %u %x %X %o %O %p %P, customize them with %_ and %T.
-*
-* 2017-02-25  V5.1 by Chj
-*      - New function mm_snprintf_am(), updating pbuf and bufremain as a  
-*        convenient way for concatenating formatted string.
-*
-* 2017-03-21  V6.0 by Chj
-*      - %F to inject a function call. 
+ *
+ * 2017-02-25  V5.1 by Chj
+ *      - New function mm_snprintf_am(), updating pbuf and bufremain as a  
+ *        convenient way for concatenating formatted string.
+ *
+ * 2017-03-21  V6.0 by Chj
+ *      - %F to inject a function call. 
+ *
+ * 2017-08-03  V6.1 by Chj
+ *      - Fix to "%.*s", now will not read beyond requested "precision". 
+ *      - Avoid executing float-point instruction when not needed.
+ *        This is to avoid possible subtle problems from compiler bugs.
+ *        Ref: https://randomascii.wordpress.com/2016/09/16/everything-old-is-new-again-and-a-compiler-bug/
   
 */
 
@@ -283,7 +289,7 @@ extern"C" void mmsnprintf_lib__mm_snprintfW__DLL_AUTO_EXPORT_STUB(void){}
 # endif
 #endif
 
-//#include <sys/types.h> //Chj commented it, for ARMCC does not have this.
+//#include <sys/types.h> //Chj commented it out, for ARMCC does not have this.
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
@@ -682,8 +688,8 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 					else if (precision == 0) 
 						str_arg_l = 0; //Chj: Yes, no characters from the string will be printed if `precision' is zero.
 					else { // `precision' specified and > 0 
-						Int lenInput = TMM_strlen(str_arg);
-						str_arg_l = lenInput<precision ? lenInput : precision;
+						const TCHAR *p0 = mm_memchr(str_arg, _T('\0'), precision);
+						str_arg_l = p0 ? (p0-str_arg) : precision;
 					}
 				}
 				break; // end of process for type '%','c','s' .
@@ -711,15 +717,31 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 				void *ptr_arg = NULL;
 				  /* pointer argument value -only defined for p conversion */
 
-				double double_arg = 0;
-				int isFloatingType = mmsnprintf_IsFloatingType(fmt_spec);
-
 #ifdef SNPRINTF_LONGLONG_SUPPORT
 				__int64 long_long_arg = 0;
 				unsigned __int64 ulong_long_arg = 0;
 				  /* only defined for length modifier ll */
 #endif
-				if (fmt_spec==_T('p') || fmt_spec==_T('P')) 
+
+				int isFloatingType = mmsnprintf_IsFloatingType(fmt_spec);
+
+				Fmt_et fmtcat = fmt_unset;
+				if(fmt_spec==_T('p') || fmt_spec==_T('P')) 
+					fmtcat = fmt_ptr;
+				else if(fmt_spec==_T('d'))
+					fmtcat = fmt_decimal_signed;
+				else if(!isFloatingType)
+					fmtcat = fmt_decimal_unsigned;
+				else
+					fmtcat = fmt_float;
+
+				double double_arg;
+				if(fmtcat==fmt_float)
+					double_arg = 0.0;
+				else 
+					; // avoid execting float-point instruction when not needed
+
+				if(fmtcat==fmt_ptr)  // %p, %P
 				{
 				/* HPUX 10: An l, h, ll or L before any other conversion character
 				 *   (other than d, i, u, o, x, or X) is ignored.
@@ -738,7 +760,7 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 					if (ptr_arg != NULL) 
 						arg_sign = 1;
 				} 
-				else if (fmt_spec == _T('d')) 
+				else if(fmtcat==fmt_decimal_signed)
 				{  /* signed */
 					switch (length_modifier) {
 					case _T('\0'):
@@ -766,7 +788,7 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 #endif
 					}
 				} 
-				else if(!isFloatingType) /* unsigned */
+				else if(fmtcat==fmt_decimal_unsigned)
 				{
 					switch (length_modifier) 
 					{
@@ -789,6 +811,8 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 				}
 				else // floating point number
 				{
+					assert(fmtcat==fmt_float);
+
 					double_arg = va_arg(ap, double);
 					if(double_arg>0) arg_sign = 1;
 					else if(double_arg<0) arg_sign = -1;
@@ -808,7 +832,7 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 				if (precision_specified) 
 					zero_padding = false;
 
-				if (fmt_spec == _T('d') || isFloatingType) 
+				if(fmtcat==fmt_decimal_signed || fmtcat==fmt_float) 
 				{
 					if (force_sign && arg_sign >= 0)
 						tmp[str_arg_l++] = space_for_positive ? _T(' ') : _T('+');
@@ -851,7 +875,7 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 
 				if (!precision_specified) 
 				{
-					if(isFloatingType)
+					if(fmtcat==fmt_float)
 						precision = 6;	// default precision is 6 floating point numbers
 					else
 						precision = 1;   /* default precision is 1 for integer types */
@@ -873,12 +897,12 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 				} 
 				else 
 				{
-					// >>> Use system's sprintf to format numeric string in tmp[].
+					// >>> Use signed_ntos, unsigned_ntos, or system's sprintf to format numeric string in tmp[].
 
 					TCHAR f[32]; int f_l = 0; // `f' used as a temp format string for system's sprintf
 					f[f_l++] = _T('%');    /* construct a simple format string for sprintf */
 					
-					if(isFloatingType)
+					if(fmtcat==fmt_float)
 					{
 						// Limit the precision so that not to overflow tmp[].
 						const int MaxPrecision = mmquan(tmp)-16;
@@ -915,7 +939,8 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 
 					f[f_l++] = fmt_spec; f[f_l++] = '\0';
 
-					if (fmt_spec==_T('p')||fmt_spec==_T('P')) {
+					if(fmtcat==fmt_ptr) 
+					{
 						//str_arg_l += TMM_sprintf(tmp+str_arg_l, f, ptr_arg); // old
 						Uint64 u64 = (Uint64)ptr_arg;
 						if(sizeof(ptr_arg)==sizeof(unsigned)) {
@@ -930,8 +955,9 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 							tmp+str_arg_l, mmquan(tmp)-str_arg_l
 							);
 					}
-					else if (fmt_spec == _T('d')) {  /* signed */
-
+					else if(fmtcat==fmt_decimal_signed) 
+					{  
+						/* signed */
 						const TCHAR *psz_thousep_now = is_UorD ? psz_THOUSEP : psz_thousep;
 						int thousep_width_now = is_UorD ? 3 : thousep_width;
 						Int64 i64 = 0;
@@ -958,8 +984,9 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 							tmp+str_arg_l, mmquan(tmp)-str_arg_l
 							);
 					} 
-					else if (!isFloatingType) {  /* unsigned ( u,U,x,X,o,O ) */  
-
+					else if(fmtcat==fmt_decimal_unsigned) 
+					{  
+						/* unsigned ( u,U,x,X,o,O ) */  
 						const TCHAR *psz_thousep_now = is_UorD ? psz_THOUSEP : psz_thousep;
 						int thousep_width_now = is_UorD ? 3 : thousep_width;
 
@@ -999,10 +1026,12 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 					}
 					else // floating type
 					{
+						assert(fmtcat==fmt_float);
+
 						str_arg_l += TMM_sprintf(tmp+str_arg_l, f, double_arg);
 					}
 
-					// <<< Use system's sprintf to format integer string in tmp[].
+					// <<< Use signed_ntos, unsigned_ntos, or system's sprintf to format numeric string in tmp[].
 				 
 					/* include the optional minus sign and possible "0x"
 					  in the region before the zero padding insertion point */
@@ -1730,4 +1759,19 @@ mm_strcat(TCHAR *dest, size_t bufsize, const TCHAR *fmt, ...)
 	va_end(args);
 	
 	return ret;
+}
+
+
+const TCHAR *
+mm_memchr(const TCHAR *buf, TCHAR c, size_t count)
+{
+	// memo: WinXP ntoskrnl does not have wmemchr, so I write mm_memchr() myself.
+
+	size_t i=0;
+	for(; i<count; i++)
+	{
+		if(buf[i]==c)
+			return buf+i;
+	}
+	return NULL;
 }
