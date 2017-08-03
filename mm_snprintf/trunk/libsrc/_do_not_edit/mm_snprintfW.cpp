@@ -689,7 +689,7 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 						str_arg_l = 0; //Chj: Yes, no characters from the string will be printed if `precision' is zero.
 					else { // `precision' specified and > 0 
 						const TCHAR *p0 = mm_memchr(str_arg, _T('\0'), precision);
-						str_arg_l = p0 ? (p0-str_arg) : precision;
+						str_arg_l = (Int)(p0 ? (p0-str_arg) : precision);
 					}
 				}
 				break; // end of process for type '%','c','s' .
@@ -1222,7 +1222,9 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 				{
 					int fills = func(func_param, 
 						str+str_l, 
-						str_m>str_l ? str_m-str_l : 0);
+						(int)(str_m>str_l ? str_m-str_l : 0)
+						);
+
 					str_l += _MAX_(0, fills);
 				}
 				
