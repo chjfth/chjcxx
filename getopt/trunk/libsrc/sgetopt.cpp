@@ -214,7 +214,7 @@ _sgetopt_initialize (sgetopt_ctx *si, const TCHAR *optstring)
 	Their names may be abbreviated as long as the abbreviation is unique
 	or is an exact match for some defined option.  If they have an
 	argument, it follows the option name in the same ARGV-element, separated
-	from the option name by a `=', or else the in next ARGV-element.
+	from the option name by a `=', or else in the next ARGV-element.
 	When `getopt' finds a long-named option, it returns 0 if that option's
 	`flag' field is nonzero, the value of the option's `val' field
 	if the `flag' field is zero.
