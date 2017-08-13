@@ -8,6 +8,7 @@ set batdir_fs=%batdir:\=/%
 set gmu_DO_SHOW_VERBOSE=1
 set gmu_DO_SHOW_COMPILE_CMD=1
 set gmu_DO_SHOW_LINK_CMD=1
+set gmu_NO_GEN_HDEPEND=1
 
 REM gmb_sdkname=... (required, used by Makefile.umk)
 set gmb_sdkname=getopt
