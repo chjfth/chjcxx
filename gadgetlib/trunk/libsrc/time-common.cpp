@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include <gadgetlib/timefuncs.h>
 
 #define DLL_AUTO_EXPORT_STUB

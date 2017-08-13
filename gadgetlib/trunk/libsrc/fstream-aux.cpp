@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include "stdafx.h"
 
 #ifdef _WIN32 
 // Note: _WIN32 is defined for PC Windows and WinCE, 

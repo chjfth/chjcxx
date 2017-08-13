@@ -1,4 +1,5 @@
-#include <assert.h>
+#include "stdafx.h"
+
 #include <gadgetlib/charenccvt.h>
 #include <gadgetlib/mbcs-ops.h>
 

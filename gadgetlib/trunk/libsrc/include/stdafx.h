@@ -8,6 +8,7 @@
 // #include "targetver.h"
 
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
+#define _CRT_SECURE_NO_WARNINGS // to disable warning on VC++ (have to put it before sys headers)
 
 // Windows Header Files:
 #include <windows.h>

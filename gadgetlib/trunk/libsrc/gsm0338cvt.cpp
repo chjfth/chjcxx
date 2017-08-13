@@ -1,3 +1,5 @@
+#include "stdafx.h"
+
 #include <gadgetlib/gsm0338cvt.h>
 
 #define DLL_AUTO_EXPORT_STUB

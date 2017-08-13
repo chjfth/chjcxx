@@ -18,61 +18,32 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\libsrc\charenccvt-common.cpp" />
-    <ClCompile Include="..\..\libsrc\charenccvt-utf8.cpp" />
-    <ClCompile Include="..\..\libsrc\fstream-aux.cpp" />
-    <ClCompile Include="..\..\libsrc\gadgetlib_version.cpp" />
-    <ClCompile Include="..\..\libsrc\gsm0338cvt.cpp" />
-    <ClCompile Include="..\..\libsrc\mbcs-ops.cpp" />
-    <ClCompile Include="..\..\libsrc\mswin\charenccvt-win.cpp" />
-    <ClCompile Include="..\..\libsrc\mswin\dirfuncs.cpp" />
-    <ClCompile Include="..\..\libsrc\mswin\fstream64.cpp" />
-    <ClCompile Include="..\..\libsrc\mswin\simple_thread.cpp" />
-    <ClCompile Include="..\..\libsrc\mswin\T_string-msvc.cpp" />
-    <ClCompile Include="..\..\libsrc\mswin\wintime.cpp" />
-    <ClCompile Include="..\..\libsrc\time-common.cpp" />
-    <ClCompile Include="..\..\libsrc\T_string.cpp" />
-    <ClCompile Include="stdafx.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ANSI|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Unicode|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Unicode|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ANSI|x64'">Create</PrecompiledHeader>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\libsrc\include\stdafx.h" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{C61AC906-75C9-4AE8-AB40-219ED1A25529}</ProjectGuid>
+    <ProjectGuid>{E41E83AF-C1E9-4589-A53F-A554B4948570}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>mylib</RootNamespace>
-    <ProjectName>gadgetlib</ProjectName>
+    <RootNamespace>mydll</RootNamespace>
+    <ProjectName>gadgetlib-dll</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Unicode|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v100</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Unicode|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v100</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ANSI|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v100</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ANSI|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v100</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -91,58 +62,48 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Unicode|Win32'">
-    <OutDir>$(SolutionDir)binstore\$(PlatformName)-$(PlatformToolset)\lib\</OutDir>
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)binstore\$(PlatformName)-$(PlatformToolset)\bin-debug\</OutDir>
+    <IntDir>$(PlatformName)-$(PlatformToolset)\$(Configuration)\</IntDir>
+    <TargetName>gadgetlib_U</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Unicode|x64'">
-    <OutDir>$(SolutionDir)binstore\$(PlatformName)-$(PlatformToolset)\lib\</OutDir>
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)binstore\$(PlatformName)-$(PlatformToolset)\bin-debug\</OutDir>
+    <IntDir>$(PlatformName)-$(PlatformToolset)\$(Configuration)\</IntDir>
+    <TargetName>gadgetlib_U</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ANSI|Win32'">
-    <OutDir>$(SolutionDir)binstore\$(PlatformName)-$(PlatformToolset)\lib\</OutDir>
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)binstore\$(PlatformName)-$(PlatformToolset)\bin-debug\</OutDir>
+    <IntDir>$(PlatformName)-$(PlatformToolset)\$(Configuration)\</IntDir>
+    <TargetName>gadgetlib</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ANSI|x64'">
-    <OutDir>$(SolutionDir)binstore\$(PlatformName)-$(PlatformToolset)\lib\</OutDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Unicode|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)binstore\$(PlatformName)-$(PlatformToolset)\bin-debug\</OutDir>
     <IntDir>$(PlatformName)-$(PlatformToolset)\$(Configuration)\</IntDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Unicode|x64'">
-    <IntDir>$(PlatformName)-$(PlatformToolset)\$(Configuration)\</IntDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ANSI|Win32'">
-    <IntDir>$(PlatformName)-$(PlatformToolset)\$(Configuration)\</IntDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ANSI|x64'">
-    <IntDir>$(PlatformName)-$(PlatformToolset)\$(Configuration)\</IntDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Unicode|Win32'">
-    <TargetName>$(ProjectName)_U_D</TargetName>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Unicode|x64'">
-    <TargetName>$(ProjectName)_U_D</TargetName>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ANSI|Win32'">
-    <TargetName>$(ProjectName)_D</TargetName>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ANSI|x64'">
-    <TargetName>$(ProjectName)_D</TargetName>
+    <TargetName>gadgetlib</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Unicode|Win32'">
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ProgramDataBaseFileName>$(OutDir)$(TargetFileName).pdb</ProgramDataBaseFileName>
-      <AdditionalIncludeDirectories>../../libsrc/include;../../sdkin/include</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;MYDLL_EXPORTS;DLLEXPORT_mydll=__declspec(dllexport);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalIncludeDirectories>./include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-    </Link>
-    <Lib>
       <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
-    </Lib>
+      <ProgramDatabaseFile>%(OutputFile).pdb</ProgramDatabaseFile>
+      <AdditionalOptions>/implib:$(OutDir)..\lib\$(TargetName)--imp.lib %(AdditionalOptions)</AdditionalOptions>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <AdditionalLibraryDirectories>..\..\sdkin\cidvers\vc100\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>mm_snprintf_D.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
     <PostBuildEvent>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -151,18 +112,20 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ProgramDataBaseFileName>$(OutDir)$(TargetFileName).pdb</ProgramDataBaseFileName>
-      <AdditionalIncludeDirectories>../../libsrc/include;../../sdkin/include</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;MYDLL_EXPORTS;DLLEXPORT_mydll=__declspec(dllexport);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalIncludeDirectories>./include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-    </Link>
-    <Lib>
       <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
-    </Lib>
+      <ProgramDatabaseFile>%(OutputFile).pdb</ProgramDatabaseFile>
+      <AdditionalOptions>/implib:$(OutDir)..\lib\$(TargetName)--imp.lib %(AdditionalOptions)</AdditionalOptions>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <AdditionalLibraryDirectories>..\..\sdkin\cidvers\vc100x64\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>mm_snprintf_D.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
     <PostBuildEvent>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -171,18 +134,20 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ProgramDataBaseFileName>$(OutDir)$(TargetFileName).pdb</ProgramDataBaseFileName>
-      <AdditionalIncludeDirectories>../../libsrc/include;../../sdkin/include</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;MYDLL_EXPORTS;DLLEXPORT_mydll=__declspec(dllexport);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalIncludeDirectories>./include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-    </Link>
-    <Lib>
       <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
-    </Lib>
+      <ProgramDatabaseFile>%(OutputFile).pdb</ProgramDatabaseFile>
+      <AdditionalOptions>/implib:$(OutDir)..\lib\$(TargetName)--imp.lib %(AdditionalOptions)</AdditionalOptions>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <AdditionalLibraryDirectories>..\..\sdkin\cidvers\vc100\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>mm_snprintf_D.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
     <PostBuildEvent>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -191,21 +156,36 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ProgramDataBaseFileName>$(OutDir)$(TargetFileName).pdb</ProgramDataBaseFileName>
-      <AdditionalIncludeDirectories>../../libsrc/include;../../sdkin/include</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;MYDLL_EXPORTS;DLLEXPORT_mydll=__declspec(dllexport);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalIncludeDirectories>./include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-    </Link>
-    <Lib>
       <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
-    </Lib>
+      <ProgramDatabaseFile>%(OutputFile).pdb</ProgramDatabaseFile>
+      <AdditionalOptions>/implib:$(OutDir)..\lib\$(TargetName)--imp.lib %(AdditionalOptions)</AdditionalOptions>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <AdditionalLibraryDirectories>..\..\sdkin\cidvers\vc100x64\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>mm_snprintf_D.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
     <PostBuildEvent>
     </PostBuildEvent>
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\libprj\libprj.vcxproj">
+      <Project>{c61ac906-75c9-4ae8-ab40-219ed1a25529}</Project>
+      <Private>true</Private>
+      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\..\libsrc\mswin\gadgetlib.rc" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

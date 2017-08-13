@@ -1,5 +1,4 @@
-#include <assert.h>
-#include <string.h>
+#include "stdafx.h"
 
 #include <in_char_op.h>
 #include <gadgetlib/charenccvt.h>

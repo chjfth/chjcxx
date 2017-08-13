@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gadgetlib", "libprj\libprj.vcxproj", "{C61AC906-75C9-4AE8-AB40-219ED1A25529}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gadgetlib-dll", "dllprj\dllprj.vcxproj", "{E41E83AF-C1E9-4589-A53F-A554B4948570}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		ANSI|Win32 = ANSI|Win32
@@ -19,6 +21,14 @@ Global
 		{C61AC906-75C9-4AE8-AB40-219ED1A25529}.Unicode|Win32.Build.0 = Unicode|Win32
 		{C61AC906-75C9-4AE8-AB40-219ED1A25529}.Unicode|x64.ActiveCfg = Unicode|x64
 		{C61AC906-75C9-4AE8-AB40-219ED1A25529}.Unicode|x64.Build.0 = Unicode|x64
+		{E41E83AF-C1E9-4589-A53F-A554B4948570}.ANSI|Win32.ActiveCfg = ANSI|Win32
+		{E41E83AF-C1E9-4589-A53F-A554B4948570}.ANSI|Win32.Build.0 = ANSI|Win32
+		{E41E83AF-C1E9-4589-A53F-A554B4948570}.ANSI|x64.ActiveCfg = ANSI|x64
+		{E41E83AF-C1E9-4589-A53F-A554B4948570}.ANSI|x64.Build.0 = ANSI|x64
+		{E41E83AF-C1E9-4589-A53F-A554B4948570}.Unicode|Win32.ActiveCfg = Unicode|Win32
+		{E41E83AF-C1E9-4589-A53F-A554B4948570}.Unicode|Win32.Build.0 = Unicode|Win32
+		{E41E83AF-C1E9-4589-A53F-A554B4948570}.Unicode|x64.ActiveCfg = Unicode|x64
+		{E41E83AF-C1E9-4589-A53F-A554B4948570}.Unicode|x64.Build.0 = Unicode|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
