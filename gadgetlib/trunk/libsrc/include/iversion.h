@@ -1,12 +1,25 @@
 #ifndef __gadgetlib_iversion_h_20110426_
 #define __gadgetlib_iversion_h_20110426_
 
-enum {
-	gadgetlib_vmajor = 0,
-	gadgetlib_vminor = 5,
-	gadgetlib_vbuild = 3,
 
-//	gadgetlib_nlsr_version = 0x00
+#define THISLIB_VMAJOR 0
+#define THISLIB_VMINOR 5
+#define THISLIB_VBUILD 4
+
+#define THISLIBstr__(n) #n
+#define THISLIBstr(n) THISLIBstr__(n)
+
+// The following 3 are used in .rc
+#define THISLIB_VMAJORs THISLIBstr(THISLIB_VMAJOR)
+#define THISLIB_VMINORs THISLIBstr(THISLIB_VMINOR)
+#define THISLIB_VBUILDs THISLIBstr(THISLIB_VBUILD)
+
+#define THISLIB_NAME "gadgetlib"
+
+enum {
+	gadgetlib_vmajor = THISLIB_VMAJOR,
+	gadgetlib_vminor = THISLIB_VMINOR,
+	gadgetlib_vbuild = THISLIB_VBUILD,
 };
 
 

@@ -1,17 +1,7 @@
 Microsoft Developer Studio Workspace File, Format Version 6.00
 # WARNING: DO NOT EDIT OR DELETE THIS WORKSPACE FILE!
 
-
-Project: "lib_gadgetlib"=.\lib_gadgetlib_dsp\lib_gadgetlib.dsp - Package Owner=<4>
-
-Package=<5>
-{{{
-}}}
-
-Package=<4>
-{{{
-}}}
-
+###############################################################################
 
 Project: "dll_gadgetlib"=.\dll_gadgetlib_dsp\dll_gadgetlib.dsp - Package Owner=<4>
 
@@ -26,8 +16,9 @@ Package=<4>
     End Project Dependency
 }}}
 
+###############################################################################
 
-Project: "exe_gadgetlib"=..\examples\common\exe_gadgetlib\exe_gadgetlib.dsp - Package Owner=<4>
+Project: "lib_gadgetlib"=.\lib_gadgetlib_dsp\lib_gadgetlib.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -35,11 +26,9 @@ Package=<5>
 
 Package=<4>
 {{{
-    Begin Project Dependency
-    Project_Dep_Name lib_gadgetlib
-    End Project Dependency
 }}}
 
+###############################################################################
 
 Global:
 
@@ -51,4 +40,5 @@ Package=<3>
 {{{
 }}}
 
+###############################################################################
 

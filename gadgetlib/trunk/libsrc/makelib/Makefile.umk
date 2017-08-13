@@ -119,7 +119,7 @@ dirSdkInclude = $(dirThisRepo)/$(gmb_dirname_sdkin)/include
 # * You can use ``subdir1/../myfunc.c'' or ``subdir1/subdir2/../myfunc.c'', which are 
 #	still in $(gmu_ud_SRC_ROOT) or $(gmu_ud_SRC_ROOT)'s subdir.
 gmu_up_list_SRC_FROM_ROOT += \
-	gadgetlib.cpp \
+	gadgetlib_version.cpp \
 	time-common.cpp \
 	charenccvt-common.cpp \
 	charenccvt-utf8.cpp \
