@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="mswin">
+      <UniqueIdentifier>{35e16b08-7a34-4d18-a0ac-77be20e4cf01}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\libsrc\mswin\charenccvt-win.cpp">
+      <Filter>mswin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\mswin\wintime.cpp">
+      <Filter>mswin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\mswin\dirfuncs.cpp">
+      <Filter>mswin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\mswin\fstream64.cpp">
+      <Filter>mswin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\mswin\simple_thread.cpp">
+      <Filter>mswin</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>mswin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\mswin\T_string-msvc.cpp">
+      <Filter>mswin</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\libsrc\include\stdafx.h">
+      <Filter>mswin</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
