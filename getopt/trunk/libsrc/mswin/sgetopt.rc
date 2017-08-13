@@ -1,38 +1,38 @@
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
+// Chj Note: This .rc is only edited by hand, not by Visual Studio IDE.
 
-#ifdef GCC_WINDRES
-VS_VERSION_INFO		VERSIONINFO
-#else
-VS_VERSION_INFO		VERSIONINFO	MOVEABLE IMPURE LOADONCALL DISCARDABLE
-#endif
-  FILEVERSION 1,0,0,2
-  PRODUCTVERSION 1,0,0,2
-  FILEFLAGSMASK		VS_FFI_FILEFLAGSMASK
-#ifdef _DEBUG
-  FILEFLAGS		VS_FF_DEBUG
-#else
-  FILEFLAGS		0
-#endif
-  FILEOS		VOS_DOS_WINDOWS32
-  FILETYPE		VFT_DLL
-  FILESUBTYPE		0	// not used
-BEGIN
-  BLOCK "StringFileInfo"
-  BEGIN
-    BLOCK "040904E4"
-    //language ID = U.S. English, char set = Windows, Multilingual
-    BEGIN
-      VALUE "FileDescription",	"sgetopt API\0"
-      VALUE "FileVersion",	"1.0.0.2\0"
-      VALUE "LegalCopyright",	"NLSCAN\0"
-      VALUE "ProductName",	"sgetopt\0"
-      VALUE "ProductVersion",	"1.0.0.2\0"
-      VALUE "Comments","API library from NLSCAN\0"
-    END
-  END
-  BLOCK "VarFileInfo"
-  BEGIN
-    VALUE "Translation", 0x0409, 1252
-  END
-END
+// #include "_vside.rc" 
+// -- If some .rc content(Dialogbox resources etc) is to be edited within Visual Studio IDE, 
+//    put them in "_vside.rc", so that VSIDE can double click it and visually edit it.
+
+#include "..\include\iversion.h"
+
+
+1 VERSIONINFO
+	
+FileVersion    THISLIB_VMAJOR, THISLIB_VMINOR, THISLIB_VBUILD, 0
+ProductVersion THISLIB_VMAJOR, THISLIB_VMINOR, THISLIB_VBUILD, 0
+
+{
+	BLOCK "StringFileInfo"
+	{
+		BLOCK "040904E4"
+		//language ID = U.S. English, char set = Windows, Multilingual
+		{
+			VALUE "CompanyName", "Public Domain"
+			VALUE "ProductName",	 THISLIB_NAME
+			VALUE "FileDescription", THISLIB_NAME
+			VALUE "FileVersion",    THISLIB_VMAJORs "." THISLIB_VMINORs "." THISLIB_VBUILDs
+			VALUE "ProductVersion",	THISLIB_VMAJORs "." THISLIB_VMINORs "." THISLIB_VBUILDs
+			VALUE "LegalCopyright",	"Public domain"
+			VALUE "OriginalFilename" , THISLIB_NAME ".dll"
+			VALUE "InternalName", THISLIB_NAME ".dll"
+			VALUE "Comments","Presented by public domain"
+		}
+	}
+
+	BLOCK "VarFileInfo"
+	{
+    	VALUE "Translation", 0x0409, 1252
+	}
+}
+

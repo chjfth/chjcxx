@@ -70,9 +70,10 @@ endif
 #	Designate plugins to load in this make-var, multiple plugin names separated
 # by spaces. Plugins are searched from $(gmp_ud_list_CUSTOM_MKI) and then
 # from $(gmu_DIR_GNUMAKEUNIPROC)/pattern1cfg/plugins .
-gmp_u_list_PLUGIN_TO_LOAD += PI_sc_version_sync
-  gmi_SCVS_upp_list_SYNC += \
-	$(gmu_ud_SRC_ROOT)/include/iversion.h|$(call gmif_SCVS_WinRcListToSyncList,$(gmi_RCVC_up_list_WINRC_FROM_ROOT))
+
+#gmp_u_list_PLUGIN_TO_LOAD += PI_sc_version_sync # v1.0.3 not need this now
+#  gmi_SCVS_upp_list_SYNC += \
+#	$(gmu_ud_SRC_ROOT)/include/iversion.h|$(call gmif_SCVS_WinRcListToSyncList,$(gmi_RCVC_up_list_WINRC_FROM_ROOT))
 
 # Load "make dll from lib" plugin, and load for subprjs as well(export ...).
 export gmp_u_list_PLUGIN_TO_LOAD_ENV_PRE += PI_dll_from_lib
@@ -204,15 +205,6 @@ gmu_uv_list_SUBPRJ_LINK_ALL_LEVEL += thelib
 thelib_Makefile = $(gmu_ud_SRC_ROOT)/makelib/Makefile.umk
 thelib_MakeVarDefines = gmp_COMPILER_ID=$(gmp_COMPILER_ID)
 	# command line options passed to sub-make
-# If the sub-project's makefiles are to be checked-out from some repository, assign it here.
-# >>>> For SVN checkout
-<subprj1-refname>_svnUrl_forMakefiles = # SVN Url for the checkout
-	# Hint: $(call gmuf_MakeSvnRepositoryPath,<SVN-path-prefix-var>,<remaining-repository-path>)
-<subprj1-refname>_svnLocalDir_forMakefiles = # Local dir corresponding to the whole SVN URL
-<subprj1-refname>_svnRev_forMakefiles = # Revision to use(string after svn's -r switch)
-# <<<< For SVN checkout
-# NOTE for novice: Don't try to make sub-projects' output libs listed in gmp_ALL_TO_LINK,
-# those libs will be listed in gmp_ALL_TO_LINK automatically.
 
 
 # ----------- below for plugin PI_sync_devoutput -----------
