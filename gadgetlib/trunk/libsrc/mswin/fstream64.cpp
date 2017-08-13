@@ -1,4 +1,5 @@
-#include <stdio.h>
+#include "stdafx.h"
+
 #include <gadgetlib/fstream64.h>
 
 #define DLL_AUTO_EXPORT_STUB

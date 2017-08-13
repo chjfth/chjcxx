@@ -1,8 +1,4 @@
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <time.h>
-#include <assert.h>
-#include <mm_snprintf.h>
+#include "stdafx.h"
 
 #include <gadgetlib/timefuncs.h>
 

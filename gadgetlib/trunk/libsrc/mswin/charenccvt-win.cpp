@@ -1,12 +1,5 @@
-#include <assert.h>
-#include <stdio.h>
+#include "stdafx.h"
 
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-
-#include <commdefs.h>
-
-#include <in_char_op.h>
 #include <gadgetlib/charenccvt.h>
 
 #define DLL_AUTO_EXPORT_STUB

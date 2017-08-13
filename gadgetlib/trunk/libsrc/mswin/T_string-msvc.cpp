@@ -1,17 +1,7 @@
+#include "stdafx.h"
+
 #define _CRT_SECURE_NO_WARNINGS // to disable warning on VC++ (have to put it before sys headers)
 
-#include <assert.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <tchar.h>
-#include <wchar.h>
-#include <locale.h>
-
-#include <ps_TCHAR.h>
-#include <mm_snprintf.h>
 #include <gadgetlib/T_string.h>
 
 #define DLL_AUTO_EXPORT_STUB

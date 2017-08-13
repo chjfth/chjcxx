@@ -1,9 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <windows.h>
+#include "stdafx.h"
 
-#include <ps_TCHAR.h>
 #include <gadgetlib/T_string.h>
 #include <gadgetlib/dirfuncs.h>
 
