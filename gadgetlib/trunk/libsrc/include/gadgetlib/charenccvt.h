@@ -1,7 +1,7 @@
 /*****************************************************************************
 Code provided by Newland Auto-ID Tech Co.,Ltd. (www.nlscan.com)
 Created: 2008-08-30 by Chen Jun
-Function: Provide basic MBCS, Unicode convertion interface.
+Function: Provide basic MBCS, Unicode conversion interface.
 Updated log: 
 *****************************************************************************/
 
