@@ -213,5 +213,10 @@ gmi_SYDO_up_list_SYNC_HEADER += gadgetlib
 
 
 
+#dbgval = $(call gmuf_FilterFromSameDir,../fstream-aux.cpp,$(addprefix $(gmu_ud_SRC_ROOT)/,$(gmu_up_list_SRC_FROM_ROOT)))
+#dbgval = $(call gmuf_FilterFromSameDir,../fstream-aux.cpp,$(gmu_Gp_list_AllSource))
+#dbgval = $(call gmuf_xCountFromSameDir,../mswin/wintime.cpp,$(gmu_Gp_list_AllSource),x)
+
+
 include $(gmu_DIR_GNUMAKEUNIPROC)/pattern1.mks
 
