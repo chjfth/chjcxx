@@ -8,6 +8,7 @@ extern"C" {
 
 void verify_timefuncs();
 
+bool verify_ReposNewbox();
 
 
 #ifdef __cplusplus

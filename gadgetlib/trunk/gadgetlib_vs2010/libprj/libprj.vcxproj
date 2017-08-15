@@ -31,6 +31,7 @@
     <ClCompile Include="..\..\libsrc\mswin\simple_thread.cpp" />
     <ClCompile Include="..\..\libsrc\mswin\T_string-msvc.cpp" />
     <ClCompile Include="..\..\libsrc\mswin\wintime.cpp" />
+    <ClCompile Include="..\..\libsrc\ReposNewbox.cpp" />
     <ClCompile Include="..\..\libsrc\time-common.cpp" />
     <ClCompile Include="..\..\libsrc\T_string.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -41,6 +42,18 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\charenccvt.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\dirfuncs.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\fstream-aux.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\fstream64.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\gadgetlib.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\ggt-const.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\gsm0338cvt.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\mbcs-ops.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\ReposNewbox.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\simple_thread.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\timefuncs.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\T_string.h" />
     <ClInclude Include="..\..\libsrc\include\stdafx.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

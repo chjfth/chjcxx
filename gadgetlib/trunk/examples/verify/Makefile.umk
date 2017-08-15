@@ -4,6 +4,7 @@ gmu_uf_LINK_OUTPUT = $(call gmpf_MakeExeName,gadgetlib-verify)
 
 gmu_up_list_SRC_FROM_ROOT += verify.cpp \
 	verify-timefuncs.cpp \
+	verify-ReposNewbox.cpp \
 
 include ../share.mki
 

@@ -4,6 +4,9 @@
     <Filter Include="mswin">
       <UniqueIdentifier>{35e16b08-7a34-4d18-a0ac-77be20e4cf01}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include">
+      <UniqueIdentifier>{cbc526de-60e2-40b3-beed-dc96975f5731}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\libsrc\mswin\charenccvt-win.cpp">
@@ -35,10 +38,47 @@
     <ClCompile Include="..\..\libsrc\mbcs-ops.cpp" />
     <ClCompile Include="..\..\libsrc\T_string.cpp" />
     <ClCompile Include="..\..\libsrc\time-common.cpp" />
+    <ClCompile Include="..\..\libsrc\ReposNewbox.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\libsrc\include\stdafx.h">
       <Filter>mswin</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\charenccvt.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\dirfuncs.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\fstream64.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\fstream-aux.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\gadgetlib.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\ggt-const.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\gsm0338cvt.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\mbcs-ops.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\ReposNewbox.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\simple_thread.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\T_string.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\timefuncs.h">
+      <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -30,12 +30,17 @@ int _tmain()
 int main()
 #endif
 {
+	bool succ;
+
 	casual_test();
 
 	test_printf();
 
 	verify_timefuncs();
-	
+
+	succ = verify_ReposNewbox();
+	assert(succ);
+
 	T_printf(_T("Verify success.\n"));
 	return 0;
 }
