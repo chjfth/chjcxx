@@ -5,6 +5,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gadgetlib", "libprj\libprj.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gadgetlib-dll", "dllprj\dllprj.vcxproj", "{E41E83AF-C1E9-4589-A53F-A554B4948570}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "verify-gadgetlib", "verify-gadgetlib\verify-gadgetlib.vcxproj", "{A43F0756-FC9E-4DB8-8DE6-20170815CF7E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		ANSI|Win32 = ANSI|Win32
@@ -29,6 +31,14 @@ Global
 		{E41E83AF-C1E9-4589-A53F-A554B4948570}.Unicode|Win32.Build.0 = Unicode|Win32
 		{E41E83AF-C1E9-4589-A53F-A554B4948570}.Unicode|x64.ActiveCfg = Unicode|x64
 		{E41E83AF-C1E9-4589-A53F-A554B4948570}.Unicode|x64.Build.0 = Unicode|x64
+		{A43F0756-FC9E-4DB8-8DE6-20170815CF7E}.ANSI|Win32.ActiveCfg = ANSI|Win32
+		{A43F0756-FC9E-4DB8-8DE6-20170815CF7E}.ANSI|Win32.Build.0 = ANSI|Win32
+		{A43F0756-FC9E-4DB8-8DE6-20170815CF7E}.ANSI|x64.ActiveCfg = ANSI|x64
+		{A43F0756-FC9E-4DB8-8DE6-20170815CF7E}.ANSI|x64.Build.0 = ANSI|x64
+		{A43F0756-FC9E-4DB8-8DE6-20170815CF7E}.Unicode|Win32.ActiveCfg = Unicode|Win32
+		{A43F0756-FC9E-4DB8-8DE6-20170815CF7E}.Unicode|Win32.Build.0 = Unicode|Win32
+		{A43F0756-FC9E-4DB8-8DE6-20170815CF7E}.Unicode|x64.ActiveCfg = Unicode|x64
+		{A43F0756-FC9E-4DB8-8DE6-20170815CF7E}.Unicode|x64.Build.0 = Unicode|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
