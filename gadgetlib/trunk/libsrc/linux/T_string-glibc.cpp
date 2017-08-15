@@ -59,7 +59,7 @@ T_printf(const TCHAR *fmt, ...)
 }
 
 int 
-T_printf_stderr(const TCHAR *fmt, ...)
+T_printfe(const TCHAR *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);

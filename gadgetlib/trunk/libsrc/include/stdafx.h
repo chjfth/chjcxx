@@ -3,7 +3,7 @@
 // are changed infrequently
 //
 
-#pragma once
+#if defined(_MSC_VER)     // Visual C++ compiler:
 
 // #include "targetver.h"
 
@@ -23,14 +23,34 @@
 #include <time.h>
 #include <memory.h>
 #include <tchar.h>
+#include <wchar.h>
 #include <string.h>
 #include <ctype.h>
-#include <tchar.h>
-#include <wchar.h>
 #include <locale.h>
 
+#elif defined(__GNUC__)     // Linux GCC compiler
 
-// TODO: reference additional headers your program requires here
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <assert.h>
+#include <malloc.h>
+#include <time.h>
+#include <memory.h>
+#include <wchar.h>
+#include <string.h>
+#include <ctype.h>
+
+#include <unistd.h>
+
+
+#endif // Complier checking done
+
+
+
+//////////////////////////////////////////////////////////////////////////
+
+// Platform unrelated headers below:
 
 #include <ps_TCHAR.h>
 #include <commdefs.h>
