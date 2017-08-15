@@ -7,7 +7,7 @@
 #define DLL_AUTO_EXPORT_STUB
 extern"C" void gadgetlib_lib__T_string_msvc__DLL_AUTO_EXPORT_STUB(void){}
 
-#define TPRINTF_BUFSIZE 500 // 500 chars
+#define TPRINTF_BUFSIZE 4000 // 4000 chars
 
 // bool g_setlocale_done = false;
 
@@ -40,7 +40,7 @@ T_printf(const TCHAR *fmt, ...)
 }
 
 int 
-T_printf_stderr(const TCHAR *fmt, ...)
+T_printfe(const TCHAR *fmt, ...)
 {
 	TCHAR buf[TPRINTF_BUFSIZE];
     va_list args;
@@ -59,6 +59,8 @@ T_printf_stderr(const TCHAR *fmt, ...)
 	fflush(stderr);
 	return ret;
 }
+
+
 
 
 __int64 

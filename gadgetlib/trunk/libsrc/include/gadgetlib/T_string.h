@@ -15,7 +15,22 @@ int T_printf(const TCHAR *fmt, ...);
 	// return the value of mm_vsnprintf's return
 
 DLLEXPORT_gadgetlib
-int T_printf_stderr(const TCHAR *fmt, ...);
+int T_printfe(const TCHAR *fmt, ...);
+
+enum PrnTs_et 
+{
+	PrnNoTs = 0, // no timestamp
+	PrnSec = 1,  // print timestamp accurate to second
+	PrnMsec = 2, // print timestamp accurate to millisecond.
+};
+
+
+DLLEXPORT_gadgetlib
+int T_printf_wall(PrnTs_et ts, const TCHAR *fmt, ...);
+
+DLLEXPORT_gadgetlib
+int T_printfe_wall(PrnTs_et ts, const TCHAR *fmt, ...);
+
 
 DLLEXPORT_gadgetlib
 int T_printf_query_bufsize(void);

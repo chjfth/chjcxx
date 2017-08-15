@@ -80,13 +80,13 @@
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)binstore\$(PlatformName)-$(PlatformToolset)\$(Configuration)\</OutDir>
     <IntDir>$(PlatformName)-$(PlatformToolset)\$(Configuration)\</IntDir>
-    <TargetName>$(ProjectName)_A</TargetName>
+    <TargetName>$(ProjectName)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ANSI|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)binstore\$(PlatformName)-$(PlatformToolset)\$(Configuration)\</OutDir>
     <IntDir>$(PlatformName)-$(PlatformToolset)\$(Configuration)\</IntDir>
-    <TargetName>$(ProjectName)_A</TargetName>
+    <TargetName>$(ProjectName)</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Unicode|Win32'">
     <ClCompile>
@@ -102,18 +102,19 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
       <ProgramDatabaseFile>%(OutputFile).pdb</ProgramDatabaseFile>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>mm_snprintf_D.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <AdditionalLibraryDirectories>..\..\sdkin\cidvers\vc100\lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Unicode|x64'">
     <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(SolutionDir)binstore\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../libsrc/include;../../sdkin/include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -121,8 +122,9 @@
       <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
       <ProgramDatabaseFile>%(OutputFile).pdb</ProgramDatabaseFile>
       <AdditionalOptions>/implib:$(OutDir)..\lib\$(TargetName)--imp.lib %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>$(OutDir)..\lib\mydll_U--imp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>mm_snprintf_D.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <AdditionalLibraryDirectories>..\..\sdkin\cidvers\vc100x64\lib</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>
@@ -136,25 +138,26 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(SolutionDir)binstore\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../libsrc/include;../../sdkin/include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
       <ProgramDatabaseFile>%(OutputFile).pdb</ProgramDatabaseFile>
-      <AdditionalDependencies>$(OutDir)..\lib\mydll_A--imp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>mm_snprintf_D.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <AdditionalLibraryDirectories>..\..\sdkin\cidvers\vc100\lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ANSI|x64'">
     <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(SolutionDir)binstore\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../libsrc/include;../../sdkin/include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -162,13 +165,17 @@
       <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
       <ProgramDatabaseFile>%(OutputFile).pdb</ProgramDatabaseFile>
       <AdditionalOptions>/implib:$(OutDir)..\lib\$(TargetName)--imp.lib %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>$(OutDir)..\lib\mydll_A--imp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>mm_snprintf_D.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <AdditionalLibraryDirectories>..\..\sdkin\cidvers\vc100x64\lib</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>
       </Command>
     </PostBuildEvent>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="mycui.ico" />
@@ -191,8 +198,8 @@
     <ResourceCompile Include="mycui.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\dllprj\dllprj.vcxproj">
-      <Project>{e41e83af-c1e9-4589-a53f-a554b4948570}</Project>
+    <ProjectReference Include="..\libprj\libprj.vcxproj">
+      <Project>{c61ac906-75c9-4ae8-ab40-219ed1a25529}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -168,3 +168,6 @@ T_strtoi(const TCHAR *str, TCHAR **endptr, int base)
 #endif
 	return ret;
 }
+
+
+

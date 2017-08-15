@@ -12,6 +12,17 @@ int casual_test()
 	return sa[1];
 }
 
+void test_printf()
+{
+	T_printf_wall(PrnNoTs, _T("T_printf_wall: PrnNoTs"));
+	T_printf_wall(PrnSec, _T("T_printf_wall: PrnSec"));
+	T_printf_wall(PrnMsec, _T("T_printf_wall: PrnMsec"));
+
+	T_printfe_wall(PrnNoTs, _T("T_printfe_wall: PrnNoTs"));
+	T_printfe_wall(PrnSec, _T("T_printfe_wall: PrnSec"));
+	T_printfe_wall(PrnMsec, _T("T_printfe_wall: PrnMsec"));
+}
+
 
 #ifdef _MSC_VER
 int _tmain()
@@ -20,7 +31,9 @@ int main()
 #endif
 {
 	casual_test();
-	
+
+	test_printf();
+
 	verify_timefuncs();
 	
 	T_printf(_T("Verify success.\n"));
