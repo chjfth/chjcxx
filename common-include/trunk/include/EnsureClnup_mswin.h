@@ -15,6 +15,9 @@ MakeCleanupIntClass_winapi(Cec_FILEHANDLE, BOOL, CloseHandle, HANDLE, INVALID_HA
 MakeCleanupPtrClass_winapi(Cec_HKEY, LONG, RegCloseKey, HKEY)
 	// for RegOpenKeyEx 
 
+MakeCleanupPtrClass_winapi(Cec_DestroyMenu, BOOL, DestroyMenu, HMENU)
+	// for CreatePopupMenu
+
 
 #ifdef _INC_SETUPAPI
 MakeCleanupIntClass_winapi(Cec_HDEVINFO, BOOL, SetupDiDestroyDeviceInfoList, HDEVINFO, INVALID_HANDLE_VALUE)
