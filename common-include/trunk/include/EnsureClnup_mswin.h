@@ -17,6 +17,8 @@ MakeCleanupPtrClass_winapi(Cec_HKEY, LONG, RegCloseKey, HKEY)
 
 MakeCleanupPtrClass_winapi(Cec_DestroyMenu, BOOL, DestroyMenu, HMENU)
 	// for CreatePopupMenu
+MakeCleanupPtrClass_winapi(Cec_DestroyIcon, BOOL, DestroyIcon, HICON)
+	// for CreateIconIndirect, CopyIcon, SHGetStockIconInfo 
 
 
 #ifdef _INC_SETUPAPI
