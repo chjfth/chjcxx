@@ -28,6 +28,13 @@
     <ClCompile Include="..\..\libsrc\mswin\charenccvt-win.cpp" />
     <ClCompile Include="..\..\libsrc\mswin\dirfuncs.cpp" />
     <ClCompile Include="..\..\libsrc\mswin\fstream64.cpp" />
+    <ClCompile Include="..\..\libsrc\mswin\impl_winapi.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Unicode|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Unicode|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ANSI|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ANSI|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\mswin\MenuWithIcon.cpp" />
     <ClCompile Include="..\..\libsrc\mswin\simple_thread.cpp" />
     <ClCompile Include="..\..\libsrc\mswin\T_string-msvc.cpp" />
     <ClCompile Include="..\..\libsrc\mswin\wintime.cpp" />
@@ -50,10 +57,12 @@
     <ClInclude Include="..\..\libsrc\include\gadgetlib\ggt-const.h" />
     <ClInclude Include="..\..\libsrc\include\gadgetlib\gsm0338cvt.h" />
     <ClInclude Include="..\..\libsrc\include\gadgetlib\mbcs-ops.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\MenuWithIcon.h" />
     <ClInclude Include="..\..\libsrc\include\gadgetlib\ReposNewbox.h" />
     <ClInclude Include="..\..\libsrc\include\gadgetlib\simple_thread.h" />
     <ClInclude Include="..\..\libsrc\include\gadgetlib\timefuncs.h" />
     <ClInclude Include="..\..\libsrc\include\gadgetlib\T_string.h" />
+    <ClInclude Include="..\..\libsrc\include\my_winapi.h" />
     <ClInclude Include="..\..\libsrc\include\stdafx.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

@@ -39,6 +39,12 @@
     <ClCompile Include="..\..\libsrc\T_string.cpp" />
     <ClCompile Include="..\..\libsrc\time-common.cpp" />
     <ClCompile Include="..\..\libsrc\ReposNewbox.cpp" />
+    <ClCompile Include="..\..\libsrc\mswin\impl_winapi.cpp">
+      <Filter>mswin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\mswin\MenuWithIcon.cpp">
+      <Filter>mswin</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\libsrc\include\stdafx.h">
@@ -78,6 +84,12 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="..\..\libsrc\include\gadgetlib\timefuncs.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\MenuWithIcon.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\include\my_winapi.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>

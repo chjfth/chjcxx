@@ -4,6 +4,7 @@
 #include <gadgetlib/ReposNewbox.h>
 
 #define DLL_AUTO_EXPORT_STUB
+extern"C" void gadgetlib_lib__ReposNewbox__DLL_AUTO_EXPORT_STUB(void){}
 
 
 #define Abs(i) ( (i)>=0 ? (i) : 0-(i) )

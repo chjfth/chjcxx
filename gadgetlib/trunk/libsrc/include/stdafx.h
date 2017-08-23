@@ -28,6 +28,10 @@
 #include <ctype.h>
 #include <locale.h>
 
+#ifndef WINCE
+#include <my_winapi.h> // This is not for WinCE
+#endif
+
 #elif defined(__GNUC__)     // Linux GCC compiler
 
 #include <stdio.h>

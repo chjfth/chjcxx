@@ -22,6 +22,7 @@
     <ProjectGuid>{D110802C-19B5-4E86-BB35-964129C3B6ee}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>MenuWithIcon</RootNamespace>
+    <ProjectName>test-MenuWithIcon</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Unicode|Win32'" Label="Configuration">
@@ -98,7 +99,7 @@
       <AdditionalIncludeDirectories>../../libsrc/include;../../sdkin/include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
       <ProgramDatabaseFile>%(OutputFile).pdb</ProgramDatabaseFile>
@@ -117,7 +118,7 @@
       <AdditionalIncludeDirectories>../../libsrc/include;../../sdkin/include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
       <ProgramDatabaseFile>%(OutputFile).pdb</ProgramDatabaseFile>
@@ -141,7 +142,7 @@
       <AdditionalIncludeDirectories>../../libsrc/include;../../sdkin/include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
       <ProgramDatabaseFile>%(OutputFile).pdb</ProgramDatabaseFile>
@@ -160,7 +161,7 @@
       <AdditionalIncludeDirectories>../../libsrc/include;../../sdkin/include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
+      <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
       <ProgramDatabaseFile>%(OutputFile).pdb</ProgramDatabaseFile>
@@ -176,21 +177,22 @@
     <ProjectReference />
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="mycui.ico" />
-  </ItemGroup>
-  <ItemGroup>
+    <ClInclude Include="..\..\examples\test-MenuWithIcon\resource.h" />
     <ClInclude Include="..\..\examples\verify\share.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\examples\MenuWithIcon\test-MenuWithIcon.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="mycui.rc" />
+    <ClCompile Include="..\..\examples\test-MenuWithIcon\test-MenuWithIcon.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\libprj\libprj.vcxproj">
       <Project>{c61ac906-75c9-4ae8-ab40-219ed1a25529}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\..\examples\test-MenuWithIcon\demo.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\examples\test-MenuWithIcon\NewLand.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

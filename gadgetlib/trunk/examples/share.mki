@@ -26,7 +26,9 @@ endif
 # GMU-var: gmp_bc_IMAGE_TYPE
 #	Define the "image-type" to generated for this project.
 # Common image-types are: LIB, DLL and EXE.
-gmp_bc_IMAGE_TYPE = EXE
+ifndef gmp_bc_IMAGE_TYPE
+  gmp_bc_IMAGE_TYPE = EXE
+endif
 
 gmp_RELEASE_DONT_OPTIMIZE=1
 

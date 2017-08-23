@@ -43,7 +43,11 @@ ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),msvc wince),1)
   #    warning C4652: compiler option 'Warning level (/W<n>)' inconsistent with precompiled header; current command-line option will override that defined in the precompiled header
   
   gmu_up_list_SRC_FROM_ROOT += \
-	$(if $(filter wince%,$(gmp_COMPILER_ID)),,fstream-aux.cpp) \
+	$(if $(filter wince%,$(gmp_COMPILER_ID)),,\
+	  fstream-aux.cpp           \
+	  mswin/MenuWithIcon.cpp    \
+	  mswin/impl_winapi.cpp     \
+	  ) \
 	mswin/wintime.cpp \
 	mswin/dirfuncs.cpp \
 	mswin/charenccvt-win.cpp \
@@ -55,6 +59,7 @@ ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),msvc wince),1)
 
   gmp_u_list_PLUGIN_TO_LOAD += PI_use_pch_msvc      # use precompile header
     gmi_PCHVC_up_HEADER_FOR_PCH_FROM_ROOT = include/stdafx.h
+    gmi_PCHVC_up_list_SRC_DONT_DEPPCH_FROM_ROOT = mswin/impl_winapi.cpp
 
   # gmp_u_list_PLUGIN_TO_LOAD += PI_winres_msvc       # compile Windows resource(.rc)
   # gmp_u_list_PLUGIN_TO_LOAD += PI_use_pch_msvc      # use precompile header

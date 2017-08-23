@@ -1,12 +1,13 @@
+#include <Windows.h>
 #include <WindowsX.h>
+#include <Uxtheme.h>
 #include <tchar.h>
 #include <stdio.h>
 #include "resource.h"
 
-#include "CmnHdr-Jeffrey.h"
+#include <mswin/CmnHdr-Jeffrey.h>
 
-#include "my_winapi.h"
-#include "TrackPopupMenuWithIcon.h"
+#include <gadgetlib/MenuWithIcon.h>
 
 #pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 
@@ -58,8 +59,6 @@ void Dlg_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 
 	}}
 }
-
-
 
 void Dlg_OnSize(HWND hwnd, UINT state, int cx, int cy) 
 {
