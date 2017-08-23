@@ -8,5 +8,12 @@
 #define RECTxcenter(r) (((r).left+(r).right)/2)
 #define RECTycenter(r) (((r).top+(r).bottom)/2)
 
+#define RECT_IsSameSize(a, b) (RECTcx(a)==RECTcx(b) && RECTcy(a)==RECTcy(b))
+
+#define RECT_AnySide_A_shorter_than_B(a, b) \
+	( RECTcx(a)<RECTcx(b) || RECTcy(a)<RECTcy(b) )
+
+#define RECT_AnySide_A_longer_than_B(a, b) \
+	( RECTcx(a)>RECTcx(b) || RECTcy(a)>RECTcy(b) )
 
 #endif
