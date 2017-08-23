@@ -2,6 +2,10 @@
 
 #include <gadgetlib/MenuWithIcon.h>
 
+#define DLL_AUTO_EXPORT_STUB
+extern"C" void gadgetlib_lib__MenuWithIcon__DLL_AUTO_EXPORT_STUB(void){}
+
+
 #define NEED_VISTA
 
 // Code for Vista code path is from: https://msdn.microsoft.com/en-us/library/bb757020.aspx
