@@ -553,7 +553,7 @@ TScalableArray<T>::Malloc(size_t new_size)
 #ifdef TScalableArray_malloc
 	void *p = TScalableArray_malloc(new_size);
 #else
-	void *p malloc(new_size); // Call standard CRT
+	void *p = malloc(new_size); // Call standard CRT
 #endif
 	return p;
 }
