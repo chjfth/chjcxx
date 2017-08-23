@@ -11,9 +11,11 @@ Usage Sugguestion: Prepare two files.
 
 This file contains a series of
  
+	#include "dl_winapi.h"
+ 
 	DL_MAKE_WINAPI_WRAPPER("foo.dll", ...)
-	
 	DL_MAKE_WINAPI_WRAPPER("bar.dll", ...)
+	...
 	
 (2) impl_winapi. cpp
 
