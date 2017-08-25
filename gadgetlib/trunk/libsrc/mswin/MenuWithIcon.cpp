@@ -132,30 +132,34 @@ HasAlpha(__in ARGB *pargb, SIZE& sizImage, int cxRow)
 	return false;
 }
 
-static HRESULT 
+static LoadIconErr_et  
 ConvertBufferToPARGB32(ARGB *pargb, HDC hdc, HICON hicon, SIZE& sizIcon, int cxRow)
 {
 	if(HasAlpha(pargb, sizIcon, cxRow))
-		return S_OK;
+		return LIE_Succ;
 
-	HRESULT hr = S_FALSE;
 	ICONINFO info;
 	if (GetIconInfo(hicon, &info))
 	{
+		LoadIconErr_et lie = LIE_NoMem;
 		if (info.hbmMask)
 		{
-			hr = ConvertToPARGB32(hdc, pargb, info.hbmMask, sizIcon, cxRow);
+			HRESULT hr = ConvertToPARGB32(hdc, pargb, info.hbmMask, sizIcon, cxRow);
+			if(SUCCEEDED(hr))
+				lie = LIE_Succ;
 		}
 
 		DeleteObject(info.hbmColor);
 		DeleteObject(info.hbmMask);
-	}
 
-	return hr;
+		return lie;
+	}
+	else
+		return LIE_GetIconInfo;
 }
 
 
-static HRESULT 
+static LoadIconErr_et  
 ConvertBufferToPARGB32(HPAINTBUFFER hPaintBuffer, HDC hdc, HICON hicon, SIZE& sizIcon)
 {
 	RGBQUAD *prgbQuad;
@@ -164,16 +168,19 @@ ConvertBufferToPARGB32(HPAINTBUFFER hPaintBuffer, HDC hdc, HICON hicon, SIZE& si
 	if (SUCCEEDED(hr))
 	{
 		ARGB *pargb = reinterpret_cast<ARGB *>(prgbQuad);
-		ConvertBufferToPARGB32(pargb, hdc, hicon, sizIcon, cxRow);
+		return ConvertBufferToPARGB32(pargb, hdc, hicon, sizIcon, cxRow);
 	}
-
-	return hr;
+	else
+		return LIE_GetBufferedPaintBits;
 }
 
-static HRESULT 
+static LoadIconErr_et 
 vista_AddIconToMenuItem(HMENU hmenu, int iMenuItem, BOOL fByPosition, HICON hicon, 
 	BOOL fAutoDestroy, __out_opt HBITMAP *phbmp)
 {
+	// The routine is very ugly, infinite nested coding style.
+
+	LoadIconErr_et lie = LIE_Fail;
 	HRESULT hr = E_OUTOFMEMORY;
 	HBITMAP hbmp = NULL;
 
@@ -192,7 +199,7 @@ vista_AddIconToMenuItem(HMENU hmenu, int iMenuItem, BOOL fByPosition, HICON hico
 		hr = Create32BitHBITMAP(hdcDest, &sizIcon, (void**)&pBmpBits, &hbmp);
 		if (SUCCEEDED(hr))
 		{
-			hr = E_FAIL;
+//			hrr = E_FAIL;
 
 			HBITMAP hbmpOld = (HBITMAP)SelectObject(hdcDest, hbmp);
 			if (hbmpOld)
@@ -213,17 +220,19 @@ vista_AddIconToMenuItem(HMENU hmenu, int iMenuItem, BOOL fByPosition, HICON hico
 					if(b)
 					{
 						// If icon did not have an alpha channel, we need to convert buffer to PARGB.
-						hr = ConvertBufferToPARGB32(hPaintBuffer, hdcDest, hicon, sizIcon);
+						lie = ConvertBufferToPARGB32(hPaintBuffer, hdcDest, hicon, sizIcon);
 					}
 
 					// This will write the buffer contents to the destination bitmap.
 					dl_EndBufferedPaint(hPaintBuffer, TRUE);
 				}
+				else
+					lie = LIE_BeginBufferedPaint;
 #else
 				b = DrawIconEx(hdcDest, 0,0, hicon, sizIcon.cx, sizIcon.cy, 0, NULL, DI_NORMAL);
 				if(b)
 				{
-					hr = ConvertBufferToPARGB32(pBmpBits, hdcDest, hicon, sizIcon, 
+					hrr = ConvertBufferToPARGB32(pBmpBits, hdcDest, hicon, sizIcon, 
 						sizIcon.cx // appropriate?
 						);
 				}
@@ -232,17 +241,24 @@ vista_AddIconToMenuItem(HMENU hmenu, int iMenuItem, BOOL fByPosition, HICON hico
 
 				SelectObject(hdcDest, hbmpOld);
 			}
+			else
+				lie = LIE_OldBitmapMissing;
 		}
+		else
+			lie = LIE_NoMem;
 
 		DeleteDC(hdcDest);
-	}
 
-	if (SUCCEEDED(hr))
+	} // ok: HDC hdcDest = CreateCompatibleDC(NULL);
+
+	if (lie==LIE_Succ)
 	{
 		hr = AddBitmapToMenuItem(hmenu, iMenuItem, fByPosition, hbmp);
+		if(!SUCCEEDED(hr))
+			lie = LIE_SetMenuItemInfo_MIIM_BITMAP;
 	}
 
-	if (FAILED(hr))
+	if (lie!=LIE_Succ)
 	{
 		DeleteObject(hbmp);
 		hbmp = NULL;
@@ -256,25 +272,33 @@ vista_AddIconToMenuItem(HMENU hmenu, int iMenuItem, BOOL fByPosition, HICON hico
 	if (phbmp)
 	{
 		*phbmp = hbmp;
+		// Who will destroy it later?
 	}
 
-	return hr;
+	return lie;
 }
 
 
-bool vista_AttachIconToMenuitem(HINSTANCE hInstExeDll, LPCTSTR iconResId, HMENU hmenu, UINT menuCmdId)
+LoadIconErr_et 
+vista_AttachIconToMenuitem(HINSTANCE hInstExeDll, LPCTSTR iconResId, HMENU hmenu, UINT menuCmdId)
 {
 	HICON hicon = NULL;
 	HRESULT hr = dl_LoadIconMetric(hInstExeDll, iconResId, LIM_SMALL, &hicon);
 	if(SUCCEEDED(hr))
 	{
-		HBITMAP hbmp_debug = NULL;
-		hr = vista_AddIconToMenuItem(hmenu, menuCmdId, FALSE, hicon, TRUE, &hbmp_debug);
+		HBITMAP hbmp_debug = NULL; // test purpose
+		LoadIconErr_et lie = vista_AddIconToMenuItem(hmenu, menuCmdId, FALSE, hicon, TRUE, &hbmp_debug);
 		hbmp_debug = NULL;
-		if(SUCCEEDED(hr))
-			return true;
+
+		return lie;
 	}
-	return false;
+	else 
+	{
+		if(hr==hrERR_DL_ENTRY)
+			return LIE_LoadIconMetric;
+		else
+			return LIE_LoadIcon;
+	}
 }
 
 /****************************************************************************
@@ -293,12 +317,9 @@ ShrinkBitmap_from_Icon (HWND hwnd, HICON hicon)
 {
 	HDC     hdc            = NULL;
 	HDC     hmemorydcNew   = NULL;
-//	HDC     hmemorydcOld   = NULL;
 	LONG    checkMarkSize  = 0;
-											//	HBITMAP hbmSrc         = NULL; // the HBITMAP representing source icon
 	HBITMAP hCheckBitmap   = NULL; // the HBITMAP as checkmark
 	HBITMAP hOldBitmapSave = NULL;
-//	HBITMAP hNewBitmapSave = NULL;
 	BOOL b;
 	int destW, destH;
 
@@ -306,7 +327,6 @@ ShrinkBitmap_from_Icon (HWND hwnd, HICON hicon)
 
     /* Create DCs for the source (old) and target (new) bitmaps */
 	hmemorydcNew = CreateCompatibleDC (hdc);
-//	hmemorydcOld = CreateCompatibleDC (hdc);
 
     /* Determine the dimensions of the default menu checkmark and
      * create a target bitmap of the same dimensions
@@ -321,9 +341,7 @@ ShrinkBitmap_from_Icon (HWND hwnd, HICON hicon)
 	hCheckBitmap  = CreateCompatibleBitmap (hdc, destW, destH);
 
 	hOldBitmapSave = (HBITMAP)SelectObject (hmemorydcNew, hCheckBitmap);
-//	hNewBitmapSave = (HBITMAP)SelectObject (hmemorydcOld, hbm);
 
-//	HGDIOBJ oldbrush =  SelectObject(hdc, GetStockObject(LTGRAY_BRUSH) );
 	RECT rectFill = {0,0, destW, destH};
 	FillRect(hmemorydcNew, &rectFill, (HBRUSH)GetStockObject(WHITE_BRUSH));
 
@@ -331,9 +349,7 @@ ShrinkBitmap_from_Icon (HWND hwnd, HICON hicon)
 
     /* De-select the bitmaps and clean up .. */
 	SelectObject (hmemorydcNew, hOldBitmapSave);
-//	SelectObject (hmemorydcOld, hNewBitmapSave);
 	DeleteDC (hmemorydcNew);
-//	DeleteDC (hmemorydcOld);
 	ReleaseDC (hwnd, hdc);
 
     /* .. and return a handle to the target bitmap */
@@ -341,29 +357,36 @@ ShrinkBitmap_from_Icon (HWND hwnd, HICON hicon)
 }
 
 
-HBITMAP xp_AttachIconToMenuitem(HINSTANCE hInstExeDll, LPCTSTR iconResId, HMENU hmenu, UINT menuCmdId)
+LoadIconErr_et 
+xp_AttachIconToMenuitem(HINSTANCE hInstExeDll, LPCTSTR iconResId, HMENU hmenu, UINT menuCmdId,
+	HBITMAP *phbmp) // caller should free the output *phbmp
 {
 	HICON hicon = LoadIcon(hInstExeDll, iconResId);
 	if(!hicon)
-		return NULL;
+		return LIE_LoadIcon;
 
-	HBITMAP hbmp = ShrinkBitmap_from_Icon(NULL, hicon);
+	*phbmp = ShrinkBitmap_from_Icon(NULL, hicon);
+	if(!*phbmp)
+		return LIE_ShrinkBitmap;
 
 //	HBITMAP hbmp = ShrinkBitmap (NULL, LoadBitmap (hInstExeDll?hInstExeDll:g_hinst, MAKEINTRESOURCE(IDB_BITMAP1))); // test
 //	HBITMAP hbmp = LoadBitmap (hInstExeDll?hInstExeDll:g_hinst, MAKEINTRESOURCE(IDB_BITMAP1)); // test
-	SetMenuItemBitmaps(hmenu, menuCmdId, MF_BYCOMMAND, hbmp, hbmp);
-	return hbmp;
+	SetMenuItemBitmaps(hmenu, menuCmdId, MF_BYCOMMAND, *phbmp, *phbmp);
+	return LIE_Succ;
 }
 
 
 
-bool ggt_TrackPopupMenuWithIcon(
+UINT ggt_TrackPopupMenuWithIcon(
 	HMENU hmenu, UINT fuFlags, int x, int y, HWND hwnd, __in_opt LPTPMPARAMS lptpm,
-	UINT nIcons, __in_ecount_opt(nIcons) ICONMENUENTRY *pIcons)
+	__in_ecount_opt(nIcons) ICONMENUENTRY arIcons[], UINT nIcons, LoadIconErr_et *pLIE)
 {
-	HRESULT hr = S_OK;
-	BOOL fRet; bool succ;
 	bool isVisualStyle = ggt_TrackPopupMenuIsVistaStyle();
+
+	LoadIconErr_et _lie;
+	if(!pLIE)
+		pLIE = &_lie;
+	*pLIE = LIE_Succ; // assume succ
 
 //	HBITMAP xp_hbmp = NULL;
 
@@ -372,28 +395,31 @@ bool ggt_TrackPopupMenuWithIcon(
 
 	if (nIcons)
 	{
-		for (UINT n = 0; SUCCEEDED(hr) && n < nIcons; ++n)
+		for (UINT n = 0; n < nIcons; ++n)
+			arIcons[n].hbmpInternal = NULL; // clear to 0 first
+
+		LoadIconErr_et lieNow = LIE_Succ;
+		for (UINT n = 0; n < nIcons; ++n)
 		{
-//			HICON hicon;
-// #ifdef NEED_VISTA
-// 			hr = dl_LoadIconMetric(pIcons[n].hinst, pIcons[n].pIconId, LIM_SMALL, &hicon); // Vista only, commctl32.dll ordinal 380
-// #else
-// 			hicon = LoadIcon(pIcons[n].hinst, pIcons[n].pIconId); // this is OK on WinXP
-// #endif
-// 			if (SUCCEEDED(hr))
-// 			{
-// 				HBITMAP hbmp_debug = NULL;
-// 				hr = vista_AddIconToMenuItem(hmenu, pIcons[n].idMenuItem, FALSE, hicon, TRUE, &hbmp_debug);
-// 				hbmp_debug = NULL;
-// 			}
+			// note: Even if some icon loads error, we still try to show other correct icons
 
 			if(isVisualStyle)
 			{
-				succ = vista_AttachIconToMenuitem(pIcons[n].hinst, pIcons[n].pIconId, hmenu, pIcons[n].idMenuItem);
+				lieNow = vista_AttachIconToMenuitem(
+					arIcons[n].hinst, arIcons[n].pIconId, hmenu, arIcons[n].idMenuItem);
 			}
 			else
 			{
-				pIcons[n].hbmpInternal = xp_AttachIconToMenuitem(pIcons[n].hinst, pIcons[n].pIconId, hmenu, pIcons[n].idMenuItem);
+				lieNow = xp_AttachIconToMenuitem(
+					arIcons[n].hinst, arIcons[n].pIconId, hmenu, arIcons[n].idMenuItem,
+					&arIcons[n].hbmpInternal);
+			}
+
+			if(lieNow!=LIE_Succ)
+			{
+				// only record first error, e.g. LoadIcon() cannot find the icon resource
+				if(*pLIE==LIE_Succ)
+					*pLIE = lieNow;
 			}
 		}
 
@@ -407,13 +433,10 @@ bool ggt_TrackPopupMenuWithIcon(
 		}
 	}
 
-	if (SUCCEEDED(hr))
-	{
-		fRet = TrackPopupMenuEx(hmenu, fuFlags, x, y, hwnd, lptpm) ? S_OK : E_FAIL; 
-		// Why fRet gets FALSE when I really see the icon-menu?
-		hr = fRet ? S_OK : E_FAIL;
-	}
+	UINT mret = TrackPopupMenuEx(hmenu, fuFlags, x, y, hwnd, lptpm); 
+		// (old comment?) Why fRet gets FALSE when I really see the icon-menu?
 
+	// Clean up resources below
 	if (isVisualStyle)
 	{
 		// Chj: This code suggests: We can DeleteObject the HBITMAP as soon as the menu is displayed on screen.
@@ -422,11 +445,11 @@ bool ggt_TrackPopupMenuWithIcon(
 			MENUITEMINFO mii = { sizeof(mii) };
 			mii.fMask = MIIM_BITMAP;
 
-			if (GetMenuItemInfo(hmenu, pIcons[n].idMenuItem, FALSE, &mii))
+			if (GetMenuItemInfo(hmenu, arIcons[n].idMenuItem, FALSE, &mii))
 			{
 				DeleteObject(mii.hbmpItem); // on Vista, mii.hbmpItem should equal to hbmp_debug values
 				mii.hbmpItem = NULL;
-				SetMenuItemInfo(hmenu, pIcons[n].idMenuItem, FALSE, &mii);
+				SetMenuItemInfo(hmenu, arIcons[n].idMenuItem, FALSE, &mii);
 			}
 		}
 
@@ -437,13 +460,13 @@ bool ggt_TrackPopupMenuWithIcon(
 	{
 		for(UINT n=0; n<nIcons; ++n)
 		{
-			HBITMAP hbmpToDel = pIcons[n].hbmpInternal;
+			HBITMAP hbmpToDel = arIcons[n].hbmpInternal;
 			if(hbmpToDel)
 				DeleteObject(hbmpToDel);
 		}
 	}
 
-	return SUCCEEDED(hr) ? (fRet?true:false) : false;
+	return mret;
 }
 
 

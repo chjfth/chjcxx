@@ -52,6 +52,16 @@ void Dlg_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 
 	switch (id) 
 	{{
+	case IDM_INFORMATION:
+		MessageBox(hwnd, _T("IDM_INFORMATION"), NULL, 0);
+		break;
+	case IDM_NEWLAND:
+		MessageBox(hwnd, _T("IDM_NEWLAND"), NULL, 0);
+		break;
+	case IDM_ELEVATE:
+		MessageBox(hwnd, _T("IDM_ELEVATE"), NULL, 0);
+		break;
+
 	case IDOK:
 	case IDCANCEL:
 		EndDialog(hwnd, id);
@@ -75,7 +85,7 @@ void Dlg_OnGetMinMaxInfo(HWND hwnd, PMINMAXINFO pMinMaxInfo)
 
 
 
-void PopupMyMenu(HWND _hdlg, int x, int y)
+void test_PopupMyMenu(HWND _hdlg, int x, int y)
 {
 //	SetDlgItemText(_hdlg, IDC_TEXT_ICOLOADMODE, lr==LeftClick?_T("LIM_LARGE"):_T("LIM_SMALL"));
 
@@ -87,29 +97,42 @@ void PopupMyMenu(HWND _hdlg, int x, int y)
 	{
 		bool isShieldIco = ggt_TrackPopupMenuIsVistaStyle();
 
-		ICONMENUENTRY aIcons[] = {
+		ICONMENUENTRY aIcons[] = 
+		{
 			{ IDM_INFORMATION, NULL, IDI_INFORMATION },
 			{ IDM_NEWLAND, g_hinst, MAKEINTRESOURCE(IDI_NEWLAND) },
 			{ IDM_ELEVATE, NULL, isShieldIco?IDI_SHIELD:IDI_EXCLAMATION },
 		};
 		HMENU hmenuPopup = GetSubMenu(hmenu, 0);
 
+		LoadIconErr_et lie = LIE_Fail;
 #if 1
-		BOOL succ = ggt_TrackPopupMenuWithIcon(hmenuPopup, 
-			0, ptClient.x, ptClient.y, _hdlg, NULL, 
-			ARRAYSIZE(aIcons), aIcons); // visual-style menu
+		UINT mret = ggt_TrackPopupMenuWithIcon(hmenuPopup, 
+			0, // flags: TPM_RETURNCMD etc
+			ptClient.x, ptClient.y, _hdlg, NULL, 
+			aIcons, ARRAYSIZE(aIcons), &lie); // visual-style menu
 #else
-		BOOL succ = TrackPopupMenuEx(hmenuPopup, 
+		UINT mret = TrackPopupMenuEx(hmenuPopup, 
 			0, ptClient.x, ptClient.y, _hdlg, NULL); // pristine menu
 #endif
+		
 		DestroyMenu(hmenu);
+
+		if(lie!=LIE_Succ)
+		{
+			const int bufsize=100;
+			TCHAR tbuf[bufsize];
+			_sntprintf_s(tbuf, bufsize, bufsize, 
+				_T("ggt_TrackPopupMenuWithIcon returns error: %d (mret=%u)"), lie, mret);
+			MessageBox(_hdlg, tbuf, NULL, MB_OK);
+		}
 	}
 }
 
 
 void Dlg_OnRButtonUp(HWND hwnd, int x, int y, UINT flags)
 {
-	PopupMyMenu(hwnd, x, y);
+	test_PopupMyMenu(hwnd, x, y);
 }
 
 INT_PTR WINAPI Dlg_Proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
