@@ -255,7 +255,7 @@ vista_AddIconToMenuItem(HMENU hmenu, int iMenuItem, BOOL fByPosition, HICON hico
 	{
 		hr = AddBitmapToMenuItem(hmenu, iMenuItem, fByPosition, hbmp);
 		if(!SUCCEEDED(hr))
-			lie = LIE_SetMenuItemInfo_MIIM_BITMAP;
+			lie = LIE_SetMenuItemInfo;
 	}
 
 	if (lie!=LIE_Succ)
@@ -371,8 +371,16 @@ xp_AttachIconToMenuitem(HINSTANCE hInstExeDll, LPCTSTR iconResId, HMENU hmenu, U
 
 //	HBITMAP hbmp = ShrinkBitmap (NULL, LoadBitmap (hInstExeDll?hInstExeDll:g_hinst, MAKEINTRESOURCE(IDB_BITMAP1))); // test
 //	HBITMAP hbmp = LoadBitmap (hInstExeDll?hInstExeDll:g_hinst, MAKEINTRESOURCE(IDB_BITMAP1)); // test
-	SetMenuItemBitmaps(hmenu, menuCmdId, MF_BYCOMMAND, *phbmp, *phbmp);
-	return LIE_Succ;
+	
+	BOOL b = SetMenuItemBitmaps(hmenu, menuCmdId, MF_BYCOMMAND, *phbmp, *phbmp);
+	if(b)
+		return LIE_Succ;
+	else
+	{
+		DeleteObject(*phbmp);
+		*phbmp = NULL;
+		return LIE_SetMenuItemInfo;
+	}
 }
 
 

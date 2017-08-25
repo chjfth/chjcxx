@@ -53,13 +53,16 @@ void Dlg_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 	switch (id) 
 	{{
 	case IDM_INFORMATION:
-		MessageBox(hwnd, _T("IDM_INFORMATION"), NULL, 0);
+		MessageBox(hwnd, _T("Selected  ABC info"), NULL, 0);
+		break;
+	case IDM_NO_ICON:
+		MessageBox(hwnd, _T("Selected  No icon"), NULL, 0);
 		break;
 	case IDM_NEWLAND:
-		MessageBox(hwnd, _T("IDM_NEWLAND"), NULL, 0);
+		MessageBox(hwnd, _T("Selected  NEWLAND"), NULL, 0);
 		break;
 	case IDM_ELEVATE:
-		MessageBox(hwnd, _T("IDM_ELEVATE"), NULL, 0);
+		MessageBox(hwnd, _T("Selected IDM_ELEVATE"), NULL, 0);
 		break;
 
 	case IDOK:
@@ -99,7 +102,7 @@ void test_PopupMyMenu(HWND _hdlg, int x, int y)
 
 		ICONMENUENTRY aIcons[] = 
 		{
-			{ IDM_INFORMATION, NULL, IDI_INFORMATION },
+			{ IDM_INFORMATION, NULL, IDI_INFORMATION+0x3333 },
 			{ IDM_NEWLAND, g_hinst, MAKEINTRESOURCE(IDI_NEWLAND) },
 			{ IDM_ELEVATE, NULL, isShieldIco?IDI_SHIELD:IDI_EXCLAMATION },
 		};
@@ -123,8 +126,8 @@ void test_PopupMyMenu(HWND _hdlg, int x, int y)
 			const int bufsize=100;
 			TCHAR tbuf[bufsize];
 			_sntprintf_s(tbuf, bufsize, bufsize, 
-				_T("ggt_TrackPopupMenuWithIcon returns error: %d (mret=%u)"), lie, mret);
-			MessageBox(_hdlg, tbuf, NULL, MB_OK);
+				_T("ggt_TrackPopupMenuWithIcon reports error: %d   (mret=%u)"), lie, mret);
+			MessageBox(_hdlg, tbuf, NULL, MB_ICONEXCLAMATION);
 		}
 	}
 }

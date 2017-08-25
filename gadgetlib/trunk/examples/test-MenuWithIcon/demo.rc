@@ -28,7 +28,7 @@ BEGIN
     POPUP "&File"
     BEGIN
         MENUITEM "ABC Info",                    IDM_INFORMATION
-        MENUITEM "No icon item",                0
+        MENUITEM "No icon item",                IDM_NO_ICON
         MENUITEM "Newland sample",              IDM_NEWLAND
         MENUITEM "Eleva..",                     IDM_ELEVATE
     END

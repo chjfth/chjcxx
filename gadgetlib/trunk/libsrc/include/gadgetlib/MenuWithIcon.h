@@ -14,15 +14,15 @@ enum LoadIconErr_et
 	LIE_Succ = 0,
 	LIE_Fail = -1,
 
-	LIE_NoMem,
-	LIE_LoadIcon,
-	LIE_LoadIconMetric, // vista API dynamic loading fail
-	LIE_GetIconInfo,
-	LIE_GetBufferedPaintBits,
-	LIE_OldBitmapMissing,
-	LIE_BeginBufferedPaint,
-	LIE_SetMenuItemInfo_MIIM_BITMAP,
-	LIE_ShrinkBitmap,
+	LIE_NoMem = -4,
+	LIE_LoadIcon = -5,
+	LIE_LoadIconMetric = -6, // vista API dynamic loading fail
+	LIE_GetIconInfo = -7,
+	LIE_GetBufferedPaintBits = -8,
+	LIE_OldBitmapMissing = -9,
+	LIE_BeginBufferedPaint = -10,
+	LIE_SetMenuItemInfo = -11,
+	LIE_ShrinkBitmap = -12,
 };
 
 struct ICONMENUENTRY
