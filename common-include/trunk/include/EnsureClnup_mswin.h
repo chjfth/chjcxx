@@ -23,6 +23,10 @@ MakeCleanupPtrClass_winapi(Cec_DestroyMenu, BOOL, DestroyMenu, HMENU)
 MakeCleanupPtrClass_winapi(Cec_DestroyIcon, BOOL, DestroyIcon, HICON)
 	// for CreateIconIndirect, CopyIcon, SHGetStockIconInfo 
 
+MakeCleanupIntClass_winapi(Cec_ReleaseActCtx, void, ReleaseActCtx, HANDLE, INVALID_HANDLE_VALUE)
+	// for CreateActCtx
+
+
 
 #ifdef _INC_SETUPAPI
 MakeCleanupIntClass_winapi(Cec_HDEVINFO, BOOL, SetupDiDestroyDeviceInfoList, HDEVINFO, INVALID_HANDLE_VALUE)
