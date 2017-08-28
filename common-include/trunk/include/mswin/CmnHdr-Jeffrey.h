@@ -207,7 +207,7 @@ inline void chASSERTFAIL(LPCSTR file, int line, PCSTR expr) // un-tested
 // boxes because DlgProc return a BOOL instead of an LRESULT (like
 // WndProcs). This chHANDLE_DLGMSG macro corrects the problem:
 #define chHANDLE_DLGMSG(hwnd, message, fn)                 \
-   case (message): return (SetDlgMsgResult(hwnd, uMsg,     \
+   case (message): return (SetDlgMsgResult(hwnd, message,  \
       HANDLE_##message((hwnd), (wParam), (lParam), (fn))))
 
 
