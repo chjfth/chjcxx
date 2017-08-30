@@ -474,9 +474,14 @@ dsi_DlgProc(__in HWND   hwnd,
 
 
 dlg_showinfo_ret 
-ggt_dlg_showinfo_userc(HINSTANCE hinstExeDll, LPCTSTR resIdDlgbox,
+in_dlg_showinfo(HINSTANCE hinstExeDll, 
+	LPCTSTR resIdDlgbox, DLGTEMPLATE *pDlgTemplate,
 	HWND hwndRealParent, const dlg_showinfo_st *p_usr_opt, const TCHAR *pszInfo)
 {
+	// Choose only one between resIdDlgbox and *pDlgTemplate.
+	if(!resIdDlgbox && !pDlgTemplate)
+		return Dsie_BadParam;
+
 	dlg_showinfo_st opt;
 	if(p_usr_opt)
 		opt = *p_usr_opt;
@@ -509,11 +514,137 @@ ggt_dlg_showinfo_userc(HINSTANCE hinstExeDll, LPCTSTR resIdDlgbox,
 
 	dsi.hwndRealParent = hwndRealParent;
 
-	INT_PTR dlgret = DialogBoxParam(hinstExeDll, resIdDlgbox,
-		hwndRealParent, dsi_DlgProc, (LPARAM)&dsi);
+	INT_PTR dlgret = 0;
+	if(resIdDlgbox)
+	{
+		dlgret = DialogBoxParam(hinstExeDll, resIdDlgbox,
+			hwndRealParent, dsi_DlgProc, (LPARAM)&dsi);
+	}
+	else
+	{
+		dlgret = DialogBoxIndirectParam(hinstExeDll, pDlgTemplate,
+			hwndRealParent, dsi_DlgProc, (LPARAM)&dsi);
+	}
 	
 	if(dlgret==-1)
 		return Dsie_NoMem;
 	else
 		return (dlg_showinfo_ret)dlgret;
+}
+
+#define ALIGN_TO_DWORD(ptr) do { if((INT_PTR)(pword) & 0x3) *(pword)++ = 0; }while(0)
+
+dlg_showinfo_ret 
+ggt_dlg_showinfo(HWND hwndParent, const dlg_showinfo_st *opt, const TCHAR *info)
+{
+/*
+	// NOTE: We need to manually sync the code here with DIALOGEX resource statements.
+
+IDD_SHOW_INFO DIALOGEX 0, 0, 156, 65
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Showinfo Dialog"
+FONT 9, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+DEFPUSHBUTTON   "OK",IDOK,56,46,50,14
+ICON            "",IDI_SHOW_INFO,14,7,20,20
+EDITTEXT        IDC_EDIT_SHOW_INFO,47,7,102,34,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | NOT WS_BORDER | WS_VSCROLL
+PUSHBUTTON      "&Refresh",IDC_BTN_REFRESH,7,28,34,12
+CONTROL         "&Auto",IDC_CHK_AUTOREFRESH,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,42,35,10
+END
+*/
+	char memblock[4000];
+
+	// Prepare DLG template header:
+
+	DLGTEMPLATE &dt = *(DLGTEMPLATE*)memblock;
+	dt.style = DS_SETFONT|DS_FIXEDSYS|WS_MINIMIZEBOX|WS_POPUP|WS_VISIBLE|WS_CAPTION|WS_SYSMENU|WS_THICKFRAME;
+	dt.dwExtendedStyle = 0;
+	dt.cdit = 0; // count of child controls, increase later
+	dt.x=0, dt.y=0, dt.cx=156, dt.cy=65;
+
+	// menu, class, title
+
+	WORD *pword = (WORD*)(memblock+sizeof(DLGTEMPLATE));
+	*pword++ = 0x0000; // this dlgbox has no menu
+
+	*pword++ = 0x0000; // use system default dlgbox "window class"
+
+	const WCHAR szTitle[] = L"ABC"; // set title to "ABC", will reset in WM_INITDIALOG
+	wcscpy((wchar_t*)pword, szTitle);
+	pword += sizeof(szTitle)/sizeof(szTitle[0]);
+
+	if(dt.style & DS_SETFONT)
+	{
+		*pword++ = 9; // 9-point font size
+		const WCHAR szFontface[] = L"MS Shell Dlg";
+		wcscpy((WCHAR*)pword, szFontface);
+		pword += ARRAYSIZE(szFontface);
+	}
+
+	// DLGITEMTEMPLATE elements
+
+	ALIGN_TO_DWORD(pword); //if((INT_PTR)pword & 0x3)	*pword++ = 0; // must align it on DWORD boundary
+
+	DLGITEMTEMPLATE *pitem = (DLGITEMTEMPLATE*)pword;
+
+	// [OK] button
+	//
+	++dt.cdit;
+	pitem->style = WS_VISIBLE;
+	pitem->dwExtendedStyle = 0;
+	pitem->x=56, pitem->y=46, pitem->cx=50, pitem->cy=14;
+	pitem->id = IDOK;
+	//
+	pword = (WORD*)(pitem+1);
+	*pword++ = 0xFFFF; *pword++ = 0x0080; // ctrl class is "button"
+	wcscpy((wchar_t*)pword, L"OK"); pword+=5; // button text
+	*pword++ = 0x0000; // no creation data
+
+	ALIGN_TO_DWORD(pword); //if((INT_PTR)pword & 0x3)	*pword++ = 0; // must align it on DWORD boundary
+
+	// the icon
+	//
+	pitem = (DLGITEMTEMPLATE*)pword;
+	++dt.cdit;
+	pitem->style = WS_VISIBLE|SS_ICON; // | SS_BLACKFRAME;
+	pitem->dwExtendedStyle = 0;
+	pitem->x=14, pitem->y=7, pitem->cx=20, pitem->cy=20;
+	pitem->id = IDI_SHOW_INFO;
+	//
+	pword = (WORD*)(pitem+1);
+	*pword++ = 0xFFFF; *pword++ = 0x0082; // ctrl class is "static"
+	*pword++ = 0x0000; // no initial text or icon, set later in WM_INITDIALOG
+	*pword++ = 0x0000; // no creation data
+
+	ALIGN_TO_DWORD(pword); //if((INT_PTR)pword & 0x3)	*pword++ = 0; // must align it on DWORD boundary
+
+	// the edit box
+	//
+	pitem = (DLGITEMTEMPLATE*)pword;
+	++dt.cdit;
+	pitem->style = WS_VISIBLE|ES_MULTILINE|ES_AUTOVSCROLL|ES_READONLY|WS_VSCROLL;
+	pitem->dwExtendedStyle = 0;
+	pitem->x=47, pitem->y=7, pitem->cx=102, pitem->cy=34;
+	pitem->id = IDC_EDIT_SHOW_INFO;
+	//
+	pword = (WORD*)(pitem+1);
+	*pword++ = 0xFFFF; *pword++ = 0x0081; // ctrl class is "edit"
+	*pword++ = 0x0000; // no initial text, set later in WM_INITDIALOG
+	*pword++ = 0x0000; // no creation data
+
+	// the [Refresh] button
+	//
+	todo;
+
+	const WCHAR *mystr = L"My private string";
+	INT_PTR dlgret =  DialogBoxIndirectParam(hinstExe, &dt, NULL, Dlg_Proc, (LPARAM)mystr);
+	return dlgret;
+
+}
+
+dlg_showinfo_ret 
+ggt_dlg_showinfo_userc(HINSTANCE hinstExeDll, LPCTSTR resIdDlgbox,
+	HWND hwndRealParent, const dlg_showinfo_st *p_usr_opt, const TCHAR *pszInfo)
+{
+	return in_dlg_showinfo(hinstExeDll, resIdDlgbox, NULL, hwndRealParent, p_usr_opt, pszInfo);
 }

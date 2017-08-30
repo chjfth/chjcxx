@@ -96,6 +96,7 @@ enum dlg_showinfo_ret
 	Dsie_Success = 0,
 	Dsie_Fail = 1,
 	Dsie_NoMem = 2,
+	Dsie_BadParam = 3,
 
 	// Invalid param error:
 
