@@ -12,6 +12,9 @@
 #include <gadgetlib/dlg_showinfo.h>
 
 #include <dlg_showinfo_ids.h>
+#include <gadgetlib/dlg_showinfo.h>
+
+#define DLL_AUTO_EXPORT_STUB
 
 const int dlg_timer_id = 1;
 
@@ -471,7 +474,7 @@ dsi_DlgProc(__in HWND   hwnd,
 
 
 dlg_showinfo_ret 
-dlg_showinfo_t2(HINSTANCE hinstExeDll, LPCTSTR resIdDlgbox,
+ggt_dlg_showinfo_userc(HINSTANCE hinstExeDll, LPCTSTR resIdDlgbox,
 	HWND hwndRealParent, const dlg_showinfo_st *p_usr_opt, const TCHAR *pszInfo)
 {
 	dlg_showinfo_st opt;
@@ -514,4 +517,3 @@ dlg_showinfo_t2(HINSTANCE hinstExeDll, LPCTSTR resIdDlgbox,
 	else
 		return (dlg_showinfo_ret)dlgret;
 }
-

@@ -4,17 +4,10 @@
 //
 #define IDD_WINMAIN                     100
 
+#define IDI_NEWLAND  100
+
 #define IDC_USE_RC    100
 #define IDC_NOT_USE_RC    101
-
-
-#define IDC_EDIT_SHOW_INFO   100
-#define IDI_SHOW_INFO        101 // the icon-control id
-#define IDC_CHK_AUTOREFRESH  102
-#define IDC_BTN_REFRESH      103
-//
-#define IDD_SHOW_INFO        400
-
 
 
 #define IDC_STATIC  -1

@@ -3,11 +3,15 @@
 #include <CommCtrl.h>
 #include <tchar.h>
 #include <stdio.h>
-#include "resource.h"
 
+#include <mm_snprintf.h>
 #include <mswin/CmnHdr-Jeffrey.h>
 
-#include <gadgetlib/MenuWithIcon.h>
+#include <gadgetlib/dlg_showinfo.h>
+
+#include "resource.h"
+#include "../../libsrc/include/dlg_showinfo_ids.h"
+
 
 #pragma comment(lib, "comctl32.lib")
 
@@ -24,8 +28,8 @@ struct DlgPrivate_st
 
 BOOL Dlg_OnInitDialog(HWND hwnd, HWND hwndFocus, LPARAM lParam) 
 {
-	chSETDLGICONS(hwnd, IDI_INFORMATION, NULL, true);
-	//chSETDLGICONS(hwnd, IDI_NEWLAND);
+	//chSETDLGICONS(hwnd, IDI_INFORMATION, NULL, true);
+	chSETDLGICONS(hwnd, IDI_NEWLAND);
 
 	DlgPrivate_st *pr = new DlgPrivate_st;
 	pr->mystr = (const WCHAR*)lParam;
@@ -43,14 +47,57 @@ void Dlg_OnDestroy(HWND hwnd)
 	delete pr;
 }
 
+DlgShowinfoCallback_ret DSI_GetNowTime(void *ctx, 
+	const dlg_showinfo_callback_st &cb_info,
+	TCHAR *textbuf, int bufchars)
+{
+	(void)ctx; (void)cb_info;
+
+	SYSTEMTIME st;
+	GetLocalTime(&st);
+	mm_snprintf(textbuf, bufchars, 
+		_T("Now time: %04d-%02d-%02d %02d:%02d:%02d.%03d"), 
+		st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds
+		);
+
+	return DSICB_OK;
+}
+
+void do_dlg_showinfo(HWND hwndParent, bool isUseRC)
+{
+	WCHAR szTimeText[80] = L"to-modify";
+
+	dlg_showinfo_st si;
+	si.title = isUseRC ? _T("Showinfo from RC") : _T("Showinfo not using RC");
+	si.fixedwidth_font = true;
+	si.procGetText = DSI_GetNowTime;
+	si.ctxGetText = NULL;
+	si.bufchars = ARRAYSIZE(szTimeText);
+	si.msecAutoRefresh = 500;
+	si.isRefreshNow = true;
+	si.isAutoRefreshNow = true;
+	si.szOK = L"Close";
+	// opt.isOnlyClosedByProgram = true;
+
+	ggt_dlg_showinfo_userc( 
+		(HINSTANCE)GetWindowLongPtr(hwndParent, GWLP_HINSTANCE), 
+		MAKEINTRESOURCE(IDD_SHOW_INFO),
+		NULL, &si, szTimeText); 
+		// I use NULL as hwndParent so that we can pop out one with RC and another without RC
+		// for side-by-side comparison. 
+}
+
 void Dlg_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify) 
 {
 //	DlgPrivate_st *pr = (DlgPrivate_st*)GetWindowLongPtr(hwnd, DWLP_USER);
 
 	switch (id) 
 	{{
-//	case IDC_DO_SHOWINFO:
-//		xxx;
+	case IDC_USE_RC:
+		do_dlg_showinfo(hwnd, true);
+		break;
+	case IDC_NOT_USE_RC:
+		do_dlg_showinfo(hwnd, false);
 		break;
 	case IDOK:
 	case IDCANCEL:

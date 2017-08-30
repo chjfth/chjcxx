@@ -7,6 +7,10 @@
 extern"C"{
 #endif
 
+#ifndef DLLEXPORT_gadgetlib
+# define DLLEXPORT_gadgetlib
+#endif
+
 enum DlgShowinfoCallback_ret
 {
 	DSICB_OK = 0,
@@ -98,9 +102,11 @@ enum dlg_showinfo_ret
 	Dsie_OnlyClosedByProgram_but_NoCallback = 10,
 };
 
-dlg_showinfo_ret dlg_showinfo(HWND hwndParent, const dlg_showinfo_st *opt, const TCHAR *info);
+DLLEXPORT_gadgetlib
+dlg_showinfo_ret ggt_dlg_showinfo(HWND hwndParent, const dlg_showinfo_st *opt, const TCHAR *info);
 
-dlg_showinfo_ret dlg_showinfo_t2(HINSTANCE hinstExeDll, LPCTSTR resIdDlgbox,
+DLLEXPORT_gadgetlib
+dlg_showinfo_ret ggt_dlg_showinfo_userc(HINSTANCE hinstExeDll, LPCTSTR resIdDlgbox,
 	HWND hwndRealParent, const dlg_showinfo_st *p_usr_opt, const TCHAR *pszInfo);
 
 
