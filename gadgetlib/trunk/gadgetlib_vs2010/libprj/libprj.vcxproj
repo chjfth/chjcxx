@@ -27,6 +27,7 @@
     <ClCompile Include="..\..\libsrc\mbcs-ops.cpp" />
     <ClCompile Include="..\..\libsrc\mswin\charenccvt-win.cpp" />
     <ClCompile Include="..\..\libsrc\mswin\dirfuncs.cpp" />
+    <ClCompile Include="..\..\libsrc\mswin\enum_monitors.cpp" />
     <ClCompile Include="..\..\libsrc\mswin\fstream64.cpp" />
     <ClCompile Include="..\..\libsrc\mswin\impl_winapi.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Unicode|x64'">NotUsing</PrecompiledHeader>
@@ -51,6 +52,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\libsrc\include\gadgetlib\charenccvt.h" />
     <ClInclude Include="..\..\libsrc\include\gadgetlib\dirfuncs.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\enum_monitors.h" />
     <ClInclude Include="..\..\libsrc\include\gadgetlib\fstream-aux.h" />
     <ClInclude Include="..\..\libsrc\include\gadgetlib\fstream64.h" />
     <ClInclude Include="..\..\libsrc\include\gadgetlib\gadgetlib.h" />

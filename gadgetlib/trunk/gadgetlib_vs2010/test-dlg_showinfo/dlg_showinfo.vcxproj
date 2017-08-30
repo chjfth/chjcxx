@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{8CF6D236-8039-4ED5-83BB-E45A20170830}</ProjectGuid>
+    <ProjectGuid>{8CF6D236-8039-4ED5-83BB-E45A8F64905C}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>tdlg_showinfo</RootNamespace>
     <ProjectName>test-dlg_showinfo</ProjectName>
