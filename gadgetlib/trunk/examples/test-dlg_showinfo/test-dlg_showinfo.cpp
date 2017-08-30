@@ -28,8 +28,8 @@ struct DlgPrivate_st
 
 BOOL Dlg_OnInitDialog(HWND hwnd, HWND hwndFocus, LPARAM lParam) 
 {
-	//chSETDLGICONS(hwnd, IDI_INFORMATION, NULL, true);
-	chSETDLGICONS(hwnd, IDI_NEWLAND);
+	chSETDLGICONS(hwnd, IDI_INFORMATION, NULL, true);
+	//chSETDLGICONS(hwnd, IDI_NEWLAND);
 
 	DlgPrivate_st *pr = new DlgPrivate_st;
 	pr->mystr = (const WCHAR*)lParam;

@@ -66,7 +66,7 @@ STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSM
 CAPTION "test dlg_showinfo"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    ICON            32516,IDC_STATIC,14,14,21,20
+    ICON            IDI_QUESTION,IDC_STATIC,14,14,21,20
     LTEXT           "Click Showinfo to call out info dialog",IDC_STATIC,47,14,134,8,SS_NOPREFIX
     LTEXT           "~",IDC_STATIC,47,26,132,8
     DEFPUSHBUTTON   "&Not use .rc",IDC_NOT_USE_RC,132,110,50,14,WS_GROUP
@@ -99,6 +99,10 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 182
         BOTTOMMARGIN, 124
+    END
+
+    IDD_SHOW_INFO, DIALOG
+    BEGIN
     END
 END
 #endif    // APSTUDIO_INVOKED
