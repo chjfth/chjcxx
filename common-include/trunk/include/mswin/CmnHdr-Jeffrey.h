@@ -215,15 +215,20 @@ inline void chASSERTFAIL(LPCSTR file, int line, PCSTR expr) // un-tested
 
 
 // Sets the dialog box icons
-inline void chSETDLGICONS(HWND hwnd, int idi, HINSTANCE hExeDll=NULL) 
+inline void chSETDLGICONS(HWND hwnd, LPCTSTR ids, HINSTANCE hExeDll=NULL, bool useStock=false) 
 {
-	if(!hExeDll)
+	if(hExeDll==NULL && useStock==false)
 		hExeDll = (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE);
 
-	HICON hIcon = LoadIcon(hExeDll, MAKEINTRESOURCE(idi));
+	HICON hIcon = LoadIcon(hExeDll, ids);
 
 	SendMessage(hwnd, WM_SETICON, TRUE,  (LPARAM)hIcon);
 	SendMessage(hwnd, WM_SETICON, FALSE, (LPARAM)hIcon);
+}
+
+inline void chSETDLGICONS(HWND hwnd, UINT idi, HINSTANCE hExeDll=NULL, bool useStock=false) 
+{
+	chSETDLGICONS(hwnd, MAKEINTRESOURCE(idi), hExeDll, useStock);
 }
 
 
