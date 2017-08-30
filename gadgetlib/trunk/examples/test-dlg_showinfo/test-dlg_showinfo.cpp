@@ -65,7 +65,7 @@ DlgShowinfoCallback_ret DSI_GetNowTime(void *ctx,
 
 void do_dlg_showinfo(HWND hwndParent, bool isUseRC)
 {
-	WCHAR szTimeText[80] = L"to-modify";
+	TCHAR szTimeText[80] = _T("to-modify");
 
 	dlg_showinfo_st si;
 	si.title = isUseRC ? _T("Showinfo from RC") : _T("Showinfo not using RC");
@@ -76,7 +76,7 @@ void do_dlg_showinfo(HWND hwndParent, bool isUseRC)
 	si.msecAutoRefresh = 500;
 	si.isRefreshNow = true;
 	si.isAutoRefreshNow = true;
-	si.szOK = L"&Close";
+	si.szOK = _T("&Close");
 	// opt.isOnlyClosedByProgram = true;
 
 	if(isUseRC)

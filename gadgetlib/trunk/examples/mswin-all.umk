@@ -6,12 +6,14 @@ else
 endif
 
 gmu_PRJ_NAME = gadgetlib.ux-mswin-all
+	
 
 
 # User-do: List subprj makefiles in subprj_makefiles, space separated.
 subprj_makefiles += \
-	Makefile-common-all \
-	
+	common-all.umk \
+	test-MenuWithIcon/Makefile.umk \
+	test-dlg_showinfo/Makefile.umk \
 
 
 $(call gmuf_AddSubprjs_Concise,$(subprj_makefiles))
