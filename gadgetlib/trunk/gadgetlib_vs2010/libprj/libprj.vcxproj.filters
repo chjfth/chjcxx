@@ -48,6 +48,9 @@
     <ClCompile Include="..\..\libsrc\mswin\enum_monitors.cpp">
       <Filter>mswin</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\libsrc\mswin\dlg_showinfo.cpp">
+      <Filter>mswin</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\libsrc\include\stdafx.h">
@@ -96,6 +99,12 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="..\..\libsrc\include\gadgetlib\enum_monitors.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\dlg_showinfo.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\include\dlg_showinfo_ids.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>

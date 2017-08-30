@@ -1,12 +1,15 @@
 // Microsoft Visual C++ generated resource script.
 //
 #include <windows.h>
+
+#include "../../libsrc/include/dlg_showinfo_ids.h"
 #include "resource.h"
 /////////////////////////////////////////////////////////////////////////////
 // English (United States) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -16,27 +19,6 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 IDI_NEWLAND             ICON                    "NewLand.ico"
-//IDI_VISTAICONMENU       ICON                    "VistaIconMenu.ico"
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// Menu
-//
-
-IDM_CONTEXTMENU MENU
-BEGIN
-    POPUP "&File"
-    BEGIN
-        MENUITEM "ABC Info",                    IDM_INFORMATION
-        MENUITEM "No icon item",                IDM_NO_ICON
-        MENUITEM "Newland sample",              IDM_NEWLAND
-        MENUITEM "Eleva..",                     IDM_ELEVATE
-    END
-    POPUP "&Help"
-    BEGIN
-        MENUITEM "&About (no use) ...",         IDM_ABOUT
-    END
-END
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -44,16 +26,31 @@ END
 // Dialog
 //
 
-IDD_WINMAIN DIALOGEX 0, 0, 214, 62
+IDD_WINMAIN DIALOGEX 0, 0, 191, 132
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "test dlg_showinfo"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    ICON            128,IDC_STATIC,14,14,20,20
-    LTEXT           "Theme info to fill",IDC_TEXT_THEME_INFO,42,14,164,8,SS_NOPREFIX
-    LTEXT           "Right-click to pop up menu.",IDC_STATIC,42,26,139,8
-    DEFPUSHBUTTON   "OK",IDOK,157,41,50,14,WS_GROUP
+    ICON            IDI_NEWLAND,IDC_STATIC,14,14,21,20
+    LTEXT           "Click Showinfo to call out info dialog",IDC_STATIC,47,14,134,8,SS_NOPREFIX
+    LTEXT           "~",IDC_STATIC,47,26,132,8
+    DEFPUSHBUTTON   "OK",IDOK,132,112,50,14,WS_GROUP
+    DEFPUSHBUTTON   "&Showinfo",IDC_DO_SHOWINFO,7,112,50,14,WS_GROUP
 END
+
+
+IDD_SHOW_INFO DIALOGEX 0, 0, 156, 65
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
+CAPTION "Showinfo Dialog"
+FONT 9, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,56,46,50,14
+    ICON            "",IDI_SHOW_INFO,14,7,20,20
+    EDITTEXT        IDC_EDIT_SHOW_INFO,47,7,102,34,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | NOT WS_BORDER | WS_VSCROLL
+    PUSHBUTTON      "&Refresh",IDC_BTN_REFRESH,7,28,34,12
+    CONTROL         "&Auto",IDC_CHK_AUTOREFRESH,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,42,35,10
+END
+
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -66,6 +63,9 @@ GUIDELINES DESIGNINFO
 BEGIN
     IDD_WINMAIN, DIALOG
     BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 182
+        BOTTOMMARGIN, 126
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -116,7 +116,6 @@ BEGIN
 END
 
 #endif    // APSTUDIO_INVOKED
-
 
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
