@@ -90,7 +90,7 @@ void do_dlg_showinfo(HWND hwndParent, bool isUseRC)
 	}
 	else
 	{
-		ggt_dlg_showinfo(NULL, &si, szTimeText);
+		ggt_dlg_showinfo(hwndParent, &si, szTimeText);
 	}
 }
 
