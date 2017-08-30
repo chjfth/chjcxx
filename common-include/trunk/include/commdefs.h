@@ -26,6 +26,8 @@ typedef unsigned short Ushort;
 
 typedef unsigned __int64 Uint64; // for gcc, please add compiler flag '-D__int64=long long'
 
+typedef unsigned long WinErr_t;  // as Windows API error code
+
 typedef int RE_CODE;	
 	// RE_CODE: result code, normally 0 as "no error" if using this type,
 	//some value other than 0 means an error code.
