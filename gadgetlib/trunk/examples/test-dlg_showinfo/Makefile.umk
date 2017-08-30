@@ -1,0 +1,13 @@
+gmu_PRJ_NAME = test-dlg_showinfo$(if $(MAKE_LIB),-libdev)
+
+gmp_bc_IMAGE_TYPE = EXE_GUI
+
+gmu_uf_LINK_OUTPUT = $(call gmpf_MakeExeName,test-dlg_showinfo)
+
+gmu_up_list_SRC_FROM_ROOT += test-dlg_showinfo.cpp \
+
+gmp_u_list_PLUGIN_TO_LOAD += PI_winres_msvc
+  gmi_RCVC_up_list_WINRC_FROM_ROOT = demo.rc
+
+include ../share.mki
+
