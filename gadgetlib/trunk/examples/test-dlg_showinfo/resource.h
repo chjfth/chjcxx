@@ -7,6 +7,8 @@
 #define IDC_USE_RC                      100
 #define IDC_NOT_USE_RC                  101
 
+#define IDD_SHOW_INFO 400
+
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED

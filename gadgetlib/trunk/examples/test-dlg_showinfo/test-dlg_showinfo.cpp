@@ -10,7 +10,6 @@
 #include <gadgetlib/dlg_showinfo.h>
 
 #include "resource.h"
-#include "../../libsrc/include/dlg_showinfo_ids.h"
 
 
 #pragma comment(lib, "comctl32.lib")

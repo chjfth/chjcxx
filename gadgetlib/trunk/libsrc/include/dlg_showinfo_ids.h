@@ -3,8 +3,6 @@
 
 // This file is included both by .cpp and .rc 
 
-#define IDD_SHOW_INFO        400
-
 #define IDC_EDIT_SHOW_INFO   100
 #define IDI_SHOW_INFO        101 // the icon-control id
 #define IDC_CHK_AUTOREFRESH  102
