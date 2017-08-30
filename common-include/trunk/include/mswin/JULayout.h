@@ -63,6 +63,11 @@ private:
    int     m_nNumControls;
    HWND    m_hwndParent;
    POINT   m_ptMinParentDims; 
+   
+   void * reserve1;
+   void * reserve2;
+   void * reserve3;
+   void * reserve4;
 }; 
 
 
