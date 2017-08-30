@@ -76,15 +76,22 @@ void do_dlg_showinfo(HWND hwndParent, bool isUseRC)
 	si.msecAutoRefresh = 500;
 	si.isRefreshNow = true;
 	si.isAutoRefreshNow = true;
-	si.szOK = L"Close";
+	si.szOK = L"&Close";
 	// opt.isOnlyClosedByProgram = true;
 
-	ggt_dlg_showinfo_userc( 
-		(HINSTANCE)GetWindowLongPtr(hwndParent, GWLP_HINSTANCE), 
-		MAKEINTRESOURCE(IDD_SHOW_INFO),
-		NULL, &si, szTimeText); 
+	if(isUseRC)
+	{
+		ggt_dlg_showinfo_userc( 
+			(HINSTANCE)GetWindowLongPtr(hwndParent, GWLP_HINSTANCE), 
+			MAKEINTRESOURCE(IDD_SHOW_INFO),
+			NULL, &si, szTimeText); 
 		// I use NULL as hwndParent so that we can pop out one with RC and another without RC
 		// for side-by-side comparison. 
+	}
+	else
+	{
+		ggt_dlg_showinfo(NULL, &si, szTimeText);
+	}
 }
 
 void Dlg_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify) 

@@ -60,6 +60,8 @@ struct dlg_showinfo_st
 		// If true, user cannot use [OK] or [X] to close the dialog,
 		// only a DSICB_CloseDlg return from callback can close it.
 
+	int fontsize; // if 0, default to 9
+
 	const TCHAR *szOK; // text for the bottom OK button, hidden if null
 	const TCHAR *szRefreshBtnText; // user can customize button text
 	const TCHAR *szAutoChktext;
@@ -104,7 +106,8 @@ enum dlg_showinfo_ret
 };
 
 DLLEXPORT_gadgetlib
-dlg_showinfo_ret ggt_dlg_showinfo(HWND hwndParent, const dlg_showinfo_st *opt, const TCHAR *info);
+dlg_showinfo_ret ggt_dlg_showinfo(
+	HWND hwndRealParent, const dlg_showinfo_st *p_usr_opt, const TCHAR *pszInfo);
 
 DLLEXPORT_gadgetlib
 dlg_showinfo_ret ggt_dlg_showinfo_userc(HINSTANCE hinstExeDll, LPCTSTR resIdDlgbox,

@@ -1,5 +1,6 @@
 #include "stdafx.h"
 
+#include <_MINMAX_.h>
 #include <EnsureClnup_common.h>
 #include <EnsureClnup_mswin.h>
 #include <AutoBuf.h>
@@ -37,7 +38,7 @@ struct DsiDlgParams_st
 	//
 	const TCHAR *szOK;
 	const TCHAR *szRefreshBtnText; // user can customize button text
-	const TCHAR *szAutoChktext;
+	const TCHAR *szAutoChkText;
 
 	// Internal data for Showinfo-dialog:
 	HWND hwndRealParent;
@@ -81,7 +82,7 @@ DsiDlgParams_st::DsiDlgParams_st(const dlg_showinfo_st &in, const TCHAR *pszInfo
 	//
 	szOK = in.szOK;
 	szRefreshBtnText = szRefreshBtnText;
-	szAutoChktext = szAutoChktext;
+	szAutoChkText = szAutoChkText;
 }
 
 static void 
@@ -279,7 +280,6 @@ BOOL dsi_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 	{
 		SendMessage(hdlg, WM_SETICON, TRUE,  (LPARAM)pr->hIcon);
 		SendMessage(hdlg, WM_SETICON, FALSE, (LPARAM)pr->hIcon);
-
 	}
 	//	chSETDLGICONS(hdlg, IDI_NEWLAND16);
 
@@ -314,15 +314,19 @@ BOOL dsi_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 
 	// Hide unwanted UI elements
 
-	if(pr->szOK)
-	{
+	if(pr->szOK) {
 		SetDlgItemText(hdlg, IDOK, pr->szOK);
-	}
-	else
-	{
+	} else {
 		ShowWindow(GetDlgItem(hdlg, IDOK), SW_HIDE);
 		SetFocus(NULL);
 	}
+	
+	SetDlgItemText(hdlg, IDC_BTN_REFRESH, 
+		pr->szRefreshBtnText ? pr->szRefreshBtnText : _T("&Refresh")
+		);
+	SetDlgItemText(hdlg, IDC_CHK_AUTOREFRESH,
+		pr->szAutoChkText ? pr->szAutoChkText : _T("&Auto")
+		);
 
 	if(pr->procGetText==Dumb_GetText)
 	{
@@ -532,10 +536,10 @@ in_dlg_showinfo(HINSTANCE hinstExeDll,
 		return (dlg_showinfo_ret)dlgret;
 }
 
-#define ALIGN_TO_DWORD(ptr) do { if((INT_PTR)(pword) & 0x3) *(pword)++ = 0; }while(0)
+#define ALIGN_TO_DWORD(pword) if((INT_PTR)(pword) & 0x3) *(pword)++ = 0;
 
 dlg_showinfo_ret 
-ggt_dlg_showinfo(HWND hwndParent, const dlg_showinfo_st *opt, const TCHAR *info)
+ggt_dlg_showinfo(HWND hwndRealParent, const dlg_showinfo_st *p_usr_opt, const TCHAR *pszInfo)
 {
 /*
 	// NOTE: We need to manually sync the code here with DIALOGEX resource statements.
@@ -546,10 +550,10 @@ CAPTION "Showinfo Dialog"
 FONT 9, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
 DEFPUSHBUTTON   "OK",IDOK,56,46,50,14
-ICON            "",IDI_SHOW_INFO,14,7,20,20
+ICON            "",IDI_SHOW_INFO,14,6,20,20
 EDITTEXT        IDC_EDIT_SHOW_INFO,47,7,102,34,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | NOT WS_BORDER | WS_VSCROLL
-PUSHBUTTON      "&Refresh",IDC_BTN_REFRESH,7,28,34,12
-CONTROL         "&Auto",IDC_CHK_AUTOREFRESH,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,42,35,10
+PUSHBUTTON      "&Refresh",IDC_BTN_REFRESH,6,28,36,12
+CONTROL         "&Auto",IDC_CHK_AUTOREFRESH,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,42,36,10
 END
 */
 	char memblock[4000];
@@ -569,13 +573,15 @@ END
 
 	*pword++ = 0x0000; // use system default dlgbox "window class"
 
-	const WCHAR szTitle[] = L"ABC"; // set title to "ABC", will reset in WM_INITDIALOG
+	const WCHAR szTitle[] = L"ABC"; // set title to "ABC", will get udpate in DlgProc (WM_INITDIALOG)
 	wcscpy((wchar_t*)pword, szTitle);
-	pword += sizeof(szTitle)/sizeof(szTitle[0]);
+	pword += ARRAYSIZE(szTitle);
 
 	if(dt.style & DS_SETFONT)
 	{
-		*pword++ = 9; // 9-point font size
+		int fontsize = p_usr_opt->fontsize>0 ? p_usr_opt->fontsize : 9;
+
+		*pword++ = (WORD)_MAX_(6, fontsize); // minimum 6pt, but 6 will crop the icon above, why?
 		const WCHAR szFontface[] = L"MS Shell Dlg";
 		wcscpy((WCHAR*)pword, szFontface);
 		pword += ARRAYSIZE(szFontface);
@@ -583,12 +589,13 @@ END
 
 	// DLGITEMTEMPLATE elements
 
-	ALIGN_TO_DWORD(pword); //if((INT_PTR)pword & 0x3)	*pword++ = 0; // must align it on DWORD boundary
+	ALIGN_TO_DWORD(pword);
 
-	DLGITEMTEMPLATE *pitem = (DLGITEMTEMPLATE*)pword;
+	DLGITEMTEMPLATE *pitem = NULL;
 
 	// [OK] button
 	//
+	pitem = (DLGITEMTEMPLATE*)pword;
 	++dt.cdit;
 	pitem->style = WS_VISIBLE;
 	pitem->dwExtendedStyle = 0;
@@ -597,10 +604,10 @@ END
 	//
 	pword = (WORD*)(pitem+1);
 	*pword++ = 0xFFFF; *pword++ = 0x0080; // ctrl class is "button"
-	wcscpy((wchar_t*)pword, L"OK"); pword+=5; // button text
+	wcscpy((wchar_t*)pword, L"-"); pword+=2; // button text, change later in DlgProc
 	*pword++ = 0x0000; // no creation data
 
-	ALIGN_TO_DWORD(pword); //if((INT_PTR)pword & 0x3)	*pword++ = 0; // must align it on DWORD boundary
+	ALIGN_TO_DWORD(pword);
 
 	// the icon
 	//
@@ -608,7 +615,7 @@ END
 	++dt.cdit;
 	pitem->style = WS_VISIBLE|SS_ICON; // | SS_BLACKFRAME;
 	pitem->dwExtendedStyle = 0;
-	pitem->x=14, pitem->y=7, pitem->cx=20, pitem->cy=20;
+	pitem->x=14, pitem->y=6, pitem->cx=20, pitem->cy=20;
 	pitem->id = IDI_SHOW_INFO;
 	//
 	pword = (WORD*)(pitem+1);
@@ -616,7 +623,7 @@ END
 	*pword++ = 0x0000; // no initial text or icon, set later in WM_INITDIALOG
 	*pword++ = 0x0000; // no creation data
 
-	ALIGN_TO_DWORD(pword); //if((INT_PTR)pword & 0x3)	*pword++ = 0; // must align it on DWORD boundary
+	ALIGN_TO_DWORD(pword);
 
 	// the edit box
 	//
@@ -632,14 +639,40 @@ END
 	*pword++ = 0x0000; // no initial text, set later in WM_INITDIALOG
 	*pword++ = 0x0000; // no creation data
 
+	ALIGN_TO_DWORD(pword);
+
 	// the [Refresh] button
 	//
-	todo;
+	pitem = (DLGITEMTEMPLATE*)pword;
+	++dt.cdit;
+	pitem->style = WS_VISIBLE;
+	pitem->dwExtendedStyle = 0;
+	pitem->x=6, pitem->y=28, pitem->cx=36, pitem->cy=12;
+	pitem->id = IDC_BTN_REFRESH;
+	//
+	pword = (WORD*)(pitem+1);
+	*pword++ = 0xFFFF; *pword++ = 0x0080; // ctrl class is "button"
+	wcscpy((wchar_t*)pword, L"-"); pword+=2; // button text, change later in DlgProc
+	*pword++ = 0x0000; // no creation data
 
-	const WCHAR *mystr = L"My private string";
-	INT_PTR dlgret =  DialogBoxIndirectParam(hinstExe, &dt, NULL, Dlg_Proc, (LPARAM)mystr);
-	return dlgret;
+	ALIGN_TO_DWORD(pword);
 
+	// the [Auto] check box
+	//
+	pitem = (DLGITEMTEMPLATE*)pword;
+	++dt.cdit;
+	pitem->style = WS_VISIBLE|BS_AUTOCHECKBOX;
+	pitem->dwExtendedStyle = 0;
+	pitem->x=6, pitem->y=42, pitem->cx=36, pitem->cy=10;
+	pitem->id = IDC_CHK_AUTOREFRESH;
+	//
+	pword = (WORD*)(pitem+1);
+	*pword++ = 0xFFFF; *pword++ = 0x0080; // ctrl class is "button"
+	wcscpy((wchar_t*)pword, L"-"); pword+=2; // button text, change later in DlgProc
+	*pword++ = 0x0000; // no creation data
+
+	HINSTANCE hinstExe = (HINSTANCE)GetWindowLongPtr(hwndRealParent, GWLP_HINSTANCE);
+	return in_dlg_showinfo(hinstExe, NULL, &dt, hwndRealParent, p_usr_opt, pszInfo);
 }
 
 dlg_showinfo_ret 
