@@ -1,8 +1,9 @@
 #ifndef __ENSURECLNUP_MSWIN_H
 #define __ENSURECLNUP_MSWIN_H
 
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
+//#define WIN32_LEAN_AND_MEAN
+//#include <windows.h>
+// -- user should include the above two lines themselves
 
 #include <EnsureClnup.h>
 
@@ -23,9 +24,11 @@ MakeCleanupPtrClass_winapi(Cec_DestroyMenu, BOOL, DestroyMenu, HMENU)
 MakeCleanupPtrClass_winapi(Cec_DestroyIcon, BOOL, DestroyIcon, HICON)
 	// for CreateIconIndirect, CopyIcon, SHGetStockIconInfo 
 
+
+#if (_WIN32_WINNT >= 0x0600) // Vista+
 MakeCleanupIntClass_winapi(Cec_ReleaseActCtx, void, ReleaseActCtx, HANDLE, INVALID_HANDLE_VALUE)
 	// for CreateActCtx
-
+#endif
 
 
 #ifdef _INC_SETUPAPI
