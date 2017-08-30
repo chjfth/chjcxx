@@ -34,6 +34,11 @@ struct ICONMENUENTRY
 	HBITMAP hbmpInternal; // internal use
 };
 
+#ifndef __in_ecount_opt // VC6 does not have this
+#define __in_ecount_opt(x)
+#define __in_opt
+#endif
+
 DLLEXPORT_gadgetlib
 UINT ggt_TrackPopupMenuWithIcon(
 	HMENU hmenu, UINT fuFlags, int x, int y, HWND hwnd, __in_opt LPTPMPARAMS lptpm,

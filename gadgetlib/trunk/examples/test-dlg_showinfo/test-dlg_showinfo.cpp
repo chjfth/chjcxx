@@ -47,16 +47,23 @@ void Dlg_OnDestroy(HWND hwnd)
 	delete pr;
 }
 
-DlgShowinfoCallback_ret DSI_GetNowTime(void *ctx, 
+struct MyDsiContext_st
+{
+	bool isFromRC;
+};
+
+DlgShowinfoCallback_ret DSI_GetNowTime(void *_ctx, 
 	const dlg_showinfo_callback_st &cb_info,
 	TCHAR *textbuf, int bufchars)
 {
-	(void)ctx; (void)cb_info;
+	(void)cb_info;
+	MyDsiContext_st &ctx = *(MyDsiContext_st*)_ctx;
 
 	SYSTEMTIME st;
 	GetLocalTime(&st);
 	mm_snprintf(textbuf, bufchars, 
-		_T("Now time: %04d-%02d-%02d %02d:%02d:%02d.%03d"), 
+		_T("%s\r\n\r\nNow time: %04d-%02d-%02d %02d:%02d:%02d.%03d"), 
+		ctx.isFromRC ? _T("Msgbox from RC") : _T("MsgBox from DLGITEMTEMPLATE"),
 		st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds
 		);
 
@@ -66,12 +73,13 @@ DlgShowinfoCallback_ret DSI_GetNowTime(void *ctx,
 void do_dlg_showinfo(HWND hwndParent, bool isUseRC)
 {
 	TCHAR szTimeText[80] = _T("to-modify");
+	MyDsiContext_st ctx = { isUseRC ? true : false };
 
 	dlg_showinfo_st si;
-	si.title = isUseRC ? _T("Showinfo from RC") : _T("Showinfo not using RC");
+	si.title = _T("Showinfo");
 	si.fixedwidth_font = true;
 	si.procGetText = DSI_GetNowTime;
-	si.ctxGetText = NULL;
+	si.ctxGetText = &ctx;
 	si.bufchars = ARRAYSIZE(szTimeText);
 	si.msecAutoRefresh = 500;
 	si.isRefreshNow = true;

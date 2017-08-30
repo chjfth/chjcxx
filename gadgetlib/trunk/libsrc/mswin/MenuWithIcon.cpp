@@ -5,6 +5,10 @@
 #define DLL_AUTO_EXPORT_STUB
 extern"C" void gadgetlib_lib__MenuWithIcon__DLL_AUTO_EXPORT_STUB(void){}
 
+#if (_WIN32_WINNT >= 0x0600)
+// Yes, we need at least Visual C++ 2008 to get complete feature from this cpp.
+#define HAS_VISTA_API
+#endif
 
 #define NEED_VISTA
 
@@ -13,6 +17,8 @@ extern"C" void gadgetlib_lib__MenuWithIcon__DLL_AUTO_EXPORT_STUB(void){}
 
 #pragma comment(lib, "uxtheme.lib")  // BeginBufferedPaint etc
 #pragma comment(lib, "comctl32.lib") // LoadIconMetric 
+
+#ifdef HAS_VISTA_API
 
 typedef DWORD ARGB;
 
@@ -301,6 +307,8 @@ vista_AttachIconToMenuitem(HINSTANCE hInstExeDll, LPCTSTR iconResId, HMENU hmenu
 	}
 }
 
+#endif // #ifdef HAS_VISTA_API
+
 /****************************************************************************
  *                                                                          *
  *  FUNCTION   : ShrinkBitmap(HWND hwnd, HBITMAP hbm)                                    *
@@ -403,20 +411,23 @@ UINT ggt_TrackPopupMenuWithIcon(
 
 	if (nIcons)
 	{
-		for (UINT n = 0; n < nIcons; ++n)
+		UINT n;
+		for (n = 0; n < nIcons; ++n)
 			arIcons[n].hbmpInternal = NULL; // clear to 0 first
 
 		LoadIconErr_et lieNow = LIE_Succ;
-		for (UINT n = 0; n < nIcons; ++n)
+		for (n = 0; n < nIcons; ++n)
 		{
 			// note: Even if some icon loads error, we still try to show other correct icons
 
+#ifdef HAS_VISTA_API
 			if(isVisualStyle)
 			{
 				lieNow = vista_AttachIconToMenuitem(
 					arIcons[n].hinst, arIcons[n].pIconId, hmenu, arIcons[n].idMenuItem);
 			}
 			else
+#endif
 			{
 				lieNow = xp_AttachIconToMenuitem(
 					arIcons[n].hinst, arIcons[n].pIconId, hmenu, arIcons[n].idMenuItem,

@@ -51,7 +51,7 @@ ggt_EnumMonitors(OneMonitorInfo_st arMonInfo[], int arEles, int *pTotalMonitors)
 
 	SetLastError(0);
 
-	EnumMonitorPrivate_st emp = {};
+	EnumMonitorPrivate_st emp = {0};
 	emp.arUserMoninfo = arMonInfo;
 	emp.nUserMoninfo = arEles;
 	emp.nUserFilled = 0;

@@ -104,7 +104,11 @@ void test_PopupMyMenu(HWND _hdlg, int x, int y)
 		{
 			{ IDM_INFORMATION, NULL, IDI_INFORMATION },
 			{ IDM_NEWLAND, g_hinst, MAKEINTRESOURCE(IDI_NEWLAND) },
+#if (_WIN32_WINNT > 0x0600) // only for Vista
 			{ IDM_ELEVATE, NULL, isShieldIco?IDI_SHIELD:IDI_EXCLAMATION },
+#else
+			{ IDM_ELEVATE, NULL, IDI_EXCLAMATION },
+#endif
 		};
 		HMENU hmenuPopup = GetSubMenu(hmenu, 0);
 

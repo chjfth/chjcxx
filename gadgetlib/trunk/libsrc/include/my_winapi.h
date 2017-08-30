@@ -20,6 +20,8 @@ DL_MAKE_WINAPI_WRAPPER("user32.dll", int, MessageBoxW,
 
 #define hrERR_DL_ENTRY 0xA0000001 // as HRESULT
 
+#if (_WIN32_WINNT > 0x0600) // only for Vista
+
 DL_MAKE_WINAPI_WRAPPER("uxtheme.dll", HRESULT, GetBufferedPaintBits,
 	(HPAINTBUFFER hBufferedPaint,__out RGBQUAD **ppbBuffer, __out int *pcxRow),
 	(hBufferedPaint, ppbBuffer, pcxRow),
@@ -42,5 +44,6 @@ DL_MAKE_WINAPI_WRAPPER("comctl32.dll", HRESULT, LoadIconMetric,
 	(hinst, pszName, lims, phico),
 	hrERR_DL_ENTRY)
 
-
 #endif
+
+#endif // end

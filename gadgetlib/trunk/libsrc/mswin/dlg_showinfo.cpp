@@ -16,6 +16,7 @@
 #include <gadgetlib/dlg_showinfo.h>
 
 #define DLL_AUTO_EXPORT_STUB
+extern"C" void gadgetlib_lib__dlg_showinfo__DLL_AUTO_EXPORT_STUB(void){}
 
 const int dlg_timer_id = 1;
 
@@ -164,7 +165,7 @@ dsi_CalNewboxTextMax(HWND hdlg, DsiDlgParams_st *pr)
 	if(winerr)
 		return rectTextMax;
 
-	ReposNewboxInput_st nbi = {};
+	ReposNewboxInput_st nbi = {0};
 	nbi.nMonitors = abMonsinfo;
 	//
 	int rect_buf_bytes = nbi.nMonitors*sizeof(RECT);
@@ -289,7 +290,7 @@ BOOL dsi_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 	// Create fixed-width font if required.
 	if(pr->isFixedWidthFont)
 	{
-		LOGFONT logfont = {};
+		LOGFONT logfont = {0};
 		HFONT hFont = (HFONT)SendDlgItemMessage(hdlg, IDC_EDIT_SHOW_INFO, WM_GETFONT, 0, 0);
 		int retbytes = GetObject(hFont, sizeof(logfont), &logfont);
 		(void)retbytes;
@@ -455,10 +456,7 @@ void dsi_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 
 
 INT_PTR CALLBACK
-dsi_DlgProc(__in HWND   hwnd,
-	__in UINT   uMsg,
-	__in WPARAM wParam,
-	__in LPARAM lParam)
+dsi_DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch(uMsg) 
 	{{
@@ -575,7 +573,7 @@ END
 
 	const WCHAR szTitle[] = L"ABC"; // set title to "ABC", will get udpate in DlgProc (WM_INITDIALOG)
 	wcscpy((wchar_t*)pword, szTitle);
-	pword += ARRAYSIZE(szTitle);
+	pword += GetEleQuan(szTitle);
 
 	if(dt.style & DS_SETFONT)
 	{
@@ -584,7 +582,7 @@ END
 		*pword++ = (WORD)_MAX_(6, fontsize); // minimum 6pt, but 6 will crop the icon above, why?
 		const WCHAR szFontface[] = L"MS Shell Dlg";
 		wcscpy((WCHAR*)pword, szFontface);
-		pword += ARRAYSIZE(szFontface);
+		pword += GetEleQuan(szFontface);
 	}
 
 	// DLGITEMTEMPLATE elements
