@@ -106,6 +106,9 @@ BEGIN
 END
 #endif    // APSTUDIO_INVOKED
 
+1  RT_MANIFEST  ".\\comctlv6.manifest"
+
+
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 
