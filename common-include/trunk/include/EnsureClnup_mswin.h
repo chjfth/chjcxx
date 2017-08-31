@@ -3,7 +3,7 @@
 
 //#define WIN32_LEAN_AND_MEAN
 //#include <windows.h>
-// -- user should include the above two lines themselves
+// -- user should include the above two lines themselves, so that INVALID_HANDLE_VALUE etc is defined.
 
 #include <EnsureClnup.h>
 
