@@ -571,7 +571,7 @@ END
 
 	*pword++ = 0x0000; // use system default dlgbox "window class"
 
-	const WCHAR szTitle[] = L"ABC"; // set title to "ABC", will get udpate in DlgProc (WM_INITDIALOG)
+	const WCHAR szTitle[] = L"ABC"; // set title to "ABC", will get update in DlgProc (WM_INITDIALOG)
 	wcscpy((wchar_t*)pword, szTitle);
 	pword += GetEleQuan(szTitle);
 
@@ -595,7 +595,7 @@ END
 	//
 	pitem = (DLGITEMTEMPLATE*)pword;
 	++dt.cdit;
-	pitem->style = WS_VISIBLE;
+	pitem->style = WS_VISIBLE|WS_TABSTOP;
 	pitem->dwExtendedStyle = 0;
 	pitem->x=56, pitem->y=46, pitem->cx=50, pitem->cy=14;
 	pitem->id = IDOK;
@@ -627,7 +627,7 @@ END
 	//
 	pitem = (DLGITEMTEMPLATE*)pword;
 	++dt.cdit;
-	pitem->style = WS_VISIBLE|ES_MULTILINE|ES_AUTOVSCROLL|ES_READONLY|WS_VSCROLL;
+	pitem->style = WS_VISIBLE|ES_MULTILINE|ES_AUTOVSCROLL|ES_READONLY|WS_VSCROLL|WS_TABSTOP;
 	pitem->dwExtendedStyle = 0;
 	pitem->x=47, pitem->y=7, pitem->cx=102, pitem->cy=34;
 	pitem->id = IDC_EDIT_SHOW_INFO;
@@ -643,7 +643,7 @@ END
 	//
 	pitem = (DLGITEMTEMPLATE*)pword;
 	++dt.cdit;
-	pitem->style = WS_VISIBLE;
+	pitem->style = WS_VISIBLE|WS_TABSTOP;
 	pitem->dwExtendedStyle = 0;
 	pitem->x=6, pitem->y=28, pitem->cx=36, pitem->cy=12;
 	pitem->id = IDC_BTN_REFRESH;
@@ -659,7 +659,7 @@ END
 	//
 	pitem = (DLGITEMTEMPLATE*)pword;
 	++dt.cdit;
-	pitem->style = WS_VISIBLE|BS_AUTOCHECKBOX;
+	pitem->style = WS_VISIBLE|BS_AUTOCHECKBOX|WS_TABSTOP;
 	pitem->dwExtendedStyle = 0;
 	pitem->x=7, pitem->y=42, pitem->cx=36, pitem->cy=10;
 	pitem->id = IDC_CHK_AUTOREFRESH;
