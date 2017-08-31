@@ -61,7 +61,7 @@ DlgShowinfoCallback_ret DSI_GetNowTime(void *_ctx,
 	SYSTEMTIME st;
 	GetLocalTime(&st);
 	mm_snprintf(textbuf, bufchars, 
-		_T("%s\r\n\r\nNow time: %04d-%02d-%02d %02d:%02d:%02d.%03d"), 
+		_T("%s\r\n\r\nNow time from GetLocalTime(): %04d-%02d-%02d %02d:%02d:%02d.%03d"), 
 		ctx.isFromRC ? _T("Msgbox from RC") : _T("MsgBox from DLGITEMTEMPLATE"),
 		st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds
 		);
@@ -71,7 +71,7 @@ DlgShowinfoCallback_ret DSI_GetNowTime(void *_ctx,
 
 void do_dlg_showinfo(HWND hwndParent, bool isUseRC)
 {
-	TCHAR szTimeText[80] = _T("to-modify");
+	TCHAR szTimeText[400] = _T("to-modify");
 	MyDsiContext_st ctx = { isUseRC ? true : false };
 
 	dlg_showinfo_st si;

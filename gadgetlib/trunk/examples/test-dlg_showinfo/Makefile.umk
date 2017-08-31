@@ -8,6 +8,7 @@ gmu_up_list_SRC_FROM_ROOT += test-dlg_showinfo.cpp \
 
 gmp_u_list_PLUGIN_TO_LOAD += PI_winres_msvc
   gmi_RCVC_up_list_WINRC_FROM_ROOT = demo.rc
+  gmi_RCVC_RC_FLAGS = $(addprefix /I ,../../libsrc/include $(NlssdkIncludeDirs))
 
 include ../share.mki
 

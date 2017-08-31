@@ -12,7 +12,7 @@
 #include <gadgetlib/ReposNewbox.h>
 #include <gadgetlib/dlg_showinfo.h>
 
-#include <dlg_showinfo_ids.h>
+#include <gadgetlib/dlg_showinfo_ids.h>
 #include <gadgetlib/dlg_showinfo.h>
 
 #define DLL_AUTO_EXPORT_STUB
@@ -551,7 +551,7 @@ DEFPUSHBUTTON   "OK",IDOK,56,46,50,14
 ICON            "",IDI_SHOW_INFO,14,6,20,20
 EDITTEXT        IDC_EDIT_SHOW_INFO,47,7,102,34,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | NOT WS_BORDER | WS_VSCROLL
 PUSHBUTTON      "&Refresh",IDC_BTN_REFRESH,6,28,36,12
-CONTROL         "&Auto",IDC_CHK_AUTOREFRESH,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,42,36,10
+CONTROL         "&Auto",IDC_CHK_AUTOREFRESH,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,42,36,10
 END
 */
 	char memblock[4000];
@@ -661,7 +661,7 @@ END
 	++dt.cdit;
 	pitem->style = WS_VISIBLE|BS_AUTOCHECKBOX;
 	pitem->dwExtendedStyle = 0;
-	pitem->x=6, pitem->y=42, pitem->cx=36, pitem->cy=10;
+	pitem->x=7, pitem->y=42, pitem->cx=36, pitem->cy=10;
 	pitem->id = IDC_CHK_AUTOREFRESH;
 	//
 	pword = (WORD*)(pitem+1);
