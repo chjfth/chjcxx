@@ -575,6 +575,8 @@ END
 	wcscpy((wchar_t*)pword, szTitle);
 	pword += GetEleQuan(szTitle);
 
+	// dialog font size and typeface
+	//
 	if(dt.style & DS_SETFONT)
 	{
 		int fontsize = p_usr_opt->fontsize>0 ? p_usr_opt->fontsize : 9;

@@ -73,6 +73,8 @@ struct dlg_showinfo_st
 
 	dlg_showinfo_st()
 	{
+		memset(this, 0, sizeof(this));
+
 		title = NULL;
 		hIcon = NULL;
 		fixedwidth_font = false;
@@ -84,6 +86,8 @@ struct dlg_showinfo_st
 		isRefreshNow = isAutoRefreshNow = false;
 
 		isOnlyClosedByProgram = false;
+
+		fontsize = 0;
 
 		szOK = szRefreshBtnText = szAutoChktext = NULL;
 

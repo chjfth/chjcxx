@@ -70,24 +70,28 @@
     <OutDir>$(SolutionDir)binstore\$(PlatformName)-$(PlatformToolset)\$(Configuration)\</OutDir>
     <IntDir>$(PlatformName)-$(PlatformToolset)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)_U</TargetName>
+    <EmbedManifest>false</EmbedManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Unicode|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)binstore\$(PlatformName)-$(PlatformToolset)\$(Configuration)\</OutDir>
     <IntDir>$(PlatformName)-$(PlatformToolset)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)_U</TargetName>
+    <EmbedManifest>false</EmbedManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ANSI|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)binstore\$(PlatformName)-$(PlatformToolset)\$(Configuration)\</OutDir>
     <IntDir>$(PlatformName)-$(PlatformToolset)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)</TargetName>
+    <EmbedManifest>false</EmbedManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ANSI|x64'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)binstore\$(PlatformName)-$(PlatformToolset)\$(Configuration)\</OutDir>
     <IntDir>$(PlatformName)-$(PlatformToolset)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)</TargetName>
+    <EmbedManifest>false</EmbedManifest>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Unicode|Win32'">
     <ClCompile>
