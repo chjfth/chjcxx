@@ -11,6 +11,10 @@
 	So I did the improvement.
 */
 
+#define ENSURECLNUP_PRESENT
+	// So that outter headers knows this header has been included.
+	// Outter headers check this macro and offer to define MakeCleanupPtrClass(...) for user.
+
 
 template<typename PTR_TYPE, typename RET_TYPE, RET_TYPE (*pfn)(PTR_TYPE)> 
 class CEnsureCleanupPtr
