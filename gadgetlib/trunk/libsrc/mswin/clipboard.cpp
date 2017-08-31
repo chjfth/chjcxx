@@ -3,6 +3,7 @@
 #include <gadgetlib/clipboard.h>
 
 #define DLL_AUTO_EXPORT_STUB
+extern"C" void gadgetlib_lib__clipboard__DLL_AUTO_EXPORT_STUB(void){}
 
 
 
@@ -26,7 +27,7 @@ ggt_SetClipboardText(const TCHAR text[], int textchars, HWND hwnd)
 	HANDLE hret = NULL;
 
 	if(textchars<0)
-		textchars = lstrlen(text);
+		textchars = _tcslen(text);
 	
 	int textchars_ = textchars+1;
 
@@ -35,7 +36,9 @@ ggt_SetClipboardText(const TCHAR text[], int textchars, HWND hwnd)
 		return FALSE;
 	
 	TCHAR *pmem = (TCHAR*)GlobalLock(hmem);
-	lstrcpyn(pmem, text, textchars_);
+	_tcsncpy(pmem, text, textchars_); 
+		//lstrcpyn(pmem, text, textchars_); // WinCE no this API
+	pmem[textchars] = _T('\0');
 	GlobalUnlock(hmem);
 
 	if(!openclipboard_with_timeout(2000, hwnd)) {

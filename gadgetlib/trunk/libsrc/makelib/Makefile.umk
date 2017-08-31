@@ -55,6 +55,7 @@ ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),msvc wince),1)
 	mswin/charenccvt-win.cpp \
 	mswin/T_string-msvc.cpp \
 	mswin/simple_thread.cpp \
+	mswin/clipboard.cpp     \
 	# WinCE 5.0 still don't provide fopen etc, so don't add fstream-aux.cpp .
 
   gmu_ud_list_PRJ_HEADER += # $(gmu_ud_SRC_ROOT)/mswin 
