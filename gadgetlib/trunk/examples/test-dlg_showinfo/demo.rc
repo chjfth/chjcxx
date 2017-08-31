@@ -79,7 +79,7 @@ CAPTION "Showinfo Dialog"
 FONT 9, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,56,46,50,14
-    ICON            "",IDI_SHOW_INFO,14,6,20,20
+    ICON            "",IDI_SHOW_INFO,14,6,20,20,SS_NOTIFY
     EDITTEXT        IDC_EDIT_SHOW_INFO,47,6,102,36,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | NOT WS_BORDER | WS_VSCROLL
     PUSHBUTTON      "&Refresh",IDC_BTN_REFRESH,6,28,36,12
     CONTROL         "&Auto",IDC_CHK_AUTOREFRESH,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,42,35,10
@@ -107,8 +107,13 @@ BEGIN
 END
 #endif    // APSTUDIO_INVOKED
 
-1  RT_MANIFEST  ".\\comctlv6.manifest"
 
+/////////////////////////////////////////////////////////////////////////////
+//
+// RT_MANIFEST
+//
+
+1                       RT_MANIFEST             ".\\comctlv6.manifest"
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 

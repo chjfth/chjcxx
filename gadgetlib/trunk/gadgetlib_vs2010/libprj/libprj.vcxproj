@@ -26,6 +26,7 @@
     <ClCompile Include="..\..\libsrc\gsm0338cvt.cpp" />
     <ClCompile Include="..\..\libsrc\mbcs-ops.cpp" />
     <ClCompile Include="..\..\libsrc\mswin\charenccvt-win.cpp" />
+    <ClCompile Include="..\..\libsrc\mswin\clipboard.cpp" />
     <ClCompile Include="..\..\libsrc\mswin\dirfuncs.cpp" />
     <ClCompile Include="..\..\libsrc\mswin\dlg_showinfo.cpp" />
     <ClCompile Include="..\..\libsrc\mswin\enum_monitors.cpp" />
@@ -53,6 +54,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\libsrc\include\dlg_showinfo_ids.h" />
     <ClInclude Include="..\..\libsrc\include\gadgetlib\charenccvt.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\clipboard.h" />
     <ClInclude Include="..\..\libsrc\include\gadgetlib\dirfuncs.h" />
     <ClInclude Include="..\..\libsrc\include\gadgetlib\dlg_showinfo.h" />
     <ClInclude Include="..\..\libsrc\include\gadgetlib\enum_monitors.h" />

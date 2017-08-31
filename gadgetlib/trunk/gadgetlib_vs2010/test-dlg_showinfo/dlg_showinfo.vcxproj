@@ -210,6 +210,9 @@
   <ItemGroup>
     <None Include="..\..\examples\test-dlg_showinfo\NewLand.ico" />
   </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="..\..\examples\test-dlg_showinfo\comctlv6.manifest" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -8,6 +8,8 @@
 #include <mswin/JULayout.h>
 #include <mswin/CmnHdr-Jeffrey.h>
 
+#include <gadgetlib/clipboard.h>
+
 #include <gadgetlib/enum_monitors.h>
 #include <gadgetlib/ReposNewbox.h>
 #include <gadgetlib/dlg_showinfo.h>
@@ -407,6 +409,15 @@ void dsi_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 
 	switch (id) 
 	{{
+	case IDI_SHOW_INFO:
+	{
+		TCHAR text[64000];
+		GetDlgItemText(hwnd, IDC_EDIT_SHOW_INFO, text, GetEleQuan(text));
+		ggt_SetClipboardText(text, -1, hwnd);
+		//MessageBox(hwnd, L"copied", NULL, MB_OK);
+		break;
+	}
+
 	case IDC_BTN_REFRESH:
 	{
 		dsi_CallbackRefreshUserText(hwnd, pr);
@@ -548,7 +559,7 @@ CAPTION "Showinfo Dialog"
 FONT 9, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
 DEFPUSHBUTTON   "OK",IDOK,56,46,50,14
-ICON            "",IDI_SHOW_INFO,14,6,20,20
+ICON            "",IDI_SHOW_INFO,14,6,20,20,SS_NOTIFY
 EDITTEXT        IDC_EDIT_SHOW_INFO,47,7,102,34,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | NOT WS_BORDER | WS_VSCROLL
 PUSHBUTTON      "&Refresh",IDC_BTN_REFRESH,6,28,36,12
 CONTROL         "&Auto",IDC_CHK_AUTOREFRESH,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,42,36,10
@@ -613,7 +624,7 @@ END
 	//
 	pitem = (DLGITEMTEMPLATE*)pword;
 	++dt.cdit;
-	pitem->style = WS_VISIBLE|SS_ICON; // | SS_BLACKFRAME;
+	pitem->style = WS_VISIBLE|SS_ICON|SS_NOTIFY; // | SS_BLACKFRAME;
 	pitem->dwExtendedStyle = 0;
 	pitem->x=14, pitem->y=6, pitem->cx=20, pitem->cy=20;
 	pitem->id = IDI_SHOW_INFO;
