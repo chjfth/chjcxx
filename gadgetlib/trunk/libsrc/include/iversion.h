@@ -3,8 +3,8 @@
 
 
 #define THISLIB_VMAJOR 0
-#define THISLIB_VMINOR 5
-#define THISLIB_VBUILD 4
+#define THISLIB_VMINOR 6
+#define THISLIB_VBUILD 0
 
 #define THISLIBstr__(n) #n
 #define THISLIBstr(n) THISLIBstr__(n)
