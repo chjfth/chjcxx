@@ -85,7 +85,7 @@ STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSM
 CAPTION "Popup Menu WithIcon"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    ICON            128,IDC_STATIC,14,14,20,20
+    ICON            IDI_NEWLAND,IDC_STATIC,14,14,20,20
     LTEXT           "Theme info to fill.",IDC_TEXT_THEME_INFO,42,14,157,8,SS_NOPREFIX
     LTEXT           "Right-click to pop up menu.",IDC_STATIC,42,26,149,8
     DEFPUSHBUTTON   "OK",IDOK,157,41,50,14,WS_GROUP
@@ -106,9 +106,13 @@ BEGIN
 END
 #endif    // APSTUDIO_INVOKED
 
-1  RT_MANIFEST  ".\\comctlv6.manifest"
 
+/////////////////////////////////////////////////////////////////////////////
+//
+// RT_MANIFEST
+//
 
+1                       RT_MANIFEST             ".\\comctlv6.manifest"
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 

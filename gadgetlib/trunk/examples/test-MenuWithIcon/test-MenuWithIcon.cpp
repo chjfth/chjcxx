@@ -120,8 +120,8 @@ void test_PopupMyMenu(HWND _hdlg, int x, int y)
 			ptClient.x, ptClient.y, _hdlg, NULL, 
 			aIcons, ARRAYSIZE(aIcons), &lie); // visual-style menu
 #else
-		UINT mret = TrackPopupMenuEx(hmenuPopup, 
-			0, ptClient.x, ptClient.y, _hdlg, NULL); // pristine menu
+													UINT mret = TrackPopupMenuEx(hmenuPopup, 
+														0, ptClient.x, ptClient.y, _hdlg, NULL); // pristine menu
 #endif
 		
 		DestroyMenu(hmenu);
