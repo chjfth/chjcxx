@@ -45,7 +45,7 @@ struct DsiDlgParams_st
 
 	// Internal data for Showinfo-dialog:
 	HWND hwndRealParent;
-	HFONT hfontFixedWidth;
+	HFONT hfontEditbox;
 
 	Rect_st rectNewboxVisualMax; 
 		// This Rect-size is enough to hold all our info text.
@@ -135,8 +135,14 @@ dsi_CalNewboxTextMax(HWND hdlg, DsiDlgParams_st *pr)
 	HDC hdcEdit = GetDC(hEdit);
 	int textlen = (int)_tcslen(pr->textbuf);
 
+// LOGFONT logfontE = {0};
+// //HFONT hFont = (HFONT)SendDlgItemMessage(hdlg, IDC_EDIT_SHOW_INFO, WM_GETFONT, 0, 0);
+// HFONT hFont = (HFONT)SelectObject(hdcEdit, (HGDIOBJ)GetStockObject(SYSTEM_FIXED_FONT));
+// int retbytes = GetObject(hFont, sizeof(logfontE), &logfontE);
+// (VOID)retbytes;
+
 	RECT drawarea = {0,0,1,1};
-	SelectObject(hdcEdit, pr->hfontFixedWidth); // we need this to get correct draw-width
+	SelectObject(hdcEdit, pr->hfontEditbox); // we need this to get correct draw-width
 	DrawText(hdcEdit, pr->textbuf, textlen, &drawarea, DT_CALCRECT);
 	// GetTextExtentPoint32() does not consider multi-line height so don't use it.
 	// But note: Line-breaks must be "\r\n"(not "\n") to have DrawText calculate drawarea correctly.
@@ -289,21 +295,25 @@ BOOL dsi_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 	SetWindowText(hdlg, pr->title);
 	SetDlgItemText(hdlg, IDC_EDIT_SHOW_INFO, pr->textbuf);
 
-	// Create fixed-width font if required.
+	// Create a font to be used for EditBox
+	LOGFONT logfont = {0};
+	HFONT hFont = (HFONT)SendDlgItemMessage(hdlg, IDC_EDIT_SHOW_INFO, WM_GETFONT, 0, 0);
+	int retbytes = GetObject(hFont, sizeof(logfont), &logfont);
+	(void)retbytes;
+	assert(retbytes==sizeof(logfont));
+	logfont.lfPitchAndFamily = pr->isFixedWidthFont ? FIXED_PITCH : VARIABLE_PITCH; 
+	//logfont.lfWeight = FW_BOLD;
 	if(pr->isFixedWidthFont)
 	{
-		LOGFONT logfont = {0};
-		HFONT hFont = (HFONT)SendDlgItemMessage(hdlg, IDC_EDIT_SHOW_INFO, WM_GETFONT, 0, 0);
-		int retbytes = GetObject(hFont, sizeof(logfont), &logfont);
-		(void)retbytes;
-		assert(retbytes==sizeof(logfont));
-		logfont.lfPitchAndFamily = FIXED_PITCH; //logfont.lfWeight = FW_BOLD;
-		logfont.lfFaceName[0] = 0; // let system pick a default fixed-width font
-		pr->hfontFixedWidth = CreateFontIndirect(&logfont);
-		assert(pr->hfontFixedWidth);
-
-		SendDlgItemMessage(hdlg, IDC_EDIT_SHOW_INFO, WM_SETFONT, (WPARAM)(pr->hfontFixedWidth), TRUE);
+		logfont.lfFaceName[0] = 0; // We don't know the exact fixed-width font name, so let System re-pick it.
+		// Tried on Win81: If lfFaceName is "MS Shell Dlg 2" and .lfPitchAndFamily==FIXED_PITCH,
+		// FIXED_PITCH does not overwrite the proportional Tahoma font.
 	}
+	pr->hfontEditbox = CreateFontIndirect(&logfont);
+	assert(pr->hfontEditbox);
+
+	SendDlgItemMessage(hdlg, IDC_EDIT_SHOW_INFO, WM_SETFONT, (WPARAM)(pr->hfontEditbox), TRUE);
+		// Note: If using fixed-width font, it only influence the editbox, not the whole dialogbox.
 
 	Rect_st &rectMax = pr->rectNewboxVisualMax;
 	rectMax = dsi_CalNewboxTextMax(hdlg, pr);
@@ -358,8 +368,8 @@ void dsi_OnDestroy(HWND hwnd)
 {
 	DsiDlgParams_st *pr = (DsiDlgParams_st*)GetWindowLongPtr(hwnd, DWLP_USER);
 
-	if(pr->hfontFixedWidth)
-		DeleteObject(pr->hfontFixedWidth);
+	if(pr->hfontEditbox)
+		DeleteObject(pr->hfontEditbox);
 }
 
 void dsi_OnSize(HWND hdlg, UINT state, int cx, int cy) 
@@ -593,7 +603,10 @@ END
 		int fontsize = p_usr_opt->fontsize>0 ? p_usr_opt->fontsize : 9;
 
 		*pword++ = (WORD)_MAX_(6, fontsize); // minimum 6pt, but 6 will crop the icon above, why?
-		const WCHAR szFontface[] = L"MS Shell Dlg";
+		const WCHAR szFontface[] = L"MS Shell Dlg 2";
+			// Note: On Win7/81,
+			// Using "MS Shell Dlg 2" instead of "MS Shell Dlg", we get the same result as
+			// using .rc-created dialog. That's Microsoft's trick, don't know why.
 		wcscpy((WCHAR*)pword, szFontface);
 		pword += GetEleQuan(szFontface);
 	}

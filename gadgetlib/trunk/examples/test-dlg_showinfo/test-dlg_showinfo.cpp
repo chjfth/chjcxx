@@ -70,14 +70,14 @@ DlgShowinfoCallback_ret DSI_GetNowTime(void *_ctx,
 	return DSICB_OK;
 }
 
-void do_dlg_showinfo(HWND hwndParent, bool isUseRC)
+void do_dlg_showinfo(HWND hwndParent, bool isUseRC, bool isMono)
 {
 	TCHAR szTimeText[400] = _T("to-modify");
 	MyDsiContext_st ctx = { isUseRC ? true : false };
 
 	dlg_showinfo_st si;
 	si.title = _T("Showinfo");
-	si.fixedwidth_font = true;
+	si.fixedwidth_font = isMono ? true : false;
 	si.procGetText = DSI_GetNowTime;
 	si.ctxGetText = &ctx;
 	si.bufchars = ARRAYSIZE(szTimeText);
@@ -109,10 +109,16 @@ void Dlg_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 	switch (id) 
 	{{
 	case IDC_USE_RC:
-		do_dlg_showinfo(hwnd, true);
+		do_dlg_showinfo(hwnd, true, false);
+		break;
+	case IDC_USE_RC_MONO:
+		do_dlg_showinfo(hwnd, true, true);
 		break;
 	case IDC_NOT_USE_RC:
-		do_dlg_showinfo(hwnd, false);
+		do_dlg_showinfo(hwnd, false, false);
+		break;
+	case IDC_NOT_USE_RC_MONO:
+		do_dlg_showinfo(hwnd, false, true);
 		break;
 	case IDOK:
 	case IDCANCEL:

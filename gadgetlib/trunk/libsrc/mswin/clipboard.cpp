@@ -27,7 +27,7 @@ ggt_SetClipboardText(const TCHAR text[], int textchars, HWND hwnd)
 	HANDLE hret = NULL;
 
 	if(textchars<0)
-		textchars = _tcslen(text);
+		textchars = (int)_tcslen(text);
 	
 	int textchars_ = textchars+1;
 
@@ -87,7 +87,7 @@ ggt_GetClipboardText(int *ptextchars, HWND hwnd)
 		goto END;
 	}
 
-	text_bytes = GlobalSize(hmem);
+	text_bytes = (int)GlobalSize(hmem);
 
 	// Allocate returning user memory
 	pret = (TCHAR*)GlobalAlloc(GPTR, text_bytes);

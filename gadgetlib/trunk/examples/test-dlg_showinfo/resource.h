@@ -6,8 +6,10 @@
 #define IDI_NEWLAND                     100
 #define IDC_USE_RC                      100
 #define IDC_NOT_USE_RC                  101
-
-#define IDD_SHOW_INFO 400
+#define IDC_USE_RC_MONO                 102
+#define IDC_USE_RC_MONO2                103
+#define IDC_NOT_USE_RC_MONO             103
+#define IDD_SHOW_INFO                   400
 
 // Next default values for new objects
 // 
