@@ -84,6 +84,7 @@ void do_dlg_showinfo(HWND hwndParent, bool isUseRC, bool isMono)
 	si.msecAutoRefresh = 500;
 	si.isRefreshNow = true;
 	si.isAutoRefreshNow = true;
+//	si.fontsize = 12;
 	si.szOK = _T("&Close");
 	// opt.isOnlyClosedByProgram = true;
 
