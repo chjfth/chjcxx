@@ -43,7 +43,9 @@ DLLEXPORT_gadgetlib
 UINT ggt_TrackPopupMenuWithIcon(
 	HMENU hmenu, UINT fuFlags, int x, int y, HWND hwnd, __in_opt LPTPMPARAMS lptpm,
 	__in_ecount_opt(nIcons) ICONMENUENTRY arIcons[], UINT nIcons, 
-	LoadIconErr_et *pLIE=NULL);
+	LoadIconErr_et *pLIE=NULL,
+	bool isShowIconOnWinXP=true // 13*13 shrunk icon may probably looks ugly
+	);
 // Return the same value as WinAPI TrackPopupMenuEx().
 // Even if icon-loading fails(*pLIE will indicate error code), the text-only menu
 // will still pops out.

@@ -395,14 +395,21 @@ xp_AttachIconToMenuitem(HINSTANCE hInstExeDll, LPCTSTR iconResId, HMENU hmenu, U
 
 UINT ggt_TrackPopupMenuWithIcon(
 	HMENU hmenu, UINT fuFlags, int x, int y, HWND hwnd, __in_opt LPTPMPARAMS lptpm,
-	__in_ecount_opt(nIcons) ICONMENUENTRY arIcons[], UINT nIcons, LoadIconErr_et *pLIE)
+	__in_ecount_opt(nIcons) ICONMENUENTRY arIcons[], UINT nIcons, LoadIconErr_et *pLIE,
+	bool isShowIconOnWinXP)
 {
-	bool isVisualStyle = ggt_TrackPopupMenuIsVistaStyle();
-
 	LoadIconErr_et _lie;
 	if(!pLIE)
 		pLIE = &_lie;
 	*pLIE = LIE_Succ; // assume succ
+
+	bool isVisualStyle = ggt_TrackPopupMenuIsVistaStyle();
+
+	if(!isVisualStyle && !isShowIconOnWinXP)
+	{
+		UINT mret = TrackPopupMenu(hmenu, fuFlags, x, y, 0, hwnd, NULL);
+		return mret;
+	}
 
 //	HBITMAP xp_hbmp = NULL;
 
