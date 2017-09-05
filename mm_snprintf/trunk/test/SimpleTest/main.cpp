@@ -54,6 +54,7 @@ int mprintA(const char *cmp, const char *fmt, ...)
 	{
 		printf("\nExpect:\n%s", cmp);
 		printf("\nError:\n%s", buf);
+		printf("\n");
 		assert(0);
 	}
 
@@ -72,6 +73,7 @@ int mprintNA(const char *cmp, char buf[], int bufsize, const char *fmt, ...)
 	{
 		printf("\nExpect:\n%s", cmp);
 		printf("\nError:\n%s", buf);
+		printf("\n");
 		assert(0);
 	}
 	return ret;
@@ -99,6 +101,7 @@ int mprintW(const wchar_t *cmp, const wchar_t *fmt, ...)
 	{
 		wprintf(L"\nExpect:\n" FMT_WS, cmp);
 		wprintf(L"\nError:\n" FMT_WS, buf);
+		wprintf(L"\n");
 		assert(0);
 	}
 	return ret;
@@ -120,6 +123,7 @@ int mprintNW(const wchar_t *cmp, wchar_t buf[], int bufsize, const wchar_t *fmt,
 	{
 		wprintf(L"\nExpect:\n%s", cmp);
 		wprintf(L"\nError:\n%s", buf);
+		wprintf(L"\n");
 		assert(0);
 	}
 	return ret;
@@ -285,6 +289,21 @@ void test_fms_s()
 	mprint(oks, t("[%3.0s]"), t("mmm"));
 }
 
+void test_v2()
+{
+	oks = t("");
+	mprint(oks, t("%.0d"), 0);
+
+	oks = t("12345");
+	mprint(oks, t("%.3d"), 12345);
+
+	oks = t("[123  ]"); // tell "left"-justify dynamically
+	mprint(oks, t("[%*d]"), -5, 123);
+
+	oks = t("[-123 ]"); // tell "left"-justify dynamically
+	mprint(oks, t("[%*d]"), -5, -123);
+}
+
 void test_v3()
 {
 	oks = t("[+12][ 34][-0056]");
@@ -339,6 +358,26 @@ void test_v5()
 	oks = t("[4,123][18,446,744,073,709,551,614]");
 	mprint(oks, t("%T[%llD][%llU]"), t(","), i64, u64);
 
+	// test with length specifier
+
+	oks = t("[  12 345]");
+	mprint(oks, t("[%8D]"), 12345);
+
+	oks = t("[ -12 345]"); // width is 8
+	mprint(oks, t("[%*D]"), 8, -12345);
+
+	oks = t("[-12,345 ]"); // width is 8
+	mprint(oks, t("%T[%-*D]"), t(","), 8, -12345);
+	
+	oks = t("[-12,346 ]");
+	mprint(oks, t("%t[%-*d]"), t(","), 8, -12346);
+
+	oks = t("[-12,347 ]");
+	mprint(oks, t("%t[%*d]"), t(","), -8, -12347);
+	
+	// ... we need 9 digits with 0s pre-padded, 9 does not count sepers ... 
+	oks = t("[000,012,345]");
+//	mprint(oks, t("%t[%0.9u]"), t(","), 12345); // pending for v6.2
 
 	// Check for %_ %t
 
@@ -449,6 +488,8 @@ int _tmain()
 //	mprint(L"[12]", L"[%d]", 12);
 
 	test_fms_s();
+
+	test_v2();
 
 	test_v3();
 	
