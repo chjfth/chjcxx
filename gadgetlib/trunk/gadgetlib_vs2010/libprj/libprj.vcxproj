@@ -44,6 +44,7 @@
     <ClCompile Include="..\..\libsrc\ReposNewbox.cpp" />
     <ClCompile Include="..\..\libsrc\time-common.cpp" />
     <ClCompile Include="..\..\libsrc\T_string.cpp" />
+    <ClCompile Include="..\..\libsrc\unstraddle_dlgbox.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ANSI|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Unicode|Win32'">Create</PrecompiledHeader>
@@ -69,6 +70,7 @@
     <ClInclude Include="..\..\libsrc\include\gadgetlib\simple_thread.h" />
     <ClInclude Include="..\..\libsrc\include\gadgetlib\timefuncs.h" />
     <ClInclude Include="..\..\libsrc\include\gadgetlib\T_string.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\unstraddle_dlgbox.h" />
     <ClInclude Include="..\..\libsrc\include\my_winapi.h" />
     <ClInclude Include="..\..\libsrc\include\stdafx.h" />
   </ItemGroup>

@@ -59,6 +59,8 @@
 #include <ps_TCHAR.h>
 #include <commdefs.h>
 
+#include <EnsureClnup_common.h>
+
 #include <mm_snprintf.h>
 
 #include <iversion.h>

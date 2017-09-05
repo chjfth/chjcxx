@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-#include "RECTxy.h"
+#include <RECTxy.h>
 #include <gadgetlib/ReposNewbox.h>
 
 #define DLL_AUTO_EXPORT_STUB
@@ -12,65 +12,6 @@ extern"C" void gadgetlib_lib__ReposNewbox__DLL_AUTO_EXPORT_STUB(void){}
 #define _Max_(a,b) ((a)>=(b) ? (a) : (b))
 #define _Mid_(a,b,c) ( _Max_(a,_Min_(b,c)) )
 
-
-inline bool InRange2(int n, const int *pi)
-{
-	// If pi points to RECT.left, it will check whether n in range [RECT.left, RECT.right) .
-	// If pi points to RECT.top, it will check whether n in range [RECT.top, RECT.bottom) .
-	return (n>=pi[0] && n<pi[2]) ? true : false;
-}
-
-
-bool 
-Point_st::InRect(const Rect_st &r) const
-{
-	bool xInRange = InRange2(x, &r.left);
-	bool yInRange = InRange2(y, &r.top);
-	return (xInRange && yInRange) ? true : false;
-}
-
-Pace_st 
-Point_st::PaceToRect(const Rect_st &r) const
-{
-	// Return: 
-	// If ret.x==30, it means this pt should walk toward right 30 pixels to reach the Rect's left border.
-	// If ret.x==-20, it means this pt should walk toward left 20 pixels to reach the Rect's right border.
-	// If this pt falls inside the rect(per axis), the return-value is 0.
-
-	Pace_st pace = {0,0};
-
-	if(x<r.left)
-		pace.x = r.left - x;
-	else if(x>=r.right)
-		pace.x = r.right - x;
-
-	if(y<r.top)
-		pace.y = r.top - y;
-	else if(y>=r.bottom)
-		pace.y = r.bottom - y;
-
-	return pace;
-}
-
-
-Pace_st 
-Rect_st::PaceToRect(const Rect_st &rBig)
-{
-	// Idea similar to Point_st:PaceToRect().
-	// this Rect must be x&y smaller than or equal to rBig.
-
-	Pace_st paceRet = {0,0};
-
-	// memo: A is this-rect's left-top corner; B is this-rect's right-bottom corner.
-	Pace_st paceA = ((Point_st*)(&this->left))->PaceToRect(rBig);
-	Pace_st paceB = ((Point_st*)(&this->right))->PaceToRect(rBig);
-
-	// For each pace.x/pace.y, pick the one with larger abs-value.
-	paceRet.x = Abs(paceA.x)>Abs(paceB.x) ? paceA.x : paceB.x;
-	paceRet.y = Abs(paceA.y)>Abs(paceB.y) ? paceA.y : paceB.y;
-
-	return paceRet;
-}
 
 static int 
 DetermineMonitor(int nMonitors, const Rect_st *arMonitorRect, const Point_st &pt)

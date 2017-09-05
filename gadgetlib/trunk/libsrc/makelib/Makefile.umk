@@ -46,9 +46,10 @@ ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),msvc wince),1)
 	$(if $(filter wince%,$(gmp_COMPILER_ID)),,\
 	  fstream-aux.cpp           \
 	  mswin/MenuWithIcon.cpp    \
-	  mswin/enum_monitors.cpp    \
+	  mswin/enum_monitors.cpp   \
 	  mswin/dlg_showinfo.cpp    \
 	  mswin/impl_winapi.cpp     \
+	  unstraddle_dlgbox.cpp \
 	  ) \
 	mswin/wintime.cpp \
 	mswin/dirfuncs.cpp \

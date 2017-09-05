@@ -12,6 +12,7 @@
 
 #include <gadgetlib/enum_monitors.h>
 #include <gadgetlib/ReposNewbox.h>
+#include <gadgetlib/unstraddle_dlgbox.h>
 #include <gadgetlib/dlg_showinfo.h>
 
 #include <gadgetlib/dlg_showinfo_ids.h>
@@ -259,12 +260,24 @@ dsi_CallbackRefreshUserText(HWND hwnd, DsiDlgParams_st *pr)
 		isGoBigger = true;
 	}
 
+	// If dlg has been shrunk(due to user purpose), don't resize it even if we get more text.
+	// So we check isGoBigger here.
 	if(isGoBigger && wasAtVisualMax)
 	{
-		// If dlg has been shrunk(due to user purpose), don't resize it even if we get more text.
-		// And, Not changing top-left position.
-		MoveWindow(hwnd, pr->rectNewboxVisualMax.left, pr->rectNewboxVisualMax.top, 
-			RECTcx(pr->rectNewboxVisualMax), RECTcy(pr->rectNewboxVisualMax), TRUE);
+		// Note: We try to keep dlgbox's left-top position here.
+		// Imagine: Dlgbox pops up at initial position A, and user drags it to his preferred
+		// position B for viewing. When dlgbox's text is updated, it's better to keep the box
+		// at user's preferred left-top corner position(B) intact.
+		//
+		// And the new bigger box may be wider or higher which causes some dlgbox portion
+		// go beyond its original monitor, so we adjust it again with ggt_ReposNewbox.
+
+		Rect_st rect_new = { rectNow.left, rectNow.top, rectNow.right, rectNow.bottom };
+
+		rect_new = ggt_unstraddle_dlgbox(rect_new, 
+			RECTcx(pr->rectNewboxVisualMax), RECTcy(pr->rectNewboxVisualMax));
+
+		MoveWindow(hwnd, rect_new.left, rect_new.top, RECTcx(rect_new), RECTcy(rect_new), TRUE);
 	}
 
 	SetDlgItemText(hwnd, IDC_EDIT_SHOW_INFO, pr->textbuf);

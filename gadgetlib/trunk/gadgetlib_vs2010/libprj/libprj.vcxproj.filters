@@ -54,6 +54,7 @@
     <ClCompile Include="..\..\libsrc\mswin\clipboard.cpp">
       <Filter>mswin</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\libsrc\unstraddle_dlgbox.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\libsrc\include\stdafx.h">
@@ -111,6 +112,9 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="..\..\libsrc\include\gadgetlib\clipboard.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\unstraddle_dlgbox.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>
