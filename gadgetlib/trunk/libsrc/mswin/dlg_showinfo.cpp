@@ -135,11 +135,11 @@ dsi_CalNewboxTextMax(HWND hdlg, DsiDlgParams_st *pr)
 	HDC hdcEdit = GetDC(hEdit);
 	int textlen = (int)_tcslen(pr->textbuf);
 
-// LOGFONT logfontE = {0};
-// //HFONT hFont = (HFONT)SendDlgItemMessage(hdlg, IDC_EDIT_SHOW_INFO, WM_GETFONT, 0, 0);
-// HFONT hFont = (HFONT)SelectObject(hdcEdit, (HGDIOBJ)GetStockObject(SYSTEM_FIXED_FONT));
-// int retbytes = GetObject(hFont, sizeof(logfontE), &logfontE);
-// (VOID)retbytes;
+																		// LOGFONT logfontE = {0};
+																		// //HFONT hFont = (HFONT)SendDlgItemMessage(hdlg, IDC_EDIT_SHOW_INFO, WM_GETFONT, 0, 0);
+																		// HFONT hFont = (HFONT)SelectObject(hdcEdit, (HGDIOBJ)GetStockObject(SYSTEM_FIXED_FONT));
+																		// int retbytes = GetObject(hFont, sizeof(logfontE), &logfontE);
+																		// (VOID)retbytes;
 
 	RECT drawarea = {0,0,1,1};
 	SelectObject(hdcEdit, pr->hfontEditbox); // we need this to get correct draw-width
@@ -159,6 +159,13 @@ dsi_CalNewboxTextMax(HWND hdlg, DsiDlgParams_st *pr)
 	GetWindowRect(hEdit, &rectEdit);
 	int width_diff =  RECTcx(rectDlg) - RECTcx(rectEdit);
 	int height_diff = RECTcy(rectDlg) - RECTcy(rectEdit);
+
+	// Cal draw-width & draw-height reserved for our multi-line editbox area.
+	int drawwidth = RECTcx(drawarea);
+	drawwidth = _MAX_(drawwidth, RECTcx(rectEdit));
+	int drawheight = RECTcy(drawarea); // If a single text line, we'll see drawheight<RECTcy(rectEdit)
+	drawheight = _MAX_(drawheight, RECTcy(rectEdit)); 
+
 	int newbox_width = width_diff + RECTcx(drawarea) + width_vscrollbar + width_extra_gap;
 	int newbox_height = height_diff + RECTcy(drawarea);
 
@@ -227,9 +234,13 @@ dsi_CallbackRefreshUserText(HWND hwnd, DsiDlgParams_st *pr)
 		}
 	}
 
+	const int px_torrent = 14;
 	Rect_st rectNow;
 	GetWindowRect(hwnd, (RECT*)&rectNow);
-	bool wasAtVisualMax = RECT_IsSameSize(rectNow, pr->rectNewboxVisualMax) ? true : false;
+	//bool wasAtVisualMax = RECT_IsSameSize(rectNow, pr->rectNewboxVisualMax) ? true : false; // see secret 6px bias, give up acurate size checking
+	bool cxSame = ( RECTcx(pr->rectNewboxVisualMax)-RECTcx(rectNow) <= px_torrent );
+	bool cySame = ( RECTcy(pr->rectNewboxVisualMax)-RECTcy(rectNow) <= px_torrent );
+	bool wasAtVisualMax = cxSame && cySame;
 
 	bool isGoBigger = false;
 	Rect_st rectTextMax = dsi_CalNewboxTextMax(hwnd, pr);
@@ -397,7 +408,8 @@ void dsi_OnGetMinMaxInfo(HWND hdlg, PMINMAXINFO pMinMaxInfo)
 
 	// Return minimum size of dialog box
 	pr->jul.HandleMinMax(pMinMaxInfo);
-
+	
+	// Return maximum size of dialog box
 	pMinMaxInfo->ptMaxTrackSize.x = RECTcx(pr->rectNewboxVisualMax);
 	pMinMaxInfo->ptMaxTrackSize.y = RECTcy(pr->rectNewboxVisualMax);
 }
