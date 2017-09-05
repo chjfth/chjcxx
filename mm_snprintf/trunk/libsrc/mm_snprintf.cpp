@@ -232,7 +232,13 @@
  *      - Avoid executing float-point instruction when not needed.
  *        This is to avoid possible subtle problems from compiler bugs.
  *        Ref: https://randomascii.wordpress.com/2016/09/16/everything-old-is-new-again-and-a-compiler-bug/
-  
+ *
+ * 2017-09-06  V6.2 by Chj
+ *      - Update to v5.0: We can now pad extra zeros for thousep formatting.
+ *
+ *        oks = t("[000,012,345]");
+ *        mprint(oks, t("%t[%0.9u]"), t(","), 12345); 
+ *
 */
 
 
@@ -340,6 +346,14 @@ TCHAR * mm_strncpy_(TCHAR *dst, const TCHAR *src, int ndst, bool null_end)
 }
 
 #define mmquan(array) ((int)(sizeof(array)/sizeof(array[0])))
+
+static bool is_zp_thoubody(bool is_zero_padding, int fmtspec_precision)
+{
+	if(is_zero_padding && fmtspec_precision)
+		return true;
+	else
+		return false;
+}
 
 enum Radix_et{ RdxHex=0, RdxDec=1, RdxOct=2 };
 static int unsigned_ntos(Uint64 u64, 
@@ -500,6 +514,7 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 		Int min_field_width = 0, precision = 0;
 		bool min_field_specified = false, precision_specified = false;
 		bool zero_padding = false, justify_left = false;
+		bool zero_padding_thou = false; // v6.2: if true, we need "001,234" instead of "1,234"
 		bool alternate_form = false;
 		bool force_sign = false; // whether reserve a char space(filled with ' ' or '+') for positive indication.
 		bool space_for_positive = true; // use ' ' to indicate positive number instead of using '+'
@@ -549,7 +564,7 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 			 *p == _T(' ') || *p == _T('#') || *p == _T('\'')) 
 		{
 			switch (*p) {
-			case _T('0'): zero_padding = true; break;
+			case _T('0'): zero_padding = zero_padding_thou = true; break;
 			case _T('-'): justify_left = true; break;
 			case _T('+'): force_sign = true; space_for_positive = false; break;
 			case _T(' '): force_sign = true;
@@ -829,7 +844,7 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 				*/
 
 				if (precision_specified) 
-					zero_padding = false;
+					zero_padding = false; // MSDN 2008 "Flag Directives" says this as well
 
 				if(fmtcat==fmt_decimal_signed || fmtcat==fmt_float) 
 				{
@@ -978,7 +993,8 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 #endif
 						}
 						str_arg_l += signed_ntos(i64, 
-							RdxDec, false, 0,
+							RdxDec, false, 
+							is_zp_thoubody(zero_padding_thou, precision) ? precision : 0, // stuff_zero_max
 							psz_thousep_now, thousep_width,
 							tmp+str_arg_l, mmquan(tmp)-str_arg_l
 							);
@@ -1018,7 +1034,8 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 #endif
 						}
 						str_arg_l += unsigned_ntos(u64, 
-							radix, fmt_spec==_T('X')?true:false, false,
+							radix, fmt_spec==_T('X')?true:false, 
+							is_zp_thoubody(zero_padding_thou, precision) ? precision : 0, // stuff_zero_max
 							psz_thousep_now, thousep_width_now,
 							tmp+str_arg_l, mmquan(tmp)-str_arg_l
 							);

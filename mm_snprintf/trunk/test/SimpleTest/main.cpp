@@ -377,7 +377,31 @@ void test_v5()
 	
 	// ... we need 9 digits with 0s pre-padded, 9 does not count sepers ... 
 	oks = t("[000,012,345]");
-//	mprint(oks, t("%t[%0.9u]"), t(","), 12345); // pending for v6.2
+	mprint(oks, t("%t[%0.9u]"), t(","), 12345); 
+
+	oks = t("[-000,012,345]");
+	mprint(oks, t("%t[%0.9d]"), t(","), -12345); 
+
+	oks = t("[ -000,012,345]");
+	mprint(oks, t("%t[%013.9d]"), t(","), -12345); 
+		// The joint effect of "0" and ".9" in "%013.9d" says that
+		// we need to do zero-padding in our thousand number.
+		// The digits(including padded zeros) should reach at least 9.
+		// "13" says we need extra space-padding to a whole print width of 13.
+
+	oks = t("[-000,012,345 ]"); // left justify
+	mprint(oks, t("%t[%-013.9d]"), t(","), -12345); 
+
+	__int64 x9 = 9123456789;
+	oks = t("[ 00,009,123,456,789]");
+	mprint(oks, t("%t[%0*.*lld]"), t(","), 19, 14, x9);
+
+	// compare to prev case, forgetting the "0" flag will cause unexpected result.
+	oks = t("[     09,123,456,789]");
+	mprint(oks, t("%t[%*.*lld]"), t(","), 19, 14, x9);
+	//
+	oks = t("[   0009,123,456,789]");
+	mprint(oks, t("%t[%*.*lld]"), t(","), 19, 16, x9);
 
 	// Check for %_ %t
 
@@ -412,9 +436,14 @@ void test_v5()
 	oks = t("[   0xba1 2345 6789]"); 
 	mprint(oks, t("%_%t[%#*llx]"), 4, t(" "), 18, 0xBA123456789); // [18-chars]
 	
-	// sorry, the padded '0's for %0*X is not thousand-separated
+	// flag '0' as width, the padded '0's has nothing to do with thousand-body
 	oks = t("[0x000ba1 2345 6789]");
 	mprint(oks, t("%_%t[%#0*llx]"), 4, t(" "), 18, 0xBA123456789);
+
+	// flag '0' as precision, the padded '0's will go into thousand-body, 
+	// and outer part is padded by spaces.
+	oks = t("[0x00 0000 0ba1 2345 6789]");
+	mprint(oks, t("%_%t[%#0.*llx]"), 4, t(" "), 18, 0xBA123456789);
 
 	oks = t("[123456]");
 	mprint(oks, t("%T[%U]"), t(""), 123456); // deliberately using an empty %T string
