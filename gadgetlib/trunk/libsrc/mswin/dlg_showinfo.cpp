@@ -252,7 +252,7 @@ dsi_CallbackRefreshUserText(HWND hwnd, DsiDlgParams_st *pr)
 	{
 		// If dlg has been shrunk(due to user purpose), don't resize it even if we get more text.
 		// And, Not changing top-left position.
-		MoveWindow(hwnd, rectNow.left, rectNow.top, 
+		MoveWindow(hwnd, pr->rectNewboxVisualMax.left, pr->rectNewboxVisualMax.top, 
 			RECTcx(pr->rectNewboxVisualMax), RECTcy(pr->rectNewboxVisualMax), TRUE);
 	}
 
