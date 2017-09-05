@@ -18,4 +18,10 @@
 #endif
 
 
+#define DELTA_EPOCH_IN_MILLISEC    DECL_INT64(11644473600000)
+	// Millisec diff: WindowsEpoch-UnixEpoch
+	// WindowsEpoch is year 1600-01-01 00:00:00
+	// UnixEpoch    is year 1970-01-01 00:00:00
+
+
 #endif
