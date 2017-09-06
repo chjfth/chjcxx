@@ -207,10 +207,11 @@ dsi_CalNewboxTextMax(HWND hdlg, DsiDlgParams_st *pr)
 }
 
 static void 
-dsi_CallbackRefreshUserText(HWND hwnd, bool isManual, DsiDlgParams_st *pr)
+dsi_CallbackRefreshUserText(HWND hwnd, bool isManualRefresh, DsiDlgParams_st *pr, 
+	bool isAdjustWindowNow)
 {
 	pr->cb_info.hDlg = hwnd;
-	pr->cb_info.isCallFromRefreshBtn = isManual;
+	pr->cb_info.isCallFromRefreshBtn = isManualRefresh;
 	pr->cb_info.isAutoRefreshOn = IsDlgButtonChecked(hwnd, IDC_CHK_AUTOREFRESH)?true:false;
 
 	DlgShowinfoCallback_ret ret = pr->procGetText(pr->ctxGetText, pr->cb_info,
@@ -236,6 +237,9 @@ dsi_CallbackRefreshUserText(HWND hwnd, bool isManual, DsiDlgParams_st *pr)
 			CheckDlgButton(hwnd, IDC_CHK_AUTOREFRESH, BST_UNCHECKED);
 		}
 	}
+
+	if(!isAdjustWindowNow)
+		return;
 
 	const int px_torrent = 14;
 	Rect_st rectNow;
@@ -314,6 +318,10 @@ BOOL dsi_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 	}
 
 	SetWindowText(hdlg, pr->title);
+
+	if(pr->isAutoRefreshNow)
+		dsi_CallbackRefreshUserText(hdlg, false, pr, false); // pr->textbuf[] filled
+	
 	SetDlgItemText(hdlg, IDC_EDIT_SHOW_INFO, pr->textbuf);
 
 	// Create a font to be used for EditBox
@@ -372,8 +380,6 @@ BOOL dsi_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 		if(pr->isAutoRefreshNow)
 		{
 			CheckDlgButton(hdlg, IDC_CHK_AUTOREFRESH, BST_CHECKED);
-			
-			dsi_CallbackRefreshUserText(hdlg, false, pr);
 			dsi_StartTimer(hdlg, pr);
 		}
 		else
@@ -435,7 +441,7 @@ void dsi_OnTimer(HWND hwnd, UINT id)
 
 	assert(id==dlg_timer_id); (void)id;
 
-	dsi_CallbackRefreshUserText(hwnd, false, pr);
+	dsi_CallbackRefreshUserText(hwnd, false, pr, true);
 }
 
 
@@ -457,7 +463,7 @@ void dsi_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 
 	case IDC_BTN_REFRESH:
 	{
-		dsi_CallbackRefreshUserText(hwnd, true, pr);
+		dsi_CallbackRefreshUserText(hwnd, true, pr, true);
 		break;
 	}
 
@@ -466,7 +472,7 @@ void dsi_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 		UINT chkst = IsDlgButtonChecked(hwnd, IDC_CHK_AUTOREFRESH);
 		if(chkst==BST_CHECKED)
 		{
-			dsi_CallbackRefreshUserText(hwnd, false, pr);
+			dsi_CallbackRefreshUserText(hwnd, false, pr, true);
 			dsi_StartTimer(hwnd, pr);
 		}
 		else
