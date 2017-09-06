@@ -520,10 +520,13 @@ int _tmain()
 
 	setlocale(LC_ALL, "");
 
+	unsigned short mmver = mmsnprintf_getversion();
+	int ver1 = mmver>>8, ver2 = mmver&0xff;
+
 #ifdef UNICODE
-	wprintf(L"Running Unicode build!\n");
+	wprintf(L"Running Unicode build! (ver %u.%u)\n", ver1, ver2);
 #else
-	printf("Running MBCS build!\n");
+	printf("Running MBCS build! (ver %u.%u)\n", ver1, ver2);
 #endif
 
 //	mprint(L"[12]", L"[%d]", 12);
