@@ -39,6 +39,7 @@ double d = 1.2345678;
 
 #define IS64BIT ( sizeof(void*)==8 ? true : false )
 
+int g_cases = 0;
 
 int mprintA(const char *cmp, const char *fmt, ...)
 {
@@ -58,6 +59,7 @@ int mprintA(const char *cmp, const char *fmt, ...)
 		assert(0);
 	}
 
+	g_cases++;
 	return ret;
 }
 
@@ -76,6 +78,8 @@ int mprintNA(const char *cmp, char buf[], int bufsize, const char *fmt, ...)
 		printf("\n");
 		assert(0);
 	}
+
+	g_cases++;
 	return ret;
 }
 
@@ -104,6 +108,8 @@ int mprintW(const wchar_t *cmp, const wchar_t *fmt, ...)
 		wprintf(L"\n");
 		assert(0);
 	}
+
+	g_cases++;
 	return ret;
 }
 
@@ -126,6 +132,8 @@ int mprintNW(const wchar_t *cmp, wchar_t buf[], int bufsize, const wchar_t *fmt,
 		wprintf(L"\n");
 		assert(0);
 	}
+
+	g_cases++;
 	return ret;
 }
 
@@ -539,7 +547,7 @@ int _tmain()
 	test_v6();
 
 	printf("\n");
-	printf("All test cases passed.\n");
+	printf("All %d test cases passed.\n", g_cases);
 
 	return 0;
 }
