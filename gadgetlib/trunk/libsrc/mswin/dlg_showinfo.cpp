@@ -29,7 +29,7 @@ struct DsiDlgParams_st
 	const TCHAR *title;
 	TCHAR *textbuf;
 	int bufchars;
-	HICON hIcon;
+	HICON hIconUser;
 	bool isFixedWidthFont;
 	//
 	PROC_DlgShowinfo_GetText procGetText;
@@ -73,7 +73,7 @@ DsiDlgParams_st::DsiDlgParams_st(const dlg_showinfo_st &in, const TCHAR *pszInfo
 	title = in.title;
 	textbuf = (TCHAR*)pszInfo;
 	bufchars = in.bufchars;
-	hIcon = in.hIcon;
+	hIconUser = in.hIcon;
 	isFixedWidthFont = in.fixedwidth_font;
 	//
 	procGetText = in.procGetText;
@@ -219,7 +219,7 @@ dsi_CallbackRefreshUserText(HWND hwnd, bool isManual, DsiDlgParams_st *pr)
 	
 	if(ret==DSICB_OK)
 	{
-		dsi_SetIcon(hwnd, pr->hIcon, pr);
+		dsi_SetIcon(hwnd, pr->hIconUser, pr);
 	}
 	else if(ret==DSICB_CloseDlg)
 	{
@@ -304,19 +304,14 @@ BOOL dsi_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 	jul.AnchorControl(0, 0, 100, 100, IDC_EDIT_SHOW_INFO); 
 	jul.AnchorControl(50, 100, 50, 100, IDOK);
 
-	if(pr->isAutoRefreshNow)
-	{
-		dsi_CallbackRefreshUserText(hdlg, false, pr);
-	}
-
+	// Set sysmenu icon
 	HWND hctlIcon = GetDlgItem(hdlg, IDI_SHOW_INFO);
-	Static_SetIcon(hctlIcon, pr->hIcon);
-	if(pr->hIcon)
+	Static_SetIcon(hctlIcon, pr->hIconUser);
+	if(pr->hIconUser)
 	{
-		SendMessage(hdlg, WM_SETICON, TRUE,  (LPARAM)pr->hIcon);
-		SendMessage(hdlg, WM_SETICON, FALSE, (LPARAM)pr->hIcon);
+		SendMessage(hdlg, WM_SETICON, TRUE,  (LPARAM)pr->hIconUser);
+		SendMessage(hdlg, WM_SETICON, FALSE, (LPARAM)pr->hIconUser);
 	}
-	//	chSETDLGICONS(hdlg, IDI_NEWLAND16);
 
 	SetWindowText(hdlg, pr->title);
 	SetDlgItemText(hdlg, IDC_EDIT_SHOW_INFO, pr->textbuf);
@@ -372,12 +367,18 @@ BOOL dsi_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 		ShowWindow(GetDlgItem(hdlg, IDC_BTN_REFRESH), SW_HIDE); 
 	}
 
-	if(pr->msecAutoRefresh>0)
+	if(pr->msecAutoRefresh>0) // user need auto-refresh feature
 	{
 		if(pr->isAutoRefreshNow)
 		{
 			CheckDlgButton(hdlg, IDC_CHK_AUTOREFRESH, BST_CHECKED);
+			
+			dsi_CallbackRefreshUserText(hdlg, false, pr);
 			dsi_StartTimer(hdlg, pr);
+		}
+		else
+		{
+			// User leaves the []Auto chkbox unchecked initially
 		}
 	}
 	else
@@ -385,7 +386,6 @@ BOOL dsi_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 		// hide []Auto chkbox
 		ShowWindow(GetDlgItem(hdlg, IDC_CHK_AUTOREFRESH), SW_HIDE); 
 	}
-
 
 	return FALSE; // no default focus
 }
