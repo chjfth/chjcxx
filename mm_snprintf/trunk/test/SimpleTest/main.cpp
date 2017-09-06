@@ -391,6 +391,7 @@ void test_v5()
 
 	oks = t("[-000,012,345 ]"); // left justify
 	mprint(oks, t("%t[%-013.9d]"), t(","), -12345); 
+	mprint(oks, t("%t[%0*.9d]"), t(","), -13, -12345); 
 
 	__int64 x9 = 9123456789;
 	oks = t("[ 00,009,123,456,789]");
@@ -445,6 +446,9 @@ void test_v5()
 	oks = t("[0x00 0000 0ba1 2345 6789]");
 	mprint(oks, t("%_%t[%#0.*llx]"), 4, t(" "), 18, 0xBA123456789);
 
+	oks = t("[0x00 0000 0ba1 2345 6789 ]");
+	mprint(oks, t("%_%t[%#0*.*llx]"), 4, t(" "), -25, 18, 0xBA123456789);
+	
 	oks = t("[123456]");
 	mprint(oks, t("%T[%U]"), t(""), 123456); // deliberately using an empty %T string
 
