@@ -207,9 +207,11 @@ dsi_CalNewboxTextMax(HWND hdlg, DsiDlgParams_st *pr)
 }
 
 static void 
-dsi_CallbackRefreshUserText(HWND hwnd, DsiDlgParams_st *pr)
+dsi_CallbackRefreshUserText(HWND hwnd, bool isManual, DsiDlgParams_st *pr)
 {
 	pr->cb_info.hDlg = hwnd;
+	pr->cb_info.isCallFromRefreshBtn = isManual;
+	pr->cb_info.isAutoRefreshOn = IsDlgButtonChecked(hwnd, IDC_CHK_AUTOREFRESH)?true:false;
 
 	DlgShowinfoCallback_ret ret = pr->procGetText(pr->ctxGetText, pr->cb_info,
 		pr->textbuf, pr->bufchars); 
@@ -304,7 +306,7 @@ BOOL dsi_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 
 	if(pr->isAutoRefreshNow)
 	{
-		dsi_CallbackRefreshUserText(hdlg, pr);
+		dsi_CallbackRefreshUserText(hdlg, false, pr);
 	}
 
 	HWND hctlIcon = GetDlgItem(hdlg, IDI_SHOW_INFO);
@@ -433,7 +435,7 @@ void dsi_OnTimer(HWND hwnd, UINT id)
 
 	assert(id==dlg_timer_id); (void)id;
 
-	dsi_CallbackRefreshUserText(hwnd, pr);
+	dsi_CallbackRefreshUserText(hwnd, false, pr);
 }
 
 
@@ -455,7 +457,7 @@ void dsi_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 
 	case IDC_BTN_REFRESH:
 	{
-		dsi_CallbackRefreshUserText(hwnd, pr);
+		dsi_CallbackRefreshUserText(hwnd, true, pr);
 		break;
 	}
 
@@ -464,7 +466,7 @@ void dsi_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 		UINT chkst = IsDlgButtonChecked(hwnd, IDC_CHK_AUTOREFRESH);
 		if(chkst==BST_CHECKED)
 		{
-			dsi_CallbackRefreshUserText(hwnd, pr);
+			dsi_CallbackRefreshUserText(hwnd, false, pr);
 			dsi_StartTimer(hwnd, pr);
 		}
 		else

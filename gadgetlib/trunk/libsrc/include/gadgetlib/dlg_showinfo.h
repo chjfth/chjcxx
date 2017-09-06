@@ -23,11 +23,16 @@ struct dlg_showinfo_callback_st
 {
 	HWND hDlg; // for user tweak, change [OK] button text etc.
 
-	bool isOKBtnRequested; // user has clicked [OK]
+	bool isCallFromRefreshBtn; // callback due to user clicking [Refresh]
+	                           // If false, it is due to auto-refresh timer
+
+	bool isAutoRefreshOn;      // whether the [x]Auto check box is checked now
+
+	bool isOKBtnRequested; // user has clicked [OK] sometime ago
 	DWORD msecOKBtnRequested; // the value from GetTickCount()
 
-	bool isCloseRequested; // user has clicked close-window nib
-	DWORD msecCloseRequested;
+	bool isCloseRequested; // user has clicked close-window nib sometime ago
+	DWORD msecCloseRequested; // the value from GetTickCount()
 };
 
 
