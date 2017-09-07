@@ -487,7 +487,7 @@ void test_am()
 	assert(pbuf==buf+bufsize-1 && bufremain==1);
 }
 
-int mmF_ansitime2ymdhms(void *param, TCHAR *pstock, TCHAR *buf, int bufsize)
+int mmF_ansitime2ymdhms(void *param, const TCHAR *pstock, TCHAR *buf, int bufsize)
 {
 	assert(bufsize==0 || buf[0]==0);
 

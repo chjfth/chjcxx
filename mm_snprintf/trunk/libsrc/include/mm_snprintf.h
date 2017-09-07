@@ -127,33 +127,33 @@ struct mm_wpair_stW
 //
 enum { mm_fpair_magic = 0xEF170321 };
 //
+typedef int (FUNC_mm_fpairA)(void *user_param, const char *pstock, char *buf, int bufsize);
+typedef int (FUNC_mm_fpairW)(void *user_param, const wchar_t *pstock, wchar_t *buf, int bufsize);
+// -- Return value tells output characters count, assuming buffer is enough (not counting ending NUL).
+//
 struct mm_fpair_stA
 {
 	unsigned int magic;
-	void *func; // actual function type is FUNC_mm_fpair
+	FUNC_mm_fpairA *func;
 	void *func_param;
 #ifdef __cplusplus
-	mm_fpair_stA(void *f, void *p) : magic(mm_fpair_magic), func(f), func_param(p) {}
+	mm_fpair_stA(FUNC_mm_fpairA *f, void *p) : magic(mm_fpair_magic), func(f), func_param(p) {}
 	mm_fpair_stA* operator&(){ return this; }
-#define MM_FPAIR_PARAMA(f, p) &mm_fpair_stA( ((void*)(f)), ((void*)(p)) ) // only for C++
+#define MM_FPAIR_PARAMA(f, p) &mm_fpair_stA( (f), ((void*)(p)) ) // only for C++
 #endif
 };
 //
 struct mm_fpair_stW
 {
 	unsigned int magic;
-	void *func; // actual function type is FUNC_mm_fpair
+	FUNC_mm_fpairW *func;
 	void *func_param;
 #ifdef __cplusplus
-	mm_fpair_stW(void *f, void *p) : magic(mm_fpair_magic), func(f), func_param(p) {}
+	mm_fpair_stW(FUNC_mm_fpairW *f, void *p) : magic(mm_fpair_magic), func(f), func_param(p) {}
 	mm_fpair_stW* operator&(){ return this; }
-#define MM_FPAIR_PARAMW(f, p) &mm_fpair_stW( ((void*)(f)), ((void*)(p)) ) // only for C++
+#define MM_FPAIR_PARAMW(f, p) &mm_fpair_stW( (f), ((void*)(p)) ) // only for C++
 #endif
 };
-//
-typedef int (*FUNC_mm_fpairA)(void *user_param, char *pstock, char *buf, int bufsize);
-typedef int (*FUNC_mm_fpairW)(void *user_param, wchar_t *pstock, wchar_t *buf, int bufsize);
-// -- Return value tells output characters count, assuming buffer is enough (not counting ending NUL).
 
 
 
