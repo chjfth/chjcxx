@@ -487,8 +487,12 @@ void test_am()
 	assert(pbuf==buf+bufsize-1 && bufremain==1);
 }
 
-int mmF_ansitime2ymdhms(void *param, TCHAR *buf, int bufsize)
+int mmF_ansitime2ymdhms(void *param, TCHAR *pstock, TCHAR *buf, int bufsize)
 {
+	assert(bufsize==0 || buf[0]==0);
+
+	// pstock[] will be "time_t will overflow at UTC ["
+
 	time_t now = *(time_t*)param;
 	struct tm* ptm = gmtime(&now);
 	int len = mm_snprintf(buf, bufsize, t("%04d-%02d-%02d %02d:%02d:%02d"),

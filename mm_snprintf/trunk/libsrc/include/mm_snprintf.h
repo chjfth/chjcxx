@@ -151,8 +151,8 @@ struct mm_fpair_stW
 #endif
 };
 //
-typedef int (*FUNC_mm_fpairA)(void *user_param, char *buf, int bufsize);
-typedef int (*FUNC_mm_fpairW)(void *user_param, wchar_t *buf, int bufsize);
+typedef int (*FUNC_mm_fpairA)(void *user_param, char *pstock, char *buf, int bufsize);
+typedef int (*FUNC_mm_fpairW)(void *user_param, wchar_t *pstock, wchar_t *buf, int bufsize);
 // -- Return value tells output characters count, assuming buffer is enough (not counting ending NUL).
 
 

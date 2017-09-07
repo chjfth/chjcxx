@@ -233,12 +233,22 @@
  *        This is to avoid possible subtle problems from compiler bugs.
  *        Ref: https://randomascii.wordpress.com/2016/09/16/everything-old-is-new-again-and-a-compiler-bug/
  *
- * 2017-09-06  V6.2 by Chj
+ * 2017-09-07  V6.2 by Chj
  *      - Update to v5.0: We can now pad extra zeros for thousep formatting.
  *
  *        oks = t("[000,012,345]");
  *        mprint(oks, t("%t[%0.9u]"), t(","), 12345); 
  *
+ *      - Update to v6.0: An (incompatible) change to FUNC_mm_fpair callback prototype.
+ *        Now, the callee can see the already formatted(stock) strings.
+ *        So, %F enables you to *inject* your own code to see the complete formatting buffer 
+ *        which would otherwise not possible when the mmstyle function hides the formatting
+ *        buffer from the caller. Imagine, a mm_WriteLog() function does not present you
+ *        his internal formatting buffer, but now you can peek and poke his buffer as such:
+ *        
+ *            mm_WriteLog("The ball turns %d rounds.%F", 3, MM_FPAIR_PARAM(mmF_peek, NULL));
+ *
+ *        Now, your mmF_peek() will see from pstock param: "The ball turns 3 rounds."
 */
 
 
@@ -1236,7 +1246,15 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 
 				if(func)
 				{
+					// Before calling back %F, add trailing NUL so that callee can do strlen()
+					// Callee can verify: 	assert(bufsize==0 || buf[0]==0);
+					if(str_m>str_l)
+						str[str_l] = _T('\0');
+					else if(str_m>0)
+						str[str_m-1] = _T('\0');
+
 					int fills = func(func_param, 
+						str,
 						str+str_l, 
 						(int)(str_m>str_l ? str_m-str_l : 0)
 						);
