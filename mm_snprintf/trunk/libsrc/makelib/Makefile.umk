@@ -122,6 +122,7 @@ snprintfW_fromroot = _do_not_edit/mm_snprintfW.cpp
 gmu_up_list_SRC_FROM_ROOT += \
 	_do_not_edit/mm_snprintfA.cpp \
 	$(if $(MMSNPRINTF_NO_UNICODE),,$(snprintfW_fromroot)) \
+	printf_wrapper.cpp \
 	internal.cpp \
 	oldname.cpp \
 

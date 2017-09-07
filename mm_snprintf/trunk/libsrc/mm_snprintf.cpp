@@ -236,8 +236,11 @@
  * 2017-09-07  V6.2 by Chj
  *      - Update to v5.0: We can now pad extra zeros for thousep formatting.
  *
- *        oks = t("[000,012,345]");
- *        mprint(oks, t("%t[%0.9u]"), t(","), 12345); 
+ *          oks = t("[000,012,345]");
+ *          mprint(oks, t("%t[%0.9u]"), t(","), 12345); 
+ *
+ *      - Add utility function: mm_printfA and mm_printfW, then there will be no more
+ *        hassle using stramphibian printf/wprintf on Linux. Just mm_printf(...) to go. 
  *
  *      - Update to v6.0: An (incompatible) change to FUNC_mm_fpair callback prototype.
  *        Now, the callee can see the already formatted(stock) strings.
