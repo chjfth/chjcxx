@@ -1,3 +1,5 @@
+#include <wchar.h> // Linux glibc wprintf needs this.
+
 #include "mm_psfunc.h"
 #include <mm_snprintf.h>
 
