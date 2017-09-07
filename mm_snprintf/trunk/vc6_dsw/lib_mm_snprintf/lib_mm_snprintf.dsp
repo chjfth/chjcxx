@@ -155,6 +155,10 @@ SOURCE=.\mm_snprintfW.cpp
 
 SOURCE=..\..\libsrc\oldname.cpp
 # End Source File
+# Begin Source File
+
+SOURCE=..\..\libsrc\printf_wrapper.cpp
+# End Source File
 # End Group
 # Begin Group "Header Files"
 

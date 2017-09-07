@@ -6,3 +6,9 @@ mmps_i64_type_prefix(char *szPrefix)
 	szPrefix[0] = 'l'; szPrefix[1] = 'l';
 	return 2; // "ll" is 2 characters.
 }
+
+const wchar_t *
+mmps_wsfmt()
+{
+	return L"%S";
+}

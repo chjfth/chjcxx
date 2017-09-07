@@ -54,6 +54,14 @@ DLLEXPORT_mmsnprintf
 int mm_strcatA(char *dest, size_t bufsize, const char *fmt, ...);
 
 
+DLLEXPORT_mmsnprintf
+int mm_printfA(const char *fmt, ...);
+
+DLLEXPORT_mmsnprintf
+int mm_printfW(const wchar_t *fmt, ...);
+
+
+
 #ifndef __CC_NORCROFT // workaround for the old ARM SDT 2.50 compiler, who don't support wchar_t
 
 // Unicode version of the above mm_ functions
@@ -168,6 +176,7 @@ struct mm_fpair_stW
 # define mm_asnprintf mm_asnprintfW
 # define mm_vasnprintf mm_vasnprintfW
 # define mm_snprintf_am mm_snprintf_amW
+# define mm_printf mm_printfW
 //
 # define mm_wpair_st mm_wpair_stW
 # define MM_WPAIR_PARAM MM_WPAIR_PARAMW
@@ -185,6 +194,7 @@ struct mm_fpair_stW
 # define mm_asnprintf mm_asnprintfA
 # define mm_vasnprintf mm_vasnprintfA
 # define mm_snprintf_am mm_snprintf_amA
+# define mm_printf mm_printfA
 //
 # define mm_wpair_st mm_wpair_stA
 # define MM_WPAIR_PARAM MM_WPAIR_PARAMA

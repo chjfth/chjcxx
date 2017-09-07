@@ -20,16 +20,16 @@
 
 #define t(str) L##str 
 const wchar_t *oks = 0; 
-#define mprint mprintW
-#define mprintN mprintNW
+//#define mprint mprintW
+//#define mprintN mprintNW
 #define t_strcmp wcscmp
 
 #else
 
 const char *oks = 0; 
 #define t(str) str
-#define mprint mprintA
-#define mprintN mprintNA
+//#define mprint mprintA
+//#define mprintN mprintNA
 #define t_strcmp strcmp
 
 #endif
@@ -41,21 +41,21 @@ double d = 1.2345678;
 
 int g_cases = 0;
 
-int mprintA(const char *cmp, const char *fmt, ...)
+int mprint(const TCHAR *cmp, const TCHAR *fmt, ...)
 {
-	char buf[8000];
+	TCHAR buf[8000];
 	int bufsize = sizeof(buf);
 	va_list args;
 	va_start(args, fmt);
-	int ret = mm_vsnprintfA(buf, bufsize, fmt, args);
-	printf("%s\n", buf);
+	int ret = mm_vsnprintf(buf, bufsize, fmt, args);
+	mm_printf(_T("%s\n"), buf);
 	va_end(args);
 
-	if(cmp && strcmp(cmp, buf)!=0)
+	if(cmp && t_strcmp(cmp, buf)!=0)
 	{
-		printf("\nExpect:\n%s", cmp);
-		printf("\nError:\n%s", buf);
-		printf("\n");
+		mm_printf(_T("\nExpect:\n%s"), cmp);
+		mm_printf(_T("\nError:\n%s"), buf);
+		mm_printf(_T("\n"));
 		assert(0);
 	}
 
@@ -63,73 +63,19 @@ int mprintA(const char *cmp, const char *fmt, ...)
 	return ret;
 }
 
-int mprintNA(const char *cmp, char buf[], int bufsize, const char *fmt, ...)
+int mprintN(const TCHAR *cmp, TCHAR buf[], int bufsize, const TCHAR *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
-	int ret = mm_vsnprintfA(buf, bufsize, fmt, args);
-	printf("%s\n", buf);
+	int ret = mm_vsnprintf(buf, bufsize, fmt, args);
+	mm_printf(_T("%s\n"), buf);
 	va_end(args);
 	
-	if(cmp && strcmp(cmp, buf)!=0)
+	if(cmp && t_strcmp(cmp, buf)!=0)
 	{
-		printf("\nExpect:\n%s", cmp);
-		printf("\nError:\n%s", buf);
-		printf("\n");
-		assert(0);
-	}
-
-	g_cases++;
-	return ret;
-}
-
-
-int mprintW(const wchar_t *cmp, const wchar_t *fmt, ...)
-{
-
-#if defined WIN32 || defined WINCE
-#define FMT_WS L"%s"	// lower-case '%s'
-#else // linux
-#define FMT_WS L"%S"	// upper-case '%S'
-#endif
-
-	wchar_t buf[8000];
-	int bufsize = sizeof(buf)/sizeof(buf[0]);
-	va_list args;
-	va_start(args, fmt);
-	int ret = mm_vsnprintfW(buf, bufsize, fmt, args);
-	wprintf(FMT_WS L"\n", buf);
-	va_end(args);
-
-	if(cmp && wcscmp(cmp, buf)!=0)
-	{
-		wprintf(L"\nExpect:\n" FMT_WS, cmp);
-		wprintf(L"\nError:\n" FMT_WS, buf);
-		wprintf(L"\n");
-		assert(0);
-	}
-
-	g_cases++;
-	return ret;
-}
-
-int mprintNW(const wchar_t *cmp, wchar_t buf[], int bufsize, const wchar_t *fmt, ...)
-{
-	va_list args;
-	va_start(args, fmt);
-	int ret = mm_vsnprintfW(buf, bufsize, fmt, args);
-#if defined WIN32 || defined WINCE
-	wprintf(L"%s\n", buf); // lower-case '%s'
-#else // linux
-	wprintf(L"%S\n", buf); // upper-case '%S'
-#endif
-	va_end(args);
-	
-	if(cmp && wcscmp(cmp, buf)!=0)
-	{
-		wprintf(L"\nExpect:\n%s", cmp);
-		wprintf(L"\nError:\n%s", buf);
-		wprintf(L"\n");
+		mm_printf(_T("\nExpect:\n%s"), cmp);
+		mm_printf(_T("\nError:\n%s"), buf);
+		mm_printf(_T("\n"));
 		assert(0);
 	}
 
@@ -527,13 +473,7 @@ int _tmain()
 	unsigned short mmver = mmsnprintf_getversion();
 	int ver1 = mmver>>8, ver2 = mmver&0xff;
 
-#ifdef UNICODE
-	wprintf(L"Running Unicode build! (ver %u.%u)\n", ver1, ver2);
-#else
-	printf("Running MBCS build! (ver %u.%u)\n", ver1, ver2);
-#endif
-
-//	mprint(L"[12]", L"[%d]", 12);
+	mm_printf(_T("Running Unicode build! (ver %u.%u)\n)"), ver1, ver2);
 
 	test_fms_s();
 
@@ -553,8 +493,7 @@ int _tmain()
 
 	test_v6();
 
-	printf("\n");
-	printf("All %d test cases passed.\n", g_cases);
+	mm_printf(_T("\nAll %d test cases passed.\n"), g_cases);
 
 	return 0;
 }
