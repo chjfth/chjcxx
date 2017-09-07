@@ -232,7 +232,23 @@
  *      - Avoid executing float-point instruction when not needed.
  *        This is to avoid possible subtle problems from compiler bugs.
  *        Ref: https://randomascii.wordpress.com/2016/09/16/everything-old-is-new-again-and-a-compiler-bug/
-  
+ *
+ * 2017-09-07  V6.2 by Chj
+ *      - Update to v5.0: We can now pad extra zeros for thousep formatting.
+ *
+ *        oks = t("[000,012,345]");
+ *        mprint(oks, t("%t[%0.9u]"), t(","), 12345); 
+ *
+ *      - Update to v6.0: An (incompatible) change to FUNC_mm_fpair callback prototype.
+ *        Now, the callee can see the already formatted(stock) strings.
+ *        So, %F enables you to *inject* your own code to see the complete formatting buffer 
+ *        which would otherwise not possible when the mmstyle function hides the formatting
+ *        buffer from the caller. Imagine, a mm_WriteLog() function does not present you
+ *        his internal formatting buffer, but now you can peek and poke his buffer as such:
+ *        
+ *            mm_WriteLog("The ball turns %d rounds.%F", 3, MM_FPAIR_PARAM(mmF_peek, NULL));
+ *
+ *        Now, your mmF_peek() will see from pstock param: "The ball turns 3 rounds."
 */
 
 
@@ -269,7 +285,6 @@
 #include "mm_psfunc.h"
 
 #define DLL_AUTO_EXPORT_STUB
-extern"C" void mmsnprintf_lib__mm_snprintfA__DLL_AUTO_EXPORT_STUB(void){}
 
 #ifdef NO_assert // specific for this library
 # undef assert
@@ -341,6 +356,14 @@ TCHAR * mm_strncpy_(TCHAR *dst, const TCHAR *src, int ndst, bool null_end)
 }
 
 #define mmquan(array) ((int)(sizeof(array)/sizeof(array[0])))
+
+static bool is_zp_thoubody(bool is_zero_padding, int fmtspec_precision)
+{
+	if(is_zero_padding && fmtspec_precision)
+		return true;
+	else
+		return false;
+}
 
 enum Radix_et{ RdxHex=0, RdxDec=1, RdxOct=2 };
 static int unsigned_ntos(Uint64 u64, 
@@ -501,6 +524,7 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 		Int min_field_width = 0, precision = 0;
 		bool min_field_specified = false, precision_specified = false;
 		bool zero_padding = false, justify_left = false;
+		bool zero_padding_thou = false; // v6.2: if true, we need "001,234" instead of "1,234"
 		bool alternate_form = false;
 		bool force_sign = false; // whether reserve a char space(filled with ' ' or '+') for positive indication.
 		bool space_for_positive = true; // use ' ' to indicate positive number instead of using '+'
@@ -550,7 +574,7 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 			 *p == _T(' ') || *p == _T('#') || *p == _T('\'')) 
 		{
 			switch (*p) {
-			case _T('0'): zero_padding = true; break;
+			case _T('0'): zero_padding = zero_padding_thou = true; break;
 			case _T('-'): justify_left = true; break;
 			case _T('+'): force_sign = true; space_for_positive = false; break;
 			case _T(' '): force_sign = true;
@@ -830,7 +854,7 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 				*/
 
 				if (precision_specified) 
-					zero_padding = false;
+					zero_padding = false; // MSDN 2008 "Flag Directives" says this as well
 
 				if(fmtcat==fmt_decimal_signed || fmtcat==fmt_float) 
 				{
@@ -979,7 +1003,8 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 #endif
 						}
 						str_arg_l += signed_ntos(i64, 
-							RdxDec, false, 0,
+							RdxDec, false, 
+							is_zp_thoubody(zero_padding_thou, precision) ? precision : 0, // stuff_zero_max
 							psz_thousep_now, thousep_width,
 							tmp+str_arg_l, mmquan(tmp)-str_arg_l
 							);
@@ -1019,7 +1044,8 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 #endif
 						}
 						str_arg_l += unsigned_ntos(u64, 
-							radix, fmt_spec==_T('X')?true:false, false,
+							radix, fmt_spec==_T('X')?true:false, 
+							is_zp_thoubody(zero_padding_thou, precision) ? precision : 0, // stuff_zero_max
 							psz_thousep_now, thousep_width_now,
 							tmp+str_arg_l, mmquan(tmp)-str_arg_l
 							);
@@ -1220,7 +1246,15 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 
 				if(func)
 				{
+					// Before calling back %F, add trailing NUL so that callee can do strlen()
+					// Callee can verify: 	assert(bufsize==0 || buf[0]==0);
+					if(str_m>str_l)
+						str[str_l] = _T('\0');
+					else if(str_m>0)
+						str[str_m-1] = _T('\0');
+
 					int fills = func(func_param, 
+						str,
 						str+str_l, 
 						(int)(str_m>str_l ? str_m-str_l : 0)
 						);
