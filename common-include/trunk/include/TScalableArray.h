@@ -76,6 +76,8 @@ public:
 	T& operator[](int pos) const ;
 
 	operator T* () { return GetElePtr(0); }
+
+	bool operator !() { return GetElePtr(0) ? false : true; } // check for empty array
 		
 	ReCode_t InsertBefore(int pos, const T* array, int n);
 		// Insert `n' elements at position `pos'. Insert all or insert none.
@@ -276,7 +278,7 @@ template<typename T>
 T* 
 TScalableArray<T>::GetElePtr(int pos)
 {
-	if(pos<0 || pos>m_nCurEle || !mar_Ele) 
+	if(pos<0 || pos>=m_nCurEle || !mar_Ele) 
 		return NULL;
 	
 	return mar_Ele+pos;
