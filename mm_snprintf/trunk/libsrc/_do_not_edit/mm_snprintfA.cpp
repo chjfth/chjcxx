@@ -1234,14 +1234,14 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 			}
 		case _T('F'): // inject function call
 			{
-				FUNC_mm_fpair func = NULL;
+				FUNC_mm_fpair *func = NULL;
 				void *func_param = NULL;
 
 				const mm_fpair_st *fpair = va_arg(ap, mm_fpair_st*);
 
 				if(fpair->magic==mm_fpair_magic)
 				{
-					func = (FUNC_mm_fpair)fpair->func;
+					func = fpair->func;
 					func_param = fpair->func_param;
 				}
 
