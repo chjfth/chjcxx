@@ -26,7 +26,7 @@ MakeCleanupPtrClass_winapi(Cec_DestroyIcon, BOOL, DestroyIcon, HICON)
 
 // SetupDi... functions:
 
-#ifdef _INC_SETUPAPI
+#ifdef _INC_SETUPAPI // #include <setupapi.h>
 
 MakeCleanupIntClass_winapi(Cec_HDEVINFO, BOOL, SetupDiDestroyDeviceInfoList, HDEVINFO, INVALID_HANDLE_VALUE)
 
