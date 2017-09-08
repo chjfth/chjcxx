@@ -34,6 +34,8 @@ public:
 	// Helper methods to tell if the value represents a valid object or not..
 	bool IsValid() { return(m_t != NULL); }
 	bool IsInvalid() { return(!IsValid()); }
+	operator bool(){ return IsValid(); }
+	bool operator !(){ return !IsValid(); }
 	
 	// Re-assigning the object forces the current object to be cleaned-up.
 	PTR_TYPE operator=(PTR_TYPE t) 
@@ -98,6 +100,8 @@ public:
 	// Helper methods to tell if the value represents a valid object or not..
 	bool IsValid() { return(m_t != tInvalid); }
 	bool IsInvalid() { return(!IsValid()); }
+	operator bool(){ return IsValid(); }
+	bool operator !(){ return !IsValid(); }
 	
 	// Re-assigning the object forces the current object to be cleaned-up.
 	INT_TYPE operator=(INT_TYPE t) 
