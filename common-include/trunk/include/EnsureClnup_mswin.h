@@ -1,9 +1,8 @@
 #ifndef __ENSURECLNUP_MSWIN_H
 #define __ENSURECLNUP_MSWIN_H
 
-//#define WIN32_LEAN_AND_MEAN
-//#include <windows.h>
-// -- user should include the above two lines themselves, so that INVALID_HANDLE_VALUE etc is defined.
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 
 #include <EnsureClnup.h>
 
@@ -25,14 +24,17 @@ MakeCleanupPtrClass_winapi(Cec_DestroyIcon, BOOL, DestroyIcon, HICON)
 	// for CreateIconIndirect, CopyIcon, SHGetStockIconInfo 
 
 
-#if (_WIN32_WINNT >= 0x0600) // Vista+
-MakeCleanupIntClass_winapi(Cec_ReleaseActCtx, void, ReleaseActCtx, HANDLE, INVALID_HANDLE_VALUE)
-	// for CreateActCtx
-#endif
-
+// SetupDi... functions:
 
 #ifdef _INC_SETUPAPI
+
 MakeCleanupIntClass_winapi(Cec_HDEVINFO, BOOL, SetupDiDestroyDeviceInfoList, HDEVINFO, INVALID_HANDLE_VALUE)
+
+MakeCleanupIntClass_winapi(Cec_SetupDiHKEY, LONG, RegCloseKey, HKEY, (HKEY)INVALID_HANDLE_VALUE)
+	// for SetupDiOpenDevRegKey
+	// Note: We need to write '(HKEY)INVALID_HANDLE_VALUE', otherwise we get VS2010 cl.exe error:
+	// error C2440: 'specialization' : cannot convert from 'HANDLE' to 'HKEY'
+
 #endif
 
 //MakeCleanupPtrClass_winapi(Cec_HDC_Release, int, ReleaseDC, ); // bad! ReleaseDC need 2 params.
