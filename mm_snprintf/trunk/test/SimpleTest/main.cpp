@@ -23,6 +23,7 @@ const wchar_t *oks = 0;
 //#define mprint mprintW
 //#define mprintN mprintNW
 #define t_strcmp wcscmp
+#define t_strlen wcslen
 
 #else
 
@@ -31,6 +32,7 @@ const char *oks = 0;
 //#define mprint mprintA
 //#define mprintN mprintNA
 #define t_strcmp strcmp
+#define t_strlen strlen
 
 #endif
 
@@ -448,6 +450,21 @@ int mmF_ansitime2ymdhms(void *param, const TCHAR *pstock, TCHAR *buf, int bufsiz
 	return len;
 }
 
+struct mmF_from_nullbuf_st
+{
+	int chk_offset;
+};
+
+int mmF_callback_from_nullbuf(void *param, const TCHAR *pstock, TCHAR *buf, int bufsize)
+{
+	mmF_from_nullbuf_st &ctx = *(mmF_from_nullbuf_st*)param;
+
+	// This should NOT be called.
+	assert(pstock==NULL);
+	assert(buf-(TCHAR*)0==ctx.chk_offset);
+	return 0;
+}
+
 void test_v6()
 {
 	time_t now_epoch = 0x7FFFffff;
@@ -462,6 +479,18 @@ void test_v6()
 		MM_FPAIR_PARAM(mmF_ansitime2ymdhms, &now_epoch));
 	assert( t_strcmp(smallbuf, t("[2038-01-19 03:14"))==0 );
 	assert( retlen==21 );
+
+	mmF_from_nullbuf_st ctx = {0};
+	retlen = mm_snprintf(NULL, 0, _T("%F"), 
+		MM_FPAIR_PARAM(mmF_callback_from_nullbuf, &ctx));
+	assert( retlen==0 );
+
+#define STRING_BEFORE_F _T("ABC")
+	ctx.chk_offset = t_strlen(STRING_BEFORE_F);
+	retlen = mm_snprintf(NULL, 0, 
+		STRING_BEFORE_F _T("%F"), 
+		MM_FPAIR_PARAM(mmF_callback_from_nullbuf, &ctx));
+	assert( retlen==ctx.chk_offset );
 }
 
 int _tmain()
