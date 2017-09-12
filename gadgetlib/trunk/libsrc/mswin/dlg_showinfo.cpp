@@ -190,7 +190,13 @@ dsi_CalNewboxTextMax(HWND hdlg, DsiDlgParams_st *pr)
 	for(int i=0; i<nbi.nMonitors; i++)
 		nbi.arMonitorRect[i] = *(Rect_st*)&abMonsinfo[i].rcWorkArea;
 	//
-	GetWindowRect(pr->hwndRealParent, (RECT*)&nbi.rectParent);
+	if(pr->hwndRealParent)
+		GetWindowRect(pr->hwndRealParent, (RECT*)&nbi.rectParent);
+	else {
+		POINT pt;
+		GetCursorPos(&pt);
+		SetRect((RECT*)&nbi.rectParent, pt.x, pt.y, pt.x, pt.y);
+	}
 	nbi.sizeNewboxIdeal.cx = newbox_width;
 	nbi.sizeNewboxIdeal.cy = newbox_height;
 	//
@@ -596,16 +602,16 @@ ggt_dlg_showinfo(HWND hwndRealParent, const dlg_showinfo_st *p_usr_opt, const TC
 /*
 	// NOTE: We need to manually sync the code here with DIALOGEX resource statements.
 
-IDD_SHOW_INFO DIALOGEX 0, 0, 156, 65
+IDD_SHOW_INFO DIALOGEX 0, 0, 156, 56
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
 CAPTION "Showinfo Dialog"
 FONT 9, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-DEFPUSHBUTTON   "OK",IDOK,56,46,50,14
+DEFPUSHBUTTON   "OK",IDOK,56,38,50,14
 ICON            "",IDI_SHOW_INFO,14,6,20,20,SS_NOTIFY
-EDITTEXT        IDC_EDIT_SHOW_INFO,47,7,102,34,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | NOT WS_BORDER | WS_VSCROLL
+EDITTEXT        IDC_EDIT_SHOW_INFO,47,6,102,28,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | NOT WS_BORDER | WS_VSCROLL
 PUSHBUTTON      "&Refresh",IDC_BTN_REFRESH,6,28,36,12
-CONTROL         "&Auto",IDC_CHK_AUTOREFRESH,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,42,36,10
+CONTROL         "&Auto",IDC_CHK_AUTOREFRESH,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,42,35,10
 END
 */
 	char memblock[4000];
@@ -616,7 +622,7 @@ END
 	dt.style = DS_SETFONT|DS_FIXEDSYS|WS_MINIMIZEBOX|WS_POPUP|WS_VISIBLE|WS_CAPTION|WS_SYSMENU|WS_THICKFRAME;
 	dt.dwExtendedStyle = 0;
 	dt.cdit = 0; // count of child controls, increase later
-	dt.x=0, dt.y=0, dt.cx=156, dt.cy=65;
+	dt.x=0, dt.y=0, dt.cx=156, dt.cy=56;
 
 	// menu, class, title
 
@@ -656,7 +662,7 @@ END
 	++dt.cdit;
 	pitem->style = WS_VISIBLE|WS_TABSTOP;
 	pitem->dwExtendedStyle = 0;
-	pitem->x=56, pitem->y=46, pitem->cx=50, pitem->cy=14;
+	pitem->x=56, pitem->y=38, pitem->cx=50, pitem->cy=14;
 	pitem->id = IDOK;
 	//
 	pword = (WORD*)(pitem+1);
@@ -688,7 +694,7 @@ END
 	++dt.cdit;
 	pitem->style = WS_VISIBLE|ES_MULTILINE|ES_AUTOVSCROLL|ES_READONLY|WS_VSCROLL|WS_TABSTOP;
 	pitem->dwExtendedStyle = 0;
-	pitem->x=47, pitem->y=7, pitem->cx=102, pitem->cy=34;
+	pitem->x=47, pitem->y=6, pitem->cx=102, pitem->cy=28;
 	pitem->id = IDC_EDIT_SHOW_INFO;
 	//
 	pword = (WORD*)(pitem+1);

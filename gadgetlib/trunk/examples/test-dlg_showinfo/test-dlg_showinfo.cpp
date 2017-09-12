@@ -72,6 +72,11 @@ DlgShowinfoCallback_ret DSI_GetNowTime(void *_ctx,
 
 void do_dlg_showinfo(HWND hwndParent, bool isUseRC, bool isMono)
 {
+	bool isShiftDown = GetKeyState(VK_SHIFT)<0 ? true:false;
+	HWND useParent = isShiftDown ? NULL : hwndParent;
+		// Using NULL as hwndParent so that we can pop out one with RC and another without RC
+		// for side-by-side comparison. 
+
 	TCHAR szTimeText[400] = _T("to-modify");
 	MyDsiContext_st ctx = { isUseRC ? true : false };
 
@@ -93,13 +98,11 @@ void do_dlg_showinfo(HWND hwndParent, bool isUseRC, bool isMono)
 		ggt_dlg_showinfo_userc( 
 			(HINSTANCE)GetWindowLongPtr(hwndParent, GWLP_HINSTANCE), 
 			MAKEINTRESOURCE(IDD_SHOW_INFO),
-			NULL, &si, szTimeText); 
-		// I use NULL as hwndParent so that we can pop out one with RC and another without RC
-		// for side-by-side comparison. 
+			useParent, &si, szTimeText); 
 	}
 	else
 	{
-		ggt_dlg_showinfo(hwndParent, &si, szTimeText);
+		ggt_dlg_showinfo(useParent, &si, szTimeText);
 	}
 }
 

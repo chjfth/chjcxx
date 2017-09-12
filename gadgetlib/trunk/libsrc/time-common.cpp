@@ -28,8 +28,9 @@ ggt_IsLeapYear(int y)
 }
 
 
-static int mmF_localtime_str(void *param, TCHAR *buf, int bufsize)
+static int mmF_localtime_str(void *param, const TCHAR *pstock, TCHAR *buf, int bufsize)
 {
+	(void)pstock;
 	PrnTs_et tsmode = *(PrnTs_et*)param;
 	int ideallen = 0;
 
