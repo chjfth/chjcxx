@@ -453,13 +453,15 @@ int mmF_ansitime2ymdhms(void *param, const TCHAR *pstock, TCHAR *buf, int bufsiz
 struct mmF_from_nullbuf_st
 {
 	int chk_offset;
+	int call_count;
 };
 
 int mmF_callback_from_nullbuf(void *param, const TCHAR *pstock, TCHAR *buf, int bufsize)
 {
 	mmF_from_nullbuf_st &ctx = *(mmF_from_nullbuf_st*)param;
 
-	// This should NOT be called.
+	ctx.call_count++;
+
 	assert(pstock==NULL);
 	assert(buf-(TCHAR*)0==ctx.chk_offset);
 	return 0;
@@ -480,10 +482,11 @@ void test_v6()
 	assert( t_strcmp(smallbuf, t("[2038-01-19 03:14"))==0 );
 	assert( retlen==21 );
 
-	mmF_from_nullbuf_st ctx = {0};
+	mmF_from_nullbuf_st ctx = {0, 0};
 	retlen = mm_snprintf(NULL, 0, _T("%F"), 
 		MM_FPAIR_PARAM(mmF_callback_from_nullbuf, &ctx));
 	assert( retlen==0 );
+	assert( ctx.call_count==1 );
 
 #define STRING_BEFORE_F _T("ABC")
 	ctx.chk_offset = t_strlen(STRING_BEFORE_F);
@@ -491,6 +494,7 @@ void test_v6()
 		STRING_BEFORE_F _T("%F"), 
 		MM_FPAIR_PARAM(mmF_callback_from_nullbuf, &ctx));
 	assert( retlen==ctx.chk_offset );
+	assert( ctx.call_count==2 );
 }
 
 int _tmain()
