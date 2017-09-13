@@ -46,6 +46,8 @@ struct FibDlgParams_st
 	const TCHAR *szBtnRefresh; 
 	const TCHAR *szAutoChkbox;
 
+	int idDefaultFocus;
+
 	// Internal data for Showinfo-dialog:
 	HWND hwndRealParent;
 	HFONT hfontEditbox;
@@ -94,8 +96,10 @@ FibDlgParams_st::FibDlgParams_st(const FibInput_st &in, const TCHAR *pszInfo)
 	//
 	szBtnOK = in.szBtnOK;
 	szBtnCancel = in.szBtnCancel;
-	szBtnRefresh = szBtnRefresh;
-	szAutoChkbox = szAutoChkbox;
+	szBtnRefresh = in.szBtnRefresh;
+	szAutoChkbox = in.szAutoChkbox;
+	//
+	idDefaultFocus = in.idDefaultFocus;
 }
 
 static void 
@@ -453,7 +457,11 @@ BOOL dsi_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 		SetTimer(hdlg, timerId_AllowClose, pr->msecDelayClose, NULL);
 	}
 
-	SetFocus(NULL);
+	if(pr->idDefaultFocus)
+		SetFocus(GetDlgItem(hdlg, pr->idDefaultFocus));
+	else
+		SetFocus(NULL);
+	
 	return FALSE; // no default focus
 }
 

@@ -85,8 +85,10 @@ struct FibInput_st
 		// Text for the second button, oftenly used to present Yes/No choice.
 		// Note: If szBtnOK==NULL && szBtnCancel==NULL, there will be no button.
 
-	const TCHAR *szRefreshBtn; // user can customize button text
-	const TCHAR *szAutoChk;
+	const TCHAR *szBtnRefresh; // user can customize button text
+	const TCHAR *szAutoChkbox;
+
+	int idDefaultFocus;
 
 	int maxVisualCharsX; // limit max dialog-box width (implement later)
 	int maxVisualLines;  // limit max dialog-box height (implement later)
@@ -113,7 +115,9 @@ struct FibInput_st
 
 		msecDelayClose = 0;
 
-		szBtnOK = szBtnCancel = szRefreshBtn = szAutoChk = NULL;
+		szBtnOK = szBtnCancel = szBtnRefresh = szAutoChkbox = NULL;
+
+		idDefaultFocus = 0;
 
 		maxVisualCharsX = maxVisualLines = 0;
 		isScrollToEnd = false;
