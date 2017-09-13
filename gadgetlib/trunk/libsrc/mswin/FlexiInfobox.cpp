@@ -107,15 +107,33 @@ void FibDlgParams_st::SetCustomFocus(HWND hdlg)
 	HWND hctlOK = GetDlgItem(hdlg, IDC_BTN_OK);
 	HWND hctlCancel = GetDlgItem(hdlg, IDC_BTN_CANCEL);
 
+	if(!idDefaultFocus)
+	{
+		if(szBtnOK)
+			idDefaultFocus = IDC_BTN_OK;
+		else if(szBtnCancel)
+			idDefaultFocus = IDC_BTN_CANCEL;
+	}
+
 	if(idDefaultFocus)
 	{
 		HWND hFocus = GetDlgItem(hdlg, idDefaultFocus);
 		SetFocus(hFocus);
+
+		// and set default-push-button as well
+		//
+		HWND hDefaultPushBtn = NULL;
+		if(idDefaultFocus==IDC_BTN_OK)
+			hDefaultPushBtn = hctlOK;
+		else if(idDefaultFocus==IDC_BTN_CANCEL)
+			hDefaultPushBtn = hctlCancel;
+
+		if(hDefaultPushBtn)
+		{
+			UINT style = GetWindowLong(hDefaultPushBtn, GWL_STYLE);
+			SetWindowLong(hDefaultPushBtn, GWL_STYLE, style|BS_DEFPUSHBUTTON);
+		}
 	}
-	else if(szBtnOK)
-		SetFocus(hctlOK);
-	else if(szBtnCancel)
-		SetFocus(hctlCancel);
 }
 
 static void 
@@ -720,7 +738,7 @@ STYLE DS_SETFONT | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAP
 CAPTION "FlexiInfo"
 FONT 9, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-	DEFPUSHBUTTON   "OK",IDOK,46,38,50,14
+	PUSHBUTTON   "OK",IDOK,46,38,50,14
 	PUSHBUTTON      "Btn2",IDCANCEL,99,38,50,14
 	ICON            "",IDI_SHOW_INFO,14,6,20,20,SS_NOTIFY
 	EDITTEXT        IDC_EDIT_SHOW_INFO,47,6,102,28,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | NOT WS_BORDER | WS_VSCROLL
