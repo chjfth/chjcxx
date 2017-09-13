@@ -19,23 +19,30 @@ enum FibCallback_ret
 	FIBcb_CloseDlg = 3, // the dialog will be closed
 };
 
+enum FibCallbackReason_et
+{
+	FIBcr_Timer = 0,
+	FIBcr_RefreshBtn = 1,
+	FIBcr_OKBtn = 2,
+	FIBcr_CancelBtn = 3,
+};
+
 struct FibCallback_st
 {
 	HWND hDlg; // for user tweak, change [OK] button text etc.
 
-	bool isCallFromRefreshBtn; // callback due to user clicking [Refresh]
-	                           // If false, it is due to auto-refresh timer
+	FibCallbackReason_et reason;
 
 	bool isAutoRefreshOn;      // whether the [x]Auto check box is checked now
 
 	bool isOKBtnRequested; // user has clicked [OK] sometime ago
 	DWORD msecOKBtnRequested; // the value from GetTickCount()
 
-	bool isCloseRequested; // user has clicked close-window nib sometime ago
-	DWORD msecCloseRequested; // the value from GetTickCount()
+	bool isCancelRequested; // user has clicked close-window or [Cancel] nib sometime ago
+	DWORD msecCancelRequested; // the value from GetTickCount()
 };
 
-#define FIB_NoButton _T("")
+//#define FIB_NoButton _T("")
 
 typedef FibCallback_ret (*PROC_DlgShowinfo_GetText)(void *ctx, 
 	const FibCallback_st &cb_info,
@@ -73,9 +80,11 @@ struct FibInput_st
 	const TCHAR *szBtnOK; 
 		// Text for the bottom OK button.
 		// If NULL, default to "OK". If "", OK and Btm2 will not be shown,
-		// and the infobox can only be closed via FIB_CloseDlg.
-	const TCHAR *szBtn2; 
+		// and the dlgbox can only be closed via FIB_CloseDlg.
+	const TCHAR *szBtnCancel; 
 		// Text for the second button, oftenly used to present Yes/No choice.
+		// Note: If szBtnOK==NULL && szBtnCancel==NULL, there will be no button.
+
 	const TCHAR *szRefreshBtn; // user can customize button text
 	const TCHAR *szAutoChk;
 
@@ -104,7 +113,7 @@ struct FibInput_st
 
 		msecDelayClose = 0;
 
-		szBtnOK = szBtn2 = szRefreshBtn = szAutoChk = NULL;
+		szBtnOK = szBtnCancel = szRefreshBtn = szAutoChk = NULL;
 
 		maxVisualCharsX = maxVisualLines = 0;
 		isScrollToEnd = false;

@@ -40,10 +40,11 @@ struct FibDlgParams_st
 	//
 	bool isOnlyClosedByProgram;
 	//
+	// user can customize button text
 	const TCHAR *szBtnOK;
-	const TCHAR *szBtn2;
-	const TCHAR *szBtnRefresh; // user can customize button text
-	const TCHAR *szBtnAutoChk;
+	const TCHAR *szBtnCancel;
+	const TCHAR *szBtnRefresh; 
+	const TCHAR *szAutoChkbox;
 
 	// Internal data for Showinfo-dialog:
 	HWND hwndRealParent;
@@ -92,9 +93,9 @@ FibDlgParams_st::FibDlgParams_st(const FibInput_st &in, const TCHAR *pszInfo)
 	tkmsecStart = 0;
 	//
 	szBtnOK = in.szBtnOK;
-	szBtn2 = in.szBtn2;
+	szBtnCancel = in.szBtnCancel;
 	szBtnRefresh = szBtnRefresh;
-	szBtnAutoChk = szBtnAutoChk;
+	szAutoChkbox = szAutoChkbox;
 }
 
 static void 
@@ -220,12 +221,12 @@ dsi_CalNewboxTextMax(HWND hdlg, FibDlgParams_st *pr)
 	return rectTextMax;
 }
 
-static void 
-dsi_CallbackRefreshUserText(HWND hwnd, bool isManualRefresh, FibDlgParams_st *pr, 
+static FibCallback_ret  
+dsi_CallbackRefreshUserText(HWND hwnd, FibCallbackReason_et reason, FibDlgParams_st *pr, 
 	bool isAdjustWindowNow)
 {
 	pr->cb_info.hDlg = hwnd;
-	pr->cb_info.isCallFromRefreshBtn = isManualRefresh;
+	pr->cb_info.reason = reason;
 	pr->cb_info.isAutoRefreshOn = IsDlgButtonChecked(hwnd, IDC_CHK_AUTOREFRESH)?true:false;
 
 	FibCallback_ret ret = pr->procGetText(pr->ctxGetText, pr->cb_info,
@@ -253,7 +254,7 @@ dsi_CallbackRefreshUserText(HWND hwnd, bool isManualRefresh, FibDlgParams_st *pr
 	}
 
 	if(!isAdjustWindowNow)
-		return;
+		return ret;
 
 	const int px_torrent = 14;
 	Rect_st rectNow;
@@ -301,6 +302,8 @@ dsi_CallbackRefreshUserText(HWND hwnd, bool isManualRefresh, FibDlgParams_st *pr
 	}
 
 	SetDlgItemText(hwnd, IDC_EDIT_SHOW_INFO, pr->textbuf);
+
+	return ret;
 }
 
 static FibCallback_ret 
@@ -310,6 +313,7 @@ Dumb_GetText(void *ctx, const FibCallback_st &cb_info, TCHAR *textbuf, int bufch
 	return FIBcb_Fail;
 }
 
+#define HideWindow(hwnd) ShowWindow((hwnd), SW_HIDE)
 
 BOOL dsi_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam) 
 {
@@ -319,48 +323,47 @@ BOOL dsi_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 
 	// Hide unwanted UI elements (must do this before JUL)
 
-	if(pr->szBtnOK && pr->szBtnOK[0]==_T('\0')) {
-		ShowWindow(GetDlgItem(hdlg, IDOK), SW_HIDE); // hide it
-		pr->szBtn2 = NULL;
-		SetFocus(NULL);
-	} else if(pr->szBtnOK) {
-		SetDlgItemText(hdlg, IDOK, pr->szBtnOK);
-	} else {
-		SetDlgItemText(hdlg, IDOK, _T("OK")); // default text
-	}
+	HWND hctlOK = GetDlgItem(hdlg, IDC_BTN_OK);
+	HWND hctlCancel = GetDlgItem(hdlg, IDC_BTN_CANCEL);
+	assert(hctlOK && hctlCancel);
 
-	bool wantBtn2 = pr->szBtn2 ? true : false;
-	HWND hBtn2 = GetDlgItem(hdlg, IDC_BTN2);
-	assert(hBtn2);
-	if(wantBtn2)
-		SetWindowText(hBtn2, pr->szBtn2);
+	if(pr->szBtnOK)
+		SetWindowText(hctlOK, pr->szBtnOK);
 	else
-		ShowWindow(hBtn2, SW_HIDE); // hide it
+		HideWindow(hctlOK);
+	
+	if(pr->szBtnCancel)
+		SetWindowText(hctlCancel, pr->szBtnCancel);
+	else
+		HideWindow(hctlCancel);
+
+	if(!pr->szBtnOK && !pr->szBtnCancel)
+		SetFocus(NULL);
 
 	JULayout &jul = pr->jul;
 	jul.Initialize(hdlg);
-
+	//
 	jul.AnchorControl(0, 0, 100, 100, IDC_EDIT_SHOW_INFO); 
-
-	if(wantBtn2)
+	//
+	if(pr->szBtnOK && pr->szBtnCancel)
 	{	// place OK & Cancel both at right-bottom corner
-		jul.AnchorControl(100, 100, 100, 100, IDOK);
-		jul.AnchorControl(100, 100, 100, 100, IDC_BTN2);
+		jul.AnchorControl(100, 100, 100, 100, IDC_BTN_OK);
+		jul.AnchorControl(100, 100, 100, 100, IDC_BTN_CANCEL);
 	}
-	else
-	{	// place OK button at middle-bottom
-		RECT rectDlg, rectOK;
+	else if(pr->szBtnOK || pr->szBtnCancel)
+	{	// place the single button at middle-bottom
+		HWND hBtn = pr->szBtnOK ? hctlOK : hctlCancel;
+		RECT rectDlg, rectBtn;
 		b = GetClientRect(hdlg, &rectDlg);
 		assert(b);
-		HWND hctlOK = GetDlgItem(hdlg, IDOK);
-		b = GetClientRect(hctlOK, &rectOK);
+		b = GetClientRect(hBtn, &rectBtn);
 		assert(b);
-		int xOK = (RECTcx(rectDlg)-RECTcx(rectOK))/2;
+		int xBtn = (RECTcx(rectDlg)-RECTcx(rectBtn))/2;
 		//
-		POINT ptOK = {0, 0};
-		MapWindowPoints(hctlOK, hdlg, (LPPOINT)&ptOK, 1);
-		int yOK = ptOK.y;
-		MoveWindow(hctlOK, xOK, yOK, RECTcx(rectOK), RECTcy(rectOK), FALSE);
+		POINT ptBtn = {0, 0};
+		MapWindowPoints(hBtn, hdlg, (LPPOINT)&ptBtn, 1);
+		int yBtn = ptBtn.y;
+		MoveWindow(hctlOK, xBtn, yBtn, RECTcx(rectBtn), RECTcy(rectBtn), FALSE);
 
 		jul.AnchorControl(50, 100, 50, 100, IDOK);
 	}
@@ -377,7 +380,7 @@ BOOL dsi_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 	SetWindowText(hdlg, pr->title);
 
 	if(pr->isAutoRefreshNow)
-		dsi_CallbackRefreshUserText(hdlg, false, pr, false); // pr->textbuf[] filled
+		dsi_CallbackRefreshUserText(hdlg, FIBcr_Timer, pr, false); // pr->textbuf[] filled
 	
 	SetDlgItemText(hdlg, IDC_EDIT_SHOW_INFO, pr->textbuf);
 
@@ -415,7 +418,7 @@ BOOL dsi_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 		pr->szBtnRefresh ? pr->szBtnRefresh : _T("&Refresh")
 		);
 	SetDlgItemText(hdlg, IDC_CHK_AUTOREFRESH,
-		pr->szBtnAutoChk ? pr->szBtnAutoChk : _T("&Auto")
+		pr->szAutoChkbox ? pr->szAutoChkbox : _T("&Auto")
 		);
 
 	if(pr->procGetText==Dumb_GetText)
@@ -499,7 +502,7 @@ void dsi_OnTimer(HWND hwnd, UINT id)
 
 	if(id==timerId_AutoRefresh)
 	{
-		dsi_CallbackRefreshUserText(hwnd, false, pr, true);
+		dsi_CallbackRefreshUserText(hwnd, FIBcr_Timer, pr, true);
 	}
 	else if(id==timerId_AllowClose)
 	{
@@ -533,7 +536,7 @@ void dsi_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 
 	case IDC_BTN_REFRESH:
 	{
-		dsi_CallbackRefreshUserText(hwnd, true, pr, true);
+		dsi_CallbackRefreshUserText(hwnd, FIBcr_RefreshBtn, pr, true);
 		break;
 	}
 
@@ -542,7 +545,7 @@ void dsi_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 		UINT chkst = IsDlgButtonChecked(hwnd, IDC_CHK_AUTOREFRESH);
 		if(chkst==BST_CHECKED)
 		{
-			dsi_CallbackRefreshUserText(hwnd, false, pr, true);
+			dsi_CallbackRefreshUserText(hwnd, FIBcr_Timer, pr, true);
 			dsi_StartTimer(hwnd, pr);
 		}
 		else
@@ -552,17 +555,17 @@ void dsi_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 		break;
 	}
 
-	case IDOK:
+	case IDC_BTN_OK:
 	{
 		pr->cb_info.isOKBtnRequested = true;
 		pr->cb_info.msecOKBtnRequested = GetTickCount();
 		break;
 	}
 
-	case IDC_BTN2:
+	case IDC_BTN_CANCEL:
 	{
-		pr->cb_info.isCloseRequested = true;
-		pr->cb_info.msecCloseRequested = GetTickCount();
+		pr->cb_info.isCancelRequested = true;
+		pr->cb_info.msecCancelRequested = GetTickCount();
 		break;
 	}
 
@@ -570,12 +573,17 @@ void dsi_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 		break;
 	}}
 
-	if(id==IDOK || id==IDC_BTN2)
+	if(id==IDC_BTN_OK || id==IDC_BTN_CANCEL)
 	{
-		assert(IDC_BTN2==IDCANCEL);
+		FibCallback_ret cbret = dsi_CallbackRefreshUserText(hwnd, 
+			id==IDOK ? FIBcr_OKBtn : FIBcr_CancelBtn, 
+			pr, true);
 
-		if(pr->isOnlyClosedByProgram)
-			return;
+		if(pr->isOnlyClosedByProgram || 
+			cbret==FIBcb_Fail || cbret==FIBcb_Fail_StopAutoRefresh)
+		{
+			return; // No calling EndDialog()
+		}
 
 		if(  pr->msecDelayClose>0 &&
 			(GetTickCount() - pr->tkmsecStart < pr->msecDelayClose) )
@@ -758,7 +766,7 @@ END
 	pitem->style = WS_VISIBLE|WS_TABSTOP;
 	pitem->dwExtendedStyle = 0;
 	SET_CHILD_RECT(pitem, 99, 38, 50, 14);
-	pitem->id = IDC_BTN2;
+	pitem->id = IDC_BTN_CANCEL;
 	//
 	pword = (WORD*)(pitem+1);
 	*pword++ = 0xFFFF; *pword++ = 0x0080; // ctrl class is "button"
@@ -841,7 +849,9 @@ ggt_FlexiInfobox_userc(HINSTANCE hinstExeDll, LPCTSTR resIdDlgbox,
 void 
 ggt_FlexiInfo(HWND hwndParent, const TCHAR *pszInfo)
 {
-	ggt_FlexiInfobox(hwndParent, NULL, pszInfo);
+	FibInput_st si;
+	si.szBtnOK = _T("OK");
+	ggt_FlexiInfobox(hwndParent, &si, pszInfo);
 }
 
 FIB_ret 
@@ -869,7 +879,9 @@ ggt_vaFlexiInfo(HWND hwndParent, const TCHAR *fmtInfo, ...)
 	va_list args;
 	va_start(args, fmtInfo);
 	
-	ggt_vaFlexiInfobox(hwndParent, NULL, _T("%w"), MM_WPAIR_PARAM(fmtInfo, args));
+	FibInput_st si;
+	si.szBtnOK = _T("OK");
+	ggt_vaFlexiInfobox(hwndParent, &si, _T("%w"), MM_WPAIR_PARAM(fmtInfo, args));
 
 	va_end(args);
 }

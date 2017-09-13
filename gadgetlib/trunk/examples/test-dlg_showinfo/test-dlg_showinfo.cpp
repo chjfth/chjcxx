@@ -106,7 +106,7 @@ void do_dlg_showinfo(HWND hwndParent, bool isUseRC, bool isMono)
 	else
 	{
 		si.szBtnOK = _T("&O K");
-		si.szBtn2 = _T("&Cancel");
+		si.szBtnCancel = _T("&Cancel");
 	}
 	// opt.isOnlyClosedByProgram = true;
 
