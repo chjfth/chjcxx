@@ -34,7 +34,7 @@ END
 2 TEXTINCLUDE 
 BEGIN
     "#include ""afxres.h""\r\n"
-    "#include ""gadgetlib/dlg_showinfo_ids.h""\r\n"
+    "#include ""gadgetlib/FlexiInfobox_ids.h""\r\n"
     "\0"
 END
 
@@ -61,27 +61,28 @@ IDI_NEWLAND             ICON                    "NewLand.ico"
 // Dialog
 //
 
-IDD_WINMAIN DIALOGEX 0, 0, 176, 130
+IDD_WINMAIN DIALOGEX 0, 0, 176, 141
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "test dlg_showinfo"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
-    ICON            32514,IDC_STATIC,80,12,20,20
+    ICON            32514,IDC_STATIC,80,12,21,20
     LTEXT           "Create message box using .rc",IDC_STATIC,7,44,108,8,SS_NOPREFIX
     LTEXT           "Create message box NOT using .rc",IDC_STATIC,7,83,120,8,SS_NOPREFIX
     DEFPUSHBUTTON   "&Use .rc",IDC_USE_RC,7,58,50,14,WS_GROUP
     DEFPUSHBUTTON   "&Not use .rc",IDC_NOT_USE_RC,7,96,50,14,WS_GROUP
     DEFPUSHBUTTON   "U&se .rc fixed-width",IDC_USE_RC_MONO,78,58,83,14,WS_GROUP
     DEFPUSHBUTTON   "N&ot use .rc fixed-width",IDC_NOT_USE_RC_MONO,77,96,83,14,WS_GROUP
-    LTEXT           "Hint: Press Shift to use NULL as hwndParent.",IDC_STATIC,7,116,163,8
+    EDITTEXT        IDC_EDIT_HINT,7,118,163,17,ES_MULTILINE | ES_READONLY | NOT WS_BORDER
 END
 
 IDD_SHOW_INFO DIALOGEX 0, 0, 156, 56
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
-CAPTION "Showinfo Dialog"
+CAPTION "FlexiInfo"
 FONT 9, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,56,38,50,14
+    DEFPUSHBUTTON   "OK",IDOK,46,38,50,14
+    PUSHBUTTON      "Btn2",IDCANCEL,99,38,50,14
     ICON            "",IDI_SHOW_INFO,14,6,20,20,SS_NOTIFY
     EDITTEXT        IDC_EDIT_SHOW_INFO,47,6,102,28,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | NOT WS_BORDER | WS_VSCROLL
     PUSHBUTTON      "&Refresh",IDC_BTN_REFRESH,6,28,36,12
@@ -101,7 +102,7 @@ BEGIN
     BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 170
-        BOTTOMMARGIN, 124
+        BOTTOMMARGIN, 135
     END
 
     IDD_SHOW_INFO, DIALOG

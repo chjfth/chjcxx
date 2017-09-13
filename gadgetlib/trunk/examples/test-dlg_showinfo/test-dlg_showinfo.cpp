@@ -36,6 +36,11 @@ BOOL Dlg_OnInitDialog(HWND hwnd, HWND hwndFocus, LPARAM lParam)
 
 	SetWindowLongPtr(hwnd, DWLP_USER, (LONG_PTR)pr);
 
+	SetDlgItemText(hwnd, IDC_EDIT_HINT, 
+		_T("Hint: Press Shift to use NULL as hwndParent.\n")
+		_T("Press Ctrl to show both OK/Cancel buttons.\n")
+		);
+
 	return(TRUE);
 }
 
@@ -73,6 +78,8 @@ FibCallback_ret DSI_GetNowTime(void *_ctx,
 void do_dlg_showinfo(HWND hwndParent, bool isUseRC, bool isMono)
 {
 	bool isShiftDown = GetKeyState(VK_SHIFT)<0 ? true:false;
+	bool isCtrlDown = GetKeyState(VK_CONTROL)<0 ? true:false;
+
 	HWND useParent = isShiftDown ? NULL : hwndParent;
 		// Using NULL as hwndParent so that we can pop out one with RC and another without RC
 		// for side-by-side comparison. 
@@ -81,7 +88,7 @@ void do_dlg_showinfo(HWND hwndParent, bool isUseRC, bool isMono)
 	MyDsiContext_st ctx = { isUseRC ? true : false };
 
 	FibInput_st si;
-	si.title = _T("Showinfo");
+	si.title = _T("FlexiInfobox Sample");
 	si.fixedwidth_font = isMono ? true : false;
 	si.procGetText = DSI_GetNowTime;
 	si.ctxGetText = &ctx;
@@ -90,20 +97,36 @@ void do_dlg_showinfo(HWND hwndParent, bool isUseRC, bool isMono)
 	si.isRefreshNow = true;
 	si.isAutoRefreshNow = true;
 //	si.fontsize = 12;
-	si.szBtnOK = _T("&Close");
+	if(!isCtrlDown)
+	{
+		si.szBtnOK = _T("Cl&ose");
+	}
+	else
+	{
+		si.szBtnOK = _T("&O K");
+		si.szBtn2 = _T("&Cancel");
+	}
 	// opt.isOnlyClosedByProgram = true;
 
+	FIB_ret fibret;
 	if(isUseRC)
 	{
-		ggt_FlexiInfobox_userc( 
+		fibret = ggt_FlexiInfobox_userc( 
 			(HINSTANCE)GetWindowLongPtr(hwndParent, GWLP_HINSTANCE), 
 			MAKEINTRESOURCE(IDD_SHOW_INFO),
 			useParent, &si, szTimeText); 
 	}
 	else
 	{
-		ggt_FlexiInfobox(useParent, &si, szTimeText);
+		fibret = ggt_FlexiInfobox(useParent, &si, szTimeText);
 	}
+
+	TCHAR szret[80];
+	_sntprintf_s(szret, ARRAYSIZE(szret), 
+		_T("FIB_ret=%d\r\n")
+		_T("1=OK/Yes 2=Cancel/No"), 
+		fibret);
+	SetDlgItemText(hwndParent, IDC_EDIT_HINT, szret);
 }
 
 void Dlg_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify) 

@@ -110,12 +110,12 @@ struct FibInput_st
 
 enum FIB_ret 
 {
-	FIB_Success = 0,
-	FIB_OK = 0,
-	FIB_Yes = 0,
+	FIB_Success = 1,
+	FIB_OK = 1,
+	FIB_Yes = 1,
 
-	FIB_No = 1,
-	FIB_Cancel = 1,
+	FIB_No = 2,
+	FIB_Cancel = 2,
 
 	FIB_Fail = 4,
 	FIB_NoMem = 5,

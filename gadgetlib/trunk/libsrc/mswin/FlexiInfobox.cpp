@@ -85,6 +85,7 @@ FibDlgParams_st::FibDlgParams_st(const FibInput_st &in, const TCHAR *pszInfo)
 	isOnlyClosedByProgram = in.isOnlyClosedByProgram;
 	//
 	szBtnOK = in.szBtnOK;
+	szBtn2 = in.szBtn2;
 	szBtnRefresh = szBtnRefresh;
 	szBtnAutoChk = szBtnAutoChk;
 }
@@ -305,14 +306,57 @@ Dumb_GetText(void *ctx, const FibCallback_st &cb_info, TCHAR *textbuf, int bufch
 
 BOOL dsi_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam) 
 {
+	BOOL b = 0;
 	FibDlgParams_st *pr = (FibDlgParams_st*)lParam;
 	SetWindowLongPtr(hdlg, DWLP_USER, (LONG_PTR)pr); // save our dlg private data
+
+	// Hide unwanted UI elements (must do this before JUL)
+
+	if(pr->szBtnOK && pr->szBtnOK[0]==_T('\0')) {
+		ShowWindow(GetDlgItem(hdlg, IDOK), SW_HIDE); // hide it
+		pr->szBtn2 = NULL;
+		SetFocus(NULL);
+	} else if(pr->szBtnOK) {
+		SetDlgItemText(hdlg, IDOK, pr->szBtnOK);
+	} else {
+		SetDlgItemText(hdlg, IDOK, _T("OK")); // default text
+	}
+
+	bool wantBtn2 = pr->szBtn2 ? true : false;
+	HWND hBtn2 = GetDlgItem(hdlg, IDC_BTN2);
+	assert(hBtn2);
+	if(wantBtn2)
+		SetWindowText(hBtn2, pr->szBtn2);
+	else
+		ShowWindow(hBtn2, SW_HIDE); // hide it
 
 	JULayout &jul = pr->jul;
 	jul.Initialize(hdlg);
 
 	jul.AnchorControl(0, 0, 100, 100, IDC_EDIT_SHOW_INFO); 
-	jul.AnchorControl(50, 100, 50, 100, IDOK);
+
+	if(wantBtn2)
+	{	// place OK & Cancel both at right-bottom corner
+		jul.AnchorControl(100, 100, 100, 100, IDOK);
+		jul.AnchorControl(100, 100, 100, 100, IDC_BTN2);
+	}
+	else
+	{	// place OK button at middle-bottom
+		RECT rectDlg, rectOK;
+		b = GetClientRect(hdlg, &rectDlg);
+		assert(b);
+		HWND hctlOK = GetDlgItem(hdlg, IDOK);
+		b = GetClientRect(hctlOK, &rectOK);
+		assert(b);
+		int xOK = (RECTcx(rectDlg)-RECTcx(rectOK))/2;
+		//
+		POINT ptOK = {0, 0};
+		MapWindowPoints(hctlOK, hdlg, (LPPOINT)&ptOK, 1);
+		int yOK = ptOK.y;
+		MoveWindow(hctlOK, xOK, yOK, RECTcx(rectOK), RECTcy(rectOK), FALSE);
+
+		jul.AnchorControl(50, 100, 50, 100, IDOK);
+	}
 
 	// Set sysmenu icon
 	HWND hctlIcon = GetDlgItem(hdlg, IDI_SHOW_INFO);
@@ -359,27 +403,6 @@ BOOL dsi_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 	// It will be shown later when the message box is shrunk, when processing WM_SIZE.
 	HWND hEdit = GetDlgItem(hdlg, IDC_EDIT_SHOW_INFO);
 	ShowScrollBar(hEdit, SB_VERT, pr->ScrollbarAlways?TRUE:FALSE);
-
-	// Hide unwanted UI elements
-
-	if(pr->szBtnOK && pr->szBtnOK[0]==_T('\0')) {
-		ShowWindow(GetDlgItem(hdlg, IDOK), SW_HIDE); // hide it
-		pr->szBtn2 = NULL;
-		SetFocus(NULL);
-	} else if(pr->szBtnOK) {
-		SetDlgItemText(hdlg, IDOK, pr->szBtnOK);
-	} else {
-		SetDlgItemText(hdlg, IDOK, _T("OK")); // default text
-	}
-
-	HWND hBtn2 = GetDlgItem(hdlg, IDC_BTN2);
-	if(hBtn2)
-	{
-		if(pr->szBtn2)
-			SetWindowText(hBtn2, pr->szBtn2);
-		else
-			ShowWindow(hBtn2, SW_HIDE); // hide it
-	}
 
 	SetDlgItemText(hdlg, IDC_BTN_REFRESH, 
 		pr->szBtnRefresh ? pr->szBtnRefresh : _T("&Refresh")
@@ -507,7 +530,7 @@ void dsi_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 		break;
 	}
 
-	case IDCANCEL:
+	case IDC_BTN2:
 	{
 		pr->cb_info.isCloseRequested = true;
 		pr->cb_info.msecCloseRequested = GetTickCount();
@@ -518,10 +541,17 @@ void dsi_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 		break;
 	}}
 
-	if(id==IDOK || id==IDCANCEL)
+	if(id==IDOK || id==IDC_BTN2)
 	{
+		assert(IDC_BTN2==IDCANCEL);
+
 		if(!pr->isOnlyClosedByProgram)
-			EndDialog(hwnd, FIB_Success);
+		{
+			if(id==IDOK)
+				EndDialog(hwnd, FIB_OK);
+			else
+				EndDialog(hwnd, FIB_Cancel);
+		}
 	}
 
 }
@@ -607,6 +637,7 @@ in_dlg_showinfo(HINSTANCE hinstExeDll,
 }
 
 #define ALIGN_TO_DWORD(pword) if((INT_PTR)(pword) & 0x3) *(pword)++ = 0;
+#define SET_CHILD_RECT(pitem, _x,_y, _cx,_cy) { (pitem)->x=_x, (pitem)->y=_y, (pitem)->cx=_cx, (pitem)->cy=_cy; }
 
 FIB_ret 
 ggt_FlexiInfobox(HWND hwndRealParent, const FibInput_st *p_usr_opt, const TCHAR *pszInfo)
@@ -616,14 +647,15 @@ ggt_FlexiInfobox(HWND hwndRealParent, const FibInput_st *p_usr_opt, const TCHAR 
 
 IDD_SHOW_INFO DIALOGEX 0, 0, 156, 56
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME
-CAPTION "Showinfo Dialog"
+CAPTION "FlexiInfo"
 FONT 9, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-DEFPUSHBUTTON   "OK",IDOK,56,38,50,14
-ICON            "",IDI_SHOW_INFO,14,6,20,20,SS_NOTIFY
-EDITTEXT        IDC_EDIT_SHOW_INFO,47,6,102,28,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | NOT WS_BORDER | WS_VSCROLL
-PUSHBUTTON      "&Refresh",IDC_BTN_REFRESH,6,28,36,12
-CONTROL         "&Auto",IDC_CHK_AUTOREFRESH,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,42,35,10
+	DEFPUSHBUTTON   "OK",IDOK,46,38,50,14
+	PUSHBUTTON      "Btn2",IDCANCEL,99,38,50,14
+	ICON            "",IDI_SHOW_INFO,14,6,20,20,SS_NOTIFY
+	EDITTEXT        IDC_EDIT_SHOW_INFO,47,6,102,28,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | NOT WS_BORDER | WS_VSCROLL
+	PUSHBUTTON      "&Refresh",IDC_BTN_REFRESH,6,28,36,12
+	CONTROL         "&Auto",IDC_CHK_AUTOREFRESH,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,42,35,10
 END
 */
 	char memblock[4000];
@@ -674,7 +706,7 @@ END
 	++dt.cdit;
 	pitem->style = WS_VISIBLE|WS_TABSTOP;
 	pitem->dwExtendedStyle = 0;
-	pitem->x=56, pitem->y=38, pitem->cx=50, pitem->cy=14;
+	SET_CHILD_RECT(pitem, 46, 38, 50, 14);
 	pitem->id = IDOK;
 	//
 	pword = (WORD*)(pitem+1);
@@ -683,6 +715,19 @@ END
 	*pword++ = 0x0000; // no creation data
 
 	ALIGN_TO_DWORD(pword);
+
+	// [Cancel/No] button
+	pitem = (DLGITEMTEMPLATE*)pword;
+	++dt.cdit;
+	pitem->style = WS_VISIBLE|WS_TABSTOP;
+	pitem->dwExtendedStyle = 0;
+	SET_CHILD_RECT(pitem, 99, 38, 50, 14);
+	pitem->id = IDC_BTN2;
+	//
+	pword = (WORD*)(pitem+1);
+	*pword++ = 0xFFFF; *pword++ = 0x0080; // ctrl class is "button"
+	wcscpy((wchar_t*)pword, L"="); pword+=2; // button text, change later in DlgProc
+	*pword++ = 0x0000; // no creation data
 
 	// the icon
 	//
