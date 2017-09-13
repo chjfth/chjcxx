@@ -7,6 +7,6 @@
 #define IDI_SHOW_INFO        101 // the icon-control id
 #define IDC_CHK_AUTOREFRESH  102
 #define IDC_BTN_REFRESH      103
-
+#define IDC_BTN2             104
 
 #endif

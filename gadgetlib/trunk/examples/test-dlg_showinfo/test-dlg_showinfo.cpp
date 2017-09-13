@@ -67,7 +67,7 @@ FibCallback_ret DSI_GetNowTime(void *_ctx,
 		st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds
 		);
 
-	return FIB_OK;
+	return FIBcb_OK;
 }
 
 void do_dlg_showinfo(HWND hwndParent, bool isUseRC, bool isMono)
@@ -90,7 +90,7 @@ void do_dlg_showinfo(HWND hwndParent, bool isUseRC, bool isMono)
 	si.isRefreshNow = true;
 	si.isAutoRefreshNow = true;
 //	si.fontsize = 12;
-	si.szOK = _T("&Close");
+	si.szBtnOK = _T("&Close");
 	// opt.isOnlyClosedByProgram = true;
 
 	if(isUseRC)

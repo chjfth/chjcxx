@@ -22,7 +22,7 @@ extern"C" void gadgetlib_lib__dlg_showinfo__DLL_AUTO_EXPORT_STUB(void){}
 
 const int dlg_timer_id = 1;
 
-struct DsiDlgParams_st
+struct FibDlgParams_st
 {
 	// Input params from caller:
 	const TCHAR *title;
@@ -39,9 +39,10 @@ struct DsiDlgParams_st
 	//
 	bool isOnlyClosedByProgram;
 	//
-	const TCHAR *szOK;
-	const TCHAR *szRefreshBtnText; // user can customize button text
-	const TCHAR *szAutoChkText;
+	const TCHAR *szBtnOK;
+	const TCHAR *szBtn2;
+	const TCHAR *szBtnRefresh; // user can customize button text
+	const TCHAR *szBtnAutoChk;
 
 	// Internal data for Showinfo-dialog:
 	HWND hwndRealParent;
@@ -61,11 +62,11 @@ struct DsiDlgParams_st
 	JULayout jul; 
 
 public:
-	DsiDlgParams_st(const FibInput_st &in, const TCHAR *pszInfo);
+	FibDlgParams_st(const FibInput_st &in, const TCHAR *pszInfo);
 
 };
 
-DsiDlgParams_st::DsiDlgParams_st(const FibInput_st &in, const TCHAR *pszInfo)
+FibDlgParams_st::FibDlgParams_st(const FibInput_st &in, const TCHAR *pszInfo)
 {
 	memset(this, 0, sizeof(*this));
 
@@ -83,13 +84,13 @@ DsiDlgParams_st::DsiDlgParams_st(const FibInput_st &in, const TCHAR *pszInfo)
 	//
 	isOnlyClosedByProgram = in.isOnlyClosedByProgram;
 	//
-	szOK = in.szOK;
-	szRefreshBtnText = szRefreshBtnText;
-	szAutoChkText = szAutoChkText;
+	szBtnOK = in.szBtnOK;
+	szBtnRefresh = szBtnRefresh;
+	szBtnAutoChk = szBtnAutoChk;
 }
 
 static void 
-dsi_SetIcon(HWND hwnd, HICON hNewIcon, DsiDlgParams_st *pr)
+dsi_SetIcon(HWND hwnd, HICON hNewIcon, FibDlgParams_st *pr)
 {
 	if(hNewIcon==pr->hIconNow)
 		return; // no need to redraw the icon
@@ -101,7 +102,7 @@ dsi_SetIcon(HWND hwnd, HICON hNewIcon, DsiDlgParams_st *pr)
 }
 
 static void 
-dsi_StartTimer(HWND hwnd, DsiDlgParams_st *pr)
+dsi_StartTimer(HWND hwnd, FibDlgParams_st *pr)
 {
 	if(pr->isTimerOn)
 		return;
@@ -112,7 +113,7 @@ dsi_StartTimer(HWND hwnd, DsiDlgParams_st *pr)
 }
 
 static void 
-dsi_StopTimer(HWND hwnd, DsiDlgParams_st *pr)
+dsi_StopTimer(HWND hwnd, FibDlgParams_st *pr)
 {
 	if(pr->isTimerOn==false)
 		return;
@@ -122,7 +123,7 @@ dsi_StopTimer(HWND hwnd, DsiDlgParams_st *pr)
 }
 
 static Rect_st 
-dsi_CalNewboxTextMax(HWND hdlg, DsiDlgParams_st *pr)
+dsi_CalNewboxTextMax(HWND hdlg, FibDlgParams_st *pr)
 {
 	// Determine display-area of the input string(probably multi-line), 
 	// then we know(return) the corresponding dialogbox-window size.
@@ -212,7 +213,7 @@ dsi_CalNewboxTextMax(HWND hdlg, DsiDlgParams_st *pr)
 }
 
 static void 
-dsi_CallbackRefreshUserText(HWND hwnd, bool isManualRefresh, DsiDlgParams_st *pr, 
+dsi_CallbackRefreshUserText(HWND hwnd, bool isManualRefresh, FibDlgParams_st *pr, 
 	bool isAdjustWindowNow)
 {
 	pr->cb_info.hDlg = hwnd;
@@ -223,20 +224,20 @@ dsi_CallbackRefreshUserText(HWND hwnd, bool isManualRefresh, DsiDlgParams_st *pr
 		pr->textbuf, pr->bufchars); 
 		// Will update pr->textbuf[]
 	
-	if(ret==FIB_OK)
+	if(ret==FIBcb_OK)
 	{
 		dsi_SetIcon(hwnd, pr->hIconUser, pr);
 	}
-	else if(ret==FIB_CloseDlg)
+	else if(ret==FIBcb_CloseDlg)
 	{
-		EndDialog(hwnd, Dsie_Success);
+		EndDialog(hwnd, FIB_Success);
 	}
 	else 
 	{
 		// Set a yellow triangle icon
 		dsi_SetIcon(hwnd, LoadIcon(NULL, IDI_EXCLAMATION), pr);
 
-		if(ret==FIB_Fail_StopAutoRefresh)
+		if(ret==FIBcb_Fail_StopAutoRefresh)
 		{
 			dsi_StopTimer(hwnd, pr);
 			CheckDlgButton(hwnd, IDC_CHK_AUTOREFRESH, BST_UNCHECKED);
@@ -298,13 +299,13 @@ static FibCallback_ret
 Dumb_GetText(void *ctx, const FibCallback_st &cb_info, TCHAR *textbuf, int bufchars)
 {
 	(void)ctx; (void)cb_info; (void)textbuf; (void)bufchars;
-	return FIB_Fail;
+	return FIBcb_Fail;
 }
 
 
 BOOL dsi_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam) 
 {
-	DsiDlgParams_st *pr = (DsiDlgParams_st*)lParam;
+	FibDlgParams_st *pr = (FibDlgParams_st*)lParam;
 	SetWindowLongPtr(hdlg, DWLP_USER, (LONG_PTR)pr); // save our dlg private data
 
 	JULayout &jul = pr->jul;
@@ -361,18 +362,30 @@ BOOL dsi_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 
 	// Hide unwanted UI elements
 
-	if(pr->szOK) {
-		SetDlgItemText(hdlg, IDOK, pr->szOK);
-	} else {
-		ShowWindow(GetDlgItem(hdlg, IDOK), SW_HIDE);
+	if(pr->szBtnOK && pr->szBtnOK[0]==_T('\0')) {
+		ShowWindow(GetDlgItem(hdlg, IDOK), SW_HIDE); // hide it
+		pr->szBtn2 = NULL;
 		SetFocus(NULL);
+	} else if(pr->szBtnOK) {
+		SetDlgItemText(hdlg, IDOK, pr->szBtnOK);
+	} else {
+		SetDlgItemText(hdlg, IDOK, _T("OK")); // default text
 	}
-	
+
+	HWND hBtn2 = GetDlgItem(hdlg, IDC_BTN2);
+	if(hBtn2)
+	{
+		if(pr->szBtn2)
+			SetWindowText(hBtn2, pr->szBtn2);
+		else
+			ShowWindow(hBtn2, SW_HIDE); // hide it
+	}
+
 	SetDlgItemText(hdlg, IDC_BTN_REFRESH, 
-		pr->szRefreshBtnText ? pr->szRefreshBtnText : _T("&Refresh")
+		pr->szBtnRefresh ? pr->szBtnRefresh : _T("&Refresh")
 		);
 	SetDlgItemText(hdlg, IDC_CHK_AUTOREFRESH,
-		pr->szAutoChkText ? pr->szAutoChkText : _T("&Auto")
+		pr->szBtnAutoChk ? pr->szBtnAutoChk : _T("&Auto")
 		);
 
 	if(pr->procGetText==Dumb_GetText)
@@ -403,7 +416,7 @@ BOOL dsi_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 
 void dsi_OnDestroy(HWND hwnd)
 {
-	DsiDlgParams_st *pr = (DsiDlgParams_st*)GetWindowLongPtr(hwnd, DWLP_USER);
+	FibDlgParams_st *pr = (FibDlgParams_st*)GetWindowLongPtr(hwnd, DWLP_USER);
 
 	if(pr->hfontEditbox)
 		DeleteObject(pr->hfontEditbox);
@@ -411,7 +424,7 @@ void dsi_OnDestroy(HWND hwnd)
 
 void dsi_OnSize(HWND hdlg, UINT state, int cx, int cy) 
 {
-	DsiDlgParams_st *pr = (DsiDlgParams_st*)GetWindowLongPtr(hdlg, DWLP_USER);
+	FibDlgParams_st *pr = (FibDlgParams_st*)GetWindowLongPtr(hdlg, DWLP_USER);
 
 	// Reposition the child controls
 	pr->jul.AdjustControls(cx, cy);
@@ -430,7 +443,7 @@ void dsi_OnSize(HWND hdlg, UINT state, int cx, int cy)
 
 void dsi_OnGetMinMaxInfo(HWND hdlg, PMINMAXINFO pMinMaxInfo) 
 {
-	DsiDlgParams_st *pr = (DsiDlgParams_st*)GetWindowLongPtr(hdlg, DWLP_USER);
+	FibDlgParams_st *pr = (FibDlgParams_st*)GetWindowLongPtr(hdlg, DWLP_USER);
 
 	// Return minimum size of dialog box
 	pr->jul.HandleMinMax(pMinMaxInfo);
@@ -442,7 +455,7 @@ void dsi_OnGetMinMaxInfo(HWND hdlg, PMINMAXINFO pMinMaxInfo)
 
 void dsi_OnTimer(HWND hwnd, UINT id)
 {
-	DsiDlgParams_st *pr = (DsiDlgParams_st*)GetWindowLongPtr(hwnd, DWLP_USER);
+	FibDlgParams_st *pr = (FibDlgParams_st*)GetWindowLongPtr(hwnd, DWLP_USER);
 
 	assert(id==dlg_timer_id); (void)id;
 
@@ -452,7 +465,7 @@ void dsi_OnTimer(HWND hwnd, UINT id)
 
 void dsi_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify) 
 {
-	DsiDlgParams_st *pr = (DsiDlgParams_st*)GetWindowLongPtr(hwnd, DWLP_USER);
+	FibDlgParams_st *pr = (FibDlgParams_st*)GetWindowLongPtr(hwnd, DWLP_USER);
 //	DWORD winerr;
 
 	switch (id) 
@@ -508,7 +521,7 @@ void dsi_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 	if(id==IDOK || id==IDCANCEL)
 	{
 		if(!pr->isOnlyClosedByProgram)
-			EndDialog(hwnd, Dsie_Success);
+			EndDialog(hwnd, FIB_Success);
 	}
 
 }
@@ -541,14 +554,14 @@ in_dlg_showinfo(HINSTANCE hinstExeDll,
 {
 	// Choose only one between resIdDlgbox and *pDlgTemplate.
 	if(!resIdDlgbox && !pDlgTemplate)
-		return Dsie_BadParam;
+		return FIB_BadParam;
 
 	FibInput_st opt;
 	if(p_usr_opt)
 		opt = *p_usr_opt;
 
 	if(opt.isOnlyClosedByProgram && !opt.procGetText)
-		return Dsie_OnlyClosedByProgram_but_NoCallback;
+		return FIB_OnlyClosedByProgram_but_NoCallback;
 
 	// Set valid "defaults" for opt.
 
@@ -571,7 +584,7 @@ in_dlg_showinfo(HINSTANCE hinstExeDll,
 		opt.isRefreshNow = opt.isAutoRefreshNow = false;
 	}
 	
-	DsiDlgParams_st dsi(opt, pszInfo);
+	FibDlgParams_st dsi(opt, pszInfo);
 
 	dsi.hwndRealParent = hwndRealParent;
 
@@ -588,7 +601,7 @@ in_dlg_showinfo(HINSTANCE hinstExeDll,
 	}
 	
 	if(dlgret==-1)
-		return Dsie_NoMem;
+		return FIB_NoMem;
 	else
 		return (FIB_ret)dlgret;
 }

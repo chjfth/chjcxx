@@ -13,10 +13,10 @@ extern"C"{
 
 enum FibCallback_ret
 {
-	FIB_OK = 0,
-	FIB_Fail = 1,
-	FIB_Fail_StopAutoRefresh = 2,
-	FIB_CloseDlg = 3, // the dialog will be closed
+	FIBcb_OK = 0,
+	FIBcb_Fail = 1,
+	FIBcb_Fail_StopAutoRefresh = 2,
+	FIBcb_CloseDlg = 3, // the dialog will be closed
 };
 
 struct FibCallback_st
@@ -35,6 +35,7 @@ struct FibCallback_st
 	DWORD msecCloseRequested; // the value from GetTickCount()
 };
 
+#define FIB_NoButton _T("")
 
 typedef FibCallback_ret (*PROC_DlgShowinfo_GetText)(void *ctx, 
 	const FibCallback_st &cb_info,
@@ -45,7 +46,7 @@ typedef FibCallback_ret (*PROC_DlgShowinfo_GetText)(void *ctx,
 struct FibInput_st
 {
 	const TCHAR *title; // optional
-	HICON hIcon; // optional, =LoadIcon(NULL, IDI_INFORMATION)
+	HICON hIcon;        // optional, =LoadIcon(NULL, IDI_INFORMATION)
 	bool fixedwidth_font;
 
 	// If procGetText!=NULL, I'll show a [Refresh] button so that info text can be refreshed.
@@ -67,9 +68,14 @@ struct FibInput_st
 
 	int fontsize; // if 0, default to 9
 
-	const TCHAR *szOK; // text for the bottom OK button, hidden if null
-	const TCHAR *szRefreshBtnText; // user can customize button text
-	const TCHAR *szAutoChktext;
+	const TCHAR *szBtnOK; 
+		// Text for the bottom OK button.
+		// If NULL, default to "OK". If "", OK and Btm2 will not be shown,
+		// and the infobox can only be closed via FIB_CloseDlg.
+	const TCHAR *szBtn2; 
+		// Text for the second button, oftenly used to present Yes/No choice.
+	const TCHAR *szRefreshBtn; // user can customize button text
+	const TCHAR *szAutoChk;
 
 	int maxVisualCharsX; // limit max dialog-box width (implement later)
 	int maxVisualLines;  // limit max dialog-box height (implement later)
@@ -94,7 +100,7 @@ struct FibInput_st
 
 		fontsize = 0;
 
-		szOK = szRefreshBtnText = szAutoChktext = NULL;
+		szBtnOK = szRefreshBtn = szAutoChk = NULL;
 
 		maxVisualCharsX = maxVisualLines = 0;
 		isScrollToEnd = false;
@@ -104,14 +110,20 @@ struct FibInput_st
 
 enum FIB_ret 
 {
-	Dsie_Success = 0,
-	Dsie_Fail = 1,
-	Dsie_NoMem = 2,
-	Dsie_BadParam = 3,
+	FIB_Success = 0,
+	FIB_OK = 0,
+	FIB_Yes = 0,
+
+	FIB_No = 1,
+	FIB_Cancel = 1,
+
+	FIB_Fail = 4,
+	FIB_NoMem = 5,
+	FIB_BadParam = 6,
 
 	// Invalid param error:
 
-	Dsie_OnlyClosedByProgram_but_NoCallback = 10,
+	FIB_OnlyClosedByProgram_but_NoCallback = 10,
 };
 
 DLLEXPORT_gadgetlib
