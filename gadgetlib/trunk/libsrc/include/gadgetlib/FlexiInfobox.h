@@ -84,7 +84,7 @@ struct FibInput_st
 
 	FibInput_st()
 	{
-		memset(this, 0, sizeof(this));
+		memset(this, 0, sizeof(*this));
 
 		title = NULL;
 		hIcon = NULL;
@@ -100,7 +100,7 @@ struct FibInput_st
 
 		fontsize = 0;
 
-		szBtnOK = szRefreshBtn = szAutoChk = NULL;
+		szBtnOK = szBtn2 = szRefreshBtn = szAutoChk = NULL;
 
 		maxVisualCharsX = maxVisualLines = 0;
 		isScrollToEnd = false;
