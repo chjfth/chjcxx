@@ -41,7 +41,8 @@ BOOL Dlg_OnInitDialog(HWND hwnd, HWND hwndFocus, LPARAM lParam)
 		_T("Press Ctrl to show both OK/Cancel buttons.\n")
 		);
 
-	return(TRUE);
+	SetFocus(NULL);
+	return(FALSE); // no default focus
 }
 
 void Dlg_OnDestroy(HWND hwnd)
@@ -96,6 +97,7 @@ void do_dlg_showinfo(HWND hwndParent, bool isUseRC, bool isMono)
 	si.msecAutoRefresh = 500;
 	si.isRefreshNow = true;
 	si.isAutoRefreshNow = true;
+	si.msecDelayClose = 1000;
 //	si.fontsize = 12;
 	if(!isCtrlDown)
 	{

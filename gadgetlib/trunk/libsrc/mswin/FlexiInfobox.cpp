@@ -20,7 +20,8 @@
 #define DLL_AUTO_EXPORT_STUB
 extern"C" void gadgetlib_lib__dlg_showinfo__DLL_AUTO_EXPORT_STUB(void){}
 
-const int dlg_timer_id = 1;
+const int timerId_AutoRefresh = 1;
+const int timerId_AllowClose = 2;
 
 struct FibDlgParams_st
 {
@@ -59,6 +60,9 @@ struct FibDlgParams_st
 
 	FibCallback_st cb_info;
 
+	DWORD msecDelayClose;
+	DWORD tkmsecStart;
+	
 	JULayout jul; 
 
 public:
@@ -84,6 +88,9 @@ FibDlgParams_st::FibDlgParams_st(const FibInput_st &in, const TCHAR *pszInfo)
 	//
 	isOnlyClosedByProgram = in.isOnlyClosedByProgram;
 	//
+	msecDelayClose = in.msecDelayClose;
+	tkmsecStart = 0;
+	//
 	szBtnOK = in.szBtnOK;
 	szBtn2 = in.szBtn2;
 	szBtnRefresh = szBtnRefresh;
@@ -108,7 +115,7 @@ dsi_StartTimer(HWND hwnd, FibDlgParams_st *pr)
 	if(pr->isTimerOn)
 		return;
 
-	UINT_PTR succ = SetTimer(hwnd, dlg_timer_id, pr->msecAutoRefresh, NULL);
+	UINT_PTR succ = SetTimer(hwnd, timerId_AutoRefresh, pr->msecAutoRefresh, NULL);
 	if(succ)
 		pr->isTimerOn = true;
 }
@@ -119,7 +126,7 @@ dsi_StopTimer(HWND hwnd, FibDlgParams_st *pr)
 	if(pr->isTimerOn==false)
 		return;
 
-	KillTimer(hwnd, dlg_timer_id);
+	KillTimer(hwnd, timerId_AutoRefresh);
 	pr->isTimerOn = false;
 }
 
@@ -434,6 +441,16 @@ BOOL dsi_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 		ShowWindow(GetDlgItem(hdlg, IDC_CHK_AUTOREFRESH), SW_HIDE); 
 	}
 
+	if(pr->msecDelayClose>0)
+	{
+		pr->tkmsecStart = GetTickCount();
+		EnableWindow(GetDlgItem(hdlg, IDOK), FALSE);
+		EnableWindow(GetDlgItem(hdlg, IDCANCEL), FALSE);
+
+		SetTimer(hdlg, timerId_AllowClose, pr->msecDelayClose, NULL);
+	}
+
+	SetFocus(NULL);
 	return FALSE; // no default focus
 }
 
@@ -480,9 +497,21 @@ void dsi_OnTimer(HWND hwnd, UINT id)
 {
 	FibDlgParams_st *pr = (FibDlgParams_st*)GetWindowLongPtr(hwnd, DWLP_USER);
 
-	assert(id==dlg_timer_id); (void)id;
+	if(id==timerId_AutoRefresh)
+	{
+		dsi_CallbackRefreshUserText(hwnd, false, pr, true);
+	}
+	else if(id==timerId_AllowClose)
+	{
+		HWND hctlOK = GetDlgItem(hwnd, IDOK);
+		EnableWindow(hctlOK, TRUE);
+		EnableWindow(GetDlgItem(hwnd, IDCANCEL), TRUE);
+		KillTimer(hwnd, timerId_AllowClose);
 
-	dsi_CallbackRefreshUserText(hwnd, false, pr, true);
+		SetFocus(hctlOK); // without this, we'll not be able close dlgbox with keyboard
+	}
+	else 
+		assert(0);
 }
 
 
@@ -545,13 +574,20 @@ void dsi_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 	{
 		assert(IDC_BTN2==IDCANCEL);
 
-		if(!pr->isOnlyClosedByProgram)
+		if(pr->isOnlyClosedByProgram)
+			return;
+
+		if(  pr->msecDelayClose>0 &&
+			(GetTickCount() - pr->tkmsecStart < pr->msecDelayClose) )
 		{
-			if(id==IDOK)
-				EndDialog(hwnd, FIB_OK);
-			else
-				EndDialog(hwnd, FIB_Cancel);
+			Beep(500, 500);
+			return;
 		}
+
+		if(id==IDOK)
+			EndDialog(hwnd, FIB_OK);
+		else
+			EndDialog(hwnd, FIB_Cancel);
 	}
 
 }
@@ -596,7 +632,7 @@ in_dlg_showinfo(HINSTANCE hinstExeDll,
 	// Set valid "defaults" for opt.
 
 	if(opt.title==NULL)
-		opt.title = _T("Showinfo");
+		opt.title = _T("FlexiInfo");
 	
 	if(opt.hIcon==NULL)
 		opt.hIcon = LoadIcon(NULL, IDI_INFORMATION);
@@ -801,3 +837,40 @@ ggt_FlexiInfobox_userc(HINSTANCE hinstExeDll, LPCTSTR resIdDlgbox,
 {
 	return in_dlg_showinfo(hinstExeDll, resIdDlgbox, NULL, hwndRealParent, p_usr_opt, pszInfo);
 }
+
+void 
+ggt_FlexiInfo(HWND hwndParent, const TCHAR *pszInfo)
+{
+	ggt_FlexiInfobox(hwndParent, NULL, pszInfo);
+}
+
+FIB_ret 
+ggt_vaFlexiInfobox(HWND hwndParent, const FibInput_st *p_usr_opt, const TCHAR *fmtInfo, ...)
+{
+	va_list args;
+	va_start(args, fmtInfo);
+
+	int reqlen_ = 1 + mm_vsnprintf(NULL, 0, fmtInfo, args);
+
+	Cec_delete_pTCHAR bufInfo = new TCHAR[reqlen_];
+
+	int req2 = mm_vsnprintf(bufInfo, reqlen_, fmtInfo, args);
+	assert(req2==reqlen_);
+
+	FIB_ret fibret = ggt_FlexiInfobox(hwndParent, p_usr_opt, bufInfo);
+
+	va_end(args);
+	return fibret;
+}
+
+void 
+ggt_vaFlexiInfo(HWND hwndParent, const TCHAR *fmtInfo, ...)
+{
+	va_list args;
+	va_start(args, fmtInfo);
+	
+	ggt_vaFlexiInfobox(hwndParent, NULL, _T("%w"), MM_WPAIR_PARAM(fmtInfo, args));
+
+	va_end(args);
+}
+

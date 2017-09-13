@@ -68,6 +68,8 @@ struct FibInput_st
 
 	int fontsize; // if 0, default to 9
 
+	int msecDelayClose; // to avoid closing dlgbox too quickly(probably accidentally)
+
 	const TCHAR *szBtnOK; 
 		// Text for the bottom OK button.
 		// If NULL, default to "OK". If "", OK and Btm2 will not be shown,
@@ -100,6 +102,8 @@ struct FibInput_st
 
 		fontsize = 0;
 
+		msecDelayClose = 0;
+
 		szBtnOK = szBtn2 = szRefreshBtn = szAutoChk = NULL;
 
 		maxVisualCharsX = maxVisualLines = 0;
@@ -128,11 +132,22 @@ enum FIB_ret
 
 DLLEXPORT_gadgetlib
 FIB_ret ggt_FlexiInfobox(
-	HWND hwndRealParent, const FibInput_st *p_usr_opt, const TCHAR *pszInfo);
+	HWND hwndParent, const FibInput_st *p_usr_opt, const TCHAR *pszInfo);
+
+DLLEXPORT_gadgetlib
+void ggt_FlexiInfo(HWND hwndParent, const TCHAR *pszInfo);
+
+DLLEXPORT_gadgetlib
+FIB_ret ggt_vaFlexiInfobox(
+	HWND hwndParent, const FibInput_st *p_usr_opt, const TCHAR *fmtInfo, ...);
+
+DLLEXPORT_gadgetlib
+void ggt_vaFlexiInfo(HWND hwndParent, const TCHAR *fmtInfo, ...);
+
 
 DLLEXPORT_gadgetlib
 FIB_ret ggt_FlexiInfobox_userc(HINSTANCE hinstExeDll, LPCTSTR resIdDlgbox,
-	HWND hwndRealParent, const FibInput_st *p_usr_opt, const TCHAR *pszInfo);
+	HWND hwndParent, const FibInput_st *p_usr_opt, const TCHAR *pszInfo);
 
 
 
