@@ -101,6 +101,7 @@ void do_dlg_showinfo(HWND hwndParent, bool isUseRC, bool isMono)
 //	si.fontsize = 12;
 	if(!isCtrlDown)
 	{
+//		si.idDefaultFocus = IDOK; // The button IDOK will defaulty have focus
 		si.szBtnOK = _T("Cl&ose");
 	}
 	else

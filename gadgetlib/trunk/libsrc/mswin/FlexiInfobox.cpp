@@ -70,7 +70,7 @@ struct FibDlgParams_st
 
 public:
 	FibDlgParams_st(const FibInput_st &in, const TCHAR *pszInfo);
-
+	void SetCustomFocus(HWND hdlg);
 };
 
 FibDlgParams_st::FibDlgParams_st(const FibInput_st &in, const TCHAR *pszInfo)
@@ -100,6 +100,22 @@ FibDlgParams_st::FibDlgParams_st(const FibInput_st &in, const TCHAR *pszInfo)
 	szAutoChkbox = in.szAutoChkbox;
 	//
 	idDefaultFocus = in.idDefaultFocus;
+}
+
+void FibDlgParams_st::SetCustomFocus(HWND hdlg)
+{
+	HWND hctlOK = GetDlgItem(hdlg, IDC_BTN_OK);
+	HWND hctlCancel = GetDlgItem(hdlg, IDC_BTN_CANCEL);
+
+	if(idDefaultFocus)
+	{
+		HWND hFocus = GetDlgItem(hdlg, idDefaultFocus);
+		SetFocus(hFocus);
+	}
+	else if(szBtnOK)
+		SetFocus(hctlOK);
+	else if(szBtnCancel)
+		SetFocus(hctlCancel);
 }
 
 static void 
@@ -460,11 +476,7 @@ BOOL dsi_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 	}
 	else
 	{
-		if(pr->idDefaultFocus)
-		{
-			HWND hFocus = GetDlgItem(hdlg, pr->idDefaultFocus);
-			SetFocus(hFocus);
-		}
+		pr->SetCustomFocus(hdlg);
 	}
 	
 	return FALSE; // will customize the focus
@@ -519,13 +531,13 @@ void dsi_OnTimer(HWND hwnd, UINT id)
 	}
 	else if(id==timerId_AllowClose)
 	{
-		HWND hctlOK = GetDlgItem(hwnd, IDOK);
+		HWND hctlOK = GetDlgItem(hwnd, IDC_BTN_OK);
+		HWND hctlCancel = GetDlgItem(hwnd, IDC_BTN_CANCEL);
 		EnableWindow(hctlOK, TRUE);
-		EnableWindow(GetDlgItem(hwnd, IDCANCEL), TRUE);
+		EnableWindow(hctlCancel, TRUE);
 		KillTimer(hwnd, timerId_AllowClose);
 
-		HWND hFocus = GetDlgItem(hwnd, pr->idDefaultFocus);
-		SetFocus(hFocus); // without this, we'll not be able close dlgbox with keyboard
+		pr->SetCustomFocus(hwnd);
 	}
 	else 
 		assert(0);
