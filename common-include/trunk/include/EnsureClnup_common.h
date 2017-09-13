@@ -30,6 +30,17 @@ MakeCleanupPtrClass(Cec_delete_pchar, void, _cpp_delete_pchar, char*)
 inline void _cpp_delete_pUchar(unsigned char *pUchar) { delete []pUchar; }
 MakeCleanupPtrClass(Cec_delete_pUchar, void, _cpp_delete_pUchar, unsigned char*)
 
+inline void _cpp_delete_pwchar(wchar_t *pwchar){ delete []pwchar; }
+MakeCleanupPtrClass(Cec_delete_pwchar, void, _cpp_delete_pwchar, wchar_t*)
+
+#if defined(UNICODE) || defined(_UNICODE)
+# define Cec_delete_pTCHAR Cec_delete_pwchar
+#else
+# define Cec_delete_pTCHAR Cec_delete_pchar
+#endif
+
+////
+
 inline void _cpp_delete_int_array(int *p){ delete []p; }
 MakeCleanupPtrClass(Cec_delete_int, void, _cpp_delete_int_array, int*)
 
