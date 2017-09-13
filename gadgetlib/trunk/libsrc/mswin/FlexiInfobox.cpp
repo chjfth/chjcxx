@@ -13,10 +13,9 @@
 #include <gadgetlib/enum_monitors.h>
 #include <gadgetlib/ReposNewbox.h>
 #include <gadgetlib/unstraddle_dlgbox.h>
-#include <gadgetlib/dlg_showinfo.h>
 
-#include <gadgetlib/dlg_showinfo_ids.h>
-#include <gadgetlib/dlg_showinfo.h>
+#include <gadgetlib/FlexiInfobox_ids.h>
+#include <gadgetlib/FlexiInfobox.h>
 
 #define DLL_AUTO_EXPORT_STUB
 extern"C" void gadgetlib_lib__dlg_showinfo__DLL_AUTO_EXPORT_STUB(void){}
@@ -57,16 +56,16 @@ struct DsiDlgParams_st
 	bool isTimerOn;
 	HICON hIconNow; // may switch between hIcon and an "error icon"
 
-	dlg_showinfo_callback_st cb_info;
+	FibCallback_st cb_info;
 
 	JULayout jul; 
 
 public:
-	DsiDlgParams_st(const dlg_showinfo_st &in, const TCHAR *pszInfo);
+	DsiDlgParams_st(const FibInput_st &in, const TCHAR *pszInfo);
 
 };
 
-DsiDlgParams_st::DsiDlgParams_st(const dlg_showinfo_st &in, const TCHAR *pszInfo)
+DsiDlgParams_st::DsiDlgParams_st(const FibInput_st &in, const TCHAR *pszInfo)
 {
 	memset(this, 0, sizeof(*this));
 
@@ -220,15 +219,15 @@ dsi_CallbackRefreshUserText(HWND hwnd, bool isManualRefresh, DsiDlgParams_st *pr
 	pr->cb_info.isCallFromRefreshBtn = isManualRefresh;
 	pr->cb_info.isAutoRefreshOn = IsDlgButtonChecked(hwnd, IDC_CHK_AUTOREFRESH)?true:false;
 
-	DlgShowinfoCallback_ret ret = pr->procGetText(pr->ctxGetText, pr->cb_info,
+	FibCallback_ret ret = pr->procGetText(pr->ctxGetText, pr->cb_info,
 		pr->textbuf, pr->bufchars); 
 		// Will update pr->textbuf[]
 	
-	if(ret==DSICB_OK)
+	if(ret==FIB_OK)
 	{
 		dsi_SetIcon(hwnd, pr->hIconUser, pr);
 	}
-	else if(ret==DSICB_CloseDlg)
+	else if(ret==FIB_CloseDlg)
 	{
 		EndDialog(hwnd, Dsie_Success);
 	}
@@ -237,7 +236,7 @@ dsi_CallbackRefreshUserText(HWND hwnd, bool isManualRefresh, DsiDlgParams_st *pr
 		// Set a yellow triangle icon
 		dsi_SetIcon(hwnd, LoadIcon(NULL, IDI_EXCLAMATION), pr);
 
-		if(ret==DSICB_Fail_StopAutoRefresh)
+		if(ret==FIB_Fail_StopAutoRefresh)
 		{
 			dsi_StopTimer(hwnd, pr);
 			CheckDlgButton(hwnd, IDC_CHK_AUTOREFRESH, BST_UNCHECKED);
@@ -295,11 +294,11 @@ dsi_CallbackRefreshUserText(HWND hwnd, bool isManualRefresh, DsiDlgParams_st *pr
 	SetDlgItemText(hwnd, IDC_EDIT_SHOW_INFO, pr->textbuf);
 }
 
-static DlgShowinfoCallback_ret 
-Dumb_GetText(void *ctx, const dlg_showinfo_callback_st &cb_info, TCHAR *textbuf, int bufchars)
+static FibCallback_ret 
+Dumb_GetText(void *ctx, const FibCallback_st &cb_info, TCHAR *textbuf, int bufchars)
 {
 	(void)ctx; (void)cb_info; (void)textbuf; (void)bufchars;
-	return DSICB_Fail;
+	return FIB_Fail;
 }
 
 
@@ -535,16 +534,16 @@ dsi_DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 } 
 
 
-dlg_showinfo_ret 
+FIB_ret 
 in_dlg_showinfo(HINSTANCE hinstExeDll, 
 	LPCTSTR resIdDlgbox, DLGTEMPLATE *pDlgTemplate,
-	HWND hwndRealParent, const dlg_showinfo_st *p_usr_opt, const TCHAR *pszInfo)
+	HWND hwndRealParent, const FibInput_st *p_usr_opt, const TCHAR *pszInfo)
 {
 	// Choose only one between resIdDlgbox and *pDlgTemplate.
 	if(!resIdDlgbox && !pDlgTemplate)
 		return Dsie_BadParam;
 
-	dlg_showinfo_st opt;
+	FibInput_st opt;
 	if(p_usr_opt)
 		opt = *p_usr_opt;
 
@@ -591,13 +590,13 @@ in_dlg_showinfo(HINSTANCE hinstExeDll,
 	if(dlgret==-1)
 		return Dsie_NoMem;
 	else
-		return (dlg_showinfo_ret)dlgret;
+		return (FIB_ret)dlgret;
 }
 
 #define ALIGN_TO_DWORD(pword) if((INT_PTR)(pword) & 0x3) *(pword)++ = 0;
 
-dlg_showinfo_ret 
-ggt_dlg_showinfo(HWND hwndRealParent, const dlg_showinfo_st *p_usr_opt, const TCHAR *pszInfo)
+FIB_ret 
+ggt_FlexiInfobox(HWND hwndRealParent, const FibInput_st *p_usr_opt, const TCHAR *pszInfo)
 {
 /*
 	// NOTE: We need to manually sync the code here with DIALOGEX resource statements.
@@ -738,9 +737,9 @@ END
 	return in_dlg_showinfo(hinstExe, NULL, &dt, hwndRealParent, p_usr_opt, pszInfo);
 }
 
-dlg_showinfo_ret 
-ggt_dlg_showinfo_userc(HINSTANCE hinstExeDll, LPCTSTR resIdDlgbox,
-	HWND hwndRealParent, const dlg_showinfo_st *p_usr_opt, const TCHAR *pszInfo)
+FIB_ret 
+ggt_FlexiInfobox_userc(HINSTANCE hinstExeDll, LPCTSTR resIdDlgbox,
+	HWND hwndRealParent, const FibInput_st *p_usr_opt, const TCHAR *pszInfo)
 {
 	return in_dlg_showinfo(hinstExeDll, resIdDlgbox, NULL, hwndRealParent, p_usr_opt, pszInfo);
 }

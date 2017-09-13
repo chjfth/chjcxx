@@ -7,7 +7,7 @@
 #include <mm_snprintf.h>
 #include <mswin/CmnHdr-Jeffrey.h>
 
-#include <gadgetlib/dlg_showinfo.h>
+#include <gadgetlib/FlexiInfobox.h>
 
 #include "resource.h"
 
@@ -52,8 +52,8 @@ struct MyDsiContext_st
 	bool isFromRC;
 };
 
-DlgShowinfoCallback_ret DSI_GetNowTime(void *_ctx, 
-	const dlg_showinfo_callback_st &cb_info,
+FibCallback_ret DSI_GetNowTime(void *_ctx, 
+	const FibCallback_st &cb_info,
 	TCHAR *textbuf, int bufchars)
 {
 	(void)cb_info;
@@ -67,7 +67,7 @@ DlgShowinfoCallback_ret DSI_GetNowTime(void *_ctx,
 		st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds
 		);
 
-	return DSICB_OK;
+	return FIB_OK;
 }
 
 void do_dlg_showinfo(HWND hwndParent, bool isUseRC, bool isMono)
@@ -80,7 +80,7 @@ void do_dlg_showinfo(HWND hwndParent, bool isUseRC, bool isMono)
 	TCHAR szTimeText[400] = _T("to-modify");
 	MyDsiContext_st ctx = { isUseRC ? true : false };
 
-	dlg_showinfo_st si;
+	FibInput_st si;
 	si.title = _T("Showinfo");
 	si.fixedwidth_font = isMono ? true : false;
 	si.procGetText = DSI_GetNowTime;
@@ -95,14 +95,14 @@ void do_dlg_showinfo(HWND hwndParent, bool isUseRC, bool isMono)
 
 	if(isUseRC)
 	{
-		ggt_dlg_showinfo_userc( 
+		ggt_FlexiInfobox_userc( 
 			(HINSTANCE)GetWindowLongPtr(hwndParent, GWLP_HINSTANCE), 
 			MAKEINTRESOURCE(IDD_SHOW_INFO),
 			useParent, &si, szTimeText); 
 	}
 	else
 	{
-		ggt_dlg_showinfo(useParent, &si, szTimeText);
+		ggt_FlexiInfobox(useParent, &si, szTimeText);
 	}
 }
 

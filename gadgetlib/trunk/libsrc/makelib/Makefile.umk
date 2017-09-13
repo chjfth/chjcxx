@@ -47,7 +47,7 @@ ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),msvc wince),1)
 	  fstream-aux.cpp           \
 	  mswin/MenuWithIcon.cpp    \
 	  mswin/enum_monitors.cpp   \
-	  mswin/dlg_showinfo.cpp    \
+	  mswin/FlexiInfobox.cpp    \
 	  mswin/impl_winapi.cpp     \
 	  unstraddle_dlgbox.cpp \
 	  ) \

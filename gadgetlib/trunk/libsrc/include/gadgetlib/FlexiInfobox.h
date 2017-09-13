@@ -11,15 +11,15 @@ extern"C"{
 # define DLLEXPORT_gadgetlib
 #endif
 
-enum DlgShowinfoCallback_ret
+enum FibCallback_ret
 {
-	DSICB_OK = 0,
-	DSICB_Fail = 1,
-	DSICB_Fail_StopAutoRefresh = 2,
-	DSICB_CloseDlg = 3, // the dialog will be closed
+	FIB_OK = 0,
+	FIB_Fail = 1,
+	FIB_Fail_StopAutoRefresh = 2,
+	FIB_CloseDlg = 3, // the dialog will be closed
 };
 
-struct dlg_showinfo_callback_st
+struct FibCallback_st
 {
 	HWND hDlg; // for user tweak, change [OK] button text etc.
 
@@ -36,13 +36,13 @@ struct dlg_showinfo_callback_st
 };
 
 
-typedef DlgShowinfoCallback_ret (*PROC_DlgShowinfo_GetText)(void *ctx, 
-	const dlg_showinfo_callback_st &cb_info,
+typedef FibCallback_ret (*PROC_DlgShowinfo_GetText)(void *ctx, 
+	const FibCallback_st &cb_info,
 	TCHAR *textbuf, int bufchars);
 	// textbuf = dlg_showinfo()'s pszInfo param
 	// bufchars = dlg_showinfo_st.bufchars
 
-struct dlg_showinfo_st
+struct FibInput_st
 {
 	const TCHAR *title; // optional
 	HICON hIcon; // optional, =LoadIcon(NULL, IDI_INFORMATION)
@@ -76,7 +76,7 @@ struct dlg_showinfo_st
 	bool isScrollToEnd;  // let final line of text always visible (implement later)
 
 
-	dlg_showinfo_st()
+	FibInput_st()
 	{
 		memset(this, 0, sizeof(this));
 
@@ -102,7 +102,7 @@ struct dlg_showinfo_st
 };
 
 
-enum dlg_showinfo_ret 
+enum FIB_ret 
 {
 	Dsie_Success = 0,
 	Dsie_Fail = 1,
@@ -115,12 +115,12 @@ enum dlg_showinfo_ret
 };
 
 DLLEXPORT_gadgetlib
-dlg_showinfo_ret ggt_dlg_showinfo(
-	HWND hwndRealParent, const dlg_showinfo_st *p_usr_opt, const TCHAR *pszInfo);
+FIB_ret ggt_FlexiInfobox(
+	HWND hwndRealParent, const FibInput_st *p_usr_opt, const TCHAR *pszInfo);
 
 DLLEXPORT_gadgetlib
-dlg_showinfo_ret ggt_dlg_showinfo_userc(HINSTANCE hinstExeDll, LPCTSTR resIdDlgbox,
-	HWND hwndRealParent, const dlg_showinfo_st *p_usr_opt, const TCHAR *pszInfo);
+FIB_ret ggt_FlexiInfobox_userc(HINSTANCE hinstExeDll, LPCTSTR resIdDlgbox,
+	HWND hwndRealParent, const FibInput_st *p_usr_opt, const TCHAR *pszInfo);
 
 
 
