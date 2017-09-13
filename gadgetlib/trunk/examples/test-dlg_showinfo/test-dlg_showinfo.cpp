@@ -105,6 +105,7 @@ void do_dlg_showinfo(HWND hwndParent, bool isUseRC, bool isMono)
 	}
 	else
 	{
+		si.idDefaultFocus = IDCANCEL;
 		si.szBtnOK = _T("&O K");
 		si.szBtnCancel = _T("&Cancel");
 	}

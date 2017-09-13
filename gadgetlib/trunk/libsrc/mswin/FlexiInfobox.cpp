@@ -448,6 +448,8 @@ BOOL dsi_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 		ShowWindow(GetDlgItem(hdlg, IDC_CHK_AUTOREFRESH), SW_HIDE); 
 	}
 
+	SetFocus(NULL);
+
 	if(pr->msecDelayClose>0)
 	{
 		pr->tkmsecStart = GetTickCount();
@@ -456,13 +458,16 @@ BOOL dsi_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 
 		SetTimer(hdlg, timerId_AllowClose, pr->msecDelayClose, NULL);
 	}
-
-	if(pr->idDefaultFocus)
-		SetFocus(GetDlgItem(hdlg, pr->idDefaultFocus));
 	else
-		SetFocus(NULL);
+	{
+		if(pr->idDefaultFocus)
+		{
+			HWND hFocus = GetDlgItem(hdlg, pr->idDefaultFocus);
+			SetFocus(hFocus);
+		}
+	}
 	
-	return FALSE; // no default focus
+	return FALSE; // will customize the focus
 }
 
 void dsi_OnDestroy(HWND hwnd)
@@ -519,7 +524,8 @@ void dsi_OnTimer(HWND hwnd, UINT id)
 		EnableWindow(GetDlgItem(hwnd, IDCANCEL), TRUE);
 		KillTimer(hwnd, timerId_AllowClose);
 
-		SetFocus(hctlOK); // without this, we'll not be able close dlgbox with keyboard
+		HWND hFocus = GetDlgItem(hwnd, pr->idDefaultFocus);
+		SetFocus(hFocus); // without this, we'll not be able close dlgbox with keyboard
 	}
 	else 
 		assert(0);
