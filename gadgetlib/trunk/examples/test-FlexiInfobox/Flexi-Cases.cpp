@@ -12,22 +12,22 @@
 extern HINSTANCE g_hinst;
 
 
-typedef FIB_ret (*PROC_DoCase)(HWND hwnd, const TCHAR *ptext);
+typedef FIB_ret (*PROC_DoCase)(HWND hwnd, LPCTSTR ptext);
 
 struct Case_st
 {
 	PROC_DoCase func;
-	const TCHAR *text;
+	LPCTSTR text;
 	int id;
 };
 
-FIB_ret fcSimplest(HWND hwnd, const TCHAR *ptext)
+FIB_ret fcSimplest(HWND hwnd, LPCTSTR ptext)
 {
 	ggt_FlexiInfo(hwnd, ptext);
 	return FIB_OK;
 }
 
-FIB_ret fcCustomizeTitle(HWND hwnd, const TCHAR *ptext)
+FIB_ret fcCustomizeTitle(HWND hwnd, LPCTSTR ptext)
 {
 	FibInput_st si;
 	si.title = _T("Your message");
@@ -35,7 +35,7 @@ FIB_ret fcCustomizeTitle(HWND hwnd, const TCHAR *ptext)
 	return ggt_FlexiInfobox(hwnd, &si, ptext);
 }
 
-FIB_ret fcWantCancelOnly(HWND hwnd, const TCHAR *ptext)
+FIB_ret fcWantCancelOnly(HWND hwnd, LPCTSTR ptext)
 {
 	// A small probleM here. User tabs to the editbox and Enter, it will return IDOK.
 	FibInput_st si;
@@ -43,7 +43,7 @@ FIB_ret fcWantCancelOnly(HWND hwnd, const TCHAR *ptext)
 	return ggt_FlexiInfobox(hwnd, &si, ptext); 
 }
 
-FIB_ret fcOKandCancel(HWND hwnd, const TCHAR *ptext)
+FIB_ret fcOKandCancel(HWND hwnd, LPCTSTR ptext)
 {
 	FibInput_st si;
 	si.szBtnOK = _T("OK");
@@ -51,7 +51,7 @@ FIB_ret fcOKandCancel(HWND hwnd, const TCHAR *ptext)
 	return ggt_FlexiInfobox(hwnd, &si, ptext);
 }
 
-FIB_ret fcYESandNO(HWND hwnd, const TCHAR *ptext)
+FIB_ret fcYESandNO(HWND hwnd, LPCTSTR ptext)
 {
 	FibInput_st si;
 	si.szBtnOK = _T("YES");
@@ -59,7 +59,7 @@ FIB_ret fcYESandNO(HWND hwnd, const TCHAR *ptext)
 	return ggt_FlexiInfobox(hwnd, &si, ptext);
 }
 
-FIB_ret fcYESandNO_default_No(HWND hwnd, const TCHAR *ptext)
+FIB_ret fcYESandNO_default_No(HWND hwnd, LPCTSTR ptext)
 {
 	FibInput_st si;
 	si.szBtnOK = _T("YES");
@@ -68,7 +68,7 @@ FIB_ret fcYESandNO_default_No(HWND hwnd, const TCHAR *ptext)
 	return ggt_FlexiInfobox(hwnd, &si, ptext);
 }
 
-FIB_ret fcUseMonoFont(HWND hwnd, const TCHAR *ptext)
+FIB_ret fcUseMonoFont(HWND hwnd, LPCTSTR ptext)
 {
 	FibInput_st si;
 	si.szBtnOK = _T("OK");
@@ -76,7 +76,7 @@ FIB_ret fcUseMonoFont(HWND hwnd, const TCHAR *ptext)
 	return ggt_FlexiInfobox(hwnd, &si, ptext);
 }
 
-FIB_ret fcUseBiggerMonoFont(HWND hwnd, const TCHAR *ptext)
+FIB_ret fcUseBiggerMonoFont(HWND hwnd, LPCTSTR ptext)
 {
 	FibInput_st si;
 	si.szBtnOK = _T("OK");
@@ -85,7 +85,7 @@ FIB_ret fcUseBiggerMonoFont(HWND hwnd, const TCHAR *ptext)
 	return ggt_FlexiInfobox(hwnd, &si, ptext);
 }
 
-FIB_ret fcUseBiggerDefaultFont(HWND hwnd, const TCHAR *ptext)
+FIB_ret fcUseBiggerDefaultFont(HWND hwnd, LPCTSTR ptext)
 {
 	FibInput_st si;
 	si.szBtnOK = _T("OK");
@@ -93,7 +93,7 @@ FIB_ret fcUseBiggerDefaultFont(HWND hwnd, const TCHAR *ptext)
 	return ggt_FlexiInfobox(hwnd, &si, ptext);
 }
 
-FIB_ret fcCustomizeIcon(HWND hwnd, const TCHAR *ptext)
+FIB_ret fcCustomizeIcon(HWND hwnd, LPCTSTR ptext)
 {
 	FibInput_st si;
 	si.szBtnOK = _T("OK");
