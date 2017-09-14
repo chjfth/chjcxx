@@ -76,7 +76,7 @@ FibCallback_ret DSI_GetNowTime(void *_ctx,
 	return FIBcb_OK;
 }
 
-void do_dlg_showinfo(HWND hwndParent, bool isUseRC, bool isMono)
+void do_Flexi(HWND hwndParent, bool isUseRC, bool isMono)
 {
 	bool isShiftDown = GetKeyState(VK_SHIFT)<0 ? true:false;
 	bool isCtrlDown = GetKeyState(VK_CONTROL)<0 ? true:false;
@@ -140,16 +140,16 @@ void Dlg_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 	switch (id) 
 	{{
 	case IDC_USE_RC:
-		do_dlg_showinfo(hwnd, true, false);
+		do_Flexi(hwnd, true, false);
 		break;
 	case IDC_USE_RC_MONO:
-		do_dlg_showinfo(hwnd, true, true);
+		do_Flexi(hwnd, true, true);
 		break;
 	case IDC_NOT_USE_RC:
-		do_dlg_showinfo(hwnd, false, false);
+		do_Flexi(hwnd, false, false);
 		break;
 	case IDC_NOT_USE_RC_MONO:
-		do_dlg_showinfo(hwnd, false, true);
+		do_Flexi(hwnd, false, true);
 		break;
 	case IDOK:
 	case IDCANCEL:
