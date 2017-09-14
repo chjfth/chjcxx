@@ -9,7 +9,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "verify-gadgetlib", "verify-
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test-MenuWithIcon", "test-MenuWithIcon\MenuWithIcon.vcxproj", "{D110802C-19B5-4E86-BB35-964129C3B6EE}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test-MenuWithIcon", "test-dlg_showinfo\dlg_showinfo.vcxproj", "{8CF6D236-8039-4ED5-83BB-E45A8F64905C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test-MenuWithIcon", "test-FlexiInfobox\FlexiInfobox.vcxproj", "{8CF6D236-8039-4ED5-83BB-E45A8F64905C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
