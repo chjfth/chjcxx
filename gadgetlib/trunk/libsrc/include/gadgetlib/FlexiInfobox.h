@@ -21,10 +21,10 @@ enum FibCallback_ret
 
 enum FibCallbackReason_et
 {
-	FIBcr_Timer = 0,
-	FIBcr_RefreshBtn = 1,
-	FIBcr_OKBtn = 2,
-	FIBcr_CancelBtn = 3,
+	FIBReason_Timer = 0,
+	FIBReason_RefreshBtn = 1,
+	FIBReason_OKBtn = 2,
+	FIBReason_CancelBtn = 3,
 };
 
 struct FibCallback_st

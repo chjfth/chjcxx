@@ -418,7 +418,7 @@ BOOL dsi_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 	SetWindowText(hdlg, pr->title);
 
 	if(pr->isAutoRefreshNow)
-		dsi_CallbackRefreshUserText(hdlg, FIBcr_Timer, pr, false); // pr->textbuf[] filled
+		dsi_CallbackRefreshUserText(hdlg, FIBReason_Timer, pr, false); // pr->textbuf[] filled
 	
 	SetDlgItemText(hdlg, IDC_EDIT_SHOW_INFO, pr->textbuf);
 
@@ -545,7 +545,7 @@ void dsi_OnTimer(HWND hwnd, UINT id)
 
 	if(id==timerId_AutoRefresh)
 	{
-		dsi_CallbackRefreshUserText(hwnd, FIBcr_Timer, pr, true);
+		dsi_CallbackRefreshUserText(hwnd, FIBReason_Timer, pr, true);
 	}
 	else if(id==timerId_AllowClose)
 	{
@@ -580,7 +580,7 @@ void dsi_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 
 	case IDC_BTN_REFRESH:
 	{
-		dsi_CallbackRefreshUserText(hwnd, FIBcr_RefreshBtn, pr, true);
+		dsi_CallbackRefreshUserText(hwnd, FIBReason_RefreshBtn, pr, true);
 		break;
 	}
 
@@ -589,7 +589,7 @@ void dsi_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 		UINT chkst = IsDlgButtonChecked(hwnd, IDC_CHK_AUTOREFRESH);
 		if(chkst==BST_CHECKED)
 		{
-			dsi_CallbackRefreshUserText(hwnd, FIBcr_Timer, pr, true);
+			dsi_CallbackRefreshUserText(hwnd, FIBReason_Timer, pr, true);
 			dsi_StartTimer(hwnd, pr);
 		}
 		else
@@ -620,7 +620,7 @@ void dsi_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 	if(id==IDC_BTN_OK || id==IDC_BTN_CANCEL)
 	{
 		FibCallback_ret cbret = dsi_CallbackRefreshUserText(hwnd, 
-			id==IDOK ? FIBcr_OKBtn : FIBcr_CancelBtn, 
+			id==IDOK ? FIBReason_OKBtn : FIBReason_CancelBtn, 
 			pr, true);
 
 		if(pr->isOnlyClosedByProgram || 
