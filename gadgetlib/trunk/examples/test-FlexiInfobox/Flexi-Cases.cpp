@@ -30,7 +30,7 @@ FIB_ret fcSimplest(HWND hwnd, LPCTSTR ptext)
 FIB_ret fcCustomizeTitle(HWND hwnd, LPCTSTR ptext)
 {
 	FibInput_st si;
-	si.title = _T("Your message");
+	si.title = _T("Your message"); // !
 	si.szBtnOK = _T("Close");
 	return ggt_FlexiInfobox(hwnd, &si, ptext);
 }
@@ -54,17 +54,17 @@ FIB_ret fcOKandCancel(HWND hwnd, LPCTSTR ptext)
 FIB_ret fcYESandNO(HWND hwnd, LPCTSTR ptext)
 {
 	FibInput_st si;
-	si.szBtnOK = _T("YES");
-	si.szBtnCancel = _T("NO");
+	si.szBtnOK = _T("&YES");    // !
+	si.szBtnCancel = _T("&NO"); // !
 	return ggt_FlexiInfobox(hwnd, &si, ptext);
 }
 
 FIB_ret fcYESandNO_default_No(HWND hwnd, LPCTSTR ptext)
 {
 	FibInput_st si;
-	si.szBtnOK = _T("YES");
-	si.szBtnCancel = _T("NO");
-	si.idDefaultFocus = IDC_BTN_CANCEL;
+	si.szBtnOK = _T("&YES");
+	si.szBtnCancel = _T("&NO");
+	si.idDefaultFocus = IDC_BTN_CANCEL; // !
 	return ggt_FlexiInfobox(hwnd, &si, ptext);
 }
 
@@ -72,7 +72,7 @@ FIB_ret fcUseMonoFont(HWND hwnd, LPCTSTR ptext)
 {
 	FibInput_st si;
 	si.szBtnOK = _T("OK");
-	si.fixedwidth_font = true;
+	si.fixedwidth_font = true; // !
 	return ggt_FlexiInfobox(hwnd, &si, ptext);
 }
 
@@ -80,8 +80,8 @@ FIB_ret fcUseBiggerMonoFont(HWND hwnd, LPCTSTR ptext)
 {
 	FibInput_st si;
 	si.szBtnOK = _T("OK");
-	si.fixedwidth_font = true;
-	si.fontsize = 12;
+	si.fixedwidth_font = true; // !
+	si.fontsize = 12;          // !
 	return ggt_FlexiInfobox(hwnd, &si, ptext);
 }
 
@@ -89,7 +89,7 @@ FIB_ret fcUseBiggerDefaultFont(HWND hwnd, LPCTSTR ptext)
 {
 	FibInput_st si;
 	si.szBtnOK = _T("OK");
-	si.fontsize = 12;
+	si.fontsize = 12;  // !
 	return ggt_FlexiInfobox(hwnd, &si, ptext);
 }
 
@@ -97,7 +97,7 @@ FIB_ret fcCustomizeIcon(HWND hwnd, LPCTSTR ptext)
 {
 	FibInput_st si;
 	si.szBtnOK = _T("OK");
-	si.hIcon = LoadIcon(g_hinst, MAKEINTRESOURCE(IDI_NEWLAND));
+	si.hIcon = LoadIcon(g_hinst, MAKEINTRESOURCE(IDI_NEWLAND)); // !
 	return ggt_FlexiInfobox(hwnd, &si, ptext);
 }
 
