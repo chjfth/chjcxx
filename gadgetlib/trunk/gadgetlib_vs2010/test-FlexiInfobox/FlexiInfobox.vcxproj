@@ -22,7 +22,7 @@
     <ProjectGuid>{8CF6D236-8039-4ED5-83BB-E45A8F64905C}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>tdlg_showinfo</RootNamespace>
-    <ProjectName>test-dlg_showinfo</ProjectName>
+    <ProjectName>test-FlexiInfobox</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Unicode|Win32'" Label="Configuration">
@@ -193,11 +193,12 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\examples\test-dlg_showinfo\resource.h" />
+    <ClInclude Include="..\..\examples\test-FlexiInfobox\resource.h" />
     <ClInclude Include="..\..\examples\verify\share.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\examples\test-dlg_showinfo\test-dlg_showinfo.cpp" />
+    <ClCompile Include="..\..\examples\test-FlexiInfobox\test-FlexiInfobox.cpp" />
+    <ClCompile Include="..\..\examples\test-FlexiInfobox\Flexi-Cases.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\libprj\libprj.vcxproj">
@@ -205,13 +206,13 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\..\examples\test-dlg_showinfo\demo.rc" />
+    <ResourceCompile Include="..\..\examples\test-FlexiInfobox\demo.rc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\examples\test-dlg_showinfo\NewLand.ico" />
+    <None Include="..\..\examples\test-FlexiInfobox\NewLand.ico" />
   </ItemGroup>
   <ItemGroup>
-    <Manifest Include="..\..\examples\test-dlg_showinfo\comctlv6.manifest" />
+    <Manifest Include="..\..\examples\test-FlexiInfobox\comctlv6.manifest" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

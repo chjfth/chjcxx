@@ -13,7 +13,7 @@ gmu_PRJ_NAME = gadgetlib.ux-mswin-all
 subprj_makefiles += \
 	common-all.umk \
 	test-MenuWithIcon/Makefile.umk \
-	test-dlg_showinfo/Makefile.umk \
+	test-FlexiInfobox/Makefile.umk \
 
 
 $(call gmuf_AddSubprjs_Concise,$(subprj_makefiles))

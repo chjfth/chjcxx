@@ -499,20 +499,6 @@ UINT ggt_TrackPopupMenuWithIcon(
 
 //////////////////////////////////////////////////////////////////////////
 
-/*
-TPMI_ret 
-ggt_TrackPopupMenuWithIcon(
-	const TPMI_IconItem_st arIcoms[], int nIcoms, TPMI_Output_st *pOutput,
-	HMENU hmenu, UINT tpmflags, int x, int y, HWND hwnd, LPTPMPARAMS lptpm)
-{
-	// Icom: Icon item
-
-
-
-	return TPMI_Succ;
-}
-*/
-
 bool 
 ggt_TrackPopupMenuIsVistaStyle()
 {

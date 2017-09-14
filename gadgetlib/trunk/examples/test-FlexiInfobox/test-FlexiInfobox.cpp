@@ -1,3 +1,4 @@
+#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <WindowsX.h>
 #include <CommCtrl.h>
@@ -137,6 +138,8 @@ void Dlg_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 {
 //	DlgPrivate_st *pr = (DlgPrivate_st*)GetWindowLongPtr(hwnd, DWLP_USER);
 
+	void do_Cases(HWND);
+
 	switch (id) 
 	{{
 	case IDC_USE_RC:
@@ -150,6 +153,9 @@ void Dlg_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 		break;
 	case IDC_NOT_USE_RC_MONO:
 		do_Flexi(hwnd, false, true);
+		break;
+	case IDC_BTN_CASES:
+		do_Cases(hwnd);
 		break;
 	case IDOK:
 	case IDCANCEL:
@@ -192,10 +198,7 @@ INT_PTR WINAPI Dlg_Proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 int WINAPI _tWinMain(HINSTANCE hinstExe, HINSTANCE, PTSTR pszCmdLine, int) 
 {
-	InitCommonControls(); // WinXP requires this to see any dialogbox.
-
-	// Memo: I do not call BufferedPaintInit()/BufferedPaintUninit() bcz I did not 
-	// notice any performance problem yet -- may be the icon is too small to reveal it.
+	InitCommonControls(); // WinXP requires this to see any v6 dialogbox.
 
 	g_hinst = hinstExe;
 	const WCHAR *mystr = L"My private string";
