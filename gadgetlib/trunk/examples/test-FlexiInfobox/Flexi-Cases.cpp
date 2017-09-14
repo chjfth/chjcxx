@@ -27,6 +27,22 @@ FIB_ret fcSimplest(HWND hwnd, const TCHAR *ptext)
 	return FIB_OK;
 }
 
+FIB_ret fcCustomizeTitle(HWND hwnd, const TCHAR *ptext)
+{
+	FibInput_st si;
+	si.title = _T("Your message");
+	si.szBtnOK = _T("Close");
+	return ggt_FlexiInfobox(hwnd, &si, ptext);
+}
+
+FIB_ret fcWantCancelOnly(HWND hwnd, const TCHAR *ptext)
+{
+	// A small probleM here. User tabs to the editbox and Enter, it will return IDOK.
+	FibInput_st si;
+	si.szBtnCancel = _T("Cancel");
+	return ggt_FlexiInfobox(hwnd, &si, ptext); 
+}
+
 FIB_ret fcOKandCancel(HWND hwnd, const TCHAR *ptext)
 {
 	FibInput_st si;
@@ -89,6 +105,8 @@ FIB_ret fcCustomizeIcon(HWND hwnd, const TCHAR *ptext)
 Case_st gar_FlexiCases[] = 
 {
 	{ fcSimplest, _T("Simplest") },
+	{ fcCustomizeTitle, _T("Customize title and button text") },
+	{ fcWantCancelOnly, _T("Want Cancel button only") },
 	{ fcOKandCancel, _T("Both OK can Cancel") },
 	{ fcYESandNO, _T("Customize button text to YES and NO") },
 	{ fcYESandNO_default_No, _T("Set default button to NO") },
@@ -123,6 +141,7 @@ void do_Cases(HWND hwnd)
 	int mret = TrackPopupMenu(hmenu, TPM_RETURNCMD , pt.x, pt.y, 0, hwnd, NULL);
 	if(mret>0)
 	{
+		static int s_count = 0;
 		bool isShiftDown = GetAsyncKeyState(VK_SHIFT)<0 ? true:false;
 
 		FIB_ret fibret = gar_FlexiCases[mret-1].func(
@@ -131,7 +150,7 @@ void do_Cases(HWND hwnd)
 			);
 		
 		TCHAR hint[40];
-		mm_snprintf(hint, GetEleQuan_i(hint), _T("FIB_ret=%d"), fibret);
+		mm_snprintf(hint, GetEleQuan_i(hint), _T("[count=%d] FIB_ret=%d"), ++s_count, fibret);
 
 		SetDlgItemText(hwnd, IDC_EDIT_HINT, hint);
 	}
