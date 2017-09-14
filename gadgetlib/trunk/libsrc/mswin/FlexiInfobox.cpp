@@ -30,6 +30,7 @@ struct FibDlgParams_st
 	TCHAR *textbuf;
 	int bufchars;
 	HICON hIconUser;
+	HICON hIconFail;
 	bool isFixedWidthFont;
 	//
 	PROC_FibCallback_GetText procGetText;
@@ -81,6 +82,7 @@ FibDlgParams_st::FibDlgParams_st(const FibInput_st &in, const TCHAR *pszInfo)
 	textbuf = (TCHAR*)pszInfo;
 	bufchars = in.bufchars;
 	hIconUser = in.hIcon;
+	hIconFail = in.hIconFail;
 	isFixedWidthFont = in.fixedwidth_font;
 	//
 	procGetText = in.procGetText;
@@ -137,19 +139,19 @@ void FibDlgParams_st::SetCustomFocus(HWND hdlg)
 }
 
 static void 
-dsi_SetIcon(HWND hwnd, HICON hNewIcon, FibDlgParams_st *pr)
+fib_SetIcon(HWND hwnd, HICON hNewIcon, FibDlgParams_st *pr)
 {
 	if(hNewIcon==pr->hIconNow)
 		return; // no need to redraw the icon
 
-	pr->hIconNow = hNewIcon;
+	pr->hIconNow = hNewIcon; // remember to avoid redundant Static_SetIcon call
 
 	HWND hctlIcon = GetDlgItem(hwnd, IDI_SHOW_INFO);
 	Static_SetIcon(hctlIcon, pr->hIconNow);
 }
 
 static void 
-dsi_StartTimer(HWND hwnd, FibDlgParams_st *pr)
+fib_StartTimer(HWND hwnd, FibDlgParams_st *pr)
 {
 	if(pr->isTimerOn)
 		return;
@@ -160,7 +162,7 @@ dsi_StartTimer(HWND hwnd, FibDlgParams_st *pr)
 }
 
 static void 
-dsi_StopTimer(HWND hwnd, FibDlgParams_st *pr)
+fib_StopTimer(HWND hwnd, FibDlgParams_st *pr)
 {
 	if(pr->isTimerOn==false)
 		return;
@@ -170,7 +172,7 @@ dsi_StopTimer(HWND hwnd, FibDlgParams_st *pr)
 }
 
 static Rect_st 
-dsi_CalNewboxTextMax(HWND hdlg, FibDlgParams_st *pr)
+fib_CalNewboxTextMax(HWND hdlg, FibDlgParams_st *pr)
 {
 	// Determine display-area of the input string(probably multi-line), 
 	// then we know(return) the corresponding dialogbox-window size.
@@ -260,7 +262,7 @@ dsi_CalNewboxTextMax(HWND hdlg, FibDlgParams_st *pr)
 }
 
 static FibCallback_ret  
-dsi_CallbackRefreshUserText(HWND hwnd, FibCallbackReason_et reason, FibDlgParams_st *pr, 
+fib_CallbackRefreshUserText(HWND hwnd, FibCallbackReason_et reason, FibDlgParams_st *pr, 
 	bool isAdjustWindowNow)
 {
 	pr->cb_info.hDlg = hwnd;
@@ -273,7 +275,7 @@ dsi_CallbackRefreshUserText(HWND hwnd, FibCallbackReason_et reason, FibDlgParams
 	
 	if(ret==FIBcb_OK)
 	{
-		dsi_SetIcon(hwnd, pr->hIconUser, pr);
+		fib_SetIcon(hwnd, pr->hIconUser, pr);
 	}
 	else if(ret==FIBcb_CloseDlg)
 	{
@@ -282,11 +284,11 @@ dsi_CallbackRefreshUserText(HWND hwnd, FibCallbackReason_et reason, FibDlgParams
 	else 
 	{
 		// Set a yellow triangle icon
-		dsi_SetIcon(hwnd, LoadIcon(NULL, IDI_EXCLAMATION), pr);
+		fib_SetIcon(hwnd, pr->hIconFail, pr);
 
 		if(ret==FIBcb_Fail_StopAutoRefresh)
 		{
-			dsi_StopTimer(hwnd, pr);
+			fib_StopTimer(hwnd, pr);
 			CheckDlgButton(hwnd, IDC_CHK_AUTOREFRESH, BST_UNCHECKED);
 		}
 	}
@@ -303,7 +305,7 @@ dsi_CallbackRefreshUserText(HWND hwnd, FibCallbackReason_et reason, FibDlgParams
 	bool wasAtVisualMax = cxSame && cySame;
 
 	bool isGoBigger = false;
-	Rect_st rectTextMax = dsi_CalNewboxTextMax(hwnd, pr);
+	Rect_st rectTextMax = fib_CalNewboxTextMax(hwnd, pr);
 
 	if( RECTcx(rectTextMax) > RECTcx(pr->rectNewboxVisualMax) )
 	{
@@ -345,7 +347,7 @@ dsi_CallbackRefreshUserText(HWND hwnd, FibCallbackReason_et reason, FibDlgParams
 }
 
 static FibCallback_ret 
-Dumb_GetText(void *ctx, const FibCallback_st &cb_info, TCHAR *textbuf, int bufchars)
+fib_Dumb_GetText(void *ctx, const FibCallback_st &cb_info, TCHAR *textbuf, int bufchars)
 {
 	(void)ctx; (void)cb_info; (void)textbuf; (void)bufchars;
 	return FIBcb_OK;
@@ -418,7 +420,7 @@ BOOL fib_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 	SetWindowText(hdlg, pr->title);
 
 	if(pr->isAutoRefreshNow)
-		dsi_CallbackRefreshUserText(hdlg, FIBReason_Timer, pr, false); // pr->textbuf[] filled
+		fib_CallbackRefreshUserText(hdlg, FIBReason_Timer, pr, false); // pr->textbuf[] filled
 	
 	SetDlgItemText(hdlg, IDC_EDIT_SHOW_INFO, pr->textbuf);
 
@@ -443,7 +445,7 @@ BOOL fib_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 		// Note: If using fixed-width font, it only influence the editbox, not the whole dialogbox.
 
 	Rect_st &rectMax = pr->rectNewboxVisualMax;
-	rectMax = dsi_CalNewboxTextMax(hdlg, pr);
+	rectMax = fib_CalNewboxTextMax(hdlg, pr);
 
 	MoveWindow(hdlg, rectMax.left, rectMax.top, RECTcx(rectMax), RECTcy(rectMax), TRUE);
 
@@ -459,7 +461,7 @@ BOOL fib_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 		pr->szAutoChkbox ? pr->szAutoChkbox : _T("&Auto")
 		);
 
-	if(pr->procGetText==Dumb_GetText)
+	if(pr->procGetText==fib_Dumb_GetText)
 	{
 		ShowWindow(GetDlgItem(hdlg, IDC_BTN_REFRESH), SW_HIDE); 
 	}
@@ -469,7 +471,7 @@ BOOL fib_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 		if(pr->isAutoRefreshNow)
 		{
 			CheckDlgButton(hdlg, IDC_CHK_AUTOREFRESH, BST_CHECKED);
-			dsi_StartTimer(hdlg, pr);
+			fib_StartTimer(hdlg, pr);
 		}
 		else
 		{
@@ -545,7 +547,7 @@ void fib_OnTimer(HWND hwnd, UINT id)
 
 	if(id==timerId_AutoRefresh)
 	{
-		dsi_CallbackRefreshUserText(hwnd, FIBReason_Timer, pr, true);
+		fib_CallbackRefreshUserText(hwnd, FIBReason_Timer, pr, true);
 	}
 	else if(id==timerId_AllowClose)
 	{
@@ -580,7 +582,7 @@ void fib_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 
 	case IDC_BTN_REFRESH:
 	{
-		dsi_CallbackRefreshUserText(hwnd, FIBReason_RefreshBtn, pr, true);
+		fib_CallbackRefreshUserText(hwnd, FIBReason_RefreshBtn, pr, true);
 		break;
 	}
 
@@ -589,12 +591,12 @@ void fib_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 		UINT chkst = IsDlgButtonChecked(hwnd, IDC_CHK_AUTOREFRESH);
 		if(chkst==BST_CHECKED)
 		{
-			dsi_CallbackRefreshUserText(hwnd, FIBReason_Timer, pr, true);
-			dsi_StartTimer(hwnd, pr);
+			fib_CallbackRefreshUserText(hwnd, FIBReason_Timer, pr, true);
+			fib_StartTimer(hwnd, pr);
 		}
 		else
 		{
-			dsi_StopTimer(hwnd, pr);
+			fib_StopTimer(hwnd, pr);
 		}
 		break;
 	}
@@ -619,7 +621,7 @@ void fib_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 
 	if(id==IDC_BTN_OK || id==IDC_BTN_CANCEL)
 	{
-		FibCallback_ret cbret = dsi_CallbackRefreshUserText(hwnd, 
+		FibCallback_ret cbret = fib_CallbackRefreshUserText(hwnd, 
 			id==IDOK ? FIBReason_OKBtn : FIBReason_CancelBtn, 
 			pr, true);
 
@@ -688,6 +690,8 @@ in_FlexiInfobox(HINSTANCE hinstExeDll,
 	
 	if(opt.hIcon==NULL)
 		opt.hIcon = LoadIcon(NULL, IDI_INFORMATION);
+	if(opt.hIconFail==NULL)
+		opt.hIconFail = LoadIcon(NULL, IDI_EXCLAMATION);
 
 	TCHAR null_char = _T('\0');
 	if(!pszInfo)
@@ -698,7 +702,7 @@ in_FlexiInfobox(HINSTANCE hinstExeDll,
 
 	if(!opt.procGetText || opt.bufchars<=0)
 	{
-		opt.procGetText = Dumb_GetText;
+		opt.procGetText = fib_Dumb_GetText;
 		opt.isRefreshNow = opt.isAutoRefreshNow = false;
 	}
 	
