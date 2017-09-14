@@ -32,7 +32,7 @@ struct FibDlgParams_st
 	HICON hIconUser;
 	bool isFixedWidthFont;
 	//
-	PROC_DlgShowinfo_GetText procGetText;
+	PROC_FibCallback_GetText procGetText;
 	void *ctxGetText;
 	//
 	int msecAutoRefresh; // non-zero will enable auto-refresh feature

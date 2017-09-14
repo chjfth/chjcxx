@@ -44,7 +44,7 @@ struct FibCallback_st
 
 //#define FIB_NoButton _T("")
 
-typedef FibCallback_ret (*PROC_DlgShowinfo_GetText)(void *ctx, 
+typedef FibCallback_ret (*PROC_FibCallback_GetText)(void *ctx, 
 	const FibCallback_st &cb_info,
 	TCHAR *textbuf, int bufchars);
 	// textbuf = dlg_showinfo()'s pszInfo param
@@ -57,7 +57,7 @@ struct FibInput_st
 	bool fixedwidth_font;
 
 	// If procGetText!=NULL, I'll show a [Refresh] button so that info text can be refreshed.
-	PROC_DlgShowinfo_GetText procGetText;
+	PROC_FibCallback_GetText procGetText;
 	void *ctxGetText;
 	int bufchars;
 
