@@ -638,7 +638,7 @@ void fib_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 			return;
 		}
 
-		if(id==IDOK)
+		if(id==IDC_BTN_OK)
 			EndDialog(hwnd, FIB_OK);
 		else
 			EndDialog(hwnd, FIB_Cancel);

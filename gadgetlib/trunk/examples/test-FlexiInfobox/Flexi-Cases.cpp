@@ -101,6 +101,21 @@ FIB_ret fcCustomizeIcon(HWND hwnd, LPCTSTR ptext)
 	return ggt_FlexiInfobox(hwnd, &si, ptext);
 }
 
+FIB_ret fcDelayClose(HWND hwnd, LPCTSTR ptext)
+{
+	FibInput_st si;
+	si.szBtnOK = _T("&Yes");
+	si.szBtnCancel = _T("&No");
+	si.msecDelayClose = 1000;
+	return ggt_FlexiInfobox(hwnd, &si, ptext);
+}
+
+FIB_ret fcUseNoButtons(HWND hwnd, LPCTSTR ptext)
+{
+	FibInput_st si;
+	return ggt_FlexiInfobox(hwnd, &si, ptext);
+}
+
 
 Case_st gar_FlexiCases[] = 
 {
@@ -117,6 +132,8 @@ Case_st gar_FlexiCases[] =
 
 	{ fcCustomizeIcon, _T("Customize icon") },
 
+	{ fcDelayClose, _T("Not allow to close infobox or make choice within 1000 milliseconds.") },
+	{ fcUseNoButtons, _T("Deliberately no buttons.\r\n\r\nUse Close nib or Alt+F4 to close this infobox.") },
 };
 
 void do_Cases(HWND hwnd)
