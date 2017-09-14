@@ -348,7 +348,7 @@ static FibCallback_ret
 Dumb_GetText(void *ctx, const FibCallback_st &cb_info, TCHAR *textbuf, int bufchars)
 {
 	(void)ctx; (void)cb_info; (void)textbuf; (void)bufchars;
-	return FIBcb_Fail;
+	return FIBcb_OK;
 }
 
 #define HideWindow(hwnd) ShowWindow((hwnd), SW_HIDE)
