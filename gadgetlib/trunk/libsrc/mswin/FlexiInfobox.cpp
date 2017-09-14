@@ -353,7 +353,7 @@ Dumb_GetText(void *ctx, const FibCallback_st &cb_info, TCHAR *textbuf, int bufch
 
 #define HideWindow(hwnd) ShowWindow((hwnd), SW_HIDE)
 
-BOOL dsi_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam) 
+BOOL fib_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam) 
 {
 	BOOL b = 0;
 	FibDlgParams_st *pr = (FibDlgParams_st*)lParam;
@@ -500,7 +500,7 @@ BOOL dsi_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 	return FALSE; // will customize the focus
 }
 
-void dsi_OnDestroy(HWND hwnd)
+void fib_OnDestroy(HWND hwnd)
 {
 	FibDlgParams_st *pr = (FibDlgParams_st*)GetWindowLongPtr(hwnd, DWLP_USER);
 
@@ -508,7 +508,7 @@ void dsi_OnDestroy(HWND hwnd)
 		DeleteObject(pr->hfontEditbox);
 }
 
-void dsi_OnSize(HWND hdlg, UINT state, int cx, int cy) 
+void fib_OnSize(HWND hdlg, UINT state, int cx, int cy) 
 {
 	FibDlgParams_st *pr = (FibDlgParams_st*)GetWindowLongPtr(hdlg, DWLP_USER);
 
@@ -527,7 +527,7 @@ void dsi_OnSize(HWND hdlg, UINT state, int cx, int cy)
 }
 
 
-void dsi_OnGetMinMaxInfo(HWND hdlg, PMINMAXINFO pMinMaxInfo) 
+void fib_OnGetMinMaxInfo(HWND hdlg, PMINMAXINFO pMinMaxInfo) 
 {
 	FibDlgParams_st *pr = (FibDlgParams_st*)GetWindowLongPtr(hdlg, DWLP_USER);
 
@@ -539,7 +539,7 @@ void dsi_OnGetMinMaxInfo(HWND hdlg, PMINMAXINFO pMinMaxInfo)
 	pMinMaxInfo->ptMaxTrackSize.y = RECTcy(pr->rectNewboxVisualMax);
 }
 
-void dsi_OnTimer(HWND hwnd, UINT id)
+void fib_OnTimer(HWND hwnd, UINT id)
 {
 	FibDlgParams_st *pr = (FibDlgParams_st*)GetWindowLongPtr(hwnd, DWLP_USER);
 
@@ -562,7 +562,7 @@ void dsi_OnTimer(HWND hwnd, UINT id)
 }
 
 
-void dsi_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify) 
+void fib_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify) 
 {
 	FibDlgParams_st *pr = (FibDlgParams_st*)GetWindowLongPtr(hwnd, DWLP_USER);
 //	DWORD winerr;
@@ -646,16 +646,16 @@ void dsi_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 
 
 INT_PTR CALLBACK
-dsi_DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+fib_DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch(uMsg) 
 	{{
-		chHANDLE_DLGMSG(hwnd, WM_INITDIALOG, dsi_OnInitDialog);
-		chHANDLE_DLGMSG(hwnd, WM_DESTROY, dsi_OnDestroy);
-		chHANDLE_DLGMSG(hwnd, WM_COMMAND, dsi_OnCommand);
-		chHANDLE_DLGMSG(hwnd, WM_SIZE,          dsi_OnSize); // JULayout
-		chHANDLE_DLGMSG(hwnd, WM_GETMINMAXINFO, dsi_OnGetMinMaxInfo); // JULayout
-		chHANDLE_DLGMSG(hwnd, WM_TIMER, dsi_OnTimer);
+		chHANDLE_DLGMSG(hwnd, WM_INITDIALOG, fib_OnInitDialog);
+		chHANDLE_DLGMSG(hwnd, WM_DESTROY, fib_OnDestroy);
+		chHANDLE_DLGMSG(hwnd, WM_COMMAND, fib_OnCommand);
+		chHANDLE_DLGMSG(hwnd, WM_SIZE,          fib_OnSize); // JULayout
+		chHANDLE_DLGMSG(hwnd, WM_GETMINMAXINFO, fib_OnGetMinMaxInfo); // JULayout
+		chHANDLE_DLGMSG(hwnd, WM_TIMER, fib_OnTimer);
 
 	default: 
 		return FALSE;
@@ -666,7 +666,7 @@ dsi_DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 
 FIB_ret 
-in_dlg_showinfo(HINSTANCE hinstExeDll, 
+in_FlexiInfobox(HINSTANCE hinstExeDll, 
 	LPCTSTR resIdDlgbox, DLGTEMPLATE *pDlgTemplate,
 	HWND hwndRealParent, const FibInput_st *p_usr_opt, const TCHAR *pszInfo)
 {
@@ -710,12 +710,12 @@ in_dlg_showinfo(HINSTANCE hinstExeDll,
 	if(resIdDlgbox)
 	{
 		dlgret = DialogBoxParam(hinstExeDll, resIdDlgbox,
-			hwndRealParent, dsi_DlgProc, (LPARAM)&dsi);
+			hwndRealParent, fib_DlgProc, (LPARAM)&dsi);
 	}
 	else
 	{
 		dlgret = DialogBoxIndirectParam(hinstExeDll, pDlgTemplate,
-			hwndRealParent, dsi_DlgProc, (LPARAM)&dsi);
+			hwndRealParent, fib_DlgProc, (LPARAM)&dsi);
 	}
 	
 	if(dlgret==-1)
@@ -880,14 +880,14 @@ END
 	*pword++ = 0x0000; // no creation data
 
 	HINSTANCE hinstExe = (HINSTANCE)GetWindowLongPtr(hwndRealParent, GWLP_HINSTANCE);
-	return in_dlg_showinfo(hinstExe, NULL, &dt, hwndRealParent, p_usr_opt, pszInfo);
+	return in_FlexiInfobox(hinstExe, NULL, &dt, hwndRealParent, p_usr_opt, pszInfo);
 }
 
 FIB_ret 
 ggt_FlexiInfobox_userc(HINSTANCE hinstExeDll, LPCTSTR resIdDlgbox,
 	HWND hwndRealParent, const FibInput_st *p_usr_opt, const TCHAR *pszInfo)
 {
-	return in_dlg_showinfo(hinstExeDll, resIdDlgbox, NULL, hwndRealParent, p_usr_opt, pszInfo);
+	return in_FlexiInfobox(hinstExeDll, resIdDlgbox, NULL, hwndRealParent, p_usr_opt, pszInfo);
 }
 
 void 

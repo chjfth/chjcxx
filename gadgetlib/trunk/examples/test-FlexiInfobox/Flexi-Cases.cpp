@@ -112,8 +112,8 @@ Case_st gar_FlexiCases[] =
 	{ fcYESandNO_default_No, _T("Set default button to NO") },
 	
 	{ fcUseMonoFont, _T("Use mono font (fixed-width font)") },
-	{ fcUseBiggerMonoFont, _T("Use bigger mono font") },
-	{ fcUseBiggerDefaultFont, _T("Use bigger default font") },
+	{ fcUseBiggerMonoFont, _T("Use bigger mono font size") },
+	{ fcUseBiggerDefaultFont, _T("Use bigger font size with default fontface") },
 
 	{ fcCustomizeIcon, _T("Customize icon") },
 

@@ -54,8 +54,10 @@ typedef FibCallback_ret (*PROC_FibCallback_GetText)(void *ctx,
 struct FibInput_st
 {
 	const TCHAR *title; // optional
-	HICON hIcon;        // optional, =LoadIcon(NULL, IDI_INFORMATION)
 	bool fixedwidth_font;
+
+	HICON hIcon;        // optional, =LoadIcon(NULL, IDI_INFORMATION)
+	HICON hIconFail;    // optional, =LoadIcon(NULL, IDI_EXCLAMATION)
 
 	// If procGetText!=NULL, I'll show a [Refresh] button so that info text can be refreshed.
 	PROC_FibCallback_GetText procGetText;
@@ -101,8 +103,9 @@ struct FibInput_st
 		memset(this, 0, sizeof(*this));
 
 		title = NULL;
-		hIcon = NULL;
 		fixedwidth_font = false;
+
+		hIcon = hIconFail = NULL;
 
 		procGetText = NULL; 
 		ctxGetText = NULL;
