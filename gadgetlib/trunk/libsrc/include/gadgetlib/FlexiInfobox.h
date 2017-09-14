@@ -2,6 +2,7 @@
 #define __dlg_showinfo_h_20170717_
 
 #include <RECTxy.h>
+#include <gadgetlib/FlexiInfobox_ids.h>
 
 #ifdef __cplusplus
 extern"C"{
