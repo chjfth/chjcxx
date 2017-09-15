@@ -164,6 +164,49 @@ FIB_ret fcDenyCancelWithPrompt(HWND hwnd, LPCTSTR ptext)
 	return ggt_FlexiInfobox(hwnd, &si, mytext);
 }
 
+struct fcRefreshable_st
+{
+	int count;
+	const TCHAR *ptn;
+};
+FibCallback_ret fcRefreshable_GetText(void *_ctx, 
+	const FibCallback_st &cb_info,
+	TCHAR *textbuf, int bufchars)
+{
+	fcRefreshable_st &ctx = *(fcRefreshable_st*)_ctx;
+
+	if(cb_info.reason==FIBReason_RefreshBtn) // !
+	{
+		if(ctx.count==0)
+			textbuf[0] = _T('\0');
+
+		ctx.count++;
+		mm_strcat(textbuf, bufchars, 
+			_T("[%2d]%.*s\r\n"), 
+			ctx.count, ctx.count, ctx.ptn);
+	}
+	return FIBcb_OK;
+}
+FIB_ret fcRefreshable(HWND hwnd, LPCTSTR ptext)
+{
+	const int bufsize = 4000;
+	TCHAR mytext[bufsize]= _T("");
+	mm_strcat(mytext, bufsize, ptext);
+
+	TCHAR stars[100] = {};
+	for(int i=0; i<99; i++) stars[i] = _T('*');
+
+	fcRefreshable_st ctx = {0, stars};
+
+	FibInput_st si;
+	si.szBtnOK = _T("&OK");
+	si.procGetText = fcRefreshable_GetText;
+	si.ctxGetText = &ctx;       // !
+	si.isShowRefreshBtn = true; // !
+	si.bufchars = bufsize;
+	return ggt_FlexiInfobox(hwnd, &si, mytext);
+}
+
 
 Case_st gar_FlexiCases[] = 
 {
@@ -187,6 +230,7 @@ Case_st gar_FlexiCases[] =
 
 	{ fcDenyCancel, _T("Deny Cancel button's closing infobox") },
 	{ fcDenyCancelWithPrompt, _T("Deny Cancel button and customize prompt") },
+	{ fcRefreshable, _T("Use Refresh button for new info") },
 };
 
 void do_Cases(HWND hwnd)
