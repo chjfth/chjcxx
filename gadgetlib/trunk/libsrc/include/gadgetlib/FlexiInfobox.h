@@ -16,16 +16,18 @@ enum FibCallback_ret
 {
 	FIBcb_OK = 0,
 	FIBcb_Fail = 1,
-	FIBcb_Fail_StopAutoRefresh = 2,
-	FIBcb_CloseDlg = 3, // the dialog will be closed
+	FIBcb_FailIcon = 2,
+	FIBcb_Fail_StopAutoRefresh = 3,
+	FIBcb_FailIcon_StopAutoRefresh = 4,
+	FIBcb_CloseDlg = 5, // the dialog will be closed
 };
 
 enum FibCallbackReason_et
 {
 	FIBReason_Timer = 0,
-	FIBReason_RefreshBtn = 1,
-	FIBReason_OKBtn = 2,
-	FIBReason_CancelBtn = 3,
+	FIBReason_OKBtn = IDOK,
+	FIBReason_CancelBtn = IDCANCEL,
+	FIBReason_RefreshBtn = 3,
 };
 
 struct FibCallback_st
@@ -61,22 +63,19 @@ struct FibInput_st
 	HICON hIcon;        // optional, =LoadIcon(NULL, IDI_INFORMATION)
 	HICON hIconFail;    // optional, =LoadIcon(NULL, IDI_EXCLAMATION)
 
-	// If procGetText!=NULL, I'll show a [Refresh] button so that info text can be refreshed.
+	// If procGetText!=NULL, I'll 
 	PROC_FibCallback_GetText procGetText;
 	void *ctxGetText;
 	int bufchars;
-
-	int msecAutoRefresh; // non-zero will enable auto-refresh feature
 	
+	bool isShowRefreshBtn; // show a [Refresh] btn so that info text can be refreshed by user.
 	bool isRefreshNow; 
 		// true means calling procGetText() right now once at entrance
 	bool isAutoRefreshNow; 
 		// true means start auto-refresh automatically, 
 		// otherwise,user should enable a check-box to start auto-refresh.
 
-	bool isOnlyClosedByProgram;
-		// If true, user cannot use [OK] or [X] to close the dialog,
-		// only a DSICB_CloseDlg return from callback can close it.
+	int msecAutoRefresh; // non-zero will enable auto-refresh feature
 
 	int fontsize; // if 0, default to 9
 
@@ -99,6 +98,8 @@ struct FibInput_st
 	int maxVisualLines;  // limit max dialog-box height (implement later)
 	bool isScrollToEnd;  // let final line of text always visible (implement later)
 
+//	isOnlyClosedByProgram = false; // deprecated
+
 
 	FibInput_st()
 	{
@@ -116,7 +117,7 @@ struct FibInput_st
 		msecAutoRefresh = 0;
 		isRefreshNow = isAutoRefreshNow = false;
 
-		isOnlyClosedByProgram = false;
+//		isOnlyClosedByProgram = false;
 
 		fontsize = 0;
 
@@ -147,7 +148,7 @@ enum FIB_ret
 
 	// Invalid param error:
 
-	FIB_OnlyClosedByProgram_but_NoCallback = 10,
+//	FIB_OnlyClosedByProgram_but_NoCallback = 10,
 };
 
 DLLEXPORT_gadgetlib

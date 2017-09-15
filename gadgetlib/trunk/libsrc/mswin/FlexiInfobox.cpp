@@ -23,6 +23,40 @@ extern"C" void gadgetlib_lib__dlg_showinfo__DLL_AUTO_EXPORT_STUB(void){}
 const int timerId_AutoRefresh = 1;
 const int timerId_AllowClose = 2;
 
+inline bool FIBcb__IsFail(FibCallback_ret ret)
+{
+	if(ret==FIBcb_Fail || ret==FIBcb_FailIcon || ret==FIBcb_Fail_StopAutoRefresh || ret==FIBcb_FailIcon_StopAutoRefresh)
+		return true;
+	else
+		return false;
+}
+
+inline bool FIBcb__IsSetFailIcon(FibCallback_ret ret)
+{
+	if(ret==FIBcb_FailIcon || ret==FIBcb_FailIcon_StopAutoRefresh)
+		return true;
+	else
+		return false;
+}
+
+inline bool FIBcb__IsStopAutoRefresh(FibCallback_ret ret)
+{
+	if(ret==FIBcb_Fail_StopAutoRefresh || ret==FIBcb_FailIcon_StopAutoRefresh)
+		return true;
+	else
+		return false;
+}
+
+#define HideWindow(hwnd) ShowWindow((hwnd), SW_HIDE)
+
+static void Hide_DlgItem(HWND hwnd, int idCtl)
+{
+	HWND hctl = GetDlgItem(hwnd, idCtl);
+	assert(hctl);
+	ShowWindow(hctl, SW_HIDE);
+}
+
+
 struct FibDlgParams_st
 {
 	// Input params from caller:
@@ -36,6 +70,7 @@ struct FibDlgParams_st
 	PROC_FibCallback_GetText procGetText;
 	void *ctxGetText;
 	//
+	bool isShowRefreshBtn;
 	int msecAutoRefresh; // non-zero will enable auto-refresh feature
 	bool isAutoRefreshNow; 
 	//
@@ -88,10 +123,11 @@ FibDlgParams_st::FibDlgParams_st(const FibInput_st &in, const TCHAR *pszInfo)
 	procGetText = in.procGetText;
 	ctxGetText = in.ctxGetText;
 	//
+	isShowRefreshBtn = in.isShowRefreshBtn;
 	msecAutoRefresh = in.msecAutoRefresh;
 	isAutoRefreshNow = in.isAutoRefreshNow;
 	//
-	isOnlyClosedByProgram = in.isOnlyClosedByProgram;
+//	isOnlyClosedByProgram = in.isOnlyClosedByProgram;
 	//
 	msecDelayClose = in.msecDelayClose;
 	tkmsecStart = 0;
@@ -283,10 +319,10 @@ fib_CallbackRefreshUserText(HWND hwnd, FibCallbackReason_et reason, FibDlgParams
 	}
 	else 
 	{
-		// Set a yellow triangle icon
-		fib_SetIcon(hwnd, pr->hIconFail, pr);
+		if(FIBcb__IsSetFailIcon(ret))
+			fib_SetIcon(hwnd, pr->hIconFail, pr);
 
-		if(ret==FIBcb_Fail_StopAutoRefresh)
+		if(FIBcb__IsStopAutoRefresh(ret))
 		{
 			fib_StopTimer(hwnd, pr);
 			CheckDlgButton(hwnd, IDC_CHK_AUTOREFRESH, BST_UNCHECKED);
@@ -353,7 +389,6 @@ fib_Dumb_GetText(void *ctx, const FibCallback_st &cb_info, TCHAR *textbuf, int b
 	return FIBcb_OK;
 }
 
-#define HideWindow(hwnd) ShowWindow((hwnd), SW_HIDE)
 
 BOOL fib_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam) 
 {
@@ -461,9 +496,9 @@ BOOL fib_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 		pr->szAutoChkbox ? pr->szAutoChkbox : _T("&Auto")
 		);
 
-	if(pr->procGetText==fib_Dumb_GetText)
+	if(! (pr->isShowRefreshBtn || pr->msecAutoRefresh>0) )
 	{
-		ShowWindow(GetDlgItem(hdlg, IDC_BTN_REFRESH), SW_HIDE); 
+		Hide_DlgItem(hdlg, IDC_BTN_REFRESH); 
 	}
 
 	if(pr->msecAutoRefresh>0) // user need auto-refresh feature
@@ -481,7 +516,7 @@ BOOL fib_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 	else
 	{
 		// hide []Auto chkbox
-		ShowWindow(GetDlgItem(hdlg, IDC_CHK_AUTOREFRESH), SW_HIDE); 
+		Hide_DlgItem(hdlg, IDC_CHK_AUTOREFRESH);
 	}
 
 	SetFocus(NULL);
@@ -625,8 +660,7 @@ void fib_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 			id==IDOK ? FIBReason_OKBtn : FIBReason_CancelBtn, 
 			pr, true);
 
-		if(pr->isOnlyClosedByProgram || 
-			cbret==FIBcb_Fail || cbret==FIBcb_Fail_StopAutoRefresh)
+		if(FIBcb__IsFail(cbret))
 		{
 			return; // No calling EndDialog()
 		}
@@ -680,8 +714,8 @@ in_FlexiInfobox(HINSTANCE hinstExeDll,
 	if(p_usr_opt)
 		opt = *p_usr_opt;
 
-	if(opt.isOnlyClosedByProgram && !opt.procGetText)
-		return FIB_OnlyClosedByProgram_but_NoCallback;
+// 	if(opt.isOnlyClosedByProgram && !opt.procGetText)
+// 		return FIB_OnlyClosedByProgram_but_NoCallback;
 
 	// Set valid "defaults" for opt.
 
@@ -700,7 +734,7 @@ in_FlexiInfobox(HINSTANCE hinstExeDll,
 		opt.bufchars = 1;
 	}
 
-	if(!opt.procGetText || opt.bufchars<=0)
+	if(!opt.procGetText) // || opt.bufchars<=0)
 	{
 		opt.procGetText = fib_Dumb_GetText;
 		opt.isRefreshNow = opt.isAutoRefreshNow = false;

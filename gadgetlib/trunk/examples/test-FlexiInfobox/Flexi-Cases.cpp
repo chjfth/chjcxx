@@ -117,6 +117,53 @@ FIB_ret fcUseNoButtons(HWND hwnd, LPCTSTR ptext)
 		_T("Use Close nib or Alt+F4 to close this infobox."));
 }
 
+FibCallback_ret fcDenyCancel_GetText(void *ctx, 
+	const FibCallback_st &cb_info,
+	TCHAR *textbuf, int bufchars)
+{
+	if(cb_info.reason==FIBReason_CancelBtn)
+		return FIBcb_Fail;
+	else
+		return FIBcb_OK;
+}
+FIB_ret fcDenyCancel(HWND hwnd, LPCTSTR ptext)
+{
+	FibInput_st si;
+	si.szBtnOK = _T("&OK");
+	si.szBtnCancel = _T("No &Cancel");
+	si.procGetText = fcDenyCancel_GetText;
+	return ggt_vaFlexiInfobox(hwnd, &si, _T("%s\r\n\r\n%s"), ptext,
+		_T("You can only click OK to close this infobox."));
+}
+
+FibCallback_ret fcDenyCancelWithPrompt_GetText(void *ctx, 
+	const FibCallback_st &cb_info,
+	TCHAR *textbuf, int bufchars)
+{
+	// textbuf will equal to your input buffer to ggt_FlexiInfobox()
+	// bufchars will equal to si.bufchars.
+	if(cb_info.reason==FIBReason_CancelBtn)
+	{
+		mm_snprintf(textbuf, bufchars, _T("You see, you cannot Cancel it."));
+		return FIBcb_FailIcon; // will show a fail-icon
+	}
+	else
+		return FIBcb_OK;
+}
+FIB_ret fcDenyCancelWithPrompt(HWND hwnd, LPCTSTR ptext)
+{
+	const int bufsize = 400;
+	TCHAR mytext[bufsize]= _T("");
+	mm_strcat(mytext, bufsize, ptext);
+
+	FibInput_st si;
+	si.szBtnOK = _T("&OK");
+	si.szBtnCancel = _T("No &Cancel");
+	si.procGetText = fcDenyCancelWithPrompt_GetText;
+	si.bufchars = bufsize; // !
+	return ggt_FlexiInfobox(hwnd, &si, mytext);
+}
+
 
 Case_st gar_FlexiCases[] = 
 {
@@ -135,6 +182,11 @@ Case_st gar_FlexiCases[] =
 
 	{ fcDelayClose, _T("Not allow to close infobox or make choice within 1000 milliseconds.") },
 	{ fcUseNoButtons, _T("Deliberately no buttons") },
+
+	{ NULL }, // a menu item separator
+
+	{ fcDenyCancel, _T("Deny Cancel button's closing infobox") },
+	{ fcDenyCancelWithPrompt, _T("Deny Cancel button and customize prompt") },
 };
 
 void do_Cases(HWND hwnd)
@@ -145,13 +197,16 @@ void do_Cases(HWND hwnd)
 	int i=0;
 	for(; i<GetEleQuan_i(gar_FlexiCases); i++)
 	{
-		int idnow = i+1;
-		gar_FlexiCases[i].id = idnow;
+		Case_st &thiscase = gar_FlexiCases[i];
+		thiscase.id = i+1;
 
 		TCHAR szItem[80];
-		mm_snprintf(szItem, GetEleQuan_i(szItem), _T("%d. %s"), idnow, gar_FlexiCases[i].text);
+		mm_snprintf(szItem, GetEleQuan_i(szItem), _T("%d. %s"), thiscase.id, thiscase.text);
 
-		AppendMenu(hmenu, MF_STRING, idnow, szItem);
+		if(thiscase.func)
+			AppendMenu(hmenu, MF_STRING, thiscase.id, szItem);
+		else
+			AppendMenu(hmenu, MF_SEPARATOR, 0, 0);
 	}
 
 	RECT rectBtn;
