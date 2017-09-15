@@ -74,7 +74,7 @@ struct FibDlgParams_st
 	int msecAutoRefresh; // non-zero will enable auto-refresh feature
 	bool isAutoRefreshNow; 
 	//
-	bool isOnlyClosedByProgram;
+//	bool isOnlyClosedByProgram;
 	//
 	// user can customize button text
 	const TCHAR *szBtnOK;
@@ -83,7 +83,9 @@ struct FibDlgParams_st
 	const TCHAR *szAutoChkbox;
 
 	int idDefaultFocus;
+	bool isNarrowTitle;
 	bool isScrollToEnd;
+	bool isForceHideRefreshCtrl;
 
 	// Internal data for Showinfo-dialog:
 	HWND hwndRealParent;
@@ -94,7 +96,6 @@ struct FibDlgParams_st
 		// This Rect will inflate along with user text increasing, not deflating.
 		// The rect is from GetWindowRect.
 	bool ScrollbarAlways;
-
 
 	bool isTimerOn;
 	HICON hIconNow; // may switch between hIcon and an "error icon"
@@ -141,7 +142,9 @@ FibDlgParams_st::FibDlgParams_st(const FibInput_st &in, const TCHAR *pszInfo)
 	szAutoChkbox = in.szAutoChkbox;
 	//
 	idDefaultFocus = in.idDefaultFocus;
+	isNarrowTitle = in.isNarrowTitle;
 	isScrollToEnd = in.isScrollToEnd;
+	isForceHideRefreshCtrl = in.isForceHideRefreshCtrl;
 }
 
 void FibDlgParams_st::SetCustomFocus(HWND hdlg)
@@ -564,7 +567,22 @@ BOOL fib_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 	{
 		pr->SetCustomFocus(hdlg);
 	}
-	
+
+	if(pr->isNarrowTitle)
+	{
+		LONG_PTR exstyle = GetWindowLongPtr(hdlg, GWL_EXSTYLE);
+		SetWindowLongPtr(hdlg, GWL_EXSTYLE, exstyle|WS_EX_TOOLWINDOW);
+
+		LONG_PTR style = GetWindowLongPtr(hdlg, GWL_STYLE);
+		SetWindowLongPtr(hdlg, GWL_STYLE, style &  ~WS_SYSMENU); // turn off the small close nib
+	}
+
+	if(pr->isForceHideRefreshCtrl)
+	{
+		Hide_DlgItem(hdlg, IDC_BTN_REFRESH);
+		Hide_DlgItem(hdlg, IDC_CHK_AUTOREFRESH);
+	}
+
 	return FALSE; // will customize the focus
 }
 

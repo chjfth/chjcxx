@@ -233,9 +233,53 @@ FIB_ret fcTimedRefresh(HWND hwnd, LPCTSTR ptext)
 	FibInput_st si;
 	si.szBtnOK = _T("&OK");
 	si.procGetText = fcTimedRefresh_GetText;
-	si.msecAutoRefresh = 1000;  // millisec
+	si.msecAutoRefresh = 1000;  // ! unit: millisec
 	si.isAutoRefreshNow = true;
 	si.bufchars = bufsize;      // !
+	return ggt_FlexiInfobox(hwnd, &si, mytext);
+}
+
+
+struct fcCountDownClose_st
+{
+	DWORD tkmsec_end;
+};
+//
+FibCallback_ret fcCountDownClose_GetText(void *_ctx, 
+	const FibCallback_st &cb_info,
+	TCHAR *textbuf, int bufchars)
+{
+	fcCountDownClose_st &ctx = *(fcCountDownClose_st*)_ctx;
+
+	DWORD tkmsec_now = GetTickCount();
+	int msec_remain = ctx.tkmsec_end - tkmsec_now;
+
+	if(msec_remain>0)
+	{
+		mm_snprintf(textbuf, bufchars, 
+			_T("This infobox will be closed in %d seconds."), 
+			msec_remain/1000+1);
+		return FIBcb_Fail;
+	}
+	else
+		return FIBcb_CloseDlg; // ! This auto-close the infobox
+}
+//
+FIB_ret fcCountDownClose(HWND hwnd, LPCTSTR ptext)
+{
+	const int bufsize = 80;
+	TCHAR mytext[bufsize]= _T("");
+
+	fcCountDownClose_st ctx = { GetTickCount()+5000 };
+
+	FibInput_st si;
+	si.procGetText = fcCountDownClose_GetText;
+	si.ctxGetText = &ctx;
+	si.msecAutoRefresh = 500;  // need it to trigger auto-close
+	si.isAutoRefreshNow = true;
+	si.bufchars = bufsize;
+	si.isNarrowTitle = true;          // optional
+	si.isForceHideRefreshCtrl = true; // optional
 	return ggt_FlexiInfobox(hwnd, &si, mytext);
 }
 
@@ -264,6 +308,7 @@ Case_st gar_FlexiCases[] =
 	{ fcDenyCancelWithPrompt, _T("Deny Cancel button and customize prompt") },
 	{ fcRefreshable, _T("Use Refresh button for new info") },
 	{ fcTimedRefresh, _T("Auto refresh to show clock time") },
+	{ fcCountDownClose, _T("Countdown close: Only closeable by program") },
 };
 
 void do_Cases(HWND hwnd)

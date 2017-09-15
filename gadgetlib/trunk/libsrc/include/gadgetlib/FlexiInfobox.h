@@ -95,8 +95,10 @@ struct FibInput_st
 	const TCHAR *szAutoChkbox;
 
 	int idDefaultFocus;
-	
+	bool isNarrowTitle;  // Make the infobox so-called tool-window.
 	bool isScrollToEnd;  // let final line of text always visible
+
+	bool isForceHideRefreshCtrl; // force hiding [Refresh] and [x]Auto .
 
 	int maxVisualCharsX; // limit max dialog-box width (implement later)
 	int maxVisualLines;  // limit max dialog-box height (implement later)
@@ -129,8 +131,10 @@ struct FibInput_st
 		szBtnOK = szBtnCancel = szBtnRefresh = szAutoChkbox = NULL;
 
 		idDefaultFocus = 0;
-
+		isNarrowTitle = false;
 		isScrollToEnd = false;
+
+		isForceHideRefreshCtrl = false;
 
 		maxVisualCharsX = maxVisualLines = 0;
 		isScrollToEnd = false;
