@@ -113,7 +113,8 @@ FIB_ret fcDelayClose(HWND hwnd, LPCTSTR ptext)
 FIB_ret fcUseNoButtons(HWND hwnd, LPCTSTR ptext)
 {
 	FibInput_st si;
-	return ggt_FlexiInfobox(hwnd, &si, ptext);
+	return ggt_vaFlexiInfobox(hwnd, &si, _T("%s\r\n\r\n%s"), ptext,
+		_T("Use Close nib or Alt+F4 to close this infobox."));
 }
 
 
@@ -133,7 +134,7 @@ Case_st gar_FlexiCases[] =
 	{ fcCustomizeIcon, _T("Customize icon") },
 
 	{ fcDelayClose, _T("Not allow to close infobox or make choice within 1000 milliseconds.") },
-	{ fcUseNoButtons, _T("Deliberately no buttons.\r\n\r\nUse Close nib or Alt+F4 to close this infobox.") },
+	{ fcUseNoButtons, _T("Deliberately no buttons") },
 };
 
 void do_Cases(HWND hwnd)
@@ -153,9 +154,9 @@ void do_Cases(HWND hwnd)
 		AppendMenu(hmenu, MF_STRING, idnow, szItem);
 	}
 
-	POINT pt;
-	GetCursorPos(&pt);
-	int mret = TrackPopupMenu(hmenu, TPM_RETURNCMD , pt.x, pt.y, 0, hwnd, NULL);
+	RECT rectBtn;
+	GetWindowRect(GetDlgItem(hwnd, IDC_BTN_CASES), &rectBtn);
+	int mret = TrackPopupMenu(hmenu, TPM_RETURNCMD , rectBtn.left, rectBtn.bottom, 0, hwnd, NULL);
 	if(mret>0)
 	{
 		static int s_count = 0;

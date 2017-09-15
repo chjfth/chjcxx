@@ -913,7 +913,7 @@ ggt_vaFlexiInfobox(HWND hwndParent, const FibInput_st *p_usr_opt, const TCHAR *f
 	Cec_delete_pTCHAR bufInfo = new TCHAR[reqlen_];
 
 	int req2 = mm_vsnprintf(bufInfo, reqlen_, fmtInfo, args);
-	assert(req2==reqlen_);
+	assert(req2+1==reqlen_);
 
 	FIB_ret fibret = ggt_FlexiInfobox(hwndParent, p_usr_opt, bufInfo);
 

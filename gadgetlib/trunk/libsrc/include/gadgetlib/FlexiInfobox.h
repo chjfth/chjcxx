@@ -53,6 +53,8 @@ typedef FibCallback_ret (*PROC_FibCallback_GetText)(void *ctx,
 
 struct FibInput_st
 {
+	int StructSize;
+
 	const TCHAR *title; // optional
 	bool fixedwidth_font;
 
@@ -101,6 +103,7 @@ struct FibInput_st
 	FibInput_st()
 	{
 		memset(this, 0, sizeof(*this));
+		StructSize = sizeof(*this);
 
 		title = NULL;
 		fixedwidth_font = false;
