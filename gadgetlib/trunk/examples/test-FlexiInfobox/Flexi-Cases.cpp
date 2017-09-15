@@ -204,6 +204,7 @@ FIB_ret fcRefreshable(HWND hwnd, LPCTSTR ptext)
 	si.ctxGetText = &ctx;       // !
 	si.isShowRefreshBtn = true; // !
 	si.bufchars = bufsize;
+//	si.isScrollToEnd = true;
 	return ggt_FlexiInfobox(hwnd, &si, mytext);
 }
 

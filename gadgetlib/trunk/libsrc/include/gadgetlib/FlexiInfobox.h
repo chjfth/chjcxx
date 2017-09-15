@@ -93,10 +93,11 @@ struct FibInput_st
 	const TCHAR *szAutoChkbox;
 
 	int idDefaultFocus;
+	
+	bool isScrollToEnd;  // let final line of text always visible
 
 	int maxVisualCharsX; // limit max dialog-box width (implement later)
 	int maxVisualLines;  // limit max dialog-box height (implement later)
-	bool isScrollToEnd;  // let final line of text always visible (implement later)
 
 //	isOnlyClosedByProgram = false; // deprecated
 
@@ -126,6 +127,8 @@ struct FibInput_st
 		szBtnOK = szBtnCancel = szBtnRefresh = szAutoChkbox = NULL;
 
 		idDefaultFocus = 0;
+
+		isScrollToEnd = false;
 
 		maxVisualCharsX = maxVisualLines = 0;
 		isScrollToEnd = false;

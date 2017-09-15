@@ -83,6 +83,7 @@ struct FibDlgParams_st
 	const TCHAR *szAutoChkbox;
 
 	int idDefaultFocus;
+	bool isScrollToEnd;
 
 	// Internal data for Showinfo-dialog:
 	HWND hwndRealParent;
@@ -94,6 +95,7 @@ struct FibDlgParams_st
 		// The rect is from GetWindowRect.
 	bool ScrollbarAlways;
 
+
 	bool isTimerOn;
 	HICON hIconNow; // may switch between hIcon and an "error icon"
 
@@ -101,12 +103,13 @@ struct FibDlgParams_st
 
 	DWORD msecDelayClose;
 	DWORD tkmsecStart;
-	
+
 	JULayout jul; 
 
 public:
 	FibDlgParams_st(const FibInput_st &in, const TCHAR *pszInfo);
 	void SetCustomFocus(HWND hdlg);
+	void SetMyText(HWND hdlg);
 };
 
 FibDlgParams_st::FibDlgParams_st(const FibInput_st &in, const TCHAR *pszInfo)
@@ -138,6 +141,7 @@ FibDlgParams_st::FibDlgParams_st(const FibInput_st &in, const TCHAR *pszInfo)
 	szAutoChkbox = in.szAutoChkbox;
 	//
 	idDefaultFocus = in.idDefaultFocus;
+	isScrollToEnd = in.isScrollToEnd;
 }
 
 void FibDlgParams_st::SetCustomFocus(HWND hdlg)
@@ -171,6 +175,19 @@ void FibDlgParams_st::SetCustomFocus(HWND hdlg)
 			UINT style = GetWindowLong(hDefaultPushBtn, GWL_STYLE);
 			SetWindowLong(hDefaultPushBtn, GWL_STYLE, style|BS_DEFPUSHBUTTON);
 		}
+	}
+}
+
+void FibDlgParams_st::SetMyText(HWND hdlg)
+{
+	HWND hEdit = GetDlgItem(hdlg, IDC_EDIT_SHOW_INFO);
+	assert(hEdit);
+	SetWindowText(hEdit, textbuf);
+
+	if(isScrollToEnd)
+	{
+		int lines = Edit_GetLineCount(hEdit);
+		SNDMSG(hEdit, EM_LINESCROLL, 0, lines);
 	}
 }
 
@@ -390,7 +407,7 @@ fib_CallbackRefreshUserText(HWND hwnd, FibCallbackReason_et reason, FibDlgParams
 	if( idealEditSize.cy>RECTcy(rectEditboxNow) || idealEditSize.cx>RECTcx(rectEditboxNow) )
 		ShowScrollBar(hEdit, SB_VERT, TRUE);
 
-	SetDlgItemText(hwnd, IDC_EDIT_SHOW_INFO, pr->textbuf);
+	pr->SetMyText(hwnd);
 
 	return ret;
 }
@@ -470,7 +487,7 @@ BOOL fib_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 	if(pr->isAutoRefreshNow)
 		fib_CallbackRefreshUserText(hdlg, FIBReason_Timer, pr, false); // pr->textbuf[] filled
 	
-	SetDlgItemText(hdlg, IDC_EDIT_SHOW_INFO, pr->textbuf);
+	pr->SetMyText(hdlg); // SetDlgItemText(hdlg, IDC_EDIT_SHOW_INFO, pr->textbuf);
 
 	// Create a font to be used for EditBox
 	LOGFONT logfont = {0};
