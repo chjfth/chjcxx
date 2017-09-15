@@ -208,10 +208,12 @@ fib_StopTimer(HWND hwnd, FibDlgParams_st *pr)
 }
 
 static Rect_st 
-fib_CalNewboxTextMax(HWND hdlg, FibDlgParams_st *pr)
+fib_CalNewboxTextMax(HWND hdlg, FibDlgParams_st *pr, Size_st *pIdealDrawsize=NULL)
 {
 	// Determine display-area of the input string(probably multi-line), 
 	// then we know(return) the corresponding dialogbox-window size.
+	//
+	// The return size is not of the imaginary-ideal draw-size, but the expected real-visual size.
 
 	Rect_st rectTextMax = {0,0,0,0}; // as return value
 
@@ -234,6 +236,9 @@ fib_CalNewboxTextMax(HWND hdlg, FibDlgParams_st *pr)
 	// But note: Line-breaks must be "\r\n"(not "\n") to have DrawText calculate drawarea correctly.
 
 	ReleaseDC(hdlg, hdcEdit);
+
+	if(pIdealDrawsize)
+		pIdealDrawsize->cx = RECTcx(drawarea), pIdealDrawsize->cy = RECTcy(drawarea);
 
 	// ... cal ideal width of the newbox window ... (newbox is the new MessageBox we will pop)
 
@@ -341,7 +346,8 @@ fib_CallbackRefreshUserText(HWND hwnd, FibCallbackReason_et reason, FibDlgParams
 	bool wasAtVisualMax = cxSame && cySame;
 
 	bool isGoBigger = false;
-	Rect_st rectTextMax = fib_CalNewboxTextMax(hwnd, pr);
+	Size_st idealEditSize = {0};
+	Rect_st rectTextMax = fib_CalNewboxTextMax(hwnd, pr, &idealEditSize); // return Dlg rect, not Editbox's
 
 	if( RECTcx(rectTextMax) > RECTcx(pr->rectNewboxVisualMax) )
 	{
@@ -376,6 +382,13 @@ fib_CallbackRefreshUserText(HWND hwnd, FibCallbackReason_et reason, FibDlgParams
 
 		MoveWindow(hwnd, rect_new.left, rect_new.top, RECTcx(rect_new), RECTcy(rect_new), TRUE);
 	}
+
+	// Re-check to see whether we need to re-show scrollbar
+	HWND hEdit = GetDlgItem(hwnd, IDC_EDIT_SHOW_INFO); assert(hEdit);
+	RECT rectEditboxNow;
+	GetWindowRect(hEdit, &rectEditboxNow);
+	if( idealEditSize.cy>RECTcy(rectEditboxNow) || idealEditSize.cx>RECTcx(rectEditboxNow) )
+		ShowScrollBar(hEdit, SB_VERT, TRUE);
 
 	SetDlgItemText(hwnd, IDC_EDIT_SHOW_INFO, pr->textbuf);
 

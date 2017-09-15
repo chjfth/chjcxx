@@ -189,7 +189,7 @@ FibCallback_ret fcRefreshable_GetText(void *_ctx,
 }
 FIB_ret fcRefreshable(HWND hwnd, LPCTSTR ptext)
 {
-	const int bufsize = 4000;
+	const int bufsize = 5500;
 	TCHAR mytext[bufsize]= _T("");
 	mm_strcat(mytext, bufsize, ptext);
 
