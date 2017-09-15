@@ -5,6 +5,7 @@
 #define IDOK2                           2
 #define IDD_WINMAIN                     100
 #define IDI_NEWLAND                     100
+#define IDI_CLOCK                       101
 #define IDC_USE_RC                      100
 #define IDC_NOT_USE_RC                  101
 #define IDC_USE_RC_MONO                 102

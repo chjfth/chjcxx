@@ -281,6 +281,7 @@ FIB_ret fcCountDownClose(HWND hwnd, LPCTSTR ptext)
 	si.bufchars = bufsize;
 	si.isNarrowTitle = true;          // optional
 	si.isForceHideRefreshCtrl = true; // optional
+	si.hIcon = LoadIcon(g_hinst, MAKEINTRESOURCE(IDI_CLOCK));
 	return ggt_FlexiInfobox(hwnd, &si, mytext);
 }
 
