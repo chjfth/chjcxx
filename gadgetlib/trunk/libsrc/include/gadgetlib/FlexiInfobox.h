@@ -71,8 +71,8 @@ struct FibInput_st
 	int bufchars;
 	
 	bool isShowRefreshBtn; // show a [Refresh] btn so that info text can be refreshed by user.
-	bool isRefreshNow; 
-		// true means calling procGetText() right now once at entrance
+//	bool isRefreshNow; // deprecated
+		// -- true means calling procGetText() right now once at entrance
 	bool isAutoRefreshNow; 
 		// true means start auto-refresh automatically, 
 		// otherwise,user should enable a check-box to start auto-refresh.
@@ -118,7 +118,7 @@ struct FibInput_st
 		ctxGetText = NULL;
 
 		msecAutoRefresh = 0;
-		isRefreshNow = isAutoRefreshNow = false;
+		isAutoRefreshNow = false;
 
 //		isOnlyClosedByProgram = false;
 

@@ -768,7 +768,7 @@ in_FlexiInfobox(HINSTANCE hinstExeDll,
 	if(!opt.procGetText) // || opt.bufchars<=0)
 	{
 		opt.procGetText = fib_Dumb_GetText;
-		opt.isRefreshNow = opt.isAutoRefreshNow = false;
+		opt.isAutoRefreshNow = false;
 	}
 	
 	FibDlgParams_st dsi(opt, pszInfo);

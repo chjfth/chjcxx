@@ -150,6 +150,7 @@ FibCallback_ret fcDenyCancelWithPrompt_GetText(void *ctx,
 	else
 		return FIBcb_OK;
 }
+//
 FIB_ret fcDenyCancelWithPrompt(HWND hwnd, LPCTSTR ptext)
 {
 	const int bufsize = 400;
@@ -169,6 +170,7 @@ struct fcRefreshable_st
 	int count;
 	const TCHAR *ptn;
 };
+//
 FibCallback_ret fcRefreshable_GetText(void *_ctx, 
 	const FibCallback_st &cb_info,
 	TCHAR *textbuf, int bufchars)
@@ -187,6 +189,7 @@ FibCallback_ret fcRefreshable_GetText(void *_ctx,
 	}
 	return FIBcb_OK;
 }
+//
 FIB_ret fcRefreshable(HWND hwnd, LPCTSTR ptext)
 {
 	const int bufsize = 5500;
@@ -203,8 +206,36 @@ FIB_ret fcRefreshable(HWND hwnd, LPCTSTR ptext)
 	si.procGetText = fcRefreshable_GetText;
 	si.ctxGetText = &ctx;       // !
 	si.isShowRefreshBtn = true; // !
-	si.bufchars = bufsize;
+	si.bufchars = bufsize;      // !
 //	si.isScrollToEnd = true;
+	return ggt_FlexiInfobox(hwnd, &si, mytext);
+}
+
+
+FibCallback_ret fcTimedRefresh_GetText(void *_ctx, 
+	const FibCallback_st &cb_info,
+	TCHAR *textbuf, int bufchars)
+{
+	(void)cb_info; (void)_ctx;
+	SYSTEMTIME st;
+	GetLocalTime(&st);
+	mm_snprintf(textbuf, bufchars, 
+		_T("Now time %02d:%02d:%02d"),
+		st.wHour, st.wMinute, st.wSecond);
+	return FIBcb_OK;
+}
+//
+FIB_ret fcTimedRefresh(HWND hwnd, LPCTSTR ptext)
+{
+	const int bufsize = 50;
+	TCHAR mytext[bufsize]= _T("");
+
+	FibInput_st si;
+	si.szBtnOK = _T("&OK");
+	si.procGetText = fcTimedRefresh_GetText;
+	si.msecAutoRefresh = 1000;  // millisec
+	si.isAutoRefreshNow = true;
+	si.bufchars = bufsize;      // !
 	return ggt_FlexiInfobox(hwnd, &si, mytext);
 }
 
@@ -232,6 +263,7 @@ Case_st gar_FlexiCases[] =
 	{ fcDenyCancel, _T("Deny Cancel button's closing infobox") },
 	{ fcDenyCancelWithPrompt, _T("Deny Cancel button and customize prompt") },
 	{ fcRefreshable, _T("Use Refresh button for new info") },
+	{ fcTimedRefresh, _T("Auto refresh to show clock time") },
 };
 
 void do_Cases(HWND hwnd)

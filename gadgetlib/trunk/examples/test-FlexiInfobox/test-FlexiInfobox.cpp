@@ -96,7 +96,6 @@ void do_Flexi(HWND hwndParent, bool isUseRC, bool isMono)
 	si.ctxGetText = &ctx;
 	si.bufchars = ARRAYSIZE(szTimeText);
 	si.msecAutoRefresh = 500;
-	si.isRefreshNow = true;
 	si.isAutoRefreshNow = true;
 	si.msecDelayClose = 1000;
 //	si.fontsize = 12;
