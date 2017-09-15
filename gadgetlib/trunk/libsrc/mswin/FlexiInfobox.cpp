@@ -825,7 +825,7 @@ STYLE DS_SETFONT | DS_FIXEDSYS | WS_MINIMIZEBOX | WS_POPUP | WS_VISIBLE | WS_CAP
 CAPTION "FlexiInfo"
 FONT 9, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-	PUSHBUTTON   "OK",IDOK,46,38,50,14
+	PUSHBUTTON      "OK",IDOK,46,38,50,14
 	PUSHBUTTON      "Btn2",IDCANCEL,99,38,50,14
 	ICON            "",IDI_SHOW_INFO,14,6,20,20,SS_NOTIFY
 	EDITTEXT        IDC_EDIT_SHOW_INFO,47,6,102,28,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | NOT WS_BORDER | WS_VSCROLL
@@ -842,6 +842,12 @@ END
 	dt.dwExtendedStyle = 0;
 	dt.cdit = 0; // count of child controls, increase later
 	dt.x=0, dt.y=0, dt.cx=156, dt.cy=56;
+
+	// Special case for bare-infobox scene: eliminate bottom button spaces.
+	if(!p_usr_opt->szBtnOK && !p_usr_opt->szBtnCancel && p_usr_opt->isForceHideRefreshCtrl)
+	{
+		dt.cy = 34+5; // 34 is IDC_EDIT_SHOW_INFO's bottom y-pos
+	}
 
 	// menu, class, title
 

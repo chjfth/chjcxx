@@ -257,7 +257,8 @@ FibCallback_ret fcCountDownClose_GetText(void *_ctx,
 	if(msec_remain>0)
 	{
 		mm_snprintf(textbuf, bufchars, 
-			_T("This infobox will be closed in %d seconds."), 
+			_T("Wait %d seconds before this infobox closes itself."), 
+//			_T("\r\n\r\n\r\n\r\n\r\n\r\n\r\nWait %d seconds before this infobox closes itself."), 
 			msec_remain/1000+1);
 		return FIBcb_Fail;
 	}
