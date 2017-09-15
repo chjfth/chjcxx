@@ -320,12 +320,13 @@ fib_CalNewboxTextMax(HWND hdlg, FibDlgParams_st *pr, Size_st *pIdealDrawsize=NUL
 }
 
 static FibCallback_ret  
-fib_CallbackRefreshUserText(HWND hwnd, FibCallbackReason_et reason, FibDlgParams_st *pr, 
+fib_CallbackRefreshUserText(HWND hdlg, FibCallbackReason_et reason, FibDlgParams_st *pr, 
 	bool isAdjustWindowNow)
 {
-	pr->cb_info.hDlg = hwnd;
+	pr->cb_info.hDlg = hdlg;
 	pr->cb_info.reason = reason;
-	pr->cb_info.isAutoRefreshOn = IsDlgButtonChecked(hwnd, IDC_CHK_AUTOREFRESH)?true:false;
+	pr->cb_info.ret_replace_offset = 0;
+	pr->cb_info.isAutoRefreshOn = IsDlgButtonChecked(hdlg, IDC_CHK_AUTOREFRESH)?true:false;
 
 	FibCallback_ret ret = pr->procGetText(pr->ctxGetText, pr->cb_info,
 		pr->textbuf, pr->bufchars); 
@@ -333,21 +334,21 @@ fib_CallbackRefreshUserText(HWND hwnd, FibCallbackReason_et reason, FibDlgParams
 	
 	if(ret==FIBcb_OK)
 	{
-		fib_SetIcon(hwnd, pr->hIconUser, pr);
+		fib_SetIcon(hdlg, pr->hIconUser, pr);
 	}
 	else if(ret==FIBcb_CloseDlg)
 	{
-		EndDialog(hwnd, FIB_Success);
+		EndDialog(hdlg, FIB_Success);
 	}
 	else 
 	{
 		if(FIBcb__IsSetFailIcon(ret))
-			fib_SetIcon(hwnd, pr->hIconFail, pr);
+			fib_SetIcon(hdlg, pr->hIconFail, pr);
 
 		if(FIBcb__IsStopAutoRefresh(ret))
 		{
-			fib_StopTimer(hwnd, pr);
-			CheckDlgButton(hwnd, IDC_CHK_AUTOREFRESH, BST_UNCHECKED);
+			fib_StopTimer(hdlg, pr);
+			CheckDlgButton(hdlg, IDC_CHK_AUTOREFRESH, BST_UNCHECKED);
 		}
 	}
 
@@ -356,7 +357,7 @@ fib_CallbackRefreshUserText(HWND hwnd, FibCallbackReason_et reason, FibDlgParams
 
 	const int px_torrent = 14;
 	Rect_st rectNow;
-	GetWindowRect(hwnd, (RECT*)&rectNow);
+	GetWindowRect(hdlg, (RECT*)&rectNow);
 	//bool wasAtVisualMax = RECT_IsSameSize(rectNow, pr->rectNewboxVisualMax) ? true : false; // see secret 6px bias, give up acurate size checking
 	bool cxSame = ( RECTcx(pr->rectNewboxVisualMax)-RECTcx(rectNow) <= px_torrent );
 	bool cySame = ( RECTcy(pr->rectNewboxVisualMax)-RECTcy(rectNow) <= px_torrent );
@@ -364,7 +365,7 @@ fib_CallbackRefreshUserText(HWND hwnd, FibCallbackReason_et reason, FibDlgParams
 
 	bool isGoBigger = false;
 	Size_st idealEditSize = {0};
-	Rect_st rectTextMax = fib_CalNewboxTextMax(hwnd, pr, &idealEditSize); // return Dlg rect, not Editbox's
+	Rect_st rectTextMax = fib_CalNewboxTextMax(hdlg, pr, &idealEditSize); // return Dlg rect, not Editbox's
 
 	if( RECTcx(rectTextMax) > RECTcx(pr->rectNewboxVisualMax) )
 	{
@@ -397,17 +398,17 @@ fib_CallbackRefreshUserText(HWND hwnd, FibCallbackReason_et reason, FibDlgParams
 		rect_new = ggt_unstraddle_dlgbox(rect_new, 
 			RECTcx(pr->rectNewboxVisualMax), RECTcy(pr->rectNewboxVisualMax));
 
-		MoveWindow(hwnd, rect_new.left, rect_new.top, RECTcx(rect_new), RECTcy(rect_new), TRUE);
+		MoveWindow(hdlg, rect_new.left, rect_new.top, RECTcx(rect_new), RECTcy(rect_new), TRUE);
 	}
 
 	// Re-check to see whether we need to re-show scrollbar
-	HWND hEdit = GetDlgItem(hwnd, IDC_EDIT_SHOW_INFO); assert(hEdit);
+	HWND hEdit = GetDlgItem(hdlg, IDC_EDIT_SHOW_INFO); assert(hEdit);
 	RECT rectEditboxNow;
 	GetWindowRect(hEdit, &rectEditboxNow);
 	if( idealEditSize.cy>RECTcy(rectEditboxNow) || idealEditSize.cx>RECTcx(rectEditboxNow) )
 		ShowScrollBar(hEdit, SB_VERT, TRUE);
 
-	pr->SetMyText(hwnd);
+	pr->SetMyText(hdlg);
 
 	return ret;
 }

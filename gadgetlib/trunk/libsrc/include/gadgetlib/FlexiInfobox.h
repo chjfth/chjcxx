@@ -43,6 +43,8 @@ struct FibCallback_st
 
 	bool isCancelRequested; // user has clicked close-window or [Cancel] nib sometime ago
 	DWORD msecCancelRequested; // the value from GetTickCount()
+
+	int ret_replace_offset; // use later for scroll-to-end optimization
 };
 
 //#define FIB_NoButton _T("")
