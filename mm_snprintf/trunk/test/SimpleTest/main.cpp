@@ -84,7 +84,7 @@ int mprint(const TCHAR *cmp, const TCHAR *fmt, ...)
 	va_start(args, fmt);
 
 	Custout_st co = {0};
-	ret = mm_snprintf_co(FUNC_CustomOutput, &co, _T("%w"), MM_WPAIR_PARAM(fmt, args));
+	ret = mm_snprintf_ct(FUNC_CustomOutput, &co, _T("%w"), MM_WPAIR_PARAM(fmt, args));
 	assert(ret==co.pos);
 	co.custbuf[co.pos] = _T('\0');
 

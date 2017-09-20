@@ -252,7 +252,14 @@
  *            mm_WriteLog("The ball turns %d rounds.%F", 3, MM_FPAIR_PARAM(mmF_peek, NULL));
  *
  *        Now, your mmF_peek() will see from pstock param: "The ball turns 3 rounds."
-*/
+ *
+ * 2017-09-20  V7.0 by Chj
+ *      - New function mm_snprintf_ct and mm_snprintf_v7, mm_vsnprintf_v7 .
+ *        The "ct" means custom-target. You can direct the formatted result to your 
+ *        custom target(a file or a COM port) by providing a callback function, 
+ *        so to avoid preparing a temporary buffer size to hold the result string. 
+ *
+ */
 
 
 /* Define SNPRINTF_LONGLONG_SUPPORT if you want to support
@@ -1907,7 +1914,7 @@ mm_strcat(TCHAR *dest, size_t bufsize, const TCHAR *fmt, ...)
 }
 
 int 
-mm_snprintf_co(FUNC_mm_output proc_output, void *ctx_output, const TCHAR *fmt, ...)
+mm_snprintf_ct(FUNC_mm_output proc_output, void *ctx_output, const TCHAR *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
