@@ -1195,7 +1195,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 					}
 				}
 
-				int result_chars = mm_dump_bytes(strbuf+str_l, (Int)(str_m-str_l), 
+				int result_chars = _mm_dump_bytes(strbuf+str_l, (Int)(str_m-str_l), 
 					pbytes, dump_bytes, fmt_spec==_T('M')?true:false,
 					mdd_hyphens, mdd_left, mdd_right,
 					mdf_columns, mdf_colskip, is_print_ruler,
@@ -1334,8 +1334,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				TCHAR cfill = zero_padding ? _T('0') : _T(' ');
 				if(proc_output) 
 				{
-					for(int i=0; i<n; i++)
-						proc_output(ctx_output, &cfill, 1);
+					_mm_fillchars_opt(proc_output, ctx_output, cfill, n);
 				}
 				else
 				{
@@ -1384,8 +1383,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				TCHAR cfill = _T('0');
 				if(proc_output)
 				{
-					for(int i=0; i<n; i++)
-						proc_output(ctx_output, &cfill, 1);
+					_mm_fillchars_opt(proc_output, ctx_output, cfill, n);
 				}
 				else
 				{
@@ -1427,8 +1425,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				TCHAR cfill = _T(' ');
 				if(proc_output)
 				{
-					for(int i=0; i<n; i++)
-						proc_output(ctx_output, &cfill, 1);
+					_mm_fillchars_opt(proc_output, ctx_output, cfill, n);
 				}
 				else
 				{
@@ -1663,11 +1660,25 @@ mmsnprintf_IsFloatingType(TCHAR fmt_spec)
 }
 
 void 
-_mm_fillchars(TCHAR *pbuf, TCHAR c, int n)
+_mm_fillchars(TCHAR *pbuf, TCHAR c, size_t n)
 {
-	int i;
+	size_t i;
 	for(i=0; i<n; i++)
 		pbuf[i] = c;
+}
+
+void 
+_mm_fillchars_opt(FUNC_mm_output proc, void *ctx, TCHAR c, size_t n)
+{
+	const int chunksize = 100;
+	TCHAR cbuf[chunksize];
+	_mm_fillchars(cbuf, c, chunksize);
+	
+	int remain = (int)n;
+	for(; remain>0; remain-=chunksize)
+	{
+		proc(ctx, cbuf, _MIN_(remain, chunksize));
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -1687,8 +1698,7 @@ mmfill_fill_chars(mmfill_st &f, TCHAR c, int n, FUNC_mm_output *proc_output, voi
 
 	if(proc_output)
 	{
-		for(int i=0; i<n; i++)
-			proc_output(ctx_output, &c, 1);
+		_mm_fillchars_opt(proc_output, ctx_output, c, n);
 	}
 	else
 	{
@@ -1728,7 +1738,7 @@ mmfill_strcpy(mmfill_st &f, const TCHAR *src, FUNC_mm_output *proc_output, void 
 
 
 int 
-mm_dump_bytes(TCHAR *buf, int bufchars, 
+_mm_dump_bytes(TCHAR *buf, int bufchars, 
 	const void *pbytes_, int dump_bytes, bool uppercase,
 	const TCHAR *mdd_hyphens, const TCHAR *mdd_left, const TCHAR *mdd_right,
 	int columns, int colskip, bool ruler,
@@ -1937,3 +1947,5 @@ _mm_memchr(const TCHAR *buf, TCHAR c, size_t count)
 	}
 	return NULL;
 }
+
+

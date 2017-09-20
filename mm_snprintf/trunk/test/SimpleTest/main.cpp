@@ -12,6 +12,7 @@
 #include <wchar.h> // for wprintf under linux
 #include <ps_TCHAR.h> // for _tmain macro
 #include <commdefs.h>
+#include <_MINMAX_.h>
 
 #include <mm_snprintf.h>
 
@@ -494,10 +495,29 @@ int mmF_ansitime2ymdhms_method2(void *param, const mmv7_st &mmi)
 	
 	time_t now = *(time_t*)param;
 	struct tm* ptm = gmtime(&now);
-	int len = mm_snprintf(mmi.buf_output, mmi.bufsize, t("%04d-%02d-%02d %02d:%02d:%02d"),
-		ptm->tm_year+1900, ptm->tm_mon+1, ptm->tm_mday,
-		ptm->tm_hour, ptm->tm_min, ptm->tm_sec
-		);
+
+	// Two code flows according to whether mmi.proc_output is provided.
+
+	int len = 0;
+	if(mmi.proc_output)
+	{	
+		// should call custom-output with real content
+		TCHAR timebuf[80];
+		len = mm_snprintf(timebuf, GetEleQuan(timebuf), t("%04d-%02d-%02d %02d:%02d:%02d"),
+			ptm->tm_year+1900, ptm->tm_mon+1, ptm->tm_mday,
+			ptm->tm_hour, ptm->tm_min, ptm->tm_sec
+			);
+		int reallen = t_strlen(timebuf);
+		mmi.proc_output(mmi.ctx_output, timebuf, _MIN_(len, reallen));
+	}
+	else
+	{
+		len = mm_snprintf(mmi.buf_output, mmi.bufsize, t("%04d-%02d-%02d %02d:%02d:%02d"),
+			ptm->tm_year+1900, ptm->tm_mon+1, ptm->tm_mday,
+			ptm->tm_hour, ptm->tm_min, ptm->tm_sec
+			);
+	}
+
 	return len;
 }
 
@@ -533,6 +553,11 @@ void test_v6()
 		MM_FPAIR_PARAM(mmF_ansitime2ymdhms, &now_epoch));
 	assert( t_strcmp(smallbuf, t("[2038-01-19 03:14"))==0 );
 	assert( retlen==21 );
+
+	oks = t("time_t WILL overflow at UTC [2038-01-19 03:14:07].");
+	mprint(oks, t("time_t WILL overflow at UTC [%F]."), 
+		MM_FPAIR_PARAM(mmF_ansitime2ymdhms_method2, &now_epoch)
+		);
 
 	mmF_from_nullbuf_st ctx = {0, 0};
 	retlen = mm_snprintf(NULL, 0, _T("%F"), 

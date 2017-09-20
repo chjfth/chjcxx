@@ -12,30 +12,18 @@ enum Fmt_et { fmt_unset, fmt_ptr, fmt_decimal_signed, fmt_decimal_unsigned, fmt_
 #define TMM_strmembytes(chars) ((chars)*sizeof(TCHAR))
 
 
-#ifdef _UNICODE
-
-# define mmsnprintf_IsFloatingType mmsnprintf_IsFloatingTypeW
-# define _mm_fillchars _mm_fillcharsW
-
-#else
-
-# define mmsnprintf_IsFloatingType mmsnprintf_IsFloatingTypeA
-# define _mm_fillchars _mm_fillcharsA
-
-#endif
-
-
 int mmsnprintf_IsFloatingType(TCHAR fmt_spec);
 //int mmsnprintf_IsFloatingTypeW(wchar_t fmt_spec);
 
-void _mm_fillchars(TCHAR *pbuf, TCHAR c, int n);
+void _mm_fillchars(TCHAR *pbuf, TCHAR c, size_t n);
+void _mm_fillchars_opt(FUNC_mm_output proc, void *ctx, TCHAR c, size_t n);
 
 const TCHAR *_mm_memchr(const TCHAR *buf, TCHAR c, size_t count);
 
 
 int cal_adcol_digits(const void *imagine_addr, int bufbytes);
 
-int mm_dump_bytes(TCHAR *buf, int bufchars, 
+int _mm_dump_bytes(TCHAR *buf, int bufchars, 
 			  const void *pbytes_, int dump_bytes, bool uppercase,
 			  const TCHAR *bdd_hyphens, const TCHAR *bdd_left, const TCHAR *bdd_right,
 			  int columns, int colskip, bool ruler,
