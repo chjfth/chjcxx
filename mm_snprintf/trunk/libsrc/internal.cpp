@@ -13,13 +13,13 @@ mmsnprintf_getversion(void)
 
 
 int 
-cal_adcol_digits(const void *imagine_addr, int bufbytes)
+cal_adcol_digits(const void *imagine_addr, int dumpbytes)
 {
 	// Calculate address-column digits after hex formatted,
 	// trimming leading zeros
 
 	const int default_digits = 4;
-	char *addr_end = (char *)imagine_addr+bufbytes-1;
+	char *addr_end = (char *)imagine_addr+dumpbytes-1;
 	if(addr_end==NULL)
 		return default_digits;
 	

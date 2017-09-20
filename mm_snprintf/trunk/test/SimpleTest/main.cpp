@@ -15,7 +15,6 @@
 
 #include <mm_snprintf.h>
 
-
 #ifdef UNICODE
 
 #define t(str) L##str 
@@ -41,11 +40,29 @@ double d = 1.2345678;
 
 #define IS64BIT ( sizeof(void*)==8 ? true : false )
 
+#define BUFMAX 8000
+
 int g_cases = 0;
+
+struct Custout_st
+{
+	int pos;
+	TCHAR custbuf[BUFMAX];
+};
+
+void FUNC_CustomOutput(void *user_ctx, const TCHAR *pcontent, int nchars)
+{
+	assert(nchars>0);
+
+	Custout_st &co = *(Custout_st*)user_ctx;
+	memcpy(co.custbuf+co.pos, pcontent, sizeof(TCHAR)*nchars);
+
+	co.pos += nchars;
+}
 
 int mprint(const TCHAR *cmp, const TCHAR *fmt, ...)
 {
-	TCHAR buf[8000];
+	TCHAR buf[BUFMAX];
 	int bufsize = sizeof(buf);
 	va_list args;
 	va_start(args, fmt);
@@ -60,6 +77,25 @@ int mprint(const TCHAR *cmp, const TCHAR *fmt, ...)
 		mm_printf(_T("\n"));
 		assert(0);
 	}
+
+	// Verify custom output result.
+
+	va_start(args, fmt);
+
+	Custout_st co = {0};
+	ret = mm_snprintf_co(FUNC_CustomOutput, &co, _T("%w"), MM_WPAIR_PARAM(fmt, args));
+	assert(ret==co.pos);
+	co.custbuf[co.pos] = _T('\0');
+
+	if(cmp && t_strcmp(cmp, co.custbuf)!=0)
+	{
+		mm_printf(_T("\nExpect:\n%s"), cmp);
+		mm_printf(_T("\nCustom output Error:\n%s"), co.custbuf);
+		mm_printf(_T("\n"));
+		assert(0);
+	}
+
+	va_end(args);
 
 	g_cases++;
 	return ret;
@@ -435,20 +471,36 @@ void test_am()
 	assert(pbuf==buf+bufsize-1 && bufremain==1);
 }
 
-int mmF_ansitime2ymdhms(void *param, const TCHAR *pstock, TCHAR *buf, int bufsize)
+int mmF_ansitime2ymdhms(void *param, const mmv7_st &mmi)
 {
-	assert(bufsize==0 || buf[0]==0);
+	assert( mmi.bufsize==0 || (mmi.buf_output && mmi.buf_output[0]==_T('\0')) );
 
 	// pstock[] will be "time_t will overflow at UTC ["
 
 	time_t now = *(time_t*)param;
 	struct tm* ptm = gmtime(&now);
-	int len = mm_snprintf(buf, bufsize, t("%04d-%02d-%02d %02d:%02d:%02d"),
+	int len = mm_snprintf_v7(mmi, t("%04d-%02d-%02d %02d:%02d:%02d"),
 		ptm->tm_year+1900, ptm->tm_mon+1, ptm->tm_mday,
 		ptm->tm_hour, ptm->tm_min, ptm->tm_sec
 		);
 	return len;
 }
+
+int mmF_ansitime2ymdhms_method2(void *param, const mmv7_st &mmi)
+{
+	assert( mmi.bufsize==0 || (mmi.buf_output && mmi.buf_output[0]==_T('\0')) );
+	
+	// pstock[] will be "time_t will overflow at UTC ["
+	
+	time_t now = *(time_t*)param;
+	struct tm* ptm = gmtime(&now);
+	int len = mm_snprintf(mmi.buf_output, mmi.bufsize, t("%04d-%02d-%02d %02d:%02d:%02d"),
+		ptm->tm_year+1900, ptm->tm_mon+1, ptm->tm_mday,
+		ptm->tm_hour, ptm->tm_min, ptm->tm_sec
+		);
+	return len;
+}
+
 
 struct mmF_from_nullbuf_st
 {
@@ -456,14 +508,14 @@ struct mmF_from_nullbuf_st
 	int call_count;
 };
 
-int mmF_callback_from_nullbuf(void *param, const TCHAR *pstock, TCHAR *buf, int bufsize)
+int mmF_callback_from_nullbuf(void *param, const mmv7_st &mmi)
 {
 	mmF_from_nullbuf_st &ctx = *(mmF_from_nullbuf_st*)param;
 
 	ctx.call_count++;
 
-	assert(pstock==NULL);
-	assert(buf-(TCHAR*)0==ctx.chk_offset);
+	assert(mmi.pstock==NULL);
+	assert(mmi.buf_output-(TCHAR*)0==ctx.chk_offset);
 	return 0;
 }
 

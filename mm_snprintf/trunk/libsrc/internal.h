@@ -7,25 +7,30 @@ typedef int Int;
 
 enum Fmt_et { fmt_unset, fmt_ptr, fmt_decimal_signed, fmt_decimal_unsigned, fmt_float };
 
+#define is64bit (sizeof(void*)==8)
+
 #define TMM_strmembytes(chars) ((chars)*sizeof(TCHAR))
 
 
 #ifdef _UNICODE
+
 # define mmsnprintf_IsFloatingType mmsnprintf_IsFloatingTypeW
-# define mmsnprintf_fillchar mmsnprintf_fillcharW
+# define _mm_fillchars _mm_fillcharsW
+
 #else
+
 # define mmsnprintf_IsFloatingType mmsnprintf_IsFloatingTypeA
-# define mmsnprintf_fillchar mmsnprintf_fillcharA
+# define _mm_fillchars _mm_fillcharsA
+
 #endif
 
-#define is64bit (sizeof(void*)==8)
 
 int mmsnprintf_IsFloatingType(TCHAR fmt_spec);
 //int mmsnprintf_IsFloatingTypeW(wchar_t fmt_spec);
 
-void mmsnprintf_fillchar(TCHAR *pbuf, TCHAR c, int n);
+void _mm_fillchars(TCHAR *pbuf, TCHAR c, int n);
 
-const TCHAR *mm_memchr(const TCHAR *buf, TCHAR c, size_t count);
+const TCHAR *_mm_memchr(const TCHAR *buf, TCHAR c, size_t count);
 
 
 int cal_adcol_digits(const void *imagine_addr, int bufbytes);
@@ -35,6 +40,7 @@ int mm_dump_bytes(TCHAR *buf, int bufchars,
 			  const TCHAR *bdd_hyphens, const TCHAR *bdd_left, const TCHAR *bdd_right,
 			  int columns, int colskip, bool ruler,
 			  int indents, 
-			  const void *imagine_addr);
+			  const void *imagine_addr,
+			  FUNC_mm_output *proc_output, void *ctx_output);
 
 #endif

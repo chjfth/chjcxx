@@ -333,12 +333,6 @@ typedef unsigned __int64 Uint64;
 
 #define fast_memcpy memcpy
 //#define fast_memset memset
-void mm_chrset(TCHAR *p, TCHAR c, int count)
-{
-	int i; 
-	for(i=0; i<count; i++) 
-		p[i] = c;
-}
 
 TCHAR * mm_strncpy_(TCHAR *dst, const TCHAR *src, int ndst, bool null_end)
 {
@@ -467,8 +461,23 @@ static int signed_ntos(Int64 i64,
 	return ret+filled;
 }
 
-int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap) 
+int mm_vsnprintf(TCHAR *strbuf, size_t str_m, const TCHAR *fmt, va_list ap)
 {
+	mmv7_st mmi = {0};
+	mmi.buf_output = strbuf;
+	mmi.bufsize = str_m;
+
+	int ret = mm_vsnprintf_v7(mmi, fmt, ap);
+	return ret;
+}
+
+
+int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap) 
+{
+	TCHAR *strbuf = mmi.buf_output;
+	size_t str_m = mmi.bufsize;
+	FUNC_mm_output *proc_output = mmi.proc_output;
+	void *ctx_output = mmi.ctx_output;
 
 	size_t str_l = 0; // how many output length has been filled, assuming enough output buffer
 	const TCHAR *p = fmt;
@@ -507,10 +516,16 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 				//If p points to an MBCS char, that will break the MBCS char and possible swallow the % following that MBCS sequence.
 
 			size_t n = !q ? TMM_strlen(p) : (q-p);
-			if (str_l < str_m) {
-				size_t avail = str_m-str_l;
-				fast_memcpy(str+str_l, p, TMM_strmembytes(n>avail?avail:n));
+
+			if(proc_output) {
+				proc_output(ctx_output, p, n);
+			} else {
+				if (str_l < str_m) {
+					size_t avail = str_m-str_l;
+					fast_memcpy(strbuf+str_l, p, TMM_strmembytes(n>avail?avail:n));
+				}
 			}
+
 			p += n; str_l += n;
 
 			continue;
@@ -715,7 +730,7 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 					else if (precision == 0) 
 						str_arg_l = 0; //Chj: Yes, no characters from the string will be printed if `precision' is zero.
 					else { // `precision' specified and > 0 
-						const TCHAR *p0 = mm_memchr(str_arg, _T('\0'), precision);
+						const TCHAR *p0 = _mm_memchr(str_arg, _T('\0'), precision);
 						str_arg_l = (Int)(p0 ? (p0-str_arg) : precision);
 					}
 				}
@@ -1180,11 +1195,12 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 					}
 				}
 
-				int result_chars = mm_dump_bytes(str+str_l, (Int)(str_m-str_l), 
+				int result_chars = mm_dump_bytes(strbuf+str_l, (Int)(str_m-str_l), 
 					pbytes, dump_bytes, fmt_spec==_T('M')?true:false,
 					mdd_hyphens, mdd_left, mdd_right,
 					mdf_columns, mdf_colskip, is_print_ruler,
-					mdd_indents, imagine_maddr);
+					mdd_indents, imagine_maddr,
+					proc_output, ctx_output);
 				str_l += result_chars;
 
 				min_field_width = precision = 0; // reset (must?)
@@ -1227,8 +1243,14 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 					dig_fmt = (const TCHAR*)wpair;
 					dig_args = va_arg(ap, va_list*); 
 				}
-				int fills = mm_vsnprintf(str+str_l, 
-					str_m>str_l ? str_m-str_l : 0, 
+				//
+				mmv7_st mmi2 = {0};
+				mmi2.buf_output = strbuf+str_l;
+				mmi2.bufsize = str_m>str_l ? str_m-str_l : 0;
+				mmi2.proc_output = proc_output;
+				mmi2.ctx_output = ctx_output;
+				//
+				int fills = mm_vsnprintf_v7(mmi2, 
 					dig_fmt, *(va_list*)dig_args); // extra (va_list*) type-conversion(drop const) to make gcc 4.8 x64 happy.
 				str_l += fills;
 				p++;
@@ -1252,15 +1274,17 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 					// Before calling back %F, add trailing NUL so that callee can do strlen()
 					// Callee can verify: 	assert(bufsize==0 || buf[0]==0);
 					if(str_m>str_l)
-						str[str_l] = _T('\0');
+						strbuf[str_l] = _T('\0');
 					else if(str_m>0)
-						str[str_m-1] = _T('\0');
+						strbuf[str_m-1] = _T('\0');
 
-					int fills = func(func_param, 
-						str,
-						str+str_l, 
-						(int)(str_m>str_l ? str_m-str_l : 0)
-						);
+					mmv7_st mmii = {0};
+					mmii.buf_output = strbuf+str_l;
+					mmii.bufsize = str_m>str_l ? str_m-str_l : 0;
+					mmii.proc_output = proc_output;
+					mmii.ctx_output = ctx_output;
+					mmii.pstock = strbuf;
+					int fills = func(func_param, mmii);
 
 					str_l += _MAX_(0, fills);
 				}
@@ -1276,7 +1300,8 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 
 //#if defined(LINUX_COMPATIBLE) //[2006-10-03]Chj: I think the Linux-like behavior is more faithful to user.
 				/* keep the entire format string unchanged */
-				str_arg = starting_p; str_arg_l = (Int)(p - starting_p);
+				str_arg = starting_p; 
+				str_arg_l = (Int)(p - starting_p);
 				/* well, not exactly so for Linux, which does something in-between,
 				* and I don't feel an urge to imitate it: "%+++++hy" -> "%+y"  */
 // #else
@@ -1305,12 +1330,23 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 		if (!justify_left) {                /* left padding with blank or zero */
 			int n = min_field_width - (str_arg_l+number_of_zeros_to_pad);
 			if (n > 0) {
-				if (str_l < str_m) {
-					Int avail = (Int)(str_m-str_l);
-					mmsnprintf_fillchar(str+str_l, 
-						zero_padding ? _T('0') : _T(' '), 
-						n>avail?avail:n);
+				
+				TCHAR cfill = zero_padding ? _T('0') : _T(' ');
+				if(proc_output) 
+				{
+					for(int i=0; i<n; i++)
+						proc_output(ctx_output, &cfill, 1);
 				}
+				else
+				{
+					if (str_l < str_m) {
+						Int avail = (Int)(str_m-str_l);
+						_mm_fillchars(strbuf+str_l, 
+							cfill, 
+							n>avail?avail:n);
+					}
+				}
+				
 				str_l += n;
 			}
 		}
@@ -1326,19 +1362,39 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 			/* insert first part of numerics (sign or '0x') before zero padding */
 			int n = zero_padding_insertion_ind;
 			if (n > 0) {
-				if (str_l < str_m) {
-					Int avail = (Int)(str_m-str_l);
-					fast_memcpy(str+str_l, str_arg, TMM_strmembytes(n>avail?avail:n));
+				
+				if(proc_output)
+				{
+					proc_output(ctx_output, str_arg, n);
 				}
+				else
+				{
+					if (str_l < str_m) {
+						Int avail = (Int)(str_m-str_l);
+						fast_memcpy(strbuf+str_l, str_arg, TMM_strmembytes(n>avail?avail:n));
+					}
+				}
+
 				str_l += n;
 			}
 			/* insert zero padding as requested by the precision or min field width */
 			n = number_of_zeros_to_pad;
 			if (n > 0) {
-				if (str_l < str_m) {
-					Int avail = (Int)(str_m-str_l);
-					mm_chrset(str+str_l, _T('0'), (n>avail?avail:n));
+				
+				TCHAR cfill = _T('0');
+				if(proc_output)
+				{
+					for(int i=0; i<n; i++)
+						proc_output(ctx_output, &cfill, 1);
 				}
+				else
+				{
+					if (str_l < str_m) {
+						Int avail = (Int)(str_m-str_l);
+						_mm_fillchars(strbuf+str_l, cfill, (n>avail?avail:n));
+					}
+				}
+				
 				str_l += n;
 			}
 		}
@@ -1346,11 +1402,20 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 		* (or as-is conversion specifier for unknown conversions) */
 		int n = str_arg_l - zero_padding_insertion_ind;
 		if (n > 0) {
-			if (str_l < str_m) {
-				Int avail = (Int)(str_m-str_l);
-				fast_memcpy(str+str_l, str_arg+zero_padding_insertion_ind,
-					TMM_strmembytes(n>avail?avail:n));
+			
+			if(proc_output)
+			{
+				proc_output(ctx_output, str_arg+zero_padding_insertion_ind, n);
 			}
+			else
+			{
+				if (str_l < str_m) {
+					Int avail = (Int)(str_m-str_l);
+					fast_memcpy(strbuf+str_l, str_arg+zero_padding_insertion_ind,
+						TMM_strmembytes(n>avail?avail:n));
+				}
+			}
+
 			str_l += n;
 		}
 		
@@ -1358,10 +1423,21 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
 		if (justify_left) {          /* right blank padding to the field width */
 			int n = min_field_width - (str_arg_l+number_of_zeros_to_pad);
 			if (n > 0) {
-				if (str_l < str_m) {
-					Int avail = (Int)(str_m-str_l); //Chj
-					mmsnprintf_fillchar(str+str_l, _T(' '), (n>avail?avail:n));
+				
+				TCHAR cfill = _T(' ');
+				if(proc_output)
+				{
+					for(int i=0; i<n; i++)
+						proc_output(ctx_output, &cfill, 1);
 				}
+				else
+				{
+					if (str_l < str_m) {
+						Int avail = (Int)(str_m-str_l); //Chj
+						_mm_fillchars(strbuf+str_l, cfill, (n>avail?avail:n));
+					}
+				}
+
 				str_l += n;
 			}
 		}
@@ -1371,7 +1447,7 @@ int mm_vsnprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, va_list ap)
      even at the expense of overwriting the last character
      (shouldn't happen, but just in case) */
 	if (str_m > 0) { 
-		str[str_l <= str_m-1 ? str_l : str_m-1] = _T('\0');
+		strbuf[str_l <= str_m-1 ? str_l : str_m-1] = _T('\0');
 	}
 
 	/* Return the number of characters formatted (excluding trailing null
@@ -1587,7 +1663,7 @@ mmsnprintf_IsFloatingType(TCHAR fmt_spec)
 }
 
 void 
-mmsnprintf_fillchar(TCHAR *pbuf, TCHAR c, int n)
+_mm_fillchars(TCHAR *pbuf, TCHAR c, int n)
 {
 	int i;
 	for(i=0; i<n; i++)
@@ -1604,23 +1680,42 @@ struct mmfill_st
 };
 
 void 
-mmfill_fill_chars(mmfill_st &f, TCHAR c, int n)
+mmfill_fill_chars(mmfill_st &f, TCHAR c, int n, FUNC_mm_output *proc_output, void *ctx_output)
 {
+	// fill c*n chars 
 	// fills f.pbuf until f.pbuf[] reaches bufmax; update f.produced by n
-	int nfill = Min(n, f.bufmax-f.produced);
-	if(nfill>0)
-		mmsnprintf_fillchar(f.pbuf+f.produced, c, nfill);
+
+	if(proc_output)
+	{
+		for(int i=0; i<n; i++)
+			proc_output(ctx_output, &c, 1);
+	}
+	else
+	{
+		int nfill = Min(n, f.bufmax-f.produced);
+		if(nfill>0)
+			_mm_fillchars(f.pbuf+f.produced, c, nfill);
+	}
+
 	f.produced += n;
 }
 
 TCHAR *
-mmfill_strcpy(mmfill_st &f, const TCHAR *src)
+mmfill_strcpy(mmfill_st &f, const TCHAR *src, FUNC_mm_output *proc_output, void *ctx_output)
 {
 	// copy src to f.pbuf until f.pbuf[] reaches bufmax; update f.produced by src length
 	int srclen = TMM_strlen(src);
-	int nfill = Min(srclen, f.bufmax-f.produced);
-	if(nfill>0)
-		mm_strncpy_(f.pbuf+f.produced, src, nfill, false);
+
+	if(proc_output)
+	{
+		proc_output(ctx_output, src, srclen);
+	}
+	else
+	{
+		int nfill = Min(srclen, f.bufmax-f.produced);
+		if(nfill>0)
+			mm_strncpy_(f.pbuf+f.produced, src, nfill, false);
+	}
 
 	f.produced += srclen;
 	return f.pbuf + (f.produced - srclen);
@@ -1633,12 +1728,13 @@ mmfill_strcpy(mmfill_st &f, const TCHAR *src)
 
 
 int 
-mm_dump_bytes(TCHAR *buf, int bufbytes, 
+mm_dump_bytes(TCHAR *buf, int bufchars, 
 	const void *pbytes_, int dump_bytes, bool uppercase,
 	const TCHAR *mdd_hyphens, const TCHAR *mdd_left, const TCHAR *mdd_right,
 	int columns, int colskip, bool ruler,
 	int indents, 
-	const void *imagine_addr_)
+	const void *imagine_addr_,
+	FUNC_mm_output *proc_output, void *ctx_output)
 {
 	/*
 	Dump hex-represented byte content into buf[], but not exceeding bufchars.
@@ -1689,31 +1785,31 @@ mm_dump_bytes(TCHAR *buf, int bufbytes,
 	int dump_width_perbyte = len_left+2+len_right+len_hyphens;
 
 	const char *imagine_addr = (const char*)imagine_addr_;
-	int adcol_digits = cal_adcol_digits(imagine_addr, bufbytes);
+	int adcol_digits = cal_adcol_digits(imagine_addr, dump_bytes); // v7 a fix
 
 	int consumed = 0; // consumed source bytes
-	mmfill_st mmfill = {buf, bufbytes, 0};
+	mmfill_st mmfill = {buf, bufchars, 0};
 
 	if(ruler)
 	{
 		// first: indents and left ruler spaces
-		mmfill_fill_chars(mmfill, _T(' '), indents); 
-		mmfill_fill_chars(mmfill, _T('-'), adcol_digits+ex2); 
+		mmfill_fill_chars(mmfill, _T(' '), indents,          proc_output, ctx_output);
+		mmfill_fill_chars(mmfill, _T('-'), adcol_digits+ex2, proc_output, ctx_output);
 			// ex2 is for ": " following the address column digits
 
 		// second: horizontal marks
 		for(i=0; i<columns; i++)
 		{
-			mmfill_fill_chars(mmfill, _T('-'), len_left);
+			mmfill_fill_chars(mmfill, _T('-'), len_left,     proc_output, ctx_output);
 			mm_snprintf(tmp, mmquan(tmp), _T("%02X"), i);
-			mmfill_strcpy(mmfill, tmp);
-			mmfill_fill_chars(mmfill, _T('-'), len_right);
+			mmfill_strcpy(mmfill, tmp,                       proc_output, ctx_output);
+			mmfill_fill_chars(mmfill, _T('-'), len_right,    proc_output, ctx_output);
 
 			if(i<columns-1)
-				mmfill_fill_chars(mmfill, _T('-'), len_hyphens);
+				mmfill_fill_chars(mmfill, _T('-'), len_hyphens, proc_output, ctx_output);
 		}
 		
-		mmfill_strcpy(mmfill, _T("\n"));
+		mmfill_strcpy(mmfill, _T("\n"),                      proc_output, ctx_output);
 	}
 
 	const char *imagine_addr_to_print = imagine_addr-colskip;
@@ -1725,7 +1821,7 @@ mm_dump_bytes(TCHAR *buf, int bufbytes,
 		// Every cycle generates one output line
 
 		// first: indents
-		mmfill_fill_chars(mmfill, _T(' '), indents);
+		mmfill_fill_chars(mmfill, _T(' '), indents,          proc_output, ctx_output);
 
 		// second: address column
 		if(ruler)
@@ -1743,14 +1839,14 @@ mm_dump_bytes(TCHAR *buf, int bufbytes,
 				// direct cast from pointer to unsigned int is banned by gcc 4.5 x64
 			}
 			int droplen = (is64bit?16:8)-adcol_digits;
-			mmfill_strcpy(mmfill, tmp+droplen); // leading verbose '0's dropped
-			mmfill_strcpy(mmfill, _T(": "));
+			mmfill_strcpy(mmfill, tmp+droplen,              proc_output, ctx_output); // leading verbose '0's dropped
+			mmfill_strcpy(mmfill, _T(": "),                 proc_output, ctx_output);
 		}
 
 		// third: column-skip blank area
 		if(colskip>0)
 		{
-			mmfill_fill_chars(mmfill, _T(' '), dump_width_perbyte*colskip);
+			mmfill_fill_chars(mmfill, _T(' '), dump_width_perbyte*colskip, proc_output, ctx_output);
 		}
 
 		// fourth: hex dumps of current line with decoration
@@ -1759,16 +1855,16 @@ mm_dump_bytes(TCHAR *buf, int bufbytes,
 		for(j=0; j<colomn_remain; j++)
 		{
 			if(mdd_left[0])
-				mmfill_strcpy(mmfill, mdd_left);
+				mmfill_strcpy(mmfill, mdd_left,            proc_output, ctx_output);
 			
 			mm_snprintf(tmp, mmquan(tmp), fmthex, pbytes[consumed+j]);
-			mmfill_strcpy(mmfill, tmp);
+			mmfill_strcpy(mmfill, tmp,                     proc_output, ctx_output);
 			
 			if(mdd_right[0])
-				mmfill_strcpy(mmfill, mdd_right);
+				mmfill_strcpy(mmfill, mdd_right,           proc_output, ctx_output);
 
 			if(j<colomn_remain-1)
-				mmfill_strcpy(mmfill, mdd_hyphens);
+				mmfill_strcpy(mmfill, mdd_hyphens,         proc_output, ctx_output);
 		}
 		colskip = 0;
 
@@ -1777,7 +1873,7 @@ mm_dump_bytes(TCHAR *buf, int bufbytes,
 		if(consumed==dump_bytes)
 			break;
 
-		mmfill_strcpy(mmfill, _T("\n"));
+		mmfill_strcpy(mmfill, _T("\n"),                    proc_output, ctx_output);
 		assert(consumed<dump_bytes);
 
 		imagine_addr_to_print += columns;
@@ -1800,9 +1896,36 @@ mm_strcat(TCHAR *dest, size_t bufsize, const TCHAR *fmt, ...)
 	return ret;
 }
 
+int 
+mm_snprintf_co(FUNC_mm_output proc_output, void *ctx_output, const TCHAR *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	
+	mmv7_st mmi = {0};
+	mmi.proc_output = proc_output;
+	mmi.ctx_output = ctx_output;
+	int ret = mm_vsnprintf_v7(mmi, fmt, args);
+	
+	va_end(args);
+	return ret;
+}
+
+int mm_snprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	
+	int ret = mm_vsnprintf_v7(mmi, fmt, args);
+	
+	va_end(args);
+	return ret;
+
+}
+
 
 const TCHAR *
-mm_memchr(const TCHAR *buf, TCHAR c, size_t count)
+_mm_memchr(const TCHAR *buf, TCHAR c, size_t count)
 {
 	// memo: WinXP ntoskrnl does not have wmemchr, so I write mm_memchr() myself.
 

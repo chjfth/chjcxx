@@ -53,16 +53,33 @@ int mm_snprintf_amA(char * &pbuf, int &bufsize, const char *fmt, ...); // am mea
 DLLEXPORT_mmsnprintf
 int mm_strcatA(char *dest, size_t bufsize, const char *fmt, ...);
 
-
 DLLEXPORT_mmsnprintf
 int mm_printfA(const char *fmt, ...);
 
+// v7 co functions. co: custom output(write to file, serial port etc).
+typedef void (FUNC_mm_outputA)(void *user_ctx, const char *pcontent, int nchars);
+// -- pcontent is not NUL terminated.
+//
 DLLEXPORT_mmsnprintf
-int mm_printfW(const wchar_t *fmt, ...);
+int mm_snprintf_coA(FUNC_mm_outputA proc_output, void *ctx_output, const char *fmt, ...);
+//
+struct mmv7_stA
+{
+	FUNC_mm_outputA *proc_output; // If NULL, callee should fill .buf_output[]
+	void *ctx_output;
+	
+	char *buf_output;
+	size_t bufsize;
+	
+	const char *pstock; // only for %F callee
+};
+//
+DLLEXPORT_mmsnprintf
+int mm_vsnprintf_v7A(const mmv7_stA &mmi, const char *fmt, va_list ap);
+//
+DLLEXPORT_mmsnprintf
+int  mm_snprintf_v7A(const mmv7_stA &mmi, const char *fmt, ...);
 
-
-
-#ifndef __CC_NORCROFT // workaround for the old ARM SDT 2.50 compiler, who don't support wchar_t
 
 // Unicode version of the above mm_ functions
 
@@ -92,7 +109,33 @@ int mm_snprintf_amW(wchar_t * &pbuf, int &bufsize, const wchar_t *fmt, ...); // 
 DLLEXPORT_mmsnprintf
 int mm_strcatW(wchar_t *dest, size_t bufsize, const wchar_t *fmt, ...);
 
-#endif // #ifndef __CC_NORCROFT 
+DLLEXPORT_mmsnprintf
+int mm_printfW(const wchar_t *fmt, ...);
+
+// v7 co functions. co: custom output(write to file, serial port etc).
+typedef void (FUNC_mm_outputW)(void *user_ctx, const wchar_t *pcontent, int nchars);
+// -- pcontent is not NUL terminated.
+//
+DLLEXPORT_mmsnprintf
+int mm_snprintf_coW(FUNC_mm_outputW proc_output, void *ctx_output, const wchar_t *fmt, ...);
+//
+struct mmv7_stW
+{
+	FUNC_mm_outputW *proc_output; // If NULL, callee should fill .buf_output[]
+	void *ctx_output;
+	
+	wchar_t *buf_output;
+	size_t bufsize;
+	
+	const wchar_t *pstock; // only for %F callee
+};
+//
+DLLEXPORT_mmsnprintf
+int mm_vsnprintf_v7W(const mmv7_stW &mmi, const wchar_t *fmt, va_list ap);
+//
+DLLEXPORT_mmsnprintf
+int  mm_snprintf_v7W(const mmv7_stW &mmi, const wchar_t *fmt, ...);
+
 
 
 DLLEXPORT_mmsnprintf
@@ -135,8 +178,8 @@ struct mm_wpair_stW
 //
 enum { mm_fpair_magic = 0xEF170321 };
 //
-typedef int (FUNC_mm_fpairA)(void *user_param, const char *pstock, char *buf, int bufsize);
-typedef int (FUNC_mm_fpairW)(void *user_param, const wchar_t *pstock, wchar_t *buf, int bufsize);
+typedef int (FUNC_mm_fpairA)(void *user_ctx, const mmv7_stA &mmi);
+typedef int (FUNC_mm_fpairW)(void *user_ctx, const mmv7_stW &mmi);
 // -- Return value tells output characters count, assuming buffer is enough (not counting ending NUL).
 //
 struct mm_fpair_stA
@@ -163,8 +206,7 @@ struct mm_fpair_stW
 #endif
 };
 
-
-
+////
 
 #if (defined _UNICODE) || (defined UNICODE)
 
@@ -183,6 +225,11 @@ struct mm_fpair_stW
 # define mm_fpair_st mm_fpair_stW
 # define MM_FPAIR_PARAM MM_FPAIR_PARAMW
 # define FUNC_mm_fpair FUNC_mm_fpairW
+# define FUNC_mm_output FUNC_mm_outputW
+# define mmv7_st mmv7_stW
+# define mm_snprintf_co mm_snprintf_coW
+# define mm_vsnprintf_v7 mm_vsnprintf_v7W
+# define mm_snprintf_v7 mm_snprintf_v7W
 
 #else
 
@@ -201,6 +248,11 @@ struct mm_fpair_stW
 # define mm_fpair_st mm_fpair_stA
 # define MM_FPAIR_PARAM MM_FPAIR_PARAMA
 # define FUNC_mm_fpair FUNC_mm_fpairA
+# define FUNC_mm_output FUNC_mm_outputA
+# define mmv7_st mmv7_stA
+# define mm_snprintf_co mm_snprintf_coA
+# define mm_vsnprintf_v7 mm_vsnprintf_v7A
+# define mm_snprintf_v7 mm_snprintf_v7A
 
 #endif
 
