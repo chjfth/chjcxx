@@ -601,7 +601,7 @@ int mmF_ansitime2ymdhms(void *param, const mmv7_st &mmi)
 {
 	assert( mmi.bufsize==0 || (mmi.buf_output && mmi.buf_output[0]==_T('\0')) );
 
-	// pstock[] will be "time_t will overflow at UTC ["
+	// mmi.pstock will point to "time_t will overflow at UTC ["
 
 	time_t now = *(time_t*)param;
 	struct tm* ptm = gmtime(&now);
