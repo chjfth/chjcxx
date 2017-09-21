@@ -122,6 +122,19 @@ int mprintN(const TCHAR *cmp, TCHAR buf[], int bufsize, const TCHAR *fmt, ...)
 	return ret;
 }
 
+TCHAR * T_strupr_copy(const TCHAR ins[], TCHAR outs[], int bufchars)
+{
+	memset(outs, 0, bufchars*sizeof(TCHAR));
+	int i;
+	for(i=0; i<bufchars-1 && ins[i]; i++)
+	{
+		if(ins[i]>='a' && ins[i]<='z')
+			outs[i] = ins[i] + ('A'-'a');
+		else
+			outs[i] = ins[i];
+	}
+	return outs;
+}
 
 int test_v4_memdump()
 {
@@ -135,31 +148,92 @@ int test_v4_memdump()
 
 	oks = t("000102030405060708");
 	mprint(oks, t("%9m"), mem);
+	mprint(oks, t("%*m"), 9, mem);
 
-//	mprint(t("%*m"), 9, mem);
+	mprint(t("[]"), t("[%0m]"), mem);
+	mprint(t("{}"), t("{%*m}"), 0, mem);
 
-//	mprint(t("%m"), str);
-//	mprint(t("[%0m]"), str); // should print only "[]" (mm4.1)
-//	mprint(t("[%*m]"), 0, str); // should print only "[]" (mm4.1)
+	////
+
+	const TCHAR * hexoutA_ABN = t("41424e");
+	const TCHAR * hexoutW_ABN = t("410042004e00");
+#ifdef _UNICODE
+	const TCHAR *hexout_ABN = hexoutW_ABN;
+#else
+	const TCHAR *hexout_ABN = hexoutA_ABN;
+#endif
 	
+	TCHAR hexout_ABN_up[40];
+	T_strupr_copy(hexout_ABN, hexout_ABN_up, GetEleQuan(hexout_ABN_up));
 
-//	mprint(t("%k%5m,%M"), t(" "), mem, str);
+	mprint(hexout_ABN, t("%m"), t("ABN"));
+	mprint(hexout_ABN_up, t("%M"), t("ABN"));
 
-//	mprint(t("%k%5m"), t("--"), mem);
+#ifdef _UNICODE
+	oks = t("00 01 02 03 04,41 00 42 00 4E 00");
+#else
+	oks = t("00 01 02 03 04,41 42 4E");
+#endif
+	mprint(oks, t("%k%5m,%M"), t(" "), mem, t("ABN")); // %k separator is space
 
-//	mprint(t("%K%5m"), t("<>"), mem);
+#ifdef _UNICODE
+	oks = t("0001020304,410042004E00");
+#else
+	oks = t("0001020304,41424E");
+#endif
+	mprint(oks, t("%k%5m,%M"), t(""), mem, t("ABN")); // %k separator is NUL sstring
 
-//	mprint(t("%k%K%5m"), t("-"), t("<>"), mem);
+	oks = t("00--01--02--03--04");
+	mprint(oks, t("%k%5m"), t("--"), mem); // %k separator has multi-chars
 
-//	mprint(t("%k%r%17m"), t(" "), 8, mem);
+	oks = t("<00><01><02><03><04>");
+	mprint(oks, t("%K%5m"), t("<>"), mem); // %K (upper K) assigns pincher
 
-//	mprint(t("%k%R%17m"), t(" "), 8, mem);
+	oks = t("<00>-<01>-<02>-<03>-<04>");
+	mprint(oks, t("%k%K%5m"), t("-"), t("<>"), mem); // %k %K both
 
-//	mprint(t("%k%4r%17m"), t(" "), 8, mem);
-//	mprint(t("%k%4R%17m"), t(" "), 8, mem);
 
-//	mprint(t("%k%0.3r%17m"), t(" "), 8, mem);
-//	mprint(t("%k%*.*R%17m"), t(" "), 4, 3, 8, mem);
+	const int row_width = 8; // data for %r and %R
+	// %r : multi row mode
+	oks = t("\
+00 01 02 03 04 05 06 07\n\
+08 09 0a 0b 0c 0d 0e 0f\n\
+10");
+	mprint(oks, t("%k%r%17m"), t(" "), row_width, mem); // 8 relates to %r
+
+	// %R : multi row mode with ruler
+	oks = t("\
+------00-01-02-03-04-05-06-07\n\
+0000: 00 01 02 03 04 05 06 07\n\
+0008: 08 09 0a 0b 0c 0d 0e 0f\n\
+0010: 10");
+	mprint(oks, t("%k%R%17m"), t(" "), row_width, mem);
+
+	oks = t("\
+    00 01 02 03 04 05 06 07\n\
+    08 09 0a 0b 0c 0d 0e 0f\n\
+    10");
+	mprint(oks, t("%k%4r%17m"), t(" "), row_width, mem); // %r ruler with 4 char indent
+
+	oks = t("\
+    ------00-01-02-03-04-05-06-07\n\
+    0000: 00 01 02 03 04 05 06 07\n\
+    0008: 08 09 0a 0b 0c 0d 0e 0f\n\
+    0010: 10");
+	mprint(oks, t("%k%*R%*m"), t(" "), 4, row_width, 17, mem); // %R ruler with 4 char indent
+
+	oks = t("\
+         00 01 02 03 04\n\
+05 06 07 08 09 0a 0b 0c\n\
+0d 0e 0f 10");
+	mprint(oks, t("%k%0.3r%17m"), t(" "), row_width, mem); // %0.3r : column skip = 3
+
+    oks = t("\
+      ------00-01-02-03-04-05-06-07\n\
+      FFFD:          00 01 02 03 04\n\
+      0005: 05 06 07 08 09 0a 0b 0c\n\
+      000D: 0d 0e 0f 10");
+	mprint(oks, t("%k%*.*R%17m"), t(" "), 6, 3, row_width, mem); // line indent 6 + colum skip 3
 
 //	mprint(t("%0*lld%s\n"), 6, (__int64)345, "!"); // 00345! 
 
@@ -170,14 +244,14 @@ int test_v4_memdump()
     000C:          00 01 02 03 04\n\
     0014: 05 06 07 08 09 0a 0b 0c\n\
     001C: 0d 0e 0f 10");
-	mprint(oks, t("%k%*.*R%v%17m"), t(" "), 4, 3, 8, (void*)0xF, mem);
+	mprint(oks, t("%k%*.*R%v%17m"), t(" "), 4, 3, row_width, (void*)0xF, mem);
 
 	oks = t("\
     --------00-01-02-03-04-05-06-07\n\
     427BFD:          00 01 02 03 04\n\
     427C05: 05 06 07 08 09 0a 0b 0c\n\
     427C0D: 0d 0e 0f 10");
-	mprint(oks, t("%k%*.*R%v%17m"), t(" "), 4, 3, 8, (void*)0x427c00, mem);
+	mprint(oks, t("%k%*.*R%v%17m"), t(" "), 4, 3, row_width, (void*)0x427c00, mem);
 
 	mprint(NULL, t(""));
 
@@ -185,7 +259,7 @@ int test_v4_memdump()
              00 01 02 03 04\n\
     05 06 07 08 09 0a 0b 0c\n\
     0d 0e 0f 10");
-	mprint(oks, t("%k%*.*r%v%17m"), t(" "), 4, 3, 8, (void*)0x427c00, mem);
+	mprint(oks, t("%k%*.*r%v%17m"), t(" "), 4, 3, row_width, (void*)0x427c00, mem);
 
 //	mprintW(L"%k%*.*R%v%17m", " ", 4, 3, 8, 0x7777123, mem);
 
