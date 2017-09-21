@@ -59,7 +59,7 @@ struct Custout_st
 	TCHAR custbuf[BUFMAX];
 };
 
-void FUNC_CustomOutput(void *user_ctx, const TCHAR *pcontent, int nchars)
+void mmct_CustomOutput(void *user_ctx, const TCHAR *pcontent, int nchars)
 {
 	assert(nchars>0);
 
@@ -92,7 +92,7 @@ int mprint(const TCHAR *cmp, const TCHAR *fmt, ...)
 	va_start(args, fmt);
 
 	Custout_st co = {0};
-	ret = mm_snprintf_ct(FUNC_CustomOutput, &co, _T("%w"), MM_WPAIR_PARAM(fmt, args));
+	ret = mm_snprintf_ct(mmct_CustomOutput, &co, _T("%w"), MM_WPAIR_PARAM(fmt, args));
 	assert(ret==co.pos);
 	co.custbuf[co.pos] = _T('\0');
 
