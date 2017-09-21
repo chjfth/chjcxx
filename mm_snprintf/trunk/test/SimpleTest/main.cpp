@@ -40,8 +40,16 @@ __int64 i64 = (__int64)(0xF12345678); // decimal 64729929336
 double d = 1.2345678;
 
 #define IS64BIT ( sizeof(void*)==8 ? true : false )
+#define ISWCHAR2B ( sizeof(wchar_t)==2 ? true : false )
+
+#ifdef _UNICODE
+const int isUnicodeBuild = 1;
+#else
+const int isUnicodeBuild = 0;
+#endif
 
 #define BUFMAX 8000
+
 
 int g_cases = 0;
 
@@ -156,12 +164,15 @@ int test_v4_memdump()
 	////
 
 	const TCHAR * hexoutA_ABN = t("41424e");
-	const TCHAR * hexoutW_ABN = t("410042004e00");
-#ifdef _UNICODE
-	const TCHAR *hexout_ABN = hexoutW_ABN;
-#else
+	const TCHAR * hexoutW2_ABN = t("410042004e00");
+	const TCHAR * hexoutW4_ABN = t("41000000420000004e000000");
+	
 	const TCHAR *hexout_ABN = hexoutA_ABN;
-#endif
+	if(isUnicodeBuild)
+	{
+		hexout_ABN = ISWCHAR2B ? hexoutW2_ABN : hexoutW4_ABN;
+	}
+
 	
 	TCHAR hexout_ABN_up[40];
 	T_strupr_copy(hexout_ABN, hexout_ABN_up, GetEleQuan(hexout_ABN_up));
@@ -169,18 +180,15 @@ int test_v4_memdump()
 	mprint(hexout_ABN, t("%m"), t("ABN"));
 	mprint(hexout_ABN_up, t("%M"), t("ABN"));
 
-#ifdef _UNICODE
-	oks = t("00 01 02 03 04,41 00 42 00 4E 00");
-#else
 	oks = t("00 01 02 03 04,41 42 4E");
-#endif
+	if(isUnicodeBuild)
+		oks = ISWCHAR2B ? t("00 01 02 03 04,41 00 42 00 4E 00") : 
+					t("00 01 02 03 04,41 00 00 00 42 00 00 00 4E 00 00 00");
 	mprint(oks, t("%k%5m,%M"), t(" "), mem, t("ABN")); // %k separator is space
 
-#ifdef _UNICODE
-	oks = t("0001020304,410042004E00");
-#else
 	oks = t("0001020304,41424E");
-#endif
+	if(isUnicodeBuild)
+		oks = ISWCHAR2B ? t("0001020304,410042004E00") : t("0001020304,41000000420000004E000000");
 	mprint(oks, t("%k%5m,%M"), t(""), mem, t("ABN")); // %k separator is NUL sstring
 
 	oks = t("00--01--02--03--04");
