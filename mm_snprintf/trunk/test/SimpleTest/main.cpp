@@ -708,7 +708,10 @@ int _tmain()
 	unsigned short mmver = mmsnprintf_getversion();
 	int ver1 = mmver>>8, ver2 = mmver&0xff;
 
-	mm_printf(_T("Running Unicode build! (ver %u.%u)\n)"), ver1, ver2);
+	mm_printf(_T("Running %s build! (ver %u.%u) sizeof(TCHAR)=%d\n)"), 
+		isUnicodeBuild ? _T("Unicode") : _T("ANSI"),
+		ver1, ver2,
+		sizeof(TCHAR));
 
 	test_fms_s();
 
