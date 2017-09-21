@@ -123,16 +123,18 @@ int mprintN(const TCHAR *cmp, TCHAR buf[], int bufsize, const TCHAR *fmt, ...)
 }
 
 
-int test_memdump()
+int test_v4_memdump()
 {
 	// [2014-07-12] bytes dump
 	const TCHAR *str=t("ABN");
 	int i;
 	unsigned char mem[1024];
-	for(i=0; i<sizeof(mem); i++) mem[i]=i;
+	for(i=0; i<sizeof(mem); i++) 
+		mem[i]=i;
 //	mprintA("Hexdump1:\n%k%8r%*b!\n", "_", 4, 17, bytes);
 
-//	mprint(t("%9m"), mem);
+	oks = t("000102030405060708");
+	mprint(oks, t("%9m"), mem);
 
 //	mprint(t("%*m"), 9, mem);
 
@@ -591,7 +593,7 @@ int _tmain()
 
 	test_v3();
 	
-	test_memdump();
+	test_v4_memdump();
 
 	mprint(NULL, t("")); // print a empty line
 

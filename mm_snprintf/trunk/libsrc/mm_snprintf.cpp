@@ -1723,18 +1723,22 @@ mmfill_strcpy(mmfill_st &f, const TCHAR *src, FUNC_mm_output *proc_output, void 
 	// copy src to f.pbuf until f.pbuf[] reaches bufmax; update f.produced by src length
 	int srclen = TMM_strlen(src);
 
-	if(proc_output)
+	if(srclen>0)
 	{
-		proc_output(ctx_output, src, srclen);
-	}
-	else
-	{
-		int nfill = Min(srclen, f.bufmax-f.produced);
-		if(nfill>0)
-			mm_strncpy_(f.pbuf+f.produced, src, nfill, false);
+		if(proc_output)
+		{
+			proc_output(ctx_output, src, srclen);
+		}
+		else
+		{
+			int nfill = Min(srclen, f.bufmax-f.produced);
+			if(nfill>0)
+				mm_strncpy_(f.pbuf+f.produced, src, nfill, false);
+		}
+		
+		f.produced += srclen;
 	}
 
-	f.produced += srclen;
 	return f.pbuf + (f.produced - srclen);
 }
 
