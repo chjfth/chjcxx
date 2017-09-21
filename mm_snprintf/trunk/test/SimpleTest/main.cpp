@@ -71,6 +71,8 @@ void mmct_CustomOutput(void *user_ctx, const TCHAR *pcontent, int nchars)
 
 int mprint(const TCHAR *cmp, const TCHAR *fmt, ...)
 {
+	mm_printf(_T("\n// Case %d:\n"), g_cases);
+
 	TCHAR buf[BUFMAX];
 	int bufsize = sizeof(buf);
 	va_list args;
@@ -238,7 +240,7 @@ int test_v4_memdump()
 
     oks = t("\
       ------00-01-02-03-04-05-06-07\n\
-      FFFD:          00 01 02 03 04\n\
+      FFFFFFFFFFFFFFFD:          00 01 02 03 04\n\
       0005: 05 06 07 08 09 0a 0b 0c\n\
       000D: 0d 0e 0f 10");
 	mprint(oks, t("%k%*.*R%17m"), t(" "), 6, 3, row_width, mem); // line indent 6 + colum skip 3
@@ -252,24 +254,63 @@ int test_v4_memdump()
     000C:          00 01 02 03 04\n\
     0014: 05 06 07 08 09 0a 0b 0c\n\
     001C: 0d 0e 0f 10");
-	mprint(oks, t("%k%*.*R%v%17m"), t(" "), 4, 3, row_width, (void*)0xF, mem);
+	mprint(oks, t("%k%*.*R%v%17m"), t(" "), 4, 3, row_width, (Uint64_mmv)0xF, mem);
 
 	oks = t("\
     --------00-01-02-03-04-05-06-07\n\
     427BFD:          00 01 02 03 04\n\
     427C05: 05 06 07 08 09 0a 0b 0c\n\
     427C0D: 0d 0e 0f 10");
-	mprint(oks, t("%k%*.*R%v%17m"), t(" "), 4, 3, row_width, (void*)0x427c00, mem);
-
-	mprint(NULL, t(""));
+	mprint(oks, t("%k%*.*R%v%17m"), t(" "), 4, 3, row_width, (Uint64_mmv)0x427c00, mem);
 
 	oks = t("\
              00 01 02 03 04\n\
     05 06 07 08 09 0a 0b 0c\n\
     0d 0e 0f 10");
-	mprint(oks, t("%k%*.*r%v%17m"), t(" "), 4, 3, row_width, (void*)0x427c00, mem);
+	mprint(oks, t("%k%*.*r%v%17m"), t(" "), 4, 3, row_width, (Uint64_mmv)0x427c00, mem);
 
 //	mprintW(L"%k%*.*R%v%17m", " ", 4, 3, 8, 0x7777123, mem);
+
+	// verify %*.*v
+
+	oks = t("\
+    ----------00-01-02-03-04-05-06-07\n\
+    0000000C:          00 01 02 03 04\n\
+    00000014: 05 06 07 08 09 0a 0b 0c\n\
+    0000001C: 0d 0e 0f 10");
+	mprint(oks, t("%k%*.*R%t%*v%17m"), 
+	   t(" "), // %k
+	   4, 3, row_width, // %*.*R
+	   t("."),  // %t
+	   8, (Uint64_mmv)0xF, // %*v
+	   mem // %17m
+	   );
+
+	oks = t("\
+  -----------00-01-02-03-04-05-06-07\n\
+  0000.000C:          00 01 02 03 04\n\
+  0000.0014: 05 06 07 08 09 0a 0b 0c\n\
+  0000.001C: 0d 0e 0f 10");
+	mprint(oks, t("%k%*.*R%t%*.*v%17m"), 
+		t(" "), // %k
+		2, 3, row_width, // %*.*R
+		t("."),  // %t
+		8, 4, (Uint64_mmv)0xF, // %*.*v
+		mem // %17m
+		);
+
+	const int row_width_16 = 16;
+	oks = t("\
+  -------------------00-01-02-03-04-05-06-07-08-09-0A-0B-0C-0D-0E-0F\n\
+  00000000`0000000C:          00 01 02 03 04 05 06 07 08 09 0a 0b 0c\n\
+  00000000`0000001C: 0d 0e 0f 10");
+	mprint(oks, t("%k%*.*R%t%*.*v%17m"), 
+		t(" "), // %k
+		2, 3, row_width_16, // %*.*R
+		t("`"),  // %t
+		16, 8, (Uint64_mmv)0xF, // %*.*v
+		mem // %17m
+		);
 
 
 /*	mprintW(L"%k%K"
@@ -455,7 +496,7 @@ void test_v5()
 	// ... we need 9 digits with 0s pre-padded, 9 does not count sepers ... 
 	oks = t("[000,012,345]");
 	mprint(oks, t("%t[%0.9u]"), t(","), 12345); 
-
+	
 	oks = t("[-000,012,345]");
 	mprint(oks, t("%t[%0.9d]"), t(","), -12345); 
 

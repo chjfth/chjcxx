@@ -256,6 +256,7 @@ struct mm_fpair_stW
 
 #endif
 
+typedef unsigned __int64 Uint64_mmv; // implies %v need a Uint64 data.
 
 #ifdef __cplusplus
 }//extern"C"{
