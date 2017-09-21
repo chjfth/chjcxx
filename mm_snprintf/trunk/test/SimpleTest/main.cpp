@@ -71,6 +71,7 @@ void mmct_CustomOutput(void *user_ctx, const TCHAR *pcontent, int nchars)
 
 int mprint(const TCHAR *cmp, const TCHAR *fmt, ...)
 {
+	g_cases++;
 	mm_printf(_T("\n// Case %d:\n"), g_cases);
 
 	TCHAR buf[BUFMAX];
@@ -108,7 +109,6 @@ int mprint(const TCHAR *cmp, const TCHAR *fmt, ...)
 
 	va_end(args);
 
-	g_cases++;
 	return ret;
 }
 
