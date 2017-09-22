@@ -579,9 +579,8 @@ cal_adcol_widths(Uint64 imagine_addr, Uint64 imagine_end_,
 	0010: aa bb cc
 */
 	
-	const int default_colwidth = 4;
-	if(v_adcol_width<default_colwidth)
-		v_adcol_width = default_colwidth;
+	if(v_adcol_width==0)
+		v_adcol_width = 1;
 	
 	Uint64 imagine_end = imagine_end_-1;
 	if(imagine_end<imagine_addr) 
