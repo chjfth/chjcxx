@@ -545,59 +545,60 @@ int fill_adcol_text(Uint64 imagine_addr, TCHAR buf[], int bufsize,
 	mm_snprintf(buf, bufsize, _T("%_%t%0.*llX"), 
 		v_sep_width,  // %_ , normally 4 or 8
 		adcol_sepstr, // %t , thousep string, normally ".", "`"
-		v_adcol_width, imagine_addr // %0.*llu , pad 0s to at least this v_adcol_width
+		v_adcol_width, imagine_addr // %0.*llX , pad 0s to at least this v_adcol_width
 		);
 	return TMM_strlen(buf);
 }
 
 int 
-cal_adcol_digits(Uint64 imagine_addr, int dumpbytes,
+cal_adcol_widths(Uint64 imagine_addr, Uint64 imagine_end_,
 	int v_adcol_width, int v_sep_width, const TCHAR *adcol_sepstr, 
-	TCHAR *fillbuf=NULL, int fillbufsize=0)
+	int *pWidth2 // output width2
+	)
 {
 	// Calculate address-column digits(space width) after hex formatted,
 	// trimming leading zeros.
 	// Example: Input v_adcol_with=8, v_sep_width=4, adcol_sepstr="." ,
 	// we'll produce output:
-	/*
+/*
 	-----------00-01-02-03-04-05-06-07-08-09-0A-0B-0C-0D-0E-0F
-	0000.0000: 30 31 32 33 34 35 36 37 38 39 3a 3b 3c 3d 3e 3f
-	0000.0010: aa bb cc
-	*/
-	// and return value is 9 which counts "0000.0000" .
-	//
-	// If v_adcol_width is 0, it means use minimum(4) colwidth, and the result 
+	0040.0000:       32 33 34 35 36 37 38 39 3a 3b 3c 3d 3e 3f
+	0040.0010: aa bb cc
+*/
+	// and we'll return two widths
+	// width2 is 9 which counts "0000.0000".
+	// width1 is 8 which counts count only 0s inside "0000.0000".
+	// Memo: width2 must be larger or equal to width1.
+	// In above example, 0x40000000 is the imagine_addr
+	
+	// If v_adcol_width is 0, it means use minimum(4) width2, and the result 
 	// will be: (returning 4)
-	/*
+/*
 	------00-01-02-03-04-05-06-07-08-09-0A-0B-0C-0D-0E-0F
 	0000: 30 31 32 33 34 35 36 37 38 39 3a 3b 3c 3d 3e 3f
 	0010: aa bb cc
-	*/
+*/
 	
 	const int default_colwidth = 4;
 	if(v_adcol_width<default_colwidth)
 		v_adcol_width = default_colwidth;
 	
-	Uint64 addr_end = imagine_addr+dumpbytes-1;
-	if(addr_end<imagine_addr) 
-		addr_end = (Uint64)-1; // it fixes rewind
+	Uint64 imagine_end = imagine_end_-1;
+	if(imagine_end<imagine_addr) 
+		imagine_end = (Uint64)-1; // it fixes rewind
 	
 	if(!adcol_sepstr)
 		adcol_sepstr = _T("");
 
-	if(fillbuf && fillbufsize>0)
-	{
-		int colwidth = fill_adcol_text(addr_end, fillbuf, fillbufsize,
-			v_adcol_width, v_sep_width, adcol_sepstr);
-		return colwidth;
-	}
-	else
-	{
-		TCHAR addrstr[40];
-		int colwidth = fill_adcol_text(addr_end, addrstr, mmquan(addrstr),
-			v_adcol_width, v_sep_width, adcol_sepstr);
-		return colwidth;
-	}
+	const int i64hsize = 20; // enough to hex-represent a 64-bit value
+	TCHAR addr_end[i64hsize];
+	int end_width = mm_snprintf(addr_end, i64hsize, _T("%llX"), imagine_end);
+	int width1 = Max(end_width, v_adcol_width);
+
+	TCHAR addrstr[40];
+	*pWidth2 = fill_adcol_text(imagine_end, addrstr, mmquan(addrstr),
+		v_adcol_width, v_sep_width, adcol_sepstr);
+	return width1;
 }
 
 int 
@@ -656,8 +657,10 @@ _mm_dump_bytes(TCHAR *buf, int bufchars,
 
 	int dump_width_perbyte = len_left+2+len_right+len_hyphens;
 
-	int adcol_digits = cal_adcol_digits(imagine_addr, dump_bytes, 
-		v_adcol_width, v_sep_width, adcol_sepstr);
+	Uint64 imagine_end_ = imagine_addr + dump_bytes;
+	int adcol_width2 = 0;
+	int adcol_width1 = cal_adcol_widths(imagine_addr, imagine_end_, 
+		v_adcol_width, v_sep_width, adcol_sepstr, &adcol_width2);
 
 	int consumed = 0; // consumed source bytes
 	mmfill_st mmfill = {buf, bufchars, 0};
@@ -666,7 +669,7 @@ _mm_dump_bytes(TCHAR *buf, int bufchars,
 	{
 		// first: indents and left ruler spaces
 		mmfill_fill_chars(mmfill, _T(' '), indents,          proc_output, ctx_output);
-		mmfill_fill_chars(mmfill, _T('-'), adcol_digits+ex2, proc_output, ctx_output);
+		mmfill_fill_chars(mmfill, _T('-'), adcol_width2+ex2, proc_output, ctx_output);
 			// ex2 is for ": " following the address column digits
 
 		// second: horizontal marks
@@ -699,10 +702,9 @@ _mm_dump_bytes(TCHAR *buf, int bufchars,
 		if(ruler)
 		{
 			TCHAR addrstr[40];
-			int colwidth = cal_adcol_digits(imagine_addr_to_print, 1,
-				v_adcol_width, v_sep_width, adcol_sepstr,
-				addrstr, mmquan(addrstr));
-
+			fill_adcol_text(imagine_addr_to_print, addrstr, mmquan(addrstr),
+				adcol_width1, v_sep_width, adcol_sepstr);
+				
 			mmfill_strcpy(mmfill, addrstr,                  proc_output, ctx_output);
 			mmfill_strcpy(mmfill, _T(": "),                 proc_output, ctx_output);
 		}
