@@ -146,6 +146,66 @@ TCHAR * T_strupr_copy(const TCHAR ins[], TCHAR outs[], int bufchars)
 	return outs;
 }
 
+void test_fms_s()
+{
+	oks = t("[  abc]");
+	mprint(oks, t("[%*s]"), 5, t("abc")); // width extended by width-spec
+    
+	oks = t("[123]");
+	mprint(oks, t("[%*s]"), 2, t("123"));
+	
+	oks = t("[xyz]");
+	mprint(oks, t("[%.*s]"), 5, t("xyz"));
+	
+	oks = t("[78]");
+    mprint(oks, t("[%.*s]"), 2, t("789")); // truncate by precision-spec
+	
+	oks = t("[   ]");
+	mprint(oks, t("[%3.0s]"), t("mmm"));
+}
+
+void test_v2()
+{
+	oks = t("");
+	mprint(oks, t("%.0d"), 0);
+	
+	oks = t("12345");
+	mprint(oks, t("%.3d"), 12345);
+	
+	oks = t("[123  ]"); // tell "left"-justify dynamically
+	mprint(oks, t("[%*d]"), -5, 123);
+	
+	oks = t("[-123 ]"); // tell "left"-justify dynamically
+	mprint(oks, t("[%*d]"), -5, -123);
+}
+
+void test_v3()
+{
+	oks = t("[+12][ 34][-0056]");
+	mprint(oks, t("[%+d][% d][%05d]"), 12, 34, -56);
+	
+	oks = t("[  +12][   34][  -56]");
+	mprint(oks, t("[%+5d][% 5d][% 5d]"), 12, 34, -56);
+	
+	oks = t("hex[+ab][AB]");
+	mprint(oks, t("hex[+%x][%X]"), 0xAB, 0xAB);
+	
+	oks =  IS64BIT ? t("hex[00000000eeeeeeee][000000000FFFEEEE]") : t("hex[eeeeeeee][0FFFEEEE]");
+	mprint(oks, t("hex[%+p][%P]"), (void*)0xEEEEeeee, (void*)0x0FFFeeee);
+	
+	oks = t("__int64 [64729929336, 0xf12345678]");
+	mprint(oks, t("__int64 [%lld, 0x%llx]"), i64, i64);
+	
+	oks = t("[12]");
+	mprint(oks, t("[%d]"), 12);
+	
+	oks = t("[xyz]");
+	mprint(oks, t("[%s]"), t("xyz"));
+	
+	mprint(NULL, t("float [%f, %g, %e]"), d, d, d);
+	
+}
+
 int test_v4_memdump()
 {
 	// [2014-07-12] bytes dump
@@ -399,66 +459,6 @@ int test_w_specifier()
 		assert(0);
 	}
 	return 0;
-}
-
-void test_fms_s()
-{
-	oks = t("[  abc]");
-	mprint(oks, t("[%*s]"), 5, t("abc")); // width extended by width-spec
-    
-	oks = t("[123]");
-	mprint(oks, t("[%*s]"), 2, t("123"));
-	
-	oks = t("[xyz]");
-	mprint(oks, t("[%.*s]"), 5, t("xyz"));
-
-	oks = t("[78]");
-    mprint(oks, t("[%.*s]"), 2, t("789")); // truncate by precision-spec
-
-	oks = t("[   ]");
-	mprint(oks, t("[%3.0s]"), t("mmm"));
-}
-
-void test_v2()
-{
-	oks = t("");
-	mprint(oks, t("%.0d"), 0);
-
-	oks = t("12345");
-	mprint(oks, t("%.3d"), 12345);
-
-	oks = t("[123  ]"); // tell "left"-justify dynamically
-	mprint(oks, t("[%*d]"), -5, 123);
-
-	oks = t("[-123 ]"); // tell "left"-justify dynamically
-	mprint(oks, t("[%*d]"), -5, -123);
-}
-
-void test_v3()
-{
-	oks = t("[+12][ 34][-0056]");
-	mprint(oks, t("[%+d][% d][%05d]"), 12, 34, -56);
-
-	oks = t("[  +12][   34][  -56]");
-	mprint(oks, t("[%+5d][% 5d][% 5d]"), 12, 34, -56);
-
-	oks = t("hex[+ab][AB]");
-	mprint(oks, t("hex[+%x][%X]"), 0xAB, 0xAB);
-	
-	oks =  IS64BIT ? t("hex[00000000eeeeeeee][000000000FFFEEEE]") : t("hex[eeeeeeee][0FFFEEEE]");
-	mprint(oks, t("hex[%+p][%P]"), (void*)0xEEEEeeee, (void*)0x0FFFeeee);
-
-	oks = t("__int64 [64729929336, 0xf12345678]");
-	mprint(oks, t("__int64 [%lld, 0x%llx]"), i64, i64);
-
-	oks = t("[12]");
-	mprint(oks, t("[%d]"), 12);
-
-	oks = t("[xyz]");
-	mprint(oks, t("[%s]"), t("xyz"));
-
-	mprint(NULL, t("float [%f, %g, %e]"), d, d, d);
-
 }
 
 void test_v5()
