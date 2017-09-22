@@ -508,6 +508,10 @@ void test_v5()
 	// ... we need 9 digits with 0s pre-padded, 9 does not count sepers ... 
 	oks = t("[000,012,345]");
 	mprint(oks, t("%t[%0.9u]"), t(","), 12345); 
+	// 
+	oks = t("[00012,345]");
+	mprint(oks, t("%t[%.9u]"), t(","), 12345); // "[00012,345]" same as ANSI printf
+
 	
 	oks = t("[-000,012,345]");
 	mprint(oks, t("%t[%0.9d]"), t(","), -12345); 
