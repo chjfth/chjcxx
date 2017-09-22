@@ -338,11 +338,11 @@ int test_v4_memdump()
     0000000C:          00 01 02 03 04\n\
     00000014: 05 06 07 08 09 0a 0b 0c\n\
     0000001C: 0d 0e 0f 10");
-	mprint(oks, t("%k%*.*R%t%*v%17m"), 
+	mprint(oks, t("%k%*.*R%t%.*v%17m"), 
 	   t(" "), // %k
 	   4, 3, row_width, // %*.*R
 	   t("."),  // %t
-	   8, (Uint64_mmv)0xF, // %*v
+	   8, (Uint64_mmv)0xF, // %.*v
 	   mem // %17m
 	   );
 
@@ -355,7 +355,7 @@ int test_v4_memdump()
 		t(" "), // %k
 		2, 3, row_width, // %*.*R
 		t("."),  // %t
-		8, 4, (Uint64_mmv)0xF, // %*.*v
+		4, 8, (Uint64_mmv)0xF, // %*.*v
 		mem // %17m
 		);
 
@@ -368,7 +368,7 @@ int test_v4_memdump()
 		t(" "), // %k
 		2, 3, row_width_16, // %*.*R
 		t("`"),  // %t
-		16, 8, (Uint64_mmv)0xF, // %*.*v
+		8, 16, (Uint64_mmv)0xF, // %*.*v
 		mem // %17m
 		);
 
@@ -376,7 +376,7 @@ int test_v4_memdump()
     --------00-01-02-03-04-05-06-07-08-09-0A-0B-0C-0D-0E-0F\n\
     0.FFF0:          03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f\n\
     1.0000: 10 11 12 13");
-	mprint(oks, t("%k%*.*R%t%0.4v%17m"), 
+	mprint(oks, t("%k%*.*R%t%4v%17m"), 
 		t(" "), 
 		4, 3, row_width_16, // %*.*R
 		t("."),  // %t

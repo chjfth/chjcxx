@@ -1459,8 +1459,9 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 		case _T('v'):
 			{
 				imagine_maddr = va_arg(ap, Uint64);
-				v_adcol_width = min_field_width;
-				v_sep_width = precision;
+
+				v_sep_width = min_field_width;
+				v_adcol_width = precision; // = left-pad zeros to reach this width
 				
 				p++; continue;
 			}
