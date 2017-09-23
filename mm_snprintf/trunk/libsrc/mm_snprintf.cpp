@@ -726,7 +726,7 @@ _mm_dump_bytes(TCHAR *buf, int bufchars,
 				mmfill_fill_chars(mmfill, _T('-'), len_hyphens, proc_output, ctx_output);
 		}
 		
-		mmfill_strcpy(mmfill, _T("\n"),                      proc_output, ctx_output);
+		mmfill_strcpy(mmfill, g_mmcrlf_sz,                      proc_output, ctx_output);
 	}
 
 	Uint64 imagine_addr_to_print = imagine_addr-colskip;
@@ -781,7 +781,7 @@ _mm_dump_bytes(TCHAR *buf, int bufchars,
 		if(consumed==dump_bytes)
 			break;
 
-		mmfill_strcpy(mmfill, _T("\n"),                    proc_output, ctx_output);
+		mmfill_strcpy(mmfill, g_mmcrlf_sz,                 proc_output, ctx_output);
 		assert(consumed<dump_bytes);
 
 		imagine_addr_to_print += columns;

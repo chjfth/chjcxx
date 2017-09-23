@@ -17,6 +17,20 @@ DLLEXPORT_mmsnprintf
 unsigned short mmsnprintf_getversion(void);
 	// Returns: Major version in higher byte and minor version in lower byte.
 
+
+enum mm_crlf_et
+{
+	mm_crlf_default = 0,
+	mm_crlf_lf = 0,   // \n only, Linux
+	mm_crlf_crlf = 1, // \r\n, Windows
+	mm_crlf_cr = 2,   // \r only, MAC
+};
+
+DLLEXPORT_mmsnprintf
+void mm_set_crlf_style(mm_crlf_et style);
+	// This affects %m's newline style.
+
+
 DLLEXPORT_mmsnprintf
 int mm_snprintfA(char *buf, size_t bufsize, const char *format, ...);
 
@@ -231,6 +245,8 @@ struct mm_fpair_stW
 # define mm_vsnprintf_v7 mm_vsnprintf_v7W
 # define mm_snprintf_v7 mm_snprintf_v7W
 
+# define g_mmcrlf_sz g_mmcrlf_szW // internal
+
 #else
 
 # define mm_snprintf mm_snprintfA
@@ -253,6 +269,8 @@ struct mm_fpair_stW
 # define mm_snprintf_ct mm_snprintf_ctA
 # define mm_vsnprintf_v7 mm_vsnprintf_v7A
 # define mm_snprintf_v7 mm_snprintf_v7A
+
+# define g_mmcrlf_sz g_mmcrlf_szA // internal
 
 #endif
 

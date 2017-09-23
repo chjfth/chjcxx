@@ -461,6 +461,15 @@ int test_v4_memdump()
 		7, 1, 4, 
 		18, bytes);
 */
+
+	mm_set_crlf_style(mm_crlf_crlf);
+	oks = t("\
+---00-01-02-03-04-05-06-07\r\n\
+0: 00 01 02 03 04 05 06 07\r\n\
+8: 08 09 0a");
+	mprint(oks, t("%k%R%11m"), t(" "), row_width, mem);
+	mm_set_crlf_style(mm_crlf_default);
+
 	return 0;
 }
 

@@ -5,10 +5,35 @@
 #include "internal.h"
 #include "libversion.h"
 
+#define DLL_AUTO_EXPORT_STUB
+
 unsigned short
 mmsnprintf_getversion(void)
 {
 	return (mmsnprintf_vmajor<<8) | mmsnprintf_vminor;
+}
+
+char g_mmcrlf_szA[4] = "\n";
+
+wchar_t g_mmcrlf_szW[4] = L"\n";
+
+void mm_set_crlf_style(mm_crlf_et style)
+{
+	if(style==mm_crlf_crlf)
+	{
+		g_mmcrlf_szA[0]='\r', g_mmcrlf_szA[1]='\n', g_mmcrlf_szA[2]='\0';
+		g_mmcrlf_szW[0]=L'\r', g_mmcrlf_szW[1]=L'\n', g_mmcrlf_szW[2]='\0';
+	}
+	else if(style==mm_crlf_cr)
+	{
+		g_mmcrlf_szA[0]='\r', g_mmcrlf_szA[1]='\0';
+		g_mmcrlf_szW[0]=L'\r', g_mmcrlf_szW[1]='\0';
+	}
+	else
+	{
+		g_mmcrlf_szA[0]='\n', g_mmcrlf_szA[1]='\0';
+		g_mmcrlf_szW[0]=L'\n', g_mmcrlf_szW[1]='\0';
+	}
 }
 
 
@@ -42,3 +67,4 @@ bool Is_RequestIsoZeros(bool v_is_isozeros, int v_adcol_width)
 	else
 		return false; // %4v
 }
+
