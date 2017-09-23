@@ -392,7 +392,18 @@ int test_v4_memdump()
 		t(" "), // %k
 		4, 3, row_width_16, // %*.*R, indent=4, col-skip=3
 		t("."),  // %t
-		(Uint64_mmv)0xFFF3, // %0.4v
+		(Uint64_mmv)0xFFF3, // %4v
+		mem+3);
+
+	oks = t("\
+    -----------00-01-02-03-04-05-06-07-08-09-0A-0B-0C-0D-0E-0F\n\
+    0000.FFF0:          03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f\n\
+    0001.0000: 10 11 12 13");
+	mprint(oks, t("%k%*.*R%t%4.0v%17m"), 
+		t(" "), // %k
+		4, 3, row_width_16, // %*.*R, indent=4, col-skip=3
+		t("."),  // %t
+		(Uint64_mmv)0xFFF3, // %4.0v //!// Is_IsoZeros()
 		mem+3);
 
 	oks = t("\

@@ -4,7 +4,6 @@
 #include <ps_TCHAR.h>
 
 typedef int Int;
-typedef unsigned __int64 Uint64;
 
 enum Fmt_et { fmt_unset, fmt_ptr, fmt_decimal_signed, fmt_decimal_unsigned, fmt_float };
 
@@ -12,14 +11,11 @@ enum Fmt_et { fmt_unset, fmt_ptr, fmt_decimal_signed, fmt_decimal_unsigned, fmt_
 
 #define TMM_strmembytes(chars) ((chars)*sizeof(TCHAR))
 
-
 int mmsnprintf_IsFloatingType(TCHAR fmt_spec);
-//int mmsnprintf_IsFloatingTypeW(wchar_t fmt_spec);
 
-void _mm_fillchars(TCHAR *pbuf, TCHAR c, size_t n);
-void _mm_fillchars_opt(FUNC_mm_output proc, void *ctx, TCHAR c, size_t n);
+int mm_free_buf(void *ptr);
 
-const TCHAR *_mm_memchr(const TCHAR *buf, TCHAR c, size_t count);
-
+bool Is_IsoZeros(int v_sep_width, int v_adcol_width);
+bool Is_RequestIsoZeros(bool v_is_isozeros, int v_adcol_width);
 
 #endif
