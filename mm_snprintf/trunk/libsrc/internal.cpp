@@ -54,7 +54,12 @@ bool Is_IsoZeros(int v_sep_width, int v_adcol_width)
 	// The v_addr 1.0002 should be left zero-padded to 0001.0002 ,
 	// so each sep-section is of same length(isochronous).
 	
+#ifndef WINCE 
+	// Memo: When UNICODE is not #defined, we cannot use assert for WinCE.
+	// When UNICODE is not #defined, WinCE's assert will always expand to OutputDebugStringW 
+	// but the expanded string constant is narrow, and it will compile fail.
 	assert(v_sep_width>=0);
+#endif
 	if(v_sep_width==0)
 		return false;
 	
