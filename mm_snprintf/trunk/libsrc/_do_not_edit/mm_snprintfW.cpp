@@ -279,6 +279,10 @@
 #include <stdio.h>
 #include <stdlib.h>		// for malloc
 #include <stdarg.h>
+//#include <sys/types.h> //Chj commented it out, for ARMCC does not have this.
+#include <string.h>
+//#include <errno.h> //[2008-05-16]Chj: WinCE don't have this.
+#include <ctype.h>
 
 #include <ps_Tstrdef.h> 
 	//Note:
@@ -289,6 +293,7 @@
 
 //////////////////////////////
 #include <ps_TCHAR.h>
+#include <commdefs.h>
 #include <_MINMAX_.h>
 #include <mm_snprintf.h>
 #include "internal.h"
@@ -314,16 +319,6 @@ extern"C" void mmsnprintf_lib__mm_snprintfW__DLL_AUTO_EXPORT_STUB(void){}
 # define PREFER_PORTABLE_SNPRINTF
 # endif
 #endif
-
-//#include <sys/types.h> //Chj commented it out, for ARMCC does not have this.
-#include <assert.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdarg.h>
-#include <assert.h>
-//#include <errno.h> //[2008-05-16]Chj: WinCE don't have this.
-#include <ctype.h>
 
 #define Min(a,b) ((a) < (b) ? (a) : (b))
 #define Max(a,b) ((a) > (b) ? (a) : (b))
@@ -494,6 +489,42 @@ void mmfill_va_append(mmfill_st &f, FUNC_mm_output *proc_output, void *ctx_outpu
 	f.produced += reqlen;
 }
 
+const TCHAR *
+_mm_memchr(const TCHAR *buf, TCHAR c, size_t count)
+{
+	// memo: WinXP ntoskrnl does not have wmemchr, so I write mm_memchr() myself.
+	
+	size_t i=0;
+	for(; i<count; i++)
+	{
+		if(buf[i]==c)
+			return buf+i;
+	}
+	return NULL;
+}
+
+void 
+_mm_fillchars(TCHAR *pbuf, TCHAR c, size_t n)
+{
+	size_t i;
+	for(i=0; i<n; i++)
+		pbuf[i] = c;
+}
+
+void 
+_mm_fillchars_opt(FUNC_mm_output proc, void *ctx, TCHAR c, size_t n)
+{
+	const int chunksize = 100;
+	TCHAR cbuf[chunksize];
+	_mm_fillchars(cbuf, c, chunksize);
+	
+	int remain = (int)n;
+	for(; remain>0; remain-=chunksize)
+	{
+		proc(ctx, cbuf, _MIN_(remain, chunksize));
+	}
+}
+
 void 
 mmfill_fill_chars(mmfill_st &f, TCHAR c, int n, FUNC_mm_output *proc_output, void *ctx_output)
 {
@@ -540,20 +571,20 @@ mmfill_strcpy(mmfill_st &f, const TCHAR *src, FUNC_mm_output *proc_output, void 
 }
 
 int fill_adcol_text(Uint64 imagine_addr, TCHAR buf[], int bufsize, 
-	int v_adcol_width, int v_sep_width, const TCHAR *adcol_sepstr)
+	int sep_width, int adcol_width, const TCHAR *adcol_sepstr)
 {
 	assert(bufsize>=20);
 	mm_snprintf(buf, bufsize, _T("%_%t%0.*llX"), 
-		v_sep_width,  // %_ , normally 4 or 8
+		sep_width,  // %_ , normally 4 or 8
 		adcol_sepstr, // %t , thousep string, normally ".", "`"
-		v_adcol_width, imagine_addr // %0.*llX , pad 0s to at least this v_adcol_width
+		adcol_width, imagine_addr // %0.*llX , pad 0s to at least this v_adcol_width
 		);
 	return TMM_strlen(buf);
 }
 
 int 
 cal_adcol_widths(Uint64 imagine_addr, Uint64 imagine_end_,
-	int v_adcol_width, int v_sep_width, const TCHAR *adcol_sepstr, 
+	int v_sep_width, int v_adcol_width, const TCHAR *adcol_sepstr, 
 	int *pWidth2 // output width2
 	)
 {
@@ -593,11 +624,23 @@ cal_adcol_widths(Uint64 imagine_addr, Uint64 imagine_end_,
 	const int i64hsize = 20; // enough to hex-represent a 64-bit value
 	TCHAR addr_end[i64hsize];
 	int end_width = mm_snprintf(addr_end, i64hsize, _T("%llX"), imagine_end);
-	int width1 = Max(end_width, v_adcol_width);
+	int width1 = 0;
+	int adcol_width = 0;
+	if(Is_IsoZeros(v_sep_width, v_adcol_width))
+	{
+		adcol_width = UP_ROUND(end_width, v_sep_width);
+		width1 = adcol_width;
+	}
+	else
+	{
+		adcol_width = v_adcol_width;
+		width1 = Max(end_width, adcol_width);
+	}
+	assert(adcol_width>0);
 
 	TCHAR addrstr[40];
 	*pWidth2 = fill_adcol_text(imagine_end, addrstr, mmquan(addrstr),
-		v_adcol_width, v_sep_width, adcol_sepstr);
+		v_sep_width, adcol_width, adcol_sepstr);
 	return width1;
 }
 
@@ -607,7 +650,7 @@ _mm_dump_bytes(TCHAR *buf, int bufchars,
 	const TCHAR *mdd_hyphens, const TCHAR *mdd_left, const TCHAR *mdd_right,
 	int columns, int colskip, bool ruler,
 	int indents, 
-	Uint64 imagine_addr, int v_adcol_width, int v_sep_width, const TCHAR *adcol_sepstr,
+	Uint64 imagine_addr, int v_sep_width, int v_adcol_width, const TCHAR *adcol_sepstr,
 	FUNC_mm_output *proc_output, void *ctx_output)
 {
 	/*
@@ -660,7 +703,7 @@ _mm_dump_bytes(TCHAR *buf, int bufchars,
 	Uint64 imagine_end_ = imagine_addr + dump_bytes;
 	int adcol_width2 = 0;
 	int adcol_width1 = cal_adcol_widths(imagine_addr, imagine_end_, 
-		v_adcol_width, v_sep_width, adcol_sepstr, &adcol_width2);
+		v_sep_width, v_adcol_width, adcol_sepstr, &adcol_width2);
 
 	int consumed = 0; // consumed source bytes
 	mmfill_st mmfill = {buf, bufchars, 0};
@@ -684,7 +727,7 @@ _mm_dump_bytes(TCHAR *buf, int bufchars,
 				mmfill_fill_chars(mmfill, _T('-'), len_hyphens, proc_output, ctx_output);
 		}
 		
-		mmfill_strcpy(mmfill, _T("\n"),                      proc_output, ctx_output);
+		mmfill_strcpy(mmfill, g_mmcrlf_sz,                      proc_output, ctx_output);
 	}
 
 	Uint64 imagine_addr_to_print = imagine_addr-colskip;
@@ -703,7 +746,7 @@ _mm_dump_bytes(TCHAR *buf, int bufchars,
 		{
 			TCHAR addrstr[40];
 			fill_adcol_text(imagine_addr_to_print, addrstr, mmquan(addrstr),
-				adcol_width1, v_sep_width, adcol_sepstr);
+				v_sep_width, adcol_width1, adcol_sepstr);
 				
 			mmfill_strcpy(mmfill, addrstr,                  proc_output, ctx_output);
 			mmfill_strcpy(mmfill, _T(": "),                 proc_output, ctx_output);
@@ -739,7 +782,7 @@ _mm_dump_bytes(TCHAR *buf, int bufchars,
 		if(consumed==dump_bytes)
 			break;
 
-		mmfill_strcpy(mmfill, _T("\n"),                    proc_output, ctx_output);
+		mmfill_strcpy(mmfill, g_mmcrlf_sz,                 proc_output, ctx_output);
 		assert(consumed<dump_bytes);
 
 		imagine_addr_to_print += columns;
@@ -785,6 +828,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 	bool is_print_ruler = false;
 	Uint64 imagine_maddr = 0; // %v 's data
 	int v_adcol_width = 0, v_sep_width = 0; // %v's address-column-width and separator width
+	bool v_is_isozeros = false; // for %v
 
 	int thousep_width = 3; // %_ to modify
 	const TCHAR *psz_thousep = NULL; // thousand separator, (%t to modify)
@@ -1460,8 +1504,12 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 			{
 				imagine_maddr = va_arg(ap, Uint64);
 
+				assert(min_field_width>=0 && precision>=0);
+
 				v_sep_width = min_field_width;
 				v_adcol_width = precision; // = left-pad zeros to reach this width
+
+				v_is_isozeros = precision_specified;
 				
 				p++; continue;
 			}
@@ -1492,12 +1540,16 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 					mdd_hyphens, mdd_left, mdd_right,
 					mdf_columns, mdf_colskip, is_print_ruler,
 					mdd_indents, 
-					imagine_maddr, v_adcol_width, v_sep_width, psz_thousep,
+					imagine_maddr, 
+					v_sep_width, 
+					Is_RequestIsoZeros(v_is_isozeros, v_adcol_width)?(-1):v_adcol_width, 
+					psz_thousep,
 					proc_output, ctx_output);
 				str_l += result_chars;
 
 				min_field_width = precision = 0; // reset (must?)
 				imagine_maddr = 0;
+				v_is_isozeros = false;
 				
 				p++; // step over the just processed conversion specifier
 				continue; 
@@ -1953,28 +2005,6 @@ mmsnprintf_IsFloatingType(TCHAR fmt_spec)
 		return 0; // no
 }
 
-void 
-_mm_fillchars(TCHAR *pbuf, TCHAR c, size_t n)
-{
-	size_t i;
-	for(i=0; i<n; i++)
-		pbuf[i] = c;
-}
-
-void 
-_mm_fillchars_opt(FUNC_mm_output proc, void *ctx, TCHAR c, size_t n)
-{
-	const int chunksize = 100;
-	TCHAR cbuf[chunksize];
-	_mm_fillchars(cbuf, c, chunksize);
-	
-	int remain = (int)n;
-	for(; remain>0; remain-=chunksize)
-	{
-		proc(ctx, cbuf, _MIN_(remain, chunksize));
-	}
-}
-
 //////////////////////////////////////////////////////////////////////////
 
 
@@ -2020,18 +2050,5 @@ int mm_snprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, ...)
 }
 
 
-const TCHAR *
-_mm_memchr(const TCHAR *buf, TCHAR c, size_t count)
-{
-	// memo: WinXP ntoskrnl does not have wmemchr, so I write mm_memchr() myself.
-
-	size_t i=0;
-	for(; i<count; i++)
-	{
-		if(buf[i]==c)
-			return buf+i;
-	}
-	return NULL;
-}
 
 

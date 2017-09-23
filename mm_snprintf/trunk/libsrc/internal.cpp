@@ -6,6 +6,7 @@
 #include "libversion.h"
 
 #define DLL_AUTO_EXPORT_STUB
+extern"C" void mmsnprintf_lib__internal__DLL_AUTO_EXPORT_STUB(void){}
 
 unsigned short
 mmsnprintf_getversion(void)
