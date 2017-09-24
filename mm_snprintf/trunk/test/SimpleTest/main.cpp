@@ -462,6 +462,14 @@ int test_v4_memdump()
 		18, bytes);
 */
 
+	oks = t("");
+	mprint(oks, t("%k%*m"), t(" "), 0, mem); // dump 0 byte
+
+	oks = t("");
+	mprint(oks, t("%k%R%*m"), t(" "), 
+		row_width,
+		0, mem); // dump 0 byte
+
 	mm_set_crlf_style(mm_crlf_crlf);
 	oks = t("\
 ---00-01-02-03-04-05-06-07\r\n\

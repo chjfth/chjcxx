@@ -681,6 +681,13 @@ _mm_dump_bytes(TCHAR *buf, int bufchars,
 	Return: how many TCHARs will be output assuming buf[] is large enough.
 	*/
 
+	if(dump_bytes<=0)
+	{
+		if(bufchars>0)
+			buf[0] = '\0';
+		return 0;
+	}
+
 	const unsigned char *pbytes = (unsigned char*)_pbytes;
 
 	columns = Mid(0, columns, 256);
