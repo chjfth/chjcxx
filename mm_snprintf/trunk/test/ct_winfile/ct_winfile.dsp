@@ -82,17 +82,9 @@ LINK32=link.exe
 
 # Name "ct_winfile - Win32 ANSI"
 # Name "ct_winfile - Win32 Unicode"
-# Begin Group "Source Files"
-
-# PROP Default_Filter "cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 # Begin Source File
 
-SOURCE=.\main.cpp
+SOURCE=.\ct_winfile.cpp
 # End Source File
-# End Group
-# Begin Group "Header Files"
-
-# PROP Default_Filter "h;hpp;hxx;hm;inl"
-# End Group
 # End Target
 # End Project
