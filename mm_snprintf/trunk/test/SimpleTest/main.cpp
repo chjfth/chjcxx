@@ -59,7 +59,8 @@ struct Custout_st
 	TCHAR custbuf[BUFMAX];
 };
 
-void mmct_CustomOutput(void *user_ctx, const TCHAR *pcontent, int nchars)
+void mmct_CustomOutput(void *user_ctx, const TCHAR *pcontent, int nchars, 
+					   const mmctexi_st *pcti)
 {
 	assert(nchars>0);
 
@@ -717,7 +718,7 @@ int mmF_ansitime2ymdhms_method2(void *param, const mmv7_st &mmi)
 			ptm->tm_hour, ptm->tm_min, ptm->tm_sec
 			);
 		int reallen = t_strlen(timebuf);
-		mmi.proc_output(mmi.ctx_output, timebuf, _MIN_(len, reallen));
+		mmi.proc_output(mmi.ctx_output, timebuf, _MIN_(len, reallen), NULL);
 	}
 	else
 	{

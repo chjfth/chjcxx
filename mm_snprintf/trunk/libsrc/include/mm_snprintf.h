@@ -77,7 +77,7 @@ struct mmctexi_stA // ctexi: custom target extra info
 	int mmlevel;
 	const char *pfmt; // original input szfmt
 	int fmtpos; // current advancing position in szfmt
-	char curtype[6]; // current "'type', "%d", "%llX" etc
+	int fmtnc;  //	char curtype[6]; // current "'type', "%d", "%llX" etc
 	bool has_width;
 	int width;
 	bool has_precision;
@@ -94,13 +94,17 @@ struct mmctexi_stA // ctexi: custom target extra info
 		unsigned long val_ulong;
 		__int64 val_int64;
 		unsigned __int64 val_uint64;
+		const void * val_ptr;
 		double val_double;
+		
 		wchar_t val_wchar;
-		void * val_ptr;
+		char val_TCHAR; // char!
+		unsigned char placehldr[16]; 
 	};
 };
 //
-typedef void (FUNC_mmct_outputA)(void *user_ctx, const char *pcontent, int nchars, mmctexi_stA *pctexi);
+typedef void (FUNC_mmct_outputA)(void *user_ctx, const char *pcontent, int nchars, 
+								 const mmctexi_stA *pctexi);
 // -- note: pcontent is not NUL terminated.
 //
 DLLEXPORT_mmsnprintf
@@ -166,7 +170,7 @@ struct mmctexi_stW // ctexi: custom target extra info
 	int mmlevel;
 	const wchar_t *pfmt; // original input szfmt
 	int fmtpos; // current advancing position in szfmt
-	wchar_t curtype[6]; // current "'type', "%d", "%llX" etc
+	int fmtnc;       //wchar_t curtype[6]; // current "'type', "%d", "%llX" etc
 	bool has_width;
 	int width;
 	bool has_precision;
@@ -183,13 +187,17 @@ struct mmctexi_stW // ctexi: custom target extra info
 		unsigned long val_ulong;
 		__int64 val_int64;
 		unsigned __int64 val_uint64;
+		const void * val_ptr;
 		double val_double;
+		
 		wchar_t val_wchar;
-		void * val_ptr;
+		wchar_t val_TCHAR; // wchar_t
+		unsigned char placehldr[16];
 	};	
 };
 //
-typedef void (FUNC_mmct_outputW)(void *user_ctx, const wchar_t *pcontent, int nchars, mmctexi_stW *pctexi);
+typedef void (FUNC_mmct_outputW)(void *user_ctx, const wchar_t *pcontent, int nchars, 
+								 const mmctexi_stW *pctexi);
 // -- pcontent is not NUL terminated.
 //
 DLLEXPORT_mmsnprintf
