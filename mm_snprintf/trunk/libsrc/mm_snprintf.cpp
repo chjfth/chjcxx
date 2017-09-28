@@ -512,7 +512,7 @@ _mm_fillchars(TCHAR *pbuf, TCHAR c, size_t n)
 }
 
 void 
-_mm_fillchars_opt(FUNC_mmct_output proc, void *ctx, TCHAR c, size_t n)
+_mm_fillchars_opt(cti_pack_st ctipack, TCHAR c, size_t n)
 {
 	const int chunksize = 100;
 	TCHAR cbuf[chunksize];
@@ -521,7 +521,7 @@ _mm_fillchars_opt(FUNC_mmct_output proc, void *ctx, TCHAR c, size_t n)
 	int remain = (int)n;
 	for(; remain>0; remain-=chunksize)
 	{
-		proc(ctx, cbuf, _MIN_(remain, chunksize));
+		ctipack.proc(ctipack.ctx, cbuf, _MIN_(remain, chunksize), ctipack.pcti);
 	}
 }
 
@@ -546,16 +546,16 @@ mmfill_fill_chars(mmfill_st &f, TCHAR c, int n, FUNC_mmct_output *proc_output, v
 }
 
 TCHAR *
-mmfill_strcpy(mmfill_st &f, const TCHAR *src, FUNC_mmct_output *proc_output, void *ctx_output)
+mmfill_strcpy(mmfill_st &f, const TCHAR *src, cti_pack_st ctipack)
 {
 	// copy src to f.pbuf until f.pbuf[] reaches bufmax; update f.produced by src length
 	int srclen = TMM_strlen(src);
 	
 	if(srclen>0)
 	{
-		if(proc_output)
+		if(ctipack.proc)
 		{
-			proc_output(ctx_output, src, srclen);
+			ctipack.proc(ctipack.ctx, src, srclen, ctipack.pcti);
 		}
 		else
 		{
@@ -815,6 +815,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 	size_t str_m = mmi.bufsize;
 	FUNC_mmct_output *proc_output = mmi.proc_output;
 	void *ctx_output = mmi.ctx_output;
+	int mylevel = mmi.mmlevel + 1;
 
 	size_t str_l = 0; // how many output length has been filled, assuming enough output buffer
 	const TCHAR *p = fmt;
@@ -840,11 +841,17 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 	int thousep_width = 3; // %_ to modify
 	const TCHAR *psz_thousep = NULL; // thousand separator, (%t to modify)
 	const TCHAR *psz_THOUSEP = NULL; // only for %D, %U, %O, (%T to modify)
-	
+
+	mmctexi_st cti = {0};
+	cti.mmlevel = mylevel;
+	cti.pfmt = fmt;
 	
 	while (*p) 
 	{
+		cti.fmtpos = p - fmt;
+
 		// Copy a chunk of normal substring
+		//
 		if (*p != _T('%')) 
 		{
 		   /* if (str_l < str_m) str[str_l++] = *p++;    -- this would be sufficient */
@@ -857,7 +864,10 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 			size_t n = !q ? TMM_strlen(p) : (q-p);
 
 			if(proc_output) {
-				proc_output(ctx_output, p, n);
+				cti.curtype = '\0'; // sig
+				cti.has_width = cti.has_precision = false; cti.width = cti.precision = 0;
+				cti.val_ptr = 0;
+				proc_output(ctx_output, p, n, &cti);
 			} else {
 				if (str_l < str_m) {
 					size_t avail = str_m-str_l;
@@ -1009,6 +1019,21 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 		}
 		
 		fmt_spec = *p;
+
+		cti.curtype[0] = _T('%'); 
+		if(length_modifier==_T('2'))
+		{
+			cti.curtype[1] = _T('l');
+			cti.curtype[2] = _T('l');
+			cti.curtype[3] = fmt_spec;
+			cti.curtype[4] = _T('\0');
+		} 
+		else
+		{
+			cti.curtype[1] = length_modifier;
+			cti.curtype[2] = fmt_spec;
+			cti.curtype[3] = _T('\0');
+		}
 
 		//
 		// NOW, THE LENGTHY PROCESS OF fmt_spec(also called "type" in MSDN) STARTS.
@@ -1602,6 +1627,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				mmi2.bufsize = str_m>str_l ? str_m-str_l : 0;
 				mmi2.proc_output = proc_output;
 				mmi2.ctx_output = ctx_output;
+				mmi2.mmlevel = mylevel;
 				//
 				int fills = mm_vsnprintf_v7(mmi2, 
 					dig_fmt, *(va_list*)dig_args); // extra (va_list*) type-conversion(drop const) to make gcc 4.8 x64 happy.

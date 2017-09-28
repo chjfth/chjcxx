@@ -70,22 +70,53 @@ int mm_strcatA(char *dest, size_t bufsize, const char *fmt, ...);
 DLLEXPORT_mmsnprintf
 int mm_printfA(const char *fmt, ...);
 
+
 // v7 co functions. co: custom output(write to file, serial port etc).
-typedef void (FUNC_mmct_outputA)(void *user_ctx, const char *pcontent, int nchars);
-// -- pcontent is not NUL terminated.
+struct mmctexi_stA // ctexi: custom target extra info
+{
+	int mmlevel;
+	const char *pfmt; // original input szfmt
+	int fmtpos; // current advancing position in szfmt
+	char curtype[6]; // current "'type', "%d", "%llX" etc
+	bool has_width;
+	int width;
+	bool has_precision;
+	int precision;
+	union // the corresponding value of current 'type'
+	{
+		char val_char;
+		unsigned char val_uchar;
+		short val_short;
+		unsigned short val_ushort;
+		int val_int;
+		unsigned int val_uint;
+		long val_long;
+		unsigned long val_ulong;
+		__int64 val_int64;
+		unsigned __int64 val_uint64;
+		double val_double;
+		wchar_t val_wchar;
+		void * val_ptr;
+	};
+};
+//
+typedef void (FUNC_mmct_outputA)(void *user_ctx, const char *pcontent, int nchars, mmctexi_stA *pctexi);
+// -- note: pcontent is not NUL terminated.
 //
 DLLEXPORT_mmsnprintf
 int mm_printf_ctA(FUNC_mmct_outputA proc_output, void *ctx_output, const char *fmt, ...);
 //
 struct mmv7_stA
 {
+	int mmlevel;
+
 	FUNC_mmct_outputA *proc_output; // If NULL, callee should fill .buf_output[]
 	void *ctx_output;
 	
 	char *buf_output;
 	size_t bufsize;
-	
-	const char *pstock; // only for %F callee
+
+	const char *pstock; // only meaningful to %F callee
 };
 //
 DLLEXPORT_mmsnprintf
@@ -95,7 +126,10 @@ DLLEXPORT_mmsnprintf
 int  mm_snprintf_v7A(const mmv7_stA &mmi, const char *fmt, ...);
 
 
+//
 // Unicode version of the above mm_ functions
+//
+
 
 DLLEXPORT_mmsnprintf
 int mm_snprintfW(wchar_t *buf, size_t bufsize, const wchar_t *format, ...);
@@ -127,7 +161,35 @@ DLLEXPORT_mmsnprintf
 int mm_printfW(const wchar_t *fmt, ...);
 
 // v7 co functions. co: custom output(write to file, serial port etc).
-typedef void (FUNC_mmct_outputW)(void *user_ctx, const wchar_t *pcontent, int nchars);
+struct mmctexi_stW // ctexi: custom target extra info
+{
+	int mmlevel;
+	const wchar_t *pfmt; // original input szfmt
+	int fmtpos; // current advancing position in szfmt
+	wchar_t curtype[6]; // current "'type', "%d", "%llX" etc
+	bool has_width;
+	int width;
+	bool has_precision;
+	int precision;
+	union // the corresponding value of current 'type'
+	{
+		char val_char;
+		unsigned char val_uchar;
+		short val_short;
+		unsigned short val_ushort;
+		int val_int;
+		unsigned int val_uint;
+		long val_long;
+		unsigned long val_ulong;
+		__int64 val_int64;
+		unsigned __int64 val_uint64;
+		double val_double;
+		wchar_t val_wchar;
+		void * val_ptr;
+	};	
+};
+//
+typedef void (FUNC_mmct_outputW)(void *user_ctx, const wchar_t *pcontent, int nchars, mmctexi_stW *pctexi);
 // -- pcontent is not NUL terminated.
 //
 DLLEXPORT_mmsnprintf
@@ -141,7 +203,9 @@ struct mmv7_stW
 	wchar_t *buf_output;
 	size_t bufsize;
 	
-	const wchar_t *pstock; // only for %F callee
+	int mmlevel;
+	
+	const wchar_t *pstock; // only meaningful to %F callee
 };
 //
 DLLEXPORT_mmsnprintf
@@ -192,8 +256,8 @@ struct mm_wpair_stW
 //
 enum { mm_fpair_magic = 0xEF170321 };
 //
-typedef int (FUNC_mm_fpairA)(void *user_ctx, const mmv7_stA &mmi);
-typedef int (FUNC_mm_fpairW)(void *user_ctx, const mmv7_stW &mmi);
+typedef int (FUNC_mm_fpairA)(void *ctx_user, const mmv7_stA &mmi);
+typedef int (FUNC_mm_fpairW)(void *ctx_user, const mmv7_stW &mmi);
 // -- Return value tells output characters count, assuming buffer is enough (not counting ending NUL).
 //
 struct mm_fpair_stA
@@ -244,8 +308,7 @@ struct mm_fpair_stW
 # define mm_printf_ct mm_printf_ctW
 # define mm_vsnprintf_v7 mm_vsnprintf_v7W
 # define mm_snprintf_v7 mm_snprintf_v7W
-
-# define g_mmcrlf_sz g_mmcrlf_szW // internal
+# define mmctexi_st mmctexi_stW
 
 #else
 
@@ -269,8 +332,7 @@ struct mm_fpair_stW
 # define mm_printf_ct mm_printf_ctA
 # define mm_vsnprintf_v7 mm_vsnprintf_v7A
 # define mm_snprintf_v7 mm_snprintf_v7A
-
-# define g_mmcrlf_sz g_mmcrlf_szA // internal
+# define mmctexi_st mmctexi_stA
 
 #endif
 
