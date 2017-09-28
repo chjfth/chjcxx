@@ -71,15 +71,15 @@ DLLEXPORT_mmsnprintf
 int mm_printfA(const char *fmt, ...);
 
 // v7 co functions. co: custom output(write to file, serial port etc).
-typedef void (FUNC_mm_outputA)(void *user_ctx, const char *pcontent, int nchars);
+typedef void (FUNC_mmct_outputA)(void *user_ctx, const char *pcontent, int nchars);
 // -- pcontent is not NUL terminated.
 //
 DLLEXPORT_mmsnprintf
-int mm_printf_ctA(FUNC_mm_outputA proc_output, void *ctx_output, const char *fmt, ...);
+int mm_printf_ctA(FUNC_mmct_outputA proc_output, void *ctx_output, const char *fmt, ...);
 //
 struct mmv7_stA
 {
-	FUNC_mm_outputA *proc_output; // If NULL, callee should fill .buf_output[]
+	FUNC_mmct_outputA *proc_output; // If NULL, callee should fill .buf_output[]
 	void *ctx_output;
 	
 	char *buf_output;
@@ -127,15 +127,15 @@ DLLEXPORT_mmsnprintf
 int mm_printfW(const wchar_t *fmt, ...);
 
 // v7 co functions. co: custom output(write to file, serial port etc).
-typedef void (FUNC_mm_outputW)(void *user_ctx, const wchar_t *pcontent, int nchars);
+typedef void (FUNC_mmct_outputW)(void *user_ctx, const wchar_t *pcontent, int nchars);
 // -- pcontent is not NUL terminated.
 //
 DLLEXPORT_mmsnprintf
-int mm_printf_ctW(FUNC_mm_outputW proc_output, void *ctx_output, const wchar_t *fmt, ...);
+int mm_printf_ctW(FUNC_mmct_outputW proc_output, void *ctx_output, const wchar_t *fmt, ...);
 //
 struct mmv7_stW
 {
-	FUNC_mm_outputW *proc_output; // If NULL, callee should fill .buf_output[]
+	FUNC_mmct_outputW *proc_output; // If NULL, callee should fill .buf_output[]
 	void *ctx_output;
 	
 	wchar_t *buf_output;
@@ -239,7 +239,7 @@ struct mm_fpair_stW
 # define mm_fpair_st mm_fpair_stW
 # define MM_FPAIR_PARAM MM_FPAIR_PARAMW
 # define FUNC_mm_fpair FUNC_mm_fpairW
-# define FUNC_mmct_output FUNC_mm_outputW
+# define FUNC_mmct_output FUNC_mmct_outputW
 # define mmv7_st mmv7_stW
 # define mm_printf_ct mm_printf_ctW
 # define mm_vsnprintf_v7 mm_vsnprintf_v7W
@@ -264,7 +264,7 @@ struct mm_fpair_stW
 # define mm_fpair_st mm_fpair_stA
 # define MM_FPAIR_PARAM MM_FPAIR_PARAMA
 # define FUNC_mm_fpair FUNC_mm_fpairA
-# define FUNC_mmct_output FUNC_mm_outputA
+# define FUNC_mmct_output FUNC_mmct_outputA
 # define mmv7_st mmv7_stA
 # define mm_printf_ct mm_printf_ctA
 # define mm_vsnprintf_v7 mm_vsnprintf_v7A

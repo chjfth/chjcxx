@@ -46,8 +46,6 @@ void mmct_WriteFile(void *ctx_user, const TCHAR *pcontent, int nchars)
 
 int _tmain()
 {
-	// note: glibc bans mixing printf and wprintf, so avoid using mprintA here. (?)
-
 	setlocale(LC_ALL, "");
 
 	mm_set_crlf_style(mm_crlf_crlf);
