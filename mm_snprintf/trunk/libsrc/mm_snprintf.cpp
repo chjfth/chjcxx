@@ -253,12 +253,13 @@
  *
  *        Now, your mmF_peek() will see from pstock param: "The ball turns 3 rounds."
  *
- * 2017-09-20  V7.0 by Chj
- *      - New function mm_snprintf_ct and mm_snprintf_v7, mm_vsnprintf_v7 .
+ * 2017-09-28  V7.0 by Chj
+ *      - New function mm_printf_ct and mm_snprintf_v7, mm_vsnprintf_v7 .
  *        The "ct" means custom-target. You can direct the formatted result to your 
  *        custom target(a file or a COM port) by providing a callback function, 
  *        so to avoid preparing a temporary buffer size to hold the result string. 
  *
+ *      - Update to %*.*v semantic.
  */
 
 
@@ -470,7 +471,7 @@ struct mmfill_st
 	int produced; // may be larger than bufmax
 };
 
-void mmfill_va_append(mmfill_st &f, FUNC_mm_output *proc_output, void *ctx_output,
+void mmfill_va_append(mmfill_st &f, FUNC_mmct_output *proc_output, void *ctx_output,
 					  const TCHAR *fmt, ...)
 {
 	va_list args;
@@ -511,7 +512,7 @@ _mm_fillchars(TCHAR *pbuf, TCHAR c, size_t n)
 }
 
 void 
-_mm_fillchars_opt(FUNC_mm_output proc, void *ctx, TCHAR c, size_t n)
+_mm_fillchars_opt(FUNC_mmct_output proc, void *ctx, TCHAR c, size_t n)
 {
 	const int chunksize = 100;
 	TCHAR cbuf[chunksize];
@@ -525,7 +526,7 @@ _mm_fillchars_opt(FUNC_mm_output proc, void *ctx, TCHAR c, size_t n)
 }
 
 void 
-mmfill_fill_chars(mmfill_st &f, TCHAR c, int n, FUNC_mm_output *proc_output, void *ctx_output)
+mmfill_fill_chars(mmfill_st &f, TCHAR c, int n, FUNC_mmct_output *proc_output, void *ctx_output)
 {
 	// fill c*n chars 
 	// fills f.pbuf until f.pbuf[] reaches bufmax; update f.produced by n
@@ -545,7 +546,7 @@ mmfill_fill_chars(mmfill_st &f, TCHAR c, int n, FUNC_mm_output *proc_output, voi
 }
 
 TCHAR *
-mmfill_strcpy(mmfill_st &f, const TCHAR *src, FUNC_mm_output *proc_output, void *ctx_output)
+mmfill_strcpy(mmfill_st &f, const TCHAR *src, FUNC_mmct_output *proc_output, void *ctx_output)
 {
 	// copy src to f.pbuf until f.pbuf[] reaches bufmax; update f.produced by src length
 	int srclen = TMM_strlen(src);
@@ -650,7 +651,7 @@ _mm_dump_bytes(TCHAR *buf, int bufchars,
 	int columns, int colskip, bool ruler,
 	int indents, 
 	Uint64 imagine_addr, int v_sep_width, int v_adcol_width, const TCHAR *adcol_sepstr,
-	FUNC_mm_output *proc_output, void *ctx_output)
+	FUNC_mmct_output *proc_output, void *ctx_output)
 {
 	/*
 	Dump hex-represented byte content into buf[], but not exceeding bufchars.
@@ -812,7 +813,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 {
 	TCHAR *strbuf = mmi.buf_output;
 	size_t str_m = mmi.bufsize;
-	FUNC_mm_output *proc_output = mmi.proc_output;
+	FUNC_mmct_output *proc_output = mmi.proc_output;
 	void *ctx_output = mmi.ctx_output;
 
 	size_t str_l = 0; // how many output length has been filled, assuming enough output buffer
@@ -2029,7 +2030,7 @@ mm_strcat(TCHAR *dest, size_t bufsize, const TCHAR *fmt, ...)
 }
 
 int 
-mm_snprintf_ct(FUNC_mm_output proc_output, void *ctx_output, const TCHAR *fmt, ...)
+mm_printf_ct(FUNC_mmct_output proc_output, void *ctx_output, const TCHAR *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);

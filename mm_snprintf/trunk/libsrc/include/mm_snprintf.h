@@ -75,7 +75,7 @@ typedef void (FUNC_mm_outputA)(void *user_ctx, const char *pcontent, int nchars)
 // -- pcontent is not NUL terminated.
 //
 DLLEXPORT_mmsnprintf
-int mm_snprintf_ctA(FUNC_mm_outputA proc_output, void *ctx_output, const char *fmt, ...);
+int mm_printf_ctA(FUNC_mm_outputA proc_output, void *ctx_output, const char *fmt, ...);
 //
 struct mmv7_stA
 {
@@ -131,7 +131,7 @@ typedef void (FUNC_mm_outputW)(void *user_ctx, const wchar_t *pcontent, int ncha
 // -- pcontent is not NUL terminated.
 //
 DLLEXPORT_mmsnprintf
-int mm_snprintf_ctW(FUNC_mm_outputW proc_output, void *ctx_output, const wchar_t *fmt, ...);
+int mm_printf_ctW(FUNC_mm_outputW proc_output, void *ctx_output, const wchar_t *fmt, ...);
 //
 struct mmv7_stW
 {
@@ -239,9 +239,9 @@ struct mm_fpair_stW
 # define mm_fpair_st mm_fpair_stW
 # define MM_FPAIR_PARAM MM_FPAIR_PARAMW
 # define FUNC_mm_fpair FUNC_mm_fpairW
-# define FUNC_mm_output FUNC_mm_outputW
+# define FUNC_mmct_output FUNC_mm_outputW
 # define mmv7_st mmv7_stW
-# define mm_snprintf_ct mm_snprintf_ctW
+# define mm_printf_ct mm_printf_ctW
 # define mm_vsnprintf_v7 mm_vsnprintf_v7W
 # define mm_snprintf_v7 mm_snprintf_v7W
 
@@ -264,9 +264,9 @@ struct mm_fpair_stW
 # define mm_fpair_st mm_fpair_stA
 # define MM_FPAIR_PARAM MM_FPAIR_PARAMA
 # define FUNC_mm_fpair FUNC_mm_fpairA
-# define FUNC_mm_output FUNC_mm_outputA
+# define FUNC_mmct_output FUNC_mm_outputA
 # define mmv7_st mmv7_stA
-# define mm_snprintf_ct mm_snprintf_ctA
+# define mm_printf_ct mm_printf_ctA
 # define mm_vsnprintf_v7 mm_vsnprintf_v7A
 # define mm_snprintf_v7 mm_snprintf_v7A
 
