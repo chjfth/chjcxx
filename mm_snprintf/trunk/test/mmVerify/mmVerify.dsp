@@ -1,24 +1,24 @@
-# Microsoft Developer Studio Project File - Name="SimpleTest" - Package Owner=<4>
+# Microsoft Developer Studio Project File - Name="mmVerify" - Package Owner=<4>
 # Microsoft Developer Studio Generated Build File, Format Version 6.00
 # ** DO NOT EDIT **
 
 # TARGTYPE "Win32 (x86) Console Application" 0x0103
 
-CFG=SimpleTest - Win32 Unicode
+CFG=mmVerify - Win32 Unicode
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
 !MESSAGE 
-!MESSAGE NMAKE /f "SimpleTest.mak".
+!MESSAGE NMAKE /f "mmVerify.mak".
 !MESSAGE 
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "SimpleTest.mak" CFG="SimpleTest - Win32 Unicode"
+!MESSAGE NMAKE /f "mmVerify.mak" CFG="mmVerify - Win32 Unicode"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
-!MESSAGE "SimpleTest - Win32 ANSI" (based on "Win32 (x86) Console Application")
-!MESSAGE "SimpleTest - Win32 Unicode" (based on "Win32 (x86) Console Application")
+!MESSAGE "mmVerify - Win32 ANSI" (based on "Win32 (x86) Console Application")
+!MESSAGE "mmVerify - Win32 Unicode" (based on "Win32 (x86) Console Application")
 !MESSAGE 
 
 # Begin Project
@@ -28,7 +28,7 @@ CFG=SimpleTest - Win32 Unicode
 CPP=cl.exe
 RSC=rc.exe
 
-!IF  "$(CFG)" == "SimpleTest - Win32 ANSI"
+!IF  "$(CFG)" == "mmVerify - Win32 ANSI"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
@@ -52,7 +52,7 @@ LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /machine:I386
 # ADD LINK32 kernel32.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
 
-!ELSEIF  "$(CFG)" == "SimpleTest - Win32 Unicode"
+!ELSEIF  "$(CFG)" == "mmVerify - Win32 Unicode"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
@@ -80,8 +80,8 @@ LINK32=link.exe
 
 # Begin Target
 
-# Name "SimpleTest - Win32 ANSI"
-# Name "SimpleTest - Win32 Unicode"
+# Name "mmVerify - Win32 ANSI"
+# Name "mmVerify - Win32 Unicode"
 # Begin Source File
 
 SOURCE=.\main.cpp
