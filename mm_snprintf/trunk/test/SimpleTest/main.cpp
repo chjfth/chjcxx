@@ -789,7 +789,7 @@ void test_v6()
 struct mmct_Result_st
 {
 	int mmLevel;
-	const char *pfmt;
+	const TCHAR *pfmt;
 	int fmtpos;
 	int fmtnc;
 	bool has_width;
@@ -819,7 +819,7 @@ struct mmct_Verify_st
 	} 
 };
 
-int mmF_desc_widpreci(void *ctx_user, const mmv7_stA &mmi)
+int mmF_desc_widpreci(void *ctx_user, const mmv7_st &mmi)
 {
 	mmctexi_st &cti = *(mmctexi_st*)ctx_user;
 
