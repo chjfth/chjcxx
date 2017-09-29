@@ -171,7 +171,10 @@ void test_fms_s()
 	mprint(oks, t("[%3.6s]"), t("12"));
 
 	oks = t("[   123]");
-	mprint(oks, t("[%6.3s]"), t("1234567"));
+	mprint(oks, t("[%6.3s]"), t("1234567")); // truncate num-digits to 3 chars but extend blank to 6 chars
+
+	oks = t("[123   ]");
+	mprint(oks, t("[%-6.3s]"), t("1234567")); // similar to above but left justified
 
 	oks = t("[123456]");
 	mprint(oks, t("[%3.6s]"), t("1234567"));
@@ -921,7 +924,7 @@ void mmct_Verify(void *user_ctx, const TCHAR *pcontent, int nchars,
 enum { vs0=0, vs_char=1, vs_wchar=2, 
 	vs_TCHAR = sizeof(TCHAR),
 	vs_int=sizeof(int), vs_long=sizeof(long), vs_int64=sizeof(__int64), 
-	vs_double=sizeof(double), vsptr=sizeof(void*) };
+	vs_double=sizeof(double), vs_ptr=sizeof(void*) };
 
 
 void verify_printf_ct(const TCHAR *oks, const mmct_Result_st rs[], const TCHAR *fmt, ...)
@@ -957,7 +960,31 @@ void test_v7_ct()
 	};
 	verify_printf_ct(oks, rs1, szfmt, t('@'), 123, 456);
 
-	szfmt = t("%.*s");
+	szfmt = t("%*s%.*s%*.*s");
+	oks = t("1234567123   123");
+	//       ^      ^  ^
+	mmct_Result_st rs2[] =
+	{
+		{2, szfmt, 0,3, true,6, false,0, vs_ptr, 7}, // %*s
+		{2, szfmt, 3,4, false,0, true,3, vs_ptr, 3}, // %.*s
+		{2, szfmt, 7,5, true,6, true,3, vs_ptr, 6}, // %*.*s
+		{0}
+	};
+	const TCHAR *s = t("1234567");
+	verify_printf_ct(oks, rs2, szfmt, 6,s, 3,s, 6,3,s);
+
+	szfmt = t("%ld||%#llX%lld");
+	oks = t("4321||0X912345678-1123456789");
+	mmct_Result_st rs3[] =
+	{
+		{2, szfmt, 0,3, false,0, false,0, vs_long, 4}, // %ld
+		{2, szfmt, 3,2, false,0, false,0, vs0, 2}, // ||
+		{2, szfmt, 5,5, false,0, false,0, vs_int64, 11}, // %#llX
+		{2, szfmt, 10,4, false,0, false,0, vs_int64, 11}, // %lld
+		{0}
+	};
+	verify_printf_ct(oks, rs3, szfmt, (unsigned long)4321,
+		(__int64)0x912345678, (__int64)-1123456789);
 
 }
 
