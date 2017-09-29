@@ -986,6 +986,25 @@ void test_v7_ct()
 	verify_printf_ct(oks, rs3, szfmt, (unsigned long)4321,
 		(__int64)0x912345678, (__int64)-1123456789);
 
+	szfmt = t("%P");
+	oks = IS64BIT ? t("000000000FFFEEEE") : t("0FFFEEEE");
+	mmct_Result_st rs4[] =
+	{
+		{2, szfmt, 0,2, false,0, false,0, vs_ptr, IS64BIT?16:8},
+		{0}
+	};
+	verify_printf_ct(oks, rs4, szfmt, (void*)0x0FFFEEEE);
+
+	szfmt = t("%.8f%.8g");
+	oks = t("123.45600000123.456");
+	mmct_Result_st rs5[] =
+	{
+		{2, szfmt, 0,4, false,0, true,8, vs_double, 12},
+		{2, szfmt, 4,4, false,0, true,8, vs_double, 7},
+		{0}
+	};
+	verify_printf_ct(oks, rs5, szfmt, 123.456, 123.456);
+
 }
 
 int _tmain()
