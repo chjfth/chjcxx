@@ -784,6 +784,92 @@ void test_v6()
 	assert( ctx.call_count==2 );
 }
 
+/////////////////////////////// v7: /////////////////////////////////////
+
+struct mmct_Result_st
+{
+	int mmLevel;
+	const char *pfmt;
+	int fmtpos;
+	int fmtnc;
+	bool has_width;
+	bool width;
+	bool has_precision;
+	int precision;
+	int valsize; // 1,2,4,8,12
+};
+
+
+
+struct mmct_Verify_st
+{
+	int idx;
+	int output_accums;
+
+	void Reset(){ memset(this, 0, sizeof(*this)); } 
+};
+
+int mmF_desc_widpreci(void *ctx_user, const mmv7_stA &mmi)
+{
+	mmctexi_st &cti = *(mmctexi_st*)ctx_user;
+
+	TCHAR *pbuf = mmi.buf_output;
+	int bufremain = mmi.bufsize;
+
+	int len = 0;
+	len += mm_snprintf_am(pbuf, bufremain, t("width:%s"), 
+		cti.has_width?t("true"):t("false"));
+	//
+	if(cti.has_width)
+		len += mm_snprintf_am(pbuf, bufremain, t(",%d"), cti.width);
+
+	len += mm_snprintf_am(pbuf, bufremain, t(" preci:%s"), 
+		cti.has_precision?t("true"):t("false"));
+	//
+	if(cti.has_precision)
+		len += mm_snprintf_am(pbuf, bufremain, t(",%d"), cti.precision);
+
+	return len;
+}
+
+
+void mmct_Verify(void *user_ctx, const TCHAR *pcontent, int nchars, 
+				 const mmctexi_st *pctexi)
+{
+	assert(pctexi);
+	const mmctexi_st &cti = *pctexi;
+	
+	mmct_Verify_st &iverify = *(mmct_Verify_st*)user_ctx;
+
+	if(iverify.idx==0)
+	{
+		mm_printf(t("v7ct: \"%s\"\n"), cti.pfmt);
+	}
+
+	mm_printf(t("  <%.*s> fmtpos:%d+%d %F output:%d+%d\n"), 
+		cti.fmtnc, cti.pfmt+cti.fmtpos,  cti.fmtpos, cti.fmtnc, 
+		MM_FPAIR_PARAM(mmF_desc_widpreci, &cti), // %F
+		iverify.output_accums, nchars // output:%d+%d
+		);
+
+	iverify.idx++;
+	iverify.output_accums += nchars;
+}
+
+
+void test_v7_ct()
+{
+	mm_printf(t("\n"));
+
+	const TCHAR *szfmt = NULL;
+
+	mmct_Verify_st iverify;
+
+	iverify.Reset();
+//	mm_printf(t("v7ct: %s\n"), szfmt);
+	mm_printf_ct(mmct_Verify, &iverify, t("%cABC%d%06.4d"), t('@'), 123, 456);
+}
+
 int _tmain()
 {
 	// note: glibc bans mixing printf and wprintf, so avoid using mprintA here. (?)
@@ -815,6 +901,8 @@ int _tmain()
 	test_am();
 
 	test_v6();
+
+	test_v7_ct();
 
 	mm_printf(_T("\nAll %d test cases passed.\n"), g_cases);
 

@@ -1074,12 +1074,14 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 
 				if(fmt_spec==_T('c')) {
 					int j = va_arg(ap, int);
-					uchar_arg = cti.val_TCHAR = (TCHAR) j;   /* standard demands unsigned char */
+					uchar_arg = (TCHAR) j;   /* standard demands unsigned char */
 					str_arg = (TCHAR*) &uchar_arg;
+					CTI_SETVAL(cti, val_TCHAR, uchar_arg);
 				}
 
 				if(fmt_spec==_T('s')){
-					cti.val_ptr = str_arg = va_arg(ap, TCHAR*);
+					str_arg = va_arg(ap, TCHAR*);
+					CTI_SETVAL(cti, val_ptr, str_arg);
 					if (!str_arg) 
 						str_arg_l = 0;
 				/* make sure not to address string beyond the specified precision !!! */
@@ -1635,10 +1637,10 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 			}
 		case _T('F'): // inject function call
 			{
-				FUNC_mm_fpair *func = NULL;
+				FUNC_mmF_pair *func = NULL;
 				void *func_param = NULL;
 
-				const mm_fpair_st *fpair = va_arg(ap, mm_fpair_st*);
+				const mmF_pair_st *fpair = va_arg(ap, mmF_pair_st*);
 				cti.val_ptr = fpair;
 
 				if(fpair->magic==mm_fpair_magic)

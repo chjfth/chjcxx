@@ -22,6 +22,7 @@ int mm_free_buf(void *ptr);
 bool Is_IsoZeros(int v_sep_width, int v_adcol_width);
 bool Is_RequestIsoZeros(bool v_is_isozeros, int v_adcol_width);
 
+#define CTI_SETVAL(cti, member, val) { cti.member=val; cti.valsize=sizeof(cti.member); }
 
 struct cti_pack_stA
 {

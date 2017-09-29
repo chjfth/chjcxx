@@ -82,6 +82,8 @@ struct mmctexi_stA // ctexi: custom target extra info
 	int width;
 	bool has_precision;
 	int precision;
+	
+	int valsize; // tell the meaningful data size(1,2,4,8,12) of the union:
 	union // the corresponding value of current 'type'
 	{
 		char val_char;
@@ -175,6 +177,8 @@ struct mmctexi_stW // ctexi: custom target extra info
 	int width;
 	bool has_precision;
 	int precision;
+
+	int valsize; // tell the meaningful data size(1,2,4,8,12) of the union:
 	union // the corresponding value of current 'type'
 	{
 		char val_char;
@@ -264,31 +268,31 @@ struct mm_wpair_stW
 //
 enum { mm_fpair_magic = 0xEF170321 };
 //
-typedef int (FUNC_mm_fpairA)(void *ctx_user, const mmv7_stA &mmi);
-typedef int (FUNC_mm_fpairW)(void *ctx_user, const mmv7_stW &mmi);
+typedef int (FUNC_mmF_pairA)(void *ctx_user, const mmv7_stA &mmi);
+typedef int (FUNC_mmF_pairW)(void *ctx_user, const mmv7_stW &mmi);
 // -- Return value tells output characters count, assuming buffer is enough (not counting ending NUL).
 //
-struct mm_fpair_stA
+struct mmF_pair_stA
 {
 	unsigned int magic;
-	FUNC_mm_fpairA *func;
+	FUNC_mmF_pairA *func;
 	void *func_param;
 #ifdef __cplusplus
-	mm_fpair_stA(FUNC_mm_fpairA *f, void *p) : magic(mm_fpair_magic), func(f), func_param(p) {}
-	mm_fpair_stA* operator&(){ return this; }
-#define MM_FPAIR_PARAMA(f, p) &mm_fpair_stA( (f), ((void*)(p)) ) // only for C++
+	mmF_pair_stA(FUNC_mmF_pairA *f, void *p) : magic(mm_fpair_magic), func(f), func_param(p) {}
+	mmF_pair_stA* operator&(){ return this; }
+#define MM_FPAIR_PARAMA(f, p) &mmF_pair_stA( (f), ((void*)(p)) ) // only for C++
 #endif
 };
 //
-struct mm_fpair_stW
+struct mmF_pair_stW
 {
 	unsigned int magic;
-	FUNC_mm_fpairW *func;
+	FUNC_mmF_pairW *func;
 	void *func_param;
 #ifdef __cplusplus
-	mm_fpair_stW(FUNC_mm_fpairW *f, void *p) : magic(mm_fpair_magic), func(f), func_param(p) {}
-	mm_fpair_stW* operator&(){ return this; }
-#define MM_FPAIR_PARAMW(f, p) &mm_fpair_stW( (f), ((void*)(p)) ) // only for C++
+	mmF_pair_stW(FUNC_mmF_pairW *f, void *p) : magic(mm_fpair_magic), func(f), func_param(p) {}
+	mmF_pair_stW* operator&(){ return this; }
+#define MM_FPAIR_PARAMW(f, p) &mmF_pair_stW( (f), ((void*)(p)) ) // only for C++
 #endif
 };
 
@@ -308,9 +312,9 @@ struct mm_fpair_stW
 //
 # define mm_wpair_st mm_wpair_stW
 # define MM_WPAIR_PARAM MM_WPAIR_PARAMW
-# define mm_fpair_st mm_fpair_stW
+# define mmF_pair_st mmF_pair_stW
 # define MM_FPAIR_PARAM MM_FPAIR_PARAMW
-# define FUNC_mm_fpair FUNC_mm_fpairW
+# define FUNC_mmF_pair FUNC_mmF_pairW
 # define FUNC_mmct_output FUNC_mmct_outputW
 # define mmv7_st mmv7_stW
 # define mm_printf_ct mm_printf_ctW
@@ -332,9 +336,9 @@ struct mm_fpair_stW
 //
 # define mm_wpair_st mm_wpair_stA
 # define MM_WPAIR_PARAM MM_WPAIR_PARAMA
-# define mm_fpair_st mm_fpair_stA
+# define mmF_pair_st mmF_pair_stA
 # define MM_FPAIR_PARAM MM_FPAIR_PARAMA
-# define FUNC_mm_fpair FUNC_mm_fpairA
+# define FUNC_mmF_pair FUNC_mmF_pairA
 # define FUNC_mmct_output FUNC_mmct_outputA
 # define mmv7_st mmv7_stA
 # define mm_printf_ct mm_printf_ctA
