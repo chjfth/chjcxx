@@ -163,6 +163,18 @@ void test_fms_s()
 	
 	oks = t("[   ]");
 	mprint(oks, t("[%3.0s]"), t("mmm"));
+
+	oks = t("[    12]");
+	mprint(oks, t("[%6.3s]"), t("12"));
+
+	oks = t("[ 12]");
+	mprint(oks, t("[%3.6s]"), t("12"));
+
+	oks = t("[   123]");
+	mprint(oks, t("[%6.3s]"), t("1234567"));
+
+	oks = t("[123456]");
+	mprint(oks, t("[%3.6s]"), t("1234567"));
 }
 
 void test_v2()
@@ -944,6 +956,8 @@ void test_v7_ct()
 		{0}
 	};
 	verify_printf_ct(oks, rs1, szfmt, t('@'), 123, 456);
+
+	szfmt = t("%.*s");
 
 }
 
