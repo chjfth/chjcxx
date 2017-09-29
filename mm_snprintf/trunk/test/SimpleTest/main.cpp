@@ -807,15 +807,20 @@ struct mmct_Verify_st
 	int output_accums;
 
 	const mmct_Result_st *rs;
-	int rs_count;
+//	int rs_count;
 	int cur_rs;
 	int cur_partials;
 	const TCHAR *fmt_partial;
 
-	void Reset(const mmct_Result_st *_rs, int count)
+	TCHAR custbuf[BUFMAX]; // output_accums tells valid chars
+
+	mmct_Verify_st(const mmct_Result_st *_rs){ Reset(_rs); };
+
+	void Reset(const mmct_Result_st *_rs)//, int count)
 	{ 
 		memset(this, 0, sizeof(*this));
-		rs = _rs; rs_count = count;
+		rs = _rs; 
+//		rs_count = count;
 	} 
 };
 
@@ -850,6 +855,8 @@ void mmct_Verify(void *user_ctx, const TCHAR *pcontent, int nchars,
 	const mmctexi_st &cti = *pctexi;
 	
 	mmct_Verify_st &iverify = *(mmct_Verify_st*)user_ctx;
+
+	assert(iverify.rs[iverify.cur_rs].mmLevel>0); // verify that rs[] eles is not drained.
 
 	if(iverify.idx==0)
 	{
@@ -893,6 +900,7 @@ void mmct_Verify(void *user_ctx, const TCHAR *pcontent, int nchars,
 		iverify.fmt_partial = cti.pfmt;
 	}
 
+	memcpy(iverify.custbuf+iverify.output_accums, pcontent, nchars*sizeof(TCHAR));
 
 	iverify.idx++;
 	iverify.output_accums += nchars;
@@ -903,25 +911,40 @@ enum { vs0=0, vs_char=1, vs_wchar=2,
 	vs_int=sizeof(int), vs_long=sizeof(long), vs_int64=sizeof(__int64), 
 	vs_double=sizeof(double), vsptr=sizeof(void*) };
 
+
+void verify_printf_ct(const TCHAR *oks, const mmct_Result_st rs[], const TCHAR *fmt, ...)
+{
+	mmct_Verify_st iverify(rs);
+
+	va_list args;
+	va_start(args, fmt);
+
+	int retlen = mm_printf_ct(mmct_Verify, &iverify, t("%w"), MM_WPAIR_PARAM(fmt,args));
+
+	mprint(oks, t("%s"), iverify.custbuf);
+
+	va_end(args);
+}
+
 void test_v7_ct()
 {
 	mm_printf(t("\n"));
 
 	const TCHAR *szfmt = NULL;
 
-	mmct_Verify_st iverify;
-
 	szfmt = t("%cABC%d%06.4d!");
-	mmct_Result_st rs[] =
+	oks = t("@ABC123  0456!");
+	mmct_Result_st rs1[] =
 	{
-		{1, szfmt, 0,2, false,0, false,0, vs_TCHAR, 1}, // %c
-		{1, szfmt, 2,3, false,0, false,0, vs0,  3}, // ABC
-		{1, szfmt, 5,2, false,0, false,0, vs_int, 3}, // %d
-		{1, szfmt, 7,6, true,6, true,4, vs_int, 6}, // %06.4d
-		{1, szfmt, 13,1, false,0, false,0, vs0, 6}, // !
+		{2, szfmt, 0,2, false,0, false,0, vs_TCHAR, 1}, // %c
+		{2, szfmt, 2,3, false,0, false,0, vs0,  3}, // ABC
+		{2, szfmt, 5,2, false,0, false,0, vs_int, 3}, // %d
+		{2, szfmt, 7,6, true,6, true,4, vs_int, 6}, // %06.4d
+		{2, szfmt, 13,1, false,0, false,0, vs0, 6}, // !
+		{0}
 	};
-	iverify.Reset(rs, GetEleQuan(rs));
-	mm_printf_ct(mmct_Verify, &iverify, szfmt, t('@'), 123, 456);
+	verify_printf_ct(oks, rs1, szfmt, t('@'), 123, 456);
+
 }
 
 int _tmain()
