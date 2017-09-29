@@ -793,20 +793,30 @@ struct mmct_Result_st
 	int fmtpos;
 	int fmtnc;
 	bool has_width;
-	bool width;
+	int width;
 	bool has_precision;
 	int precision;
 	int valsize; // 1,2,4,8,12
+
+	int output_totchars;
 };
-
-
 
 struct mmct_Verify_st
 {
 	int idx;
 	int output_accums;
 
-	void Reset(){ memset(this, 0, sizeof(*this)); } 
+	const mmct_Result_st *rs;
+	int rs_count;
+	int cur_rs;
+	int cur_partials;
+	const TCHAR *fmt_partial;
+
+	void Reset(const mmct_Result_st *_rs, int count)
+	{ 
+		memset(this, 0, sizeof(*this));
+		rs = _rs; rs_count = count;
+	} 
 };
 
 int mmF_desc_widpreci(void *ctx_user, const mmv7_stA &mmi)
@@ -843,7 +853,7 @@ void mmct_Verify(void *user_ctx, const TCHAR *pcontent, int nchars,
 
 	if(iverify.idx==0)
 	{
-		mm_printf(t("v7ct: \"%s\"\n"), cti.pfmt);
+		mm_printf(t("v7ct: %s\n"), cti.pfmt);
 	}
 
 	mm_printf(t("  <%.*s> fmtpos:%d+%d %F output:%d+%d\n"), 
@@ -852,10 +862,46 @@ void mmct_Verify(void *user_ctx, const TCHAR *pcontent, int nchars,
 		iverify.output_accums, nchars // output:%d+%d
 		);
 
+	// verify mm_snprintf's data with manual ones.
+
+	const mmct_Result_st &rs = iverify.rs[iverify.cur_rs];
+	assert( cti.mmlevel==rs.mmLevel );
+	assert( t_strcmp(cti.pfmt, rs.pfmt)==0 );
+	assert( cti.fmtpos==rs.fmtpos );
+	assert( cti.fmtnc==rs.fmtnc );
+	assert( cti.has_width==rs.has_width && cti.width==rs.width );
+	assert( cti.has_precision==rs.has_precision && cti.precision==rs.precision );
+	assert( cti.valsize==rs.valsize );
+//	assert( memcmp(cti.placehldr, ) );
+	
+	if(iverify.fmt_partial)
+		assert( t_strcmp(cti.pfmt, iverify.fmt_partial)==0 );
+
+	iverify.cur_partials += nchars;
+	assert(iverify.cur_partials<=rs.output_totchars);
+	if(iverify.cur_partials==rs.output_totchars)
+	{
+		// one fmtspec completes
+		assert( rs.output_totchars );
+
+		iverify.cur_partials = 0;
+		iverify.fmt_partial = NULL;
+		iverify.cur_rs++; // we'll proceed to nex fmtspec
+	}
+	else
+	{
+		iverify.fmt_partial = cti.pfmt;
+	}
+
+
 	iverify.idx++;
 	iverify.output_accums += nchars;
 }
 
+enum { vs0=0, vs_char=1, vs_wchar=2, 
+	vs_TCHAR = sizeof(TCHAR),
+	vs_int=sizeof(int), vs_long=sizeof(long), vs_int64=sizeof(__int64), 
+	vs_double=sizeof(double), vsptr=sizeof(void*) };
 
 void test_v7_ct()
 {
@@ -865,9 +911,17 @@ void test_v7_ct()
 
 	mmct_Verify_st iverify;
 
-	iverify.Reset();
-//	mm_printf(t("v7ct: %s\n"), szfmt);
-	mm_printf_ct(mmct_Verify, &iverify, t("%cABC%d%06.4d"), t('@'), 123, 456);
+	szfmt = t("%cABC%d%06.4d!");
+	mmct_Result_st rs[] =
+	{
+		{1, szfmt, 0,2, false,0, false,0, vs_TCHAR, 1}, // %c
+		{1, szfmt, 2,3, false,0, false,0, vs0,  3}, // ABC
+		{1, szfmt, 5,2, false,0, false,0, vs_int, 3}, // %d
+		{1, szfmt, 7,6, true,6, true,4, vs_int, 6}, // %06.4d
+		{1, szfmt, 13,1, false,0, false,0, vs0, 6}, // !
+	};
+	iverify.Reset(rs, GetEleQuan(rs));
+	mm_printf_ct(mmct_Verify, &iverify, szfmt, t('@'), 123, 456);
 }
 
 int _tmain()

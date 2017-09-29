@@ -851,6 +851,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 	while (*p) 
 	{
 		cti.fmtpos = p - fmt;   // cti(b)
+		cti.valsize = 0;
 		assert(sizeof(cti.placehldr)>=sizeof(double));
 		memset(cti.placehldr, 0, sizeof(cti.placehldr));
 
@@ -1159,7 +1160,8 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				// We follow the HPUX 10 style.
 					length_modifier = _T('\0');
 
-					cti.val_ptr = ptr_arg = va_arg(ap, void *);
+					ptr_arg = va_arg(ap, void *);
+					CTI_SETVAL(cti, val_ptr, ptr_arg);
 					if (ptr_arg != NULL) 
 						arg_sign = 1;
 				} 
@@ -1173,18 +1175,21 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 					 * are not char or short.  C converts char and short arguments
 					 * to int before passing them to a function.
 					 */
-						int_arg = cti.val_int = va_arg(ap, int);
+						int_arg = va_arg(ap, int);
+						CTI_SETVAL(cti, val_int, int_arg);
 						if      (int_arg > 0) arg_sign =  1;
 						else if (int_arg < 0) arg_sign = -1;
 						break;
 					case _T('l'):
-						long_arg = cti.val_long = va_arg(ap, long int);
+						long_arg = va_arg(ap, long int);
+						CTI_SETVAL(cti, val_long, long_arg);
 						if      (long_arg > 0) arg_sign =  1;
 						else if (long_arg < 0) arg_sign = -1;
 						break;
 #ifdef SNPRINTF_LONGLONG_SUPPORT
 					case _T('2'):
-						long_long_arg = cti.val_int64 = va_arg(ap, __int64);
+						long_long_arg = va_arg(ap, __int64);
+						CTI_SETVAL(cti, val_int64, long_long_arg);
 						if      (long_long_arg > 0) arg_sign =  1;
 						else if (long_long_arg < 0) arg_sign = -1;
 						break;
@@ -1197,16 +1202,19 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 					{
 					case _T('\0'):
 					case _T('h'):
-						uint_arg = cti.val_uint = va_arg(ap, unsigned int);
+						uint_arg = va_arg(ap, unsigned int);
+						CTI_SETVAL(cti, val_uint, uint_arg);
 						if (uint_arg) arg_sign = 1;
 						break;
 					case _T('l'):
-						ulong_arg = cti.val_ulong = va_arg(ap, unsigned long int);
+						ulong_arg = va_arg(ap, unsigned long int);
+						CTI_SETVAL(cti, val_ulong, ulong_arg);
 						if (ulong_arg) arg_sign = 1;
 						break;
 #ifdef SNPRINTF_LONGLONG_SUPPORT
 				  case _T('2'):
-						ulong_long_arg = cti.val_uint64 = va_arg(ap, unsigned __int64);
+						ulong_long_arg = va_arg(ap, unsigned __int64);
+						CTI_SETVAL(cti, val_uint64, ulong_long_arg);
 						if (ulong_long_arg) arg_sign = 1;
 						break;
 #endif
@@ -1216,7 +1224,8 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				{
 					assert(fmtcat==fmt_float);
 
-					double_arg = cti.val_double = va_arg(ap, double);
+					double_arg = va_arg(ap, double);
+					CTI_SETVAL(cti, val_double, double_arg);
 					if(double_arg>0) arg_sign = 1;
 					else if(double_arg<0) arg_sign = -1;
 
@@ -1492,14 +1501,14 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 		case _T('k'): // lower-case 'k'
 			{
 				const TCHAR *hyphen = va_arg(ap, TCHAR*); 
-				cti.val_ptr = hyphen;
+				CTI_SETVAL(cti, val_ptr, hyphen);
 				mm_strncpy_(mdd_hyphens, hyphen, mmquan(mdd_hyphens), true);
 				p++; continue; // v5.0 updated
 			}
 		case _T('K'): // upper-case 'K'
 			{
 				const TCHAR *brackets = va_arg(ap, TCHAR*);
-				cti.val_ptr = brackets;
+				CTI_SETVAL(cti, val_ptr, brackets);
 				int Klen = TMM_strlen(brackets);
 				int leftlen = Klen/2;
 				mm_strncpy_(mdd_left, brackets, mmquan(mdd_left), true);
@@ -1523,7 +1532,8 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				}
 				mdf_colskip = precision;
 
-				mdf_columns = cti.val_int = va_arg(ap, int);
+				mdf_columns = va_arg(ap, int);
+				CTI_SETVAL(cti, val_int, mdf_columns);
 
 				if(fmt_spec==_T('R'))
 					is_print_ruler = true;
@@ -1533,7 +1543,8 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 			}
 		case _T('v'):
 			{
-				imagine_maddr = cti.val_uint64 = va_arg(ap, Uint64);
+				imagine_maddr = va_arg(ap, Uint64);
+				CTI_SETVAL(cti, val_uint64, imagine_maddr);
 
 				assert(min_field_width>=0 && precision>=0);
 
@@ -1546,7 +1557,8 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 			}
 		case _T('m'): case _T('M'): // These will do byte dump
 			{	
-				const void *pbytes = cti.val_ptr = va_arg(ap, void*);
+				const void *pbytes = va_arg(ap, void*);
+				CTI_SETVAL(cti, val_ptr, pbytes);
 				if(!pbytes)
 					pbytes = _T("");
 
@@ -1587,17 +1599,20 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 			}
 		case _T('T'):
 			{
-				cti.val_ptr = psz_THOUSEP = va_arg(ap, TCHAR*);
+				psz_THOUSEP = va_arg(ap, TCHAR*);
+				CTI_SETVAL(cti, val_ptr, psz_THOUSEP);
 				p++; continue;
 			}
 		case _T('t'):
 			{
-				cti.val_ptr = psz_thousep = va_arg(ap, TCHAR*);
+				psz_thousep = va_arg(ap, TCHAR*);
+				CTI_SETVAL(cti, val_ptr, psz_thousep);
 				p++; continue;
 			}
 		case _T('_'):
 			{
-				thousep_width = cti.val_int = va_arg(ap, int);
+				thousep_width = va_arg(ap, int);
+				CTI_SETVAL(cti, val_int, thousep_width);
 				p++; continue;
 			}
 		case _T('w'):
@@ -1609,7 +1624,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				const va_list *dig_args = NULL;
 				
 				const mm_wpair_st *wpair = va_arg(ap, mm_wpair_st*);
-				cti.val_ptr = wpair;
+				CTI_SETVAL(cti, val_ptr, wpair);
 				
 				if(wpair->magic==mm_wpair_magic) // magic detected
 				{
@@ -1641,7 +1656,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				void *func_param = NULL;
 
 				const mmF_pair_st *fpair = va_arg(ap, mmF_pair_st*);
-				cti.val_ptr = fpair;
+				CTI_SETVAL(cti, val_ptr, fpair);
 
 				if(fpair->magic==mm_fpair_magic)
 				{
