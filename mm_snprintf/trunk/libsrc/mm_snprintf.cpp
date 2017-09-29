@@ -512,7 +512,7 @@ _mm_fillchars(TCHAR *pbuf, TCHAR c, size_t n)
 }
 
 void 
-_mm_fillchars_opt(cti_pack_st &ctipack, TCHAR c, size_t n) // opt: optimized
+_mm_fillchars_ct(const cti_pack_st &ctipack, TCHAR c, size_t n)
 {
 	const int chunksize = 100;
 	TCHAR cbuf[chunksize];
@@ -526,14 +526,14 @@ _mm_fillchars_opt(cti_pack_st &ctipack, TCHAR c, size_t n) // opt: optimized
 }
 
 void 
-mmfill_fill_chars(mmfill_st &f, TCHAR c, int n, cti_pack_st &ctipack)
+mmfill_fill_chars(mmfill_st &f, TCHAR c, int n, const cti_pack_st &ctipack)
 {
 	// fill c*n chars 
 	// fills f.pbuf until f.pbuf[] reaches bufmax; update f.produced by n
 	
 	if(ctipack.proc)
 	{
-		_mm_fillchars_opt(ctipack, c, n);
+		_mm_fillchars_ct(ctipack, c, n);
 	}
 	else
 	{
@@ -546,7 +546,7 @@ mmfill_fill_chars(mmfill_st &f, TCHAR c, int n, cti_pack_st &ctipack)
 }
 
 TCHAR *
-mmfill_strcpy(mmfill_st &f, const TCHAR *src, cti_pack_st &ctipack)
+mmfill_strcpy(mmfill_st &f, const TCHAR *src, const cti_pack_st &ctipack)
 {
 	// copy src to f.pbuf until f.pbuf[] reaches bufmax; update f.produced by src length
 	int srclen = TMM_strlen(src);
@@ -651,7 +651,7 @@ _mm_dump_bytes(TCHAR *buf, int bufchars,
 	int columns, int colskip, bool ruler,
 	int indents, 
 	Uint64 imagine_addr, int v_sep_width, int v_adcol_width, const TCHAR *adcol_sepstr,
-	cti_pack_st &ctipack)
+	const cti_pack_st &ctipack)
 {
 	/*
 	Dump hex-represented byte content into buf[], but not exceeding bufchars.
@@ -1716,7 +1716,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				TCHAR cfill = zero_padding ? _T('0') : _T(' ');
 				if(proc_output) 
 				{
-					_mm_fillchars_opt(ctipack, cfill, n);
+					_mm_fillchars_ct(ctipack, cfill, n);
 				}
 				else
 				{
@@ -1765,7 +1765,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				TCHAR cfill = _T('0');
 				if(proc_output)
 				{
-					_mm_fillchars_opt(ctipack, cfill, n);
+					_mm_fillchars_ct(ctipack, cfill, n);
 				}
 				else
 				{
@@ -1807,7 +1807,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				TCHAR cfill = _T(' ');
 				if(proc_output)
 				{
-					_mm_fillchars_opt(ctipack, cfill, n);
+					_mm_fillchars_ct(ctipack, cfill, n);
 				}
 				else
 				{
