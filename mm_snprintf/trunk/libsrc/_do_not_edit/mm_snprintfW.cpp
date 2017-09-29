@@ -253,12 +253,13 @@
  *
  *        Now, your mmF_peek() will see from pstock param: "The ball turns 3 rounds."
  *
- * 2017-09-20  V7.0 by Chj
- *      - New function mm_snprintf_ct and mm_snprintf_v7, mm_vsnprintf_v7 .
+ * 2017-09-28  V7.0 by Chj
+ *      - New function mm_printf_ct and mm_snprintf_v7, mm_vsnprintf_v7 .
  *        The "ct" means custom-target. You can direct the formatted result to your 
  *        custom target(a file or a COM port) by providing a callback function, 
  *        so to avoid preparing a temporary buffer size to hold the result string. 
  *
+ *      - Update to %*.*v semantic.
  */
 
 
@@ -471,7 +472,7 @@ struct mmfill_st
 	int produced; // may be larger than bufmax
 };
 
-void mmfill_va_append(mmfill_st &f, FUNC_mm_output *proc_output, void *ctx_output,
+void mmfill_va_append(mmfill_st &f, FUNC_mmct_output *proc_output, void *ctx_output,
 					  const TCHAR *fmt, ...)
 {
 	va_list args;
@@ -512,7 +513,7 @@ _mm_fillchars(TCHAR *pbuf, TCHAR c, size_t n)
 }
 
 void 
-_mm_fillchars_opt(FUNC_mm_output proc, void *ctx, TCHAR c, size_t n)
+_mm_fillchars_ct(const cti_pack_st &ctipack, TCHAR c, size_t n)
 {
 	const int chunksize = 100;
 	TCHAR cbuf[chunksize];
@@ -520,20 +521,20 @@ _mm_fillchars_opt(FUNC_mm_output proc, void *ctx, TCHAR c, size_t n)
 	
 	int remain = (int)n;
 	for(; remain>0; remain-=chunksize)
-	{
-		proc(ctx, cbuf, _MIN_(remain, chunksize));
+	{	// each callback deals with at most 100 chars.
+		ctipack.proc(ctipack.ctx, cbuf, _MIN_(remain, chunksize), ctipack.pcti);
 	}
 }
 
 void 
-mmfill_fill_chars(mmfill_st &f, TCHAR c, int n, FUNC_mm_output *proc_output, void *ctx_output)
+mmfill_fill_chars(mmfill_st &f, TCHAR c, int n, const cti_pack_st &ctipack)
 {
 	// fill c*n chars 
 	// fills f.pbuf until f.pbuf[] reaches bufmax; update f.produced by n
 	
-	if(proc_output)
+	if(ctipack.proc)
 	{
-		_mm_fillchars_opt(proc_output, ctx_output, c, n);
+		_mm_fillchars_ct(ctipack, c, n);
 	}
 	else
 	{
@@ -546,16 +547,16 @@ mmfill_fill_chars(mmfill_st &f, TCHAR c, int n, FUNC_mm_output *proc_output, voi
 }
 
 TCHAR *
-mmfill_strcpy(mmfill_st &f, const TCHAR *src, FUNC_mm_output *proc_output, void *ctx_output)
+mmfill_strcpy(mmfill_st &f, const TCHAR *src, const cti_pack_st &ctipack)
 {
 	// copy src to f.pbuf until f.pbuf[] reaches bufmax; update f.produced by src length
 	int srclen = TMM_strlen(src);
 	
 	if(srclen>0)
 	{
-		if(proc_output)
+		if(ctipack.proc)
 		{
-			proc_output(ctx_output, src, srclen);
+			ctipack.proc(ctipack.ctx, src, srclen, ctipack.pcti);
 		}
 		else
 		{
@@ -651,7 +652,7 @@ _mm_dump_bytes(TCHAR *buf, int bufchars,
 	int columns, int colskip, bool ruler,
 	int indents, 
 	Uint64 imagine_addr, int v_sep_width, int v_adcol_width, const TCHAR *adcol_sepstr,
-	FUNC_mm_output *proc_output, void *ctx_output)
+	const cti_pack_st &ctipack)
 {
 	/*
 	Dump hex-represented byte content into buf[], but not exceeding bufchars.
@@ -718,23 +719,23 @@ _mm_dump_bytes(TCHAR *buf, int bufchars,
 	if(ruler)
 	{
 		// first: indents and left ruler spaces
-		mmfill_fill_chars(mmfill, _T(' '), indents,          proc_output, ctx_output);
-		mmfill_fill_chars(mmfill, _T('-'), adcol_width2+ex2, proc_output, ctx_output);
+		mmfill_fill_chars(mmfill, _T(' '), indents,          ctipack);
+		mmfill_fill_chars(mmfill, _T('-'), adcol_width2+ex2, ctipack);
 			// ex2 is for ": " following the address column digits
 
 		// second: horizontal marks
 		for(i=0; i<columns; i++)
 		{
-			mmfill_fill_chars(mmfill, _T('-'), len_left,     proc_output, ctx_output);
+			mmfill_fill_chars(mmfill, _T('-'), len_left,     ctipack);
 			mm_snprintf(onehex, mmquan(onehex), _T("%02X"), i);
-			mmfill_strcpy(mmfill, onehex,                       proc_output, ctx_output);
-			mmfill_fill_chars(mmfill, _T('-'), len_right,    proc_output, ctx_output);
+			mmfill_strcpy(mmfill, onehex,                    ctipack);
+			mmfill_fill_chars(mmfill, _T('-'), len_right,    ctipack);
 
 			if(i<columns-1)
-				mmfill_fill_chars(mmfill, _T('-'), len_hyphens, proc_output, ctx_output);
+				mmfill_fill_chars(mmfill, _T('-'), len_hyphens, ctipack);
 		}
 		
-		mmfill_strcpy(mmfill, g_mmcrlf_sz,                      proc_output, ctx_output);
+		mmfill_strcpy(mmfill, g_mmcrlf_sz,                   ctipack);
 	}
 
 	Uint64 imagine_addr_to_print = imagine_addr-colskip;
@@ -746,7 +747,7 @@ _mm_dump_bytes(TCHAR *buf, int bufchars,
 		// Every cycle generates one output line
 
 		// first: indents
-		mmfill_fill_chars(mmfill, _T(' '), indents,          proc_output, ctx_output);
+		mmfill_fill_chars(mmfill, _T(' '), indents,          ctipack);
 
 		// second: address column
 		if(ruler)
@@ -755,14 +756,14 @@ _mm_dump_bytes(TCHAR *buf, int bufchars,
 			fill_adcol_text(imagine_addr_to_print, addrstr, mmquan(addrstr),
 				v_sep_width, adcol_width1, adcol_sepstr);
 				
-			mmfill_strcpy(mmfill, addrstr,                  proc_output, ctx_output);
-			mmfill_strcpy(mmfill, _T(": "),                 proc_output, ctx_output);
+			mmfill_strcpy(mmfill, addrstr,                   ctipack);
+			mmfill_strcpy(mmfill, _T(": "),                  ctipack);
 		}
 
 		// third: column-skip blank area
 		if(colskip>0)
 		{
-			mmfill_fill_chars(mmfill, _T(' '), dump_width_perbyte*colskip, proc_output, ctx_output);
+			mmfill_fill_chars(mmfill, _T(' '), dump_width_perbyte*colskip, ctipack);
 		}
 
 		// fourth: hex dumps of current line with decoration
@@ -771,16 +772,16 @@ _mm_dump_bytes(TCHAR *buf, int bufchars,
 		for(j=0; j<colomn_remain; j++)
 		{
 			if(mdd_left[0])
-				mmfill_strcpy(mmfill, mdd_left,            proc_output, ctx_output);
+				mmfill_strcpy(mmfill, mdd_left,      ctipack);
 			
 			mm_snprintf(onehex, mmquan(onehex), fmthex, pbytes[consumed+j]);
-			mmfill_strcpy(mmfill, onehex,                     proc_output, ctx_output);
+			mmfill_strcpy(mmfill, onehex,            ctipack);
 			
 			if(mdd_right[0])
-				mmfill_strcpy(mmfill, mdd_right,           proc_output, ctx_output);
+				mmfill_strcpy(mmfill, mdd_right,     ctipack);
 
 			if(j<colomn_remain-1)
-				mmfill_strcpy(mmfill, mdd_hyphens,         proc_output, ctx_output);
+				mmfill_strcpy(mmfill, mdd_hyphens,   ctipack);
 		}
 		colskip = 0;
 
@@ -789,13 +790,21 @@ _mm_dump_bytes(TCHAR *buf, int bufchars,
 		if(consumed==dump_bytes)
 			break;
 
-		mmfill_strcpy(mmfill, g_mmcrlf_sz,                 proc_output, ctx_output);
+		mmfill_strcpy(mmfill, g_mmcrlf_sz,           ctipack);
 		assert(consumed<dump_bytes);
 
 		imagine_addr_to_print += columns;
 	}
 
 	return mmfill.produced;
+}
+
+void ctipack_null_output(const cti_pack_st &ctipack)
+{
+	if(ctipack.proc)
+	{
+		ctipack.proc(ctipack.ctx, _T(""), 0, ctipack.pcti);
+	}
 }
 
 int mm_vsnprintf(TCHAR *strbuf, size_t str_m, const TCHAR *fmt, va_list ap)
@@ -813,8 +822,9 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 {
 	TCHAR *strbuf = mmi.buf_output;
 	size_t str_m = mmi.bufsize;
-	FUNC_mm_output *proc_output = mmi.proc_output;
+	FUNC_mmct_output *proc_output = mmi.proc_output;
 	void *ctx_output = mmi.ctx_output;
+	int mylevel = mmi.mmlevel + 1;
 
 	size_t str_l = 0; // how many output length has been filled, assuming enough output buffer
 	const TCHAR *p = fmt;
@@ -840,11 +850,22 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 	int thousep_width = 3; // %_ to modify
 	const TCHAR *psz_thousep = NULL; // thousand separator, (%t to modify)
 	const TCHAR *psz_THOUSEP = NULL; // only for %D, %U, %O, (%T to modify)
-	
+
+	mmctexi_st cti = {0};     // cti(a)
+	cti.mmlevel = mylevel;
+	cti.pfmt = fmt;
+	//
+	cti_pack_st ctipack = {proc_output, ctx_output, &cti};
 	
 	while (*p) 
 	{
+		cti.fmtpos = p - fmt;   // cti(b)
+		cti.valsize = 0;
+		assert(sizeof(cti.placehldr)>=sizeof(double));
+		memset(cti.placehldr, 0, sizeof(cti.placehldr));
+
 		// Copy a chunk of normal substring
+		//
 		if (*p != _T('%')) 
 		{
 		   /* if (str_l < str_m) str[str_l++] = *p++;    -- this would be sufficient */
@@ -857,7 +878,9 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 			size_t n = !q ? TMM_strlen(p) : (q-p);
 
 			if(proc_output) {
-				proc_output(ctx_output, p, n);
+				cti.fmtnc = n; // cti(c1)
+				cti.has_width = cti.has_precision = false; cti.width = cti.precision = 0;
+				proc_output(ctx_output, p, n, &cti);
 			} else {
 				if (str_l < str_m) {
 					size_t avail = str_m-str_l;
@@ -1010,6 +1033,10 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 		
 		fmt_spec = *p;
 
+		cti.fmtnc = p - fmt - cti.fmtpos + 1 ;    // cti(c2)
+		cti.has_width = min_field_specified, cti.has_precision = precision_specified;
+		cti.width = min_field_width, cti.precision = precision;
+		
 		//
 		// NOW, THE LENGTHY PROCESS OF fmt_spec(also called "type" in MSDN) STARTS.
 		//
@@ -1048,18 +1075,23 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 					 string, so, I decide not to reset zero_padding=0 .
 					*/
 
-				str_arg_l = 1; // Chj: ?? !! and following
+				str_arg_l = 1; // 1 means: we'll grab 1 char from str_arg[] as output, for '%c'.
+				               // Of course, this will be overridden when we later see fmt_spec==_T('s').
 
 				if(fmt_spec==_T('%')) {
 					str_arg = p; // *p is '%' here.
 				}
+
 				if(fmt_spec==_T('c')) {
 					int j = va_arg(ap, int);
 					uchar_arg = (TCHAR) j;   /* standard demands unsigned char */
 					str_arg = (TCHAR*) &uchar_arg;
+					CTI_SETVAL(cti, val_TCHAR, uchar_arg);
 				}
+
 				if(fmt_spec==_T('s')){
 					str_arg = va_arg(ap, TCHAR*);
+					CTI_SETVAL(cti, val_ptr, str_arg);
 					if (!str_arg) 
 						str_arg_l = 0;
 				/* make sure not to address string beyond the specified precision !!! */
@@ -1138,6 +1170,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 					length_modifier = _T('\0');
 
 					ptr_arg = va_arg(ap, void *);
+					CTI_SETVAL(cti, val_ptr, ptr_arg);
 					if (ptr_arg != NULL) 
 						arg_sign = 1;
 				} 
@@ -1152,17 +1185,20 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 					 * to int before passing them to a function.
 					 */
 						int_arg = va_arg(ap, int);
+						CTI_SETVAL(cti, val_int, int_arg);
 						if      (int_arg > 0) arg_sign =  1;
 						else if (int_arg < 0) arg_sign = -1;
 						break;
 					case _T('l'):
 						long_arg = va_arg(ap, long int);
+						CTI_SETVAL(cti, val_long, long_arg);
 						if      (long_arg > 0) arg_sign =  1;
 						else if (long_arg < 0) arg_sign = -1;
 						break;
 #ifdef SNPRINTF_LONGLONG_SUPPORT
 					case _T('2'):
 						long_long_arg = va_arg(ap, __int64);
+						CTI_SETVAL(cti, val_int64, long_long_arg);
 						if      (long_long_arg > 0) arg_sign =  1;
 						else if (long_long_arg < 0) arg_sign = -1;
 						break;
@@ -1176,15 +1212,18 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 					case _T('\0'):
 					case _T('h'):
 						uint_arg = va_arg(ap, unsigned int);
+						CTI_SETVAL(cti, val_uint, uint_arg);
 						if (uint_arg) arg_sign = 1;
 						break;
 					case _T('l'):
 						ulong_arg = va_arg(ap, unsigned long int);
+						CTI_SETVAL(cti, val_ulong, ulong_arg);
 						if (ulong_arg) arg_sign = 1;
 						break;
 #ifdef SNPRINTF_LONGLONG_SUPPORT
 				  case _T('2'):
 						ulong_long_arg = va_arg(ap, unsigned __int64);
+						CTI_SETVAL(cti, val_uint64, ulong_long_arg);
 						if (ulong_long_arg) arg_sign = 1;
 						break;
 #endif
@@ -1195,6 +1234,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 					assert(fmtcat==fmt_float);
 
 					double_arg = va_arg(ap, double);
+					CTI_SETVAL(cti, val_double, double_arg);
 					if(double_arg>0) arg_sign = 1;
 					else if(double_arg<0) arg_sign = -1;
 
@@ -1469,13 +1509,20 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 
 		case _T('k'): // lower-case 'k'
 			{
-				const TCHAR *hyphen = va_arg(ap, TCHAR*);
+				const TCHAR *hyphen = va_arg(ap, TCHAR*); 
+				CTI_SETVAL(cti, val_ptr, hyphen);
+				ctipack_null_output(ctipack);
+
 				mm_strncpy_(mdd_hyphens, hyphen, mmquan(mdd_hyphens), true);
+
 				p++; continue; // v5.0 updated
 			}
 		case _T('K'): // upper-case 'K'
 			{
 				const TCHAR *brackets = va_arg(ap, TCHAR*);
+				CTI_SETVAL(cti, val_ptr, brackets);
+				ctipack_null_output(ctipack);
+
 				int Klen = TMM_strlen(brackets);
 				int leftlen = Klen/2;
 				mm_strncpy_(mdd_left, brackets, mmquan(mdd_left), true);
@@ -1484,6 +1531,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				else
 					mdd_left[mmquan(mdd_left)-1] = _T('\0');
 				mm_strncpy_(mdd_right, brackets+leftlen, mmquan(mdd_right), true);
+
 				p++; continue;
 			}
 		case _T('r'): case _T('R'):  // 'r'uler parameters for bytes dump
@@ -1500,6 +1548,8 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				mdf_colskip = precision;
 
 				mdf_columns = va_arg(ap, int);
+				CTI_SETVAL(cti, val_int, mdf_columns);
+				ctipack_null_output(ctipack);
 
 				if(fmt_spec==_T('R'))
 					is_print_ruler = true;
@@ -1510,6 +1560,8 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 		case _T('v'):
 			{
 				imagine_maddr = va_arg(ap, Uint64);
+				CTI_SETVAL(cti, val_uint64, imagine_maddr);
+				ctipack_null_output(ctipack);
 
 				assert(min_field_width>=0 && precision>=0);
 
@@ -1523,6 +1575,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 		case _T('m'): case _T('M'): // These will do byte dump
 			{	
 				const void *pbytes = va_arg(ap, void*);
+				CTI_SETVAL(cti, val_ptr, pbytes);
 				if(!pbytes)
 					pbytes = _T("");
 
@@ -1551,7 +1604,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 					v_sep_width, 
 					Is_RequestIsoZeros(v_is_isozeros, v_adcol_width)?(-1):v_adcol_width, 
 					psz_thousep,
-					proc_output, ctx_output);
+					ctipack);
 				str_l += result_chars;
 
 				min_field_width = precision = 0; // reset (must?)
@@ -1564,16 +1617,19 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 		case _T('T'):
 			{
 				psz_THOUSEP = va_arg(ap, TCHAR*);
+				CTI_SETVAL(cti, val_ptr, psz_THOUSEP);
 				p++; continue;
 			}
 		case _T('t'):
 			{
 				psz_thousep = va_arg(ap, TCHAR*);
+				CTI_SETVAL(cti, val_ptr, psz_thousep);
 				p++; continue;
 			}
 		case _T('_'):
 			{
 				thousep_width = va_arg(ap, int);
+				CTI_SETVAL(cti, val_int, thousep_width);
 				p++; continue;
 			}
 		case _T('w'):
@@ -1585,6 +1641,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				const va_list *dig_args = NULL;
 				
 				const mm_wpair_st *wpair = va_arg(ap, mm_wpair_st*);
+				CTI_SETVAL(cti, val_ptr, wpair);
 				
 				if(wpair->magic==mm_wpair_magic) // magic detected
 				{
@@ -1594,7 +1651,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				else
 				{
 					dig_fmt = (const TCHAR*)wpair;
-					dig_args = va_arg(ap, va_list*); 
+					dig_args = va_arg(ap, va_list*); // old v4.2
 				}
 				//
 				mmv7_st mmi2 = {0};
@@ -1602,6 +1659,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				mmi2.bufsize = str_m>str_l ? str_m-str_l : 0;
 				mmi2.proc_output = proc_output;
 				mmi2.ctx_output = ctx_output;
+				mmi2.mmlevel = mylevel;
 				//
 				int fills = mm_vsnprintf_v7(mmi2, 
 					dig_fmt, *(va_list*)dig_args); // extra (va_list*) type-conversion(drop const) to make gcc 4.8 x64 happy.
@@ -1611,10 +1669,11 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 			}
 		case _T('F'): // inject function call
 			{
-				FUNC_mm_fpair *func = NULL;
+				FUNC_mmF_pair *func = NULL;
 				void *func_param = NULL;
 
-				const mm_fpair_st *fpair = va_arg(ap, mm_fpair_st*);
+				const mmF_pair_st *fpair = va_arg(ap, mmF_pair_st*);
+				CTI_SETVAL(cti, val_ptr, fpair);
 
 				if(fpair->magic==mm_fpair_magic)
 				{
@@ -1666,6 +1725,10 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 					str_arg_l++;  /* include invalid conversion specifier unchanged
 									 if not at end-of-string */
 				}
+
+				cti.has_width = cti.has_precision = false; cti.width = cti.precision = 0;
+				memset(cti.placehldr, 0, sizeof(cti.placehldr));
+
 				break;
 			}
 		}} // switch (fmt_spec) // BIG CHUNK OF PROCESS!! 
@@ -1687,7 +1750,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				TCHAR cfill = zero_padding ? _T('0') : _T(' ');
 				if(proc_output) 
 				{
-					_mm_fillchars_opt(proc_output, ctx_output, cfill, n);
+					_mm_fillchars_ct(ctipack, cfill, n);
 				}
 				else
 				{
@@ -1717,7 +1780,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				
 				if(proc_output)
 				{
-					proc_output(ctx_output, str_arg, n);
+					proc_output(ctx_output, str_arg, n, &cti);
 				}
 				else
 				{
@@ -1736,7 +1799,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				TCHAR cfill = _T('0');
 				if(proc_output)
 				{
-					_mm_fillchars_opt(proc_output, ctx_output, cfill, n);
+					_mm_fillchars_ct(ctipack, cfill, n);
 				}
 				else
 				{
@@ -1756,7 +1819,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 			
 			if(proc_output)
 			{
-				proc_output(ctx_output, str_arg+zero_padding_insertion_ind, n);
+				proc_output(ctx_output, str_arg+zero_padding_insertion_ind, n, &cti);
 			}
 			else
 			{
@@ -1778,7 +1841,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				TCHAR cfill = _T(' ');
 				if(proc_output)
 				{
-					_mm_fillchars_opt(proc_output, ctx_output, cfill, n);
+					_mm_fillchars_ct(ctipack, cfill, n);
 				}
 				else
 				{
@@ -2030,7 +2093,7 @@ mm_strcat(TCHAR *dest, size_t bufsize, const TCHAR *fmt, ...)
 }
 
 int 
-mm_snprintf_ct(FUNC_mm_output proc_output, void *ctx_output, const TCHAR *fmt, ...)
+mm_printf_ct(FUNC_mmct_output proc_output, void *ctx_output, const TCHAR *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
