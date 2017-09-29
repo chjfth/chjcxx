@@ -44,11 +44,13 @@ struct cti_pack_stW
 
 # define g_mmcrlf_sz g_mmcrlf_szW
 # define cti_pack_st cti_pack_stW
+# define ctipack_null_output ctipack_null_outputW
 
 #else
 
 # define g_mmcrlf_sz g_mmcrlf_szA
 # define cti_pack_st cti_pack_stA
+# define ctipack_null_output ctipack_null_outputA
 
 #endif
 

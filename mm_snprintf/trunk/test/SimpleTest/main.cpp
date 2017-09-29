@@ -62,7 +62,7 @@ struct Custout_st
 void mmct_CustomOutput(void *user_ctx, const TCHAR *pcontent, int nchars, 
 					   const mmctexi_st *pcti)
 {
-	assert(nchars>0);
+	assert(nchars>=0); // it can be 0 due to ctipack_null_output(&ctipack);
 
 	Custout_st &co = *(Custout_st*)user_ctx;
 	memcpy(co.custbuf+co.pos, pcontent, sizeof(TCHAR)*nchars);
@@ -904,7 +904,7 @@ void mmct_Verify(void *user_ctx, const TCHAR *pcontent, int nchars,
 	if(iverify.cur_partials==rs.output_totchars)
 	{
 		// one fmtspec completes
-		assert( rs.output_totchars );
+		assert( rs.output_totchars>=0 ); // can be 0 due to ctipack_null_output(&ctipack);
 
 		iverify.cur_partials = 0;
 		iverify.fmt_partial = NULL;
@@ -1005,6 +1005,20 @@ void test_v7_ct()
 	};
 	verify_printf_ct(oks, rs5, szfmt, 123.456, 123.456);
 
+	unsigned char mem[1024];
+	int i;
+	for(i=0; i<sizeof(mem); i++) 
+		mem[i]=i;
+
+	szfmt = t("%k%5m");
+	oks = t("00 01 02 03 04");
+	mmct_Result_st rs6[] =
+	{
+		{2, szfmt, 0,2, false,0, false,0, vs_ptr, 0},  // although %k does not generate output
+		{2, szfmt, 2,3, true ,5, false,0, vs_ptr, 14},
+		{0}
+	};
+	verify_printf_ct(oks, rs6, szfmt, t(" "), mem);
 }
 
 int _tmain()

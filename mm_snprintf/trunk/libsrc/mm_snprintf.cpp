@@ -798,6 +798,14 @@ _mm_dump_bytes(TCHAR *buf, int bufchars,
 	return mmfill.produced;
 }
 
+void ctipack_null_output(const cti_pack_st &ctipack)
+{
+	if(ctipack.proc)
+	{
+		ctipack.proc(ctipack.ctx, _T(""), 0, ctipack.pcti);
+	}
+}
+
 int mm_vsnprintf(TCHAR *strbuf, size_t str_m, const TCHAR *fmt, va_list ap)
 {
 	mmv7_st mmi = {0};
@@ -1502,13 +1510,18 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 			{
 				const TCHAR *hyphen = va_arg(ap, TCHAR*); 
 				CTI_SETVAL(cti, val_ptr, hyphen);
+				ctipack_null_output(ctipack);
+
 				mm_strncpy_(mdd_hyphens, hyphen, mmquan(mdd_hyphens), true);
+
 				p++; continue; // v5.0 updated
 			}
 		case _T('K'): // upper-case 'K'
 			{
 				const TCHAR *brackets = va_arg(ap, TCHAR*);
 				CTI_SETVAL(cti, val_ptr, brackets);
+				ctipack_null_output(ctipack);
+
 				int Klen = TMM_strlen(brackets);
 				int leftlen = Klen/2;
 				mm_strncpy_(mdd_left, brackets, mmquan(mdd_left), true);
@@ -1517,6 +1530,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				else
 					mdd_left[mmquan(mdd_left)-1] = _T('\0');
 				mm_strncpy_(mdd_right, brackets+leftlen, mmquan(mdd_right), true);
+
 				p++; continue;
 			}
 		case _T('r'): case _T('R'):  // 'r'uler parameters for bytes dump
@@ -1534,6 +1548,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 
 				mdf_columns = va_arg(ap, int);
 				CTI_SETVAL(cti, val_int, mdf_columns);
+				ctipack_null_output(ctipack);
 
 				if(fmt_spec==_T('R'))
 					is_print_ruler = true;
@@ -1545,6 +1560,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 			{
 				imagine_maddr = va_arg(ap, Uint64);
 				CTI_SETVAL(cti, val_uint64, imagine_maddr);
+				ctipack_null_output(ctipack);
 
 				assert(min_field_width>=0 && precision>=0);
 
