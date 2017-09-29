@@ -3,7 +3,7 @@ Microsoft Developer Studio Workspace File, Format Version 6.00
 
 ###############################################################################
 
-Project: "SimpleTest"=.\SimpleTest\SimpleTest.dsp - Package Owner=<4>
+Project: "SimpleTest"=..\test\SimpleTest\SimpleTest.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -18,7 +18,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "ct_winfile"=.\ct_winfile\ct_winfile.dsp - Package Owner=<4>
+Project: "ct_winfile"=..\test\ct_winfile\ct_winfile.dsp - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -33,7 +33,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "lib_mm_snprintf"=..\vc6_dsw\lib_mm_snprintf\lib_mm_snprintf.dsp - Package Owner=<4>
+Project: "lib_mm_snprintf"=.\lib_mm_snprintf\lib_mm_snprintf.dsp - Package Owner=<4>
 
 Package=<5>
 {{{

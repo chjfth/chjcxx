@@ -16,10 +16,12 @@ struct mmct_WriteFile_st
 	UINT nChars;
 };
 
-void mmct_WriteFile(void *ctx_user, const TCHAR *pcontent, int nchars)
+void mmct_WriteFile(void *ctx_user, const TCHAR *pcontent, int nchars,
+					const struct mmctexi_st *cti)
 {
 	// Caution: pcontent is not NUL-terminated.
 
+	(void)cti; // This example does not need it.
 	assert(nchars>0);
 
 	mmct_WriteFile_st &ctx = *(mmct_WriteFile_st*)ctx_user;
