@@ -17,6 +17,8 @@ DLLEXPORT_mmsnprintf
 unsigned short mmsnprintf_getversion(void);
 	// Returns: Major version in higher byte and minor version in lower byte.
 
+#define MM_DBG_PROGRESS_LINE_MAXCHARS_ 120
+
 
 enum mm_crlf_et
 {
@@ -103,9 +105,11 @@ struct mmctexi_stA // ctexi: custom target extra info
 		char val_TCHAR; // char!
 		unsigned char placehldr[16]; 
 	};
+
+	int outpos;
 };
 //
-typedef void (FUNC_mmct_outputA)(void *user_ctx, const char *pcontent, int nchars, 
+typedef void (FUNC_mmct_outputA)(void *ctx_user, const char *pcontent, int nchars, 
 								 const mmctexi_stA *pctexi);
 // -- note: pcontent is not NUL terminated.
 //
@@ -123,6 +127,8 @@ struct mmv7_stA
 	size_t bufsize;
 
 	const char *pstock; // only meaningful to %F callee
+	
+	bool suppress_dbginfo; // internal use, user should set 0
 };
 //
 DLLEXPORT_mmsnprintf
@@ -130,6 +136,11 @@ int mm_vsnprintf_v7A(const mmv7_stA &mmi, const char *fmt, va_list ap);
 //
 DLLEXPORT_mmsnprintf
 int  mm_snprintf_v7A(const mmv7_stA &mmi, const char *fmt, ...);
+
+typedef void FUNC_mm_DebugProgressA(void *ctx_user, const char *psz_dbginfo);
+
+DLLEXPORT_mmsnprintf
+void mm_set_DebugProgressCallbackA(FUNC_mm_DebugProgressA *dbgproc, void *ctx_user);
 
 
 //
@@ -197,10 +208,12 @@ struct mmctexi_stW // ctexi: custom target extra info
 		wchar_t val_wchar;
 		wchar_t val_TCHAR; // wchar_t
 		unsigned char placehldr[16];
-	};	
+	};
+
+	int outpos;
 };
 //
-typedef void (FUNC_mmct_outputW)(void *user_ctx, const wchar_t *pcontent, int nchars, 
+typedef void (FUNC_mmct_outputW)(void *ctx_user, const wchar_t *pcontent, int nchars, 
 								 const mmctexi_stW *pctexi);
 // -- pcontent is not NUL terminated.
 //
@@ -218,6 +231,8 @@ struct mmv7_stW
 	int mmlevel; // debugging purpose
 	
 	const wchar_t *pstock; // only meaningful to %F callee
+
+	bool suppress_dbginfo; // internal use, user should set 0
 };
 //
 DLLEXPORT_mmsnprintf
@@ -225,6 +240,11 @@ int mm_vsnprintf_v7W(const mmv7_stW &mmi, const wchar_t *fmt, va_list ap);
 //
 DLLEXPORT_mmsnprintf
 int  mm_snprintf_v7W(const mmv7_stW &mmi, const wchar_t *fmt, ...);
+
+typedef void FUNC_mm_DebugProgressW(void *ctx_user, const wchar_t *psz_dbginfo);
+
+DLLEXPORT_mmsnprintf
+void mm_set_DebugProgressCallbackW(FUNC_mm_DebugProgressW *dbgproc, void *ctx_user);
 
 
 
@@ -322,6 +342,9 @@ struct mmF_pair_stW
 # define mm_snprintf_v7 mm_snprintf_v7W
 # define mmctexi_st mmctexi_stW
 
+#define FUNC_mm_DebugProgress FUNC_mm_DebugProgressW
+#define mm_set_DebugProgressCallback mm_set_DebugProgressCallbackW
+
 #else
 
 # define mm_snprintf mm_snprintfA
@@ -345,6 +368,9 @@ struct mmF_pair_stW
 # define mm_vsnprintf_v7 mm_vsnprintf_v7A
 # define mm_snprintf_v7 mm_snprintf_v7A
 # define mmctexi_st mmctexi_stA
+
+#define FUNC_mm_DebugProgress FUNC_mm_DebugProgressA
+#define mm_set_DebugProgressCallback mm_set_DebugProgressCallbackA
 
 #endif
 

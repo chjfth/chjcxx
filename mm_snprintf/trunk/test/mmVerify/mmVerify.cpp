@@ -1,5 +1,9 @@
 #ifdef __linux__
-#define _tmain main
+# define _tmain main
+#elif defined WIN32
+# define WIN32_LEAN_AND_MEAN
+# include <windows.h>
+# include <tchar.h>
 #endif
 
 #include <assert.h>
@@ -73,7 +77,7 @@ void mmct_CustomOutput(void *user_ctx, const TCHAR *pcontent, int nchars,
 int mprint(const TCHAR *cmp, const TCHAR *fmt, ...)
 {
 	g_cases++;
-	mm_printf(_T("\n// Case %d:\n"), g_cases);
+	printf("\n// Case %d:\n", g_cases); // Don't use mm_printf so not to disturb mm_Win32DbgProgress
 
 	TCHAR buf[BUFMAX];
 	int bufsize = sizeof(buf);
@@ -1023,6 +1027,26 @@ void test_v7_ct()
 	verify_printf_ct(oks, rs6, szfmt, t(" "), mem);
 }
 
+
+struct DbgProgress_et
+{
+	int count;
+};
+
+#ifdef WIN32
+void mm_Win32DbgProgress(void *ctx_user, const TCHAR *psz_dbginfo)
+{
+	DbgProgress_et &dbi = *(DbgProgress_et*)ctx_user;
+
+	const int bufsize = MM_DBG_PROGRESS_LINE_MAXCHARS_+20;
+	TCHAR buf[bufsize];
+	_sntprintf(buf, bufsize, t("[%2d] %s"), dbi.count++, psz_dbginfo);
+		// avoid using mm_snprintf to spawn unneeded debug info
+	
+	OutputDebugString(buf);
+}
+#endif
+
 int _tmain()
 {
 	// note: glibc bans mixing printf and wprintf, so avoid using mprintA here. (?)
@@ -1032,10 +1056,15 @@ int _tmain()
 	unsigned short mmver = mmsnprintf_getversion();
 	int ver1 = mmver>>8, ver2 = mmver&0xff;
 
-	mm_printf(_T("Running %s build! (ver %u.%u) sizeof(TCHAR)=%d\n)"), 
+	mm_printf(_T("Running %s build! (ver %u.%u) sizeof(TCHAR)=%d\n"), 
 		isUnicodeBuild ? _T("Unicode") : _T("ANSI"),
 		ver1, ver2,
 		sizeof(TCHAR));
+
+#ifdef WIN32
+	DbgProgress_et dbi = {0};
+	mm_set_DebugProgressCallback(mm_Win32DbgProgress, &dbi);
+#endif
 
 	test_fms_s();
 
