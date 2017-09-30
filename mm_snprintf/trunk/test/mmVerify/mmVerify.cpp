@@ -929,6 +929,8 @@ enum { vs0=0, vs_char=1, vs_wchar=2,
 
 void verify_printf_ct(const TCHAR *oks, const mmct_Result_st rs[], const TCHAR *fmt, ...)
 {
+	mm_printf(t("\n================================\n"));
+
 	mmct_Verify_st iverify(rs);
 
 	va_list args;

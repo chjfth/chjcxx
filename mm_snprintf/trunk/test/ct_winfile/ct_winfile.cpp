@@ -22,7 +22,8 @@ void mmct_WriteFile(void *ctx_user, const TCHAR *pcontent, int nchars,
 	// Caution: pcontent is not NUL-terminated.
 
 	(void)cti; // This example does not need it.
-	assert(nchars>0);
+	if(nchars==0)
+		return; // This can happen for %k %t %v etc
 
 	mmct_WriteFile_st &ctx = *(mmct_WriteFile_st*)ctx_user;
 
