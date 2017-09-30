@@ -406,7 +406,7 @@ mmct_DebugStub(int call_count, const TCHAR *pcontent, int nchars, const mmctexi_
 	mmi.bufsize = bufsize;
 	mmi.suppress_dbginfo = true; // important!
 
-	mm_snprintf_v7(mmi, _T("  <%.*s> fmtpos:%d+%d %F output:%d+%d%s"), 
+	mm_snprintf_v7(mmi, _T("  <%.*s> fmtpos:%d+%d %F outpos:%d+%d%s"), 
 		cti.fmtnc, cti.pfmt+cti.fmtpos, // <%.*s>
 		cti.fmtpos, cti.fmtnc, // fmtpos:%d+%d
 		MM_FPAIR_PARAM(_mmF_desc_widpreci, &cti), // %F
@@ -676,7 +676,7 @@ int fill_adcol_text(Uint64 imagine_addr, TCHAR buf[], int bufsize,
 	int sep_width, int adcol_width, const TCHAR *adcol_sepstr)
 {
 	assert(bufsize>=20);
-	mm_snprintf(buf, bufsize, _T("%_%t%0.*llX"), 
+	in_snprintf(buf, bufsize, _T("%_%t%0.*llX"), 
 		sep_width,  // %_ , normally 4 or 8
 		adcol_sepstr, // %t , thousep string, normally ".", "`"
 		adcol_width, imagine_addr // %0.*llX , pad 0s to at least this v_adcol_width
@@ -725,7 +725,7 @@ cal_adcol_widths(Uint64 imagine_addr, Uint64 imagine_end_,
 
 	const int i64hsize = 20; // enough to hex-represent a 64-bit value
 	TCHAR addr_end[i64hsize];
-	int end_width = mm_snprintf(addr_end, i64hsize, _T("%llX"), imagine_end);
+	int end_width = in_snprintf(addr_end, i64hsize, _T("%llX"), imagine_end);
 	int width1 = 0;
 	int adcol_width = 0;
 	if(Is_IsoZeros(v_sep_width, v_adcol_width))
@@ -828,7 +828,7 @@ _mm_dump_bytes(TCHAR *buf, int bufchars,
 		for(i=0; i<columns; i++)
 		{
 			mmfill_fill_chars(mmfill, _T('-'), len_left,     ctipack);
-			mm_snprintf(onehex, mmquan(onehex), _T("%02X"), i);
+			in_snprintf(onehex, mmquan(onehex), _T("%02X"), i);
 			mmfill_strcpy(mmfill, onehex,                    ctipack);
 			mmfill_fill_chars(mmfill, _T('-'), len_right,    ctipack);
 
@@ -875,7 +875,7 @@ _mm_dump_bytes(TCHAR *buf, int bufchars,
 			if(mdd_left[0])
 				mmfill_strcpy(mmfill, mdd_left,      ctipack);
 			
-			mm_snprintf(onehex, mmquan(onehex), fmthex, pbytes[consumed+j]);
+			in_snprintf(onehex, mmquan(onehex), fmthex, pbytes[consumed+j]);
 			mmfill_strcpy(mmfill, onehex,            ctipack);
 			
 			if(mdd_right[0])
@@ -2187,5 +2187,21 @@ int mm_snprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, ...)
 	va_end(args);
 	return ret;
 
+}
+
+int in_snprintf(TCHAR *buf, size_t bufsize, const TCHAR *fmt, ...)
+{
+	mmv7_st mmi = {0};
+	mmi.buf_output = buf;
+	mmi.bufsize = bufsize;
+	mmi.suppress_dbginfo = true; // key!
+
+	va_list args;
+	va_start(args, fmt);
+
+	int ret = mm_vsnprintf_v7(mmi, fmt, args);
+
+	va_end(args);
+	return ret;
 }
 

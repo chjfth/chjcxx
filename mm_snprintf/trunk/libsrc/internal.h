@@ -50,6 +50,10 @@ struct cti_pack_stW
 	int call_count; // meaningful to one mm_snprintf session
 };
 
+int in_snprintfA(char *buf, size_t bufsize, const char *fmt, ...); // internal use
+int in_snprintfW(wchar_t *buf, size_t bufsize, const wchar_t *fmt, ...); // internal use
+
+
 ////////////////
 
 #if (defined _UNICODE) || (defined UNICODE)
@@ -62,6 +66,7 @@ struct cti_pack_stW
 # define g_procUserDebug g_procUserDebugW
 # define g_cbexUserDebug g_cbexUserDebugW
 
+# define in_snprintf in_snprintfW
 
 #else
 
@@ -72,6 +77,8 @@ struct cti_pack_stW
 # define ctipack_output ctipack_outputA
 # define g_procUserDebug g_procUserDebugA
 # define g_cbexUserDebug g_cbexUserDebugA
+
+# define in_snprintf in_snprintfA
 
 #endif
 

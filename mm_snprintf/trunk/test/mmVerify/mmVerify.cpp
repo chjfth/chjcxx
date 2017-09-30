@@ -63,6 +63,11 @@ struct Custout_st
 	TCHAR custbuf[BUFMAX];
 };
 
+struct DbgProgress_et
+{
+	int count;
+};
+
 void mmct_CustomOutput(void *user_ctx, const TCHAR *pcontent, int nchars, 
 					   const mmctexi_st *pcti)
 {
@@ -74,16 +79,40 @@ void mmct_CustomOutput(void *user_ctx, const TCHAR *pcontent, int nchars,
 	co.pos += nchars;
 }
 
+#ifdef WIN32
+void mm_Win32DbgProgress(void *ctx_user, const TCHAR *psz_dbginfo)
+{
+	DbgProgress_et &dbi = *(DbgProgress_et*)ctx_user;
+	
+	const int bufsize = MM_DBG_PROGRESS_LINE_MAXCHARS_+20;
+	TCHAR buf[bufsize];
+	_sntprintf(buf, bufsize, t("[%2d] %s"), dbi.count++, psz_dbginfo);
+	// avoid using mm_snprintf to spawn unneeded debug info
+	
+	OutputDebugString(buf);
+}
+#endif
+
 int mprint(const TCHAR *cmp, const TCHAR *fmt, ...)
 {
 	g_cases++;
-	printf("\n// Case %d:\n", g_cases); // Don't use mm_printf so not to disturb mm_Win32DbgProgress
+	mm_printf(t("\n// Case %d:\n"), g_cases);
 
 	TCHAR buf[BUFMAX];
 	int bufsize = sizeof(buf);
 	va_list args;
 	va_start(args, fmt);
+	
+#ifdef WIN32
+	static DbgProgress_et dbi = {0};
+	mm_set_DebugProgressCallback(mm_Win32DbgProgress, &dbi);
+#endif
 	int ret = mm_vsnprintf(buf, bufsize, fmt, args);
+#ifdef WIN32
+	mm_set_DebugProgressCallback(NULL, NULL);
+#endif
+	
+
 	mm_printf(_T("%s\n"), buf);
 	va_end(args);
 
@@ -264,8 +293,11 @@ int test_v4_memdump()
 
 	oks = t("00 01 02 03 04,41 42 4E");
 	if(isUnicodeBuild)
-		oks = ISWCHAR2B ? t("00 01 02 03 04,41 00 42 00 4E 00") : 
-					t("00 01 02 03 04,41 00 00 00 42 00 00 00 4E 00 00 00");
+	{
+		oks = ISWCHAR2B ? 
+			t("00 01 02 03 04,41 00 42 00 4E 00") : 
+			t("00 01 02 03 04,41 00 00 00 42 00 00 00 4E 00 00 00");
+	}
 	mprint(oks, t("%k%5m,%M"), t(" "), mem, t("ABN")); // %k separator is space
 
 	oks = t("0001020304,41424E");
@@ -882,7 +914,7 @@ void mmct_Verify(void *user_ctx, const TCHAR *pcontent, int nchars,
 		mm_printf(t("v7ct: %s\n"), cti.pfmt);
 	}
 
-	mm_printf(t("  <%.*s> fmtpos:%d+%d %F output:%d+%d\n"), 
+	mm_printf(t("  <%.*s> fmtpos:%d+%d %F outpos:%d+%d\n"), 
 		cti.fmtnc, cti.pfmt+cti.fmtpos,  cti.fmtpos, cti.fmtnc, 
 		MM_FPAIR_PARAM(mmF_desc_widpreci, &cti), // %F
 		iverify.output_accums, nchars // output:%d+%d
@@ -1029,25 +1061,6 @@ void test_v7_ct()
 }
 
 
-struct DbgProgress_et
-{
-	int count;
-};
-
-#ifdef WIN32
-void mm_Win32DbgProgress(void *ctx_user, const TCHAR *psz_dbginfo)
-{
-	DbgProgress_et &dbi = *(DbgProgress_et*)ctx_user;
-
-	const int bufsize = MM_DBG_PROGRESS_LINE_MAXCHARS_+20;
-	TCHAR buf[bufsize];
-	_sntprintf(buf, bufsize, t("[%2d] %s"), dbi.count++, psz_dbginfo);
-		// avoid using mm_snprintf to spawn unneeded debug info
-	
-	OutputDebugString(buf);
-}
-#endif
-
 int _tmain()
 {
 	// note: glibc bans mixing printf and wprintf, so avoid using mprintA here. (?)
@@ -1061,11 +1074,6 @@ int _tmain()
 		isUnicodeBuild ? _T("Unicode") : _T("ANSI"),
 		ver1, ver2,
 		sizeof(TCHAR));
-
-#ifdef WIN32
-	DbgProgress_et dbi = {0};
-	mm_set_DebugProgressCallback(mm_Win32DbgProgress, &dbi);
-#endif
 
 	test_fms_s();
 
