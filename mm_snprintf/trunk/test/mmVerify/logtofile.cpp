@@ -1,0 +1,37 @@
+#include <stdio.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <fcntl.h>
+
+#ifdef WIN32
+
+#include <io.h>
+int o_binary = O_BINARY;
+
+#else // assume linux
+
+#include <unistd.h>
+int o_binary = 0;
+
+#endif
+
+#include "logtofile.h"
+
+int logfile_create(const char *filename) // create a new file
+{
+	int hfile = open(filename, 
+		O_CREAT|O_APPEND|O_TRUNC|O_WRONLY|o_binary, 
+		S_IWRITE);
+	return hfile;
+}
+
+void logfile_append(int hfile, const void *pcontent, int bytes)
+{
+	write(hfile, pcontent, bytes);
+}
+
+void logfile_close(int hfile)
+{
+	close(hfile);
+}
+

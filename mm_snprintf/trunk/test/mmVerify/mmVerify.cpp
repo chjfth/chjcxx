@@ -20,6 +20,8 @@
 
 #include <mm_snprintf.h>
 
+#include "logtofile.h"
+
 #ifdef UNICODE
 
 #define t(str) L##str 
@@ -63,11 +65,6 @@ struct Custout_st
 	TCHAR custbuf[BUFMAX];
 };
 
-struct DbgProgress_et
-{
-	int count;
-};
-
 void mmct_CustomOutput(void *user_ctx, const TCHAR *pcontent, int nchars, 
 					   const mmctexi_st *pcti)
 {
@@ -79,19 +76,33 @@ void mmct_CustomOutput(void *user_ctx, const TCHAR *pcontent, int nchars,
 	co.pos += nchars;
 }
 
-#ifdef WIN32
-void mm_Win32DbgProgress(void *ctx_user, const TCHAR *psz_dbginfo)
+
+struct DbgProgress_et
+{
+	int seq;
+	int hfile;
+};
+
+static DbgProgress_et g_dbi = {0, -1};
+
+void mm_LogProgressToFile(void *ctx_user, const TCHAR *psz_dbginfo)
 {
 	DbgProgress_et &dbi = *(DbgProgress_et*)ctx_user;
 	
 	const int bufsize = MM_DBG_PROGRESS_LINE_MAXCHARS_+20;
 	TCHAR buf[bufsize];
-	_sntprintf(buf, bufsize, t("[%2d] %s"), dbi.count++, psz_dbginfo);
-	// avoid using mm_snprintf to spawn unneeded debug info
+
+	mmv7_st mmi = {0};
+	mmi.buf_output = buf;
+	mmi.bufsize = bufsize;
+	mmi.suppress_dbginfo = true; // important
+
+	mm_snprintf_v7(mmi, t("[%2d] %s"), dbi.seq++, psz_dbginfo);
 	
-	OutputDebugString(buf);
+	int slen = t_strlen(buf);
+	logfile_append(dbi.hfile, buf, slen*sizeof(TCHAR));
 }
-#endif
+
 
 int mprint(const TCHAR *cmp, const TCHAR *fmt, ...)
 {
@@ -103,15 +114,14 @@ int mprint(const TCHAR *cmp, const TCHAR *fmt, ...)
 	va_list args;
 	va_start(args, fmt);
 	
-#ifdef WIN32
-	static DbgProgress_et dbi = {0};
-	mm_set_DebugProgressCallback(mm_Win32DbgProgress, &dbi);
-#endif
+	if(g_dbi.hfile<0)
+		g_dbi.hfile = logfile_create("mmprogress.log");
+
+	mm_set_DebugProgressCallback(mm_LogProgressToFile, &g_dbi);
+	//
 	int ret = mm_vsnprintf(buf, bufsize, fmt, args);
-#ifdef WIN32
+	//
 	mm_set_DebugProgressCallback(NULL, NULL);
-#endif
-	
 
 	mm_printf(_T("%s\n"), buf);
 	va_end(args);
@@ -1096,6 +1106,9 @@ int _tmain()
 	test_v7_ct();
 
 	mm_printf(_T("\nAll %d test cases passed.\n"), g_cases);
+
+	if(g_dbi.hfile<0)
+		logfile_close(g_dbi.hfile);
 
 	return 0;
 }

@@ -84,6 +84,14 @@ LINK32=link.exe
 # Name "mmVerify - Win32 Unicode"
 # Begin Source File
 
+SOURCE=.\logtofile.cpp
+# End Source File
+# Begin Source File
+
+SOURCE=.\logtofile.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\mmVerify.cpp
 # End Source File
 # End Target
