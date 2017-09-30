@@ -521,7 +521,7 @@ _mm_fillchars_ct(const cti_pack_st &ctipack, TCHAR c, size_t n)
 	int remain = (int)n;
 	for(; remain>0; remain-=chunksize)
 	{	// each callback deals with at most 100 chars.
-		ctipack.proc(ctipack.ctx, cbuf, _MIN_(remain, chunksize), ctipack.pcti);
+		ctipack.ct_proc(ctipack.ct_ctx, cbuf, _MIN_(remain, chunksize), ctipack.pcti);
 	}
 }
 
@@ -531,7 +531,7 @@ mmfill_fill_chars(mmfill_st &f, TCHAR c, int n, const cti_pack_st &ctipack)
 	// fill c*n chars 
 	// fills f.pbuf until f.pbuf[] reaches bufmax; update f.produced by n
 	
-	if(ctipack.proc)
+	if(ctipack.ct_proc)
 	{
 		_mm_fillchars_ct(ctipack, c, n);
 	}
@@ -553,9 +553,9 @@ mmfill_strcpy(mmfill_st &f, const TCHAR *src, const cti_pack_st &ctipack)
 	
 	if(srclen>0)
 	{
-		if(ctipack.proc)
+		if(ctipack.ct_proc)
 		{
-			ctipack.proc(ctipack.ctx, src, srclen, ctipack.pcti);
+			ctipack.ct_proc(ctipack.ct_ctx, src, srclen, ctipack.pcti);
 		}
 		else
 		{
@@ -800,9 +800,9 @@ _mm_dump_bytes(TCHAR *buf, int bufchars,
 
 void ctipack_null_output(const cti_pack_st &ctipack)
 {
-	if(ctipack.proc)
+	if(ctipack.ct_proc)
 	{
-		ctipack.proc(ctipack.ctx, _T(""), 0, ctipack.pcti);
+		ctipack.ct_proc(ctipack.ct_ctx, _T(""), 0, ctipack.pcti);
 	}
 }
 

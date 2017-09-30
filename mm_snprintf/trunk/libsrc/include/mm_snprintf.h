@@ -215,7 +215,7 @@ struct mmv7_stW
 	wchar_t *buf_output;
 	size_t bufsize;
 	
-	int mmlevel;
+	int mmlevel; // debugging purpose
 	
 	const wchar_t *pstock; // only meaningful to %F callee
 };
