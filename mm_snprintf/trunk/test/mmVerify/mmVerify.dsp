@@ -84,7 +84,7 @@ LINK32=link.exe
 # Name "mmVerify - Win32 Unicode"
 # Begin Source File
 
-SOURCE=.\main.cpp
+SOURCE=.\mmVerify.cpp
 # End Source File
 # End Target
 # End Project

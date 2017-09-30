@@ -1,7 +1,7 @@
-gmu_PRJ_NAME = mmSimpleTest$(if $(MAKE_LIB),-libdev)
+gmu_PRJ_NAME = mmVerify$(if $(MAKE_LIB),-libdev)
 
-gmu_uf_LINK_OUTPUT = $(call gmpf_MakeExeName,mmSimpleTest)
+gmu_uf_LINK_OUTPUT = $(call gmpf_MakeExeName,mmVerify)
 
-gmu_up_list_SRC_FROM_ROOT += main.cpp
+gmu_up_list_SRC_FROM_ROOT += mmVerify.cpp
 
 include ../share.mki
