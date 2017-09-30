@@ -21,7 +21,7 @@ int logfile_create(const char *filename) // create a new file
 {
 	int hfile = open(filename, 
 		O_CREAT|O_APPEND|O_TRUNC|O_WRONLY|o_binary, 
-		S_IWRITE);
+		S_IREAD|S_IWRITE);
 	return hfile;
 }
 
