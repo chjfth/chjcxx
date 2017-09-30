@@ -420,7 +420,9 @@ static void
 ctipack_output(cti_pack_st &ctipack, const TCHAR *pcontent, int nchars)
 {
 	if(nchars<=0)
+	{
 		pcontent = _T("");
+	}
 
 	if(!ctipack.suppress_dbginfo && g_procUserDebug)
 	{
@@ -434,6 +436,11 @@ ctipack_output(cti_pack_st &ctipack, const TCHAR *pcontent, int nchars)
 
 	if(!ctipack.suppress_dbginfo)
 		ctipack.call_count++;	
+
+	if(nchars>0)
+	{
+		ctipack.pcti->outpos += nchars;
+	}
 }
 
 
@@ -967,7 +974,6 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 
 			cti.fmtnc = n; // cti(c1)
 			cti.has_width = cti.has_precision = false; cti.width = cti.precision = 0;
-			cti.outpos = str_l;
 			ctipack_output(ctipack, p, n);
 			
 			if (str_l < str_max) {
@@ -1830,8 +1836,6 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 		if (*p) 
 			p++;      /* step over the just processed conversion specifier */
 		
-		cti.outpos = str_l; // cti(c)
-
 		/* insert padding to the left as requested by min_field_width;
 		  this does not include the zero padding in case of numerical conversions*/
 		if (!justify_left) {                /* left padding with blank or zero */
@@ -1910,7 +1914,6 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 			if (n > 0) {
 				
 				TCHAR cfill = _T(' ');
-
 				_mm_fillchars_ct(ctipack, cfill, n);
 				
 				if (str_l < str_max) {

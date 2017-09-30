@@ -898,6 +898,7 @@ void mmct_Verify(void *user_ctx, const TCHAR *pcontent, int nchars,
 	assert( cti.has_width==rs.has_width && cti.width==rs.width );
 	assert( cti.has_precision==rs.has_precision && cti.precision==rs.precision );
 	assert( cti.valsize==rs.valsize );
+	assert( cti.outpos==iverify.output_accums );
 //	assert( memcmp(cti.placehldr, ) );
 	
 	if(iverify.fmt_partial)
