@@ -19,9 +19,9 @@ int mmps_i64_type_prefix(char *szPrefix); // no use since v5.0
 	in characters.
 */
 
-const wchar_t *mmps_wsfmt(); // ws: wide-string
-	// Return "%s" on Windows
-	// Return "%S" on Linux
+wchar_t mmps_wsfmt_char(); // ws: wide-string
+	// Return "s" on Windows, implying that wprintf("%s") outputs a wide-string.
+	// Return "S" on Linux, implying that wprintf("%S") outputs a wide-string.
 	// So wprintf outputs correct wide string.
 
 

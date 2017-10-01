@@ -8,8 +8,8 @@ mmps_i64_type_prefix(char *szPrefix)
 	return 3; // "I64" is 3 characters.
 }
 
-const wchar_t *
-mmps_wsfmt()
+wchar_t 
+mmps_wsfmt_char()
 {
-	return L"%s";
+	return L's';
 }
