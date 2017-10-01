@@ -179,6 +179,10 @@ SOURCE=..\..\libsrc\mm_psfunc.h
 
 SOURCE=..\..\libsrc\include\mm_snprintf.h
 # End Source File
+# Begin Source File
+
+SOURCE=..\..\libsrc\msvc\ps_Tstrdef.h
+# End Source File
 # End Group
 # End Target
 # End Project

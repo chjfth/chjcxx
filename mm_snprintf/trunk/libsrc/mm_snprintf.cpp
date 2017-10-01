@@ -1008,10 +1008,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				while "%d" has no length-modifier in it.
 			*/
 		TCHAR tmp[128];/* temporary buffer for simple numeric->string conversion */
-			//[2006-10-03]Chj: Be aware of the overflow of this buffer.
-			//User can assign a very high precision(e.g. "%.400f") to format a number,
-			//which cannot be afforded by this small buffer. Therefore, we will
-			//later limit the precision before invoking system's sprintf. // ff_16
+			//[2017-10-00]Chj: %f and %g will use this as system snprintf's output. (ff_16)
 
 		const TCHAR *str_arg = NULL; /* string address in case of string argument */
 		Int str_arg_l = 0;       /* natural field width of arg without padding
@@ -1412,20 +1409,22 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				{
 					// >>> Use signed_ntos, unsigned_ntos, or system's sprintf to format numeric string in tmp[].
 
-					TCHAR f[32]; int f_l = 0; // `f' used as a temp format string for system's sprintf
-					f[f_l++] = _T('%');    /* construct a simple format string for sprintf */
+					TCHAR flfmt[32]; int f_l = 0; // `flfmt' used as a temp format string for system's snprintf
+					flfmt[f_l++] = _T('%');    /* construct a simple format string for sprintf */
 					
 					if(fmtcat==fmt_float)
 					{
+						// Note: If the system CRT lib does not provide snprintf, 
+						// mm_snprintf should not use %f and %g, which would give empty results.
 						// Limit the precision so that not to overflow tmp[].
-						const int MaxPrecision = mmquan(tmp)-16; // ff_16
 
-						f_l += TMM_sprintf(f+f_l, _T(".%d"), precision<MaxPrecision ? precision : MaxPrecision); 
+						f_l += in_snprintf(flfmt+f_l, GetEleQuan(flfmt), _T(".%d"), precision); 
 							//For floating point number, we leave precision processing to system's sprintf.
 
 						precision_specified = false; precision = 0;
 							// !!! As if we have not specified the precision 
-							//so that the "precision processing for integers" will not take place.
+							// so that the "precision processing for integers" will not take place.
+							// And our mm_'s code will also process min_field_width ourselves.
 						
 						// length_modifier is ignored for floating type.
 					}
@@ -1446,11 +1445,11 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 // 							f[f_l++] = tmpI64fmt[i];
 // 					}
 					else {
-						f[f_l++] = length_modifier;
+						flfmt[f_l++] = length_modifier;
 					}
 
 
-					f[f_l++] = fmt_spec; f[f_l++] = '\0';
+					flfmt[f_l++] = fmt_spec; flfmt[f_l++] = '\0';
 
 					if(fmtcat==fmt_ptr) 
 					{
@@ -1543,7 +1542,28 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 					{
 						assert(fmtcat==fmt_float);
 
-						str_arg_l += TMM_sprintf(tmp+str_arg_l, f, double_arg);
+						// Quite some subtle processing here.
+						// I need to work with Windows _snprintf and C99's snprintf and C99's swprintf.
+
+						int tmpbufsize = GetEleQuan(tmp);
+						tmp[tmpbufsize-1] = _T('\0'); // so to cope with _snprintf's no-NUL on buffer full
+
+						int cf = TMM_snprintf(tmp+str_arg_l, tmpbufsize-str_arg_l-1, flfmt, double_arg);
+						if(cf>=0)
+						{
+							str_arg_l += cf;
+						}
+						else
+						{
+							// This is to deal with [Windows _snprintf]'s and [C99 swprintf]'s 
+							// wacky -1 return(when buffer is not enough).
+
+							// We need to strlen() it bcz _snprintf and swprintf has 
+							// different NUL appending policy when buffer is not enough.
+							// Strlen()'s result is the best deduction we can make here.
+							int flen = TMM_strlen(tmp);
+							str_arg_l += flen;
+						}
 					}
 
 					// <<< Use signed_ntos, unsigned_ntos, or system's sprintf to format numeric string in tmp[].

@@ -4,18 +4,21 @@
 //#include <tchar.h> glibc don't have this.
 #include <stddef.h> // for size_t
 
-#ifdef _UNICODE
+#ifdef UNICODE // Simple matters. UNICODE is simpler than _UNICODE
 
-	#define TMM_strchr mmsnpr_wcschr
-	#define TMM_strlen mmsnpr_wcslen
-	#define TMM_isdigit mmsnpr_iswdigit
+    #include <wchar.h>
+    #include <wctype.h>
+    
+	#define TMM_strchr wcschr
+	#define TMM_strlen wcslen
+	#define TMM_isdigit iswdigit
 
-	#define TMM_sprintf mmsnpr_swprintf
+	#define TMM_snprintf swprintf
 
-wchar_t *mmsnpr_wcschr( const wchar_t *string, wchar_t c );
-size_t mmsnpr_wcslen( const wchar_t *string );
-int mmsnpr_iswdigit( int c );
-int mmsnpr_swprintf (wchar_t *sbuf, const wchar_t *fmt, ...);
+//wchar_t *mmsnpr_wcschr( const wchar_t *string, wchar_t c );
+//size_t mmsnpr_wcslen( const wchar_t *string );
+//int mmsnpr_iswdigit( int c );
+//int mmsnpr_swprintf (wchar_t *sbuf, const wchar_t *fmt, ...);
 
 #else
 
@@ -23,7 +26,7 @@ int mmsnpr_swprintf (wchar_t *sbuf, const wchar_t *fmt, ...);
 	#define TMM_strlen strlen
 	#define TMM_isdigit isdigit
 
-	#define TMM_sprintf sprintf
+	#define TMM_snprintf snprintf
 
 #endif
 

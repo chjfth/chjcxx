@@ -1110,6 +1110,9 @@ int _tmain()
 	if(g_dbi.hfile<0)
 		logfile_close(g_dbi.hfile);
 
+	// a casual fp number test.
+	TCHAR flbuf[50]; 
+	int ret = mm_snprintf(flbuf, GetEleQuan(flbuf), t("[%20.200f]"), 1234567890123456789.4321);
 	return 0;
 }
 

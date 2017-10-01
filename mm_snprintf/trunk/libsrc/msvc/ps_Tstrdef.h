@@ -18,7 +18,7 @@
 #endif
 	// Damn M$, hide _istdigit for WinCE app. See NLscan Wiki pageId=17432594 .
 
-#define TMM_sprintf _stprintf
+#define TMM_snprintf _sntprintf
 
 
 #else                // ########################### (SBCS):
@@ -28,12 +28,12 @@
 # define TMM_strchr wcschr
 # define TMM_strlen(str) ((int)wcslen(str))
 # define TMM_isdigit iswdigit
-# define TMM_sprintf swprintf
+# define TMM_snprintf swprintf
 #else
 # define TMM_strchr strchr
 # define TMM_strlen(str) ((int)strlen(str))
 # define TMM_isdigit isdigit
-# define TMM_sprintf sprintf
+# define TMM_sprintf _snprintf
 #endif
 
 

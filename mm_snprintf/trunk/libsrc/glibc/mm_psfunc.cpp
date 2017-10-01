@@ -7,8 +7,8 @@ mmps_i64_type_prefix(char *szPrefix)
 	return 2; // "ll" is 2 characters.
 }
 
-const wchar_t *
-mmps_wsfmt()
+wchar_t 
+mmps_wsfmt_char()
 {
-	return L"%S";
+	return L'S';
 }
