@@ -77,6 +77,7 @@ int mm_printfA(const char *fmt, ...);
 struct mmctexi_stA // ctexi: custom target extra info
 {
 	int mmlevel;
+
 	const char *pfmt; // original input szfmt
 	int fmtpos; // current advancing position in szfmt
 	int fmtnc;  //	char curtype[6]; // current "'type', "%d", "%llX" etc
@@ -107,6 +108,7 @@ struct mmctexi_stA // ctexi: custom target extra info
 	};
 
 	int outpos;
+	int nchars_stock; // already output chars from mmlevel 0
 };
 //
 typedef void (FUNC_mmct_outputA)(void *ctx_user, const char *pcontent, int nchars, 
@@ -118,15 +120,14 @@ int mm_printf_ctA(FUNC_mmct_outputA proc_output, void *ctx_output, const char *f
 //
 struct mmv7_stA
 {
-	int mmlevel;
-
 	FUNC_mmct_outputA *proc_output; // If NULL, callee should fill .buf_output[]
 	void *ctx_output;
 	
 	char *buf_output;
 	size_t bufsize;
 
-	const char *pstock; // only meaningful to %F callee
+	int mmlevel;	
+	int nchars_stock; // only meaningful to %F callee
 	
 	bool suppress_dbginfo; // internal use, user should set 0
 };
@@ -181,6 +182,7 @@ int mm_printfW(const wchar_t *fmt, ...);
 struct mmctexi_stW // ctexi: custom target extra info
 {
 	int mmlevel;
+	
 	const wchar_t *pfmt; // original input szfmt
 	int fmtpos; // current advancing position in szfmt
 	int fmtnc;       //wchar_t curtype[6]; // current "'type', "%d", "%llX" etc
@@ -211,6 +213,7 @@ struct mmctexi_stW // ctexi: custom target extra info
 	};
 
 	int outpos;
+	int nchars_stock;
 };
 //
 typedef void (FUNC_mmct_outputW)(void *ctx_user, const wchar_t *pcontent, int nchars, 
@@ -229,8 +232,7 @@ struct mmv7_stW
 	size_t bufsize;
 	
 	int mmlevel; // debugging purpose
-	
-	const wchar_t *pstock; // only meaningful to %F callee
+	int nchars_stock; //const wchar_t *pstock; // only meaningful to %F callee
 
 	bool suppress_dbginfo; // internal use, user should set 0
 };

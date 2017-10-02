@@ -805,7 +805,7 @@ int mmF_callback_from_nullbuf(void *param, const mmv7_st &mmi)
 
 	ctx.call_count++;
 
-	assert(mmi.pstock==NULL);
+	//assert(mmi.pstock==NULL);
 	assert(mmi.buf_output-(TCHAR*)0==ctx.chk_offset);
 	return 0;
 }
@@ -859,7 +859,7 @@ struct mmct_Result_st
 	int precision;
 	int valsize; // 1,2,4,8,12
 
-	int output_totchars;
+	int output_totchars; // 'total' for only current fmtspec
 };
 
 struct mmct_Verify_st
@@ -1000,6 +1000,7 @@ void test_v7_ct()
 	oks = t("@ABC123  0456!");
 	mmct_Result_st rs1[] =
 	{
+		{1, t("%w"), 0,2, false,0, false,0, vs_ptr, 0}, // %w
 		{2, szfmt, 0,2, false,0, false,0, vs_TCHAR, 1}, // %c
 		{2, szfmt, 2,3, false,0, false,0, vs0,  3}, // ABC
 		{2, szfmt, 5,2, false,0, false,0, vs_int, 3}, // %d
@@ -1014,6 +1015,7 @@ void test_v7_ct()
 	//       ^      ^  ^
 	mmct_Result_st rs2[] =
 	{
+		{1, t("%w"), 0,2, false,0, false,0, vs_ptr, 0}, // %w
 		{2, szfmt, 0,3, true,6, false,0, vs_ptr, 7}, // %*s
 		{2, szfmt, 3,4, false,0, true,3, vs_ptr, 3}, // %.*s
 		{2, szfmt, 7,5, true,6, true,3, vs_ptr, 6}, // %*.*s
@@ -1026,6 +1028,7 @@ void test_v7_ct()
 	oks = t("4321||0X912345678-1123456789");
 	mmct_Result_st rs3[] =
 	{
+		{1, t("%w"), 0,2, false,0, false,0, vs_ptr, 0}, // %w
 		{2, szfmt, 0,3, false,0, false,0, vs_long, 4}, // %ld
 		{2, szfmt, 3,2, false,0, false,0, vs0, 2}, // ||
 		{2, szfmt, 5,5, false,0, false,0, vs_int64, 11}, // %#llX
@@ -1039,6 +1042,7 @@ void test_v7_ct()
 	oks = IS64BIT ? t("000000000FFFEEEE") : t("0FFFEEEE");
 	mmct_Result_st rs4[] =
 	{
+		{1, t("%w"), 0,2, false,0, false,0, vs_ptr, 0}, // %w
 		{2, szfmt, 0,2, false,0, false,0, vs_ptr, IS64BIT?16:8},
 		{0}
 	};
@@ -1048,6 +1052,7 @@ void test_v7_ct()
 	oks = t("123.45600000123.456");
 	mmct_Result_st rs5[] =
 	{
+		{1, t("%w"), 0,2, false,0, false,0, vs_ptr, 0}, // %w
 		{2, szfmt, 0,4, false,0, true,8, vs_double, 12},
 		{2, szfmt, 4,4, false,0, true,8, vs_double, 7},
 		{0}
@@ -1063,6 +1068,7 @@ void test_v7_ct()
 	oks = t("00 01 02 03 04");
 	mmct_Result_st rs6[] =
 	{
+		{1, t("%w"), 0,2, false,0, false,0, vs_ptr, 0}, // %w
 		{2, szfmt, 0,2, false,0, false,0, vs_ptr, 0},  // although %k does not generate output
 		{2, szfmt, 2,3, true ,5, false,0, vs_ptr, 14},
 		{0}

@@ -920,6 +920,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 	FUNC_mmct_output *proc_output = mmi.proc_output;
 	void *ctx_output = mmi.ctx_output;
 	int mylevel = mmi.mmlevel + 1;
+	int my_nchars_stock0 = mmi.nchars_stock;
 
 	size_t str_l = 0; // how many output length has been filled, assuming enough output buffer
 	const TCHAR *p = fmt;
@@ -948,6 +949,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 
 	mmctexi_st cti = {0};     // cti(a)
 	cti.mmlevel = mylevel;
+	cti.nchars_stock = my_nchars_stock0;
 	cti.pfmt = fmt;
 	//
 	cti_pack_st ctipack = {proc_output, ctx_output, &cti, mmi.suppress_dbginfo};
@@ -1684,7 +1686,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				
 				p++; continue;
 			}
-		case _T('m'): case _T('M'): // These will do byte dump
+		case _T('m'): case _T('M'): // These will do memory dump
 			{	
 				const void *pbytes = va_arg(ap, void*);
 				CTI_SETVAL(cti, val_ptr, pbytes);
@@ -1730,18 +1732,24 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 			{
 				psz_THOUSEP = va_arg(ap, TCHAR*);
 				CTI_SETVAL(cti, val_ptr, psz_THOUSEP);
+				ctipack_output(ctipack, NULL, 0);
+
 				p++; continue;
 			}
 		case _T('t'):
 			{
 				psz_thousep = va_arg(ap, TCHAR*);
 				CTI_SETVAL(cti, val_ptr, psz_thousep);
+				ctipack_output(ctipack, NULL, 0);
+
 				p++; continue;
 			}
 		case _T('_'):
 			{
 				thousep_width = va_arg(ap, int);
 				CTI_SETVAL(cti, val_int, thousep_width);
+				ctipack_output(ctipack, NULL, 0);
+
 				p++; continue;
 			}
 		case _T('w'):
@@ -1754,6 +1762,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				
 				const mm_wpair_st *wpair = va_arg(ap, mm_wpair_st*);
 				CTI_SETVAL(cti, val_ptr, wpair);
+				ctipack_output(ctipack, NULL, 0);
 				
 				if(wpair->magic==mm_wpair_magic) // magic detected
 				{
@@ -1773,6 +1782,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				mmi2.ctx_output = ctx_output;
 				mmi2.suppress_dbginfo = mmi.suppress_dbginfo;
 				mmi2.mmlevel = mylevel;
+				mmi2.nchars_stock = my_nchars_stock0;
 				//
 				int fills = mm_vsnprintf_v7(mmi2, 
 					dig_fmt, *(va_list*)dig_args); // extra (va_list*) type-conversion(drop const) to make gcc 4.8 x64 happy.
@@ -1810,7 +1820,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 					mmii.ctx_output = ctx_output;
 					mmii.suppress_dbginfo = mmi.suppress_dbginfo;
 					mmii.mmlevel = mylevel;
-					mmii.pstock = strbuf;
+					mmii.nchars_stock = my_nchars_stock0; //mmii.pstock = strbuf;
 					int fills = func(func_param, mmii);
 
 					str_l += _MAX_(0, fills);
