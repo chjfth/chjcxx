@@ -558,8 +558,14 @@ int print_with_prefix_suffix(TCHAR *buf, int bufsize, const TCHAR *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
+
+	mm_set_DebugProgressCallback(mm_LogProgressToFile, &g_dbi);
+	//
 	int alen = mm_snprintf(buf, bufsize, 
 		t("%c%w%s"), t('['), MM_WPAIR_PARAM(fmt, args), t("]"));
+	//
+	mm_set_DebugProgressCallback(NULL, NULL);
+
 	va_end(args);
 	return alen;
 }
@@ -860,6 +866,7 @@ struct mmct_Result_st
 	int valsize; // 1,2,4,8,12
 
 	int output_blobchars; // 'total' char count for only current fmtspec
+	int nchars_stock;
 };
 
 struct mmct_Verify_st

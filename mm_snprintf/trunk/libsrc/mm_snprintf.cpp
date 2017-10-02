@@ -396,7 +396,7 @@ mmct_DebugStub(int call_count, const TCHAR *pcontent, int nchars, const mmctexi_
 
 	if(call_count==0)
 	{
-		mm_snprintf_v7(mmi0, _T("<<fmtstring>>: %s%s"), cti.pfmt, g_mmcrlf_sz);
+		mm_snprintf_v7(mmi0, _T("<<fmtstring>>(@lv%d): %s%s"), cti.mmlevel, cti.pfmt, g_mmcrlf_sz);
 
 		g_procUserDebug(g_cbexUserDebug, dbginfo);
 	}	
@@ -406,12 +406,13 @@ mmct_DebugStub(int call_count, const TCHAR *pcontent, int nchars, const mmctexi_
 	mmi.bufsize = bufsize;
 	mmi.suppress_dbginfo = true; // important!
 
-	mm_snprintf_v7(mmi, _T("  <%.*s> fmtpos:%d+%d %F stock:%d outpos:%d+%d%s"), 
+	mm_snprintf_v7(mmi, _T("  <%.*s> fmtpos:%d+%d %F stock:%d(@lv%d) outpos:%d+%d (~%d+%d)%s"), 
 		cti.fmtnc, cti.pfmt+cti.fmtpos, // <%.*s>
 		cti.fmtpos, cti.fmtnc, // fmtpos:%d+%d
 		MM_FPAIR_PARAM(_mmF_desc_widpreci, &cti), // %F
-		cti.nchars_stock, // stock: %d
+		cti.nchars_stock, cti.mmlevel, // stock: %d(@lv%d)
 		cti.outpos, nchars, // output:%d+%d
+		cti.nchars_stock+cti.outpos, nchars, // (~%d+%d)
 		g_mmcrlf_sz);
 
 	g_procUserDebug(g_cbexUserDebug, dbginfo);
@@ -1783,7 +1784,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				mmi2.ctx_output = ctx_output;
 				mmi2.suppress_dbginfo = mmi.suppress_dbginfo;
 				mmi2.mmlevel = mylevel;
-				mmi2.nchars_stock = my_nchars_stock0;
+				mmi2.nchars_stock = my_nchars_stock0+str_l;
 				//
 				int fills = mm_vsnprintf_v7(mmi2, 
 					dig_fmt, *(va_list*)dig_args); // extra (va_list*) type-conversion(drop const) to make gcc 4.8 x64 happy.
@@ -1821,7 +1822,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 					mmii.ctx_output = ctx_output;
 					mmii.suppress_dbginfo = mmi.suppress_dbginfo;
 					mmii.mmlevel = mylevel;
-					mmii.nchars_stock = my_nchars_stock0; //mmii.pstock = strbuf;
+					mmii.nchars_stock = my_nchars_stock0+str_l; //mmii.pstock = strbuf;
 					int fills = func(func_param, mmii);
 
 					str_l += _MAX_(0, fills);
