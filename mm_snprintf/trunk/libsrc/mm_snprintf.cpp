@@ -441,7 +441,7 @@ ctipack_output(cti_pack_st &ctipack, const TCHAR *pcontent, int nchars)
 
 	if(nchars>0)
 	{
-		ctipack.pcti->outpos += nchars;
+		ctipack.pcti->outpos += nchars; // ! %w and %F does not get affected (#mmwF)
 	}
 }
 
@@ -1788,7 +1788,10 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				//
 				int fills = mm_vsnprintf_v7(mmi2, 
 					dig_fmt, *(va_list*)dig_args); // extra (va_list*) type-conversion(drop const) to make gcc 4.8 x64 happy.
+				
 				str_l += fills;
+				cti.outpos += fills; // (#mmwF)
+				
 				p++;
 				continue;
 			}
@@ -1825,7 +1828,9 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 					mmii.nchars_stock = my_nchars_stock0+str_l; //mmii.pstock = strbuf;
 					int fills = func(func_param, mmii);
 
-					str_l += _MAX_(0, fills);
+					int adv = _MAX_(0, fills); // ensure not negative
+					str_l += adv;
+					cti.outpos += adv;
 				}
 				
 				p++;

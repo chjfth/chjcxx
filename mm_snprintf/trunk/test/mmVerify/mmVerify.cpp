@@ -853,6 +853,23 @@ void test_v6()
 
 /////////////////////////////// v7: /////////////////////////////////////
 
+static const TCHAR *mmf_inner_fmt = t("%04d-%02d-%02d");
+
+int mmF_uepoc2ymd(void *ctx_user, const mmv7_st &mmi)
+{
+	assert( mmi.bufsize==0 || (mmi.buf_output && mmi.buf_output[0]==_T('\0')) );
+	
+	// mmi.pstock will point to "time_t will overflow at UTC ["
+	
+	time_t uepoch = *(time_t*)ctx_user;
+	struct tm* ptm = gmtime(&uepoch);
+
+	// Relay mmi to inner mm_snprintf_v7:
+	int len = mm_snprintf_v7(mmi, mmf_inner_fmt, 
+		ptm->tm_year+1900, ptm->tm_mon+1, ptm->tm_mday);
+	return len;
+}
+
 struct mmct_Result_st
 {
 	int mmLevel;
@@ -947,7 +964,7 @@ void mmct_Verify(void *user_ctx, const TCHAR *pcontent, int nchars,
 	assert( cti.has_width==rs.has_width && cti.width==rs.width );
 	assert( cti.has_precision==rs.has_precision && cti.precision==rs.precision );
 	assert( cti.valsize==rs.valsize );
-	assert( cti.outpos==iverify.output_accums );
+	assert( cti.nchars_stock+cti.outpos == iverify.output_accums );
 //	assert( memcmp(cti.placehldr, ) );
 	
 	if(iverify.fmt_partial)
@@ -1081,6 +1098,25 @@ void test_v7_ct()
 		{0}
 	};
 	verify_printf_ct(oks, rs6, szfmt, t(" "), mem);
+
+	time_t uepoch = 0x7FFFffff;
+	szfmt = t("time_t overflows at UTC day [%F].");  // verify with %F
+	const int ofmt29 = 29; // string length of "time_t overflows at UTC day ["
+	oks = t("time_t overflows at UTC day [2038-01-19].");
+	mmct_Result_st rs7[] =
+	{
+		{1, t("%w"), 0,2, false,0, false,0, vs_ptr, 0}, // %w
+		{2, szfmt,   0,ofmt29, false,0, false,0, vs0, 29}, 
+		{3, mmf_inner_fmt, 0,4, true,4, false,0, vs_int, 4, ofmt29}, // %04d year
+		{3, mmf_inner_fmt, 4,1, false,0, false,0, vs0, 1, ofmt29},   // -
+		{3, mmf_inner_fmt, 5,4, true,2, false,0, vs_int, 2, ofmt29}, // %02d month
+		{3, mmf_inner_fmt, 9,1, false,0, false,0, vs0, 1, ofmt29},   // -
+		{3, mmf_inner_fmt, 10,4, true,2, false,0, vs_int, 2, ofmt29}, // %02d day
+		{2, szfmt,  ofmt29+2,2, false,0, false,0, vs0, 2}, // ].
+		{0}
+	};
+	verify_printf_ct(oks, rs7, szfmt, MM_FPAIR_PARAM(mmF_uepoc2ymd, &uepoch));
+	
 }
 
 
