@@ -859,7 +859,7 @@ struct mmct_Result_st
 	int precision;
 	int valsize; // 1,2,4,8,12
 
-	int output_totchars; // 'total' for only current fmtspec
+	int output_blobchars; // 'total' char count for only current fmtspec
 };
 
 struct mmct_Verify_st
@@ -947,11 +947,11 @@ void mmct_Verify(void *user_ctx, const TCHAR *pcontent, int nchars,
 		assert( t_strcmp(cti.pfmt, iverify.fmt_partial)==0 );
 
 	iverify.cur_partials += nchars;
-	assert(iverify.cur_partials<=rs.output_totchars);
-	if(iverify.cur_partials==rs.output_totchars)
+	assert(iverify.cur_partials<=rs.output_blobchars);
+	if(iverify.cur_partials==rs.output_blobchars)
 	{
 		// one fmtspec completes
-		assert( rs.output_totchars>=0 ); // can be 0 due to ctipack_null_output(&ctipack);
+		assert( rs.output_blobchars>=0 ); // can be 0 due to ctipack_null_output(&ctipack);
 
 		iverify.cur_partials = 0;
 		iverify.fmt_partial = NULL;
