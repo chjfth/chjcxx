@@ -406,10 +406,11 @@ mmct_DebugStub(int call_count, const TCHAR *pcontent, int nchars, const mmctexi_
 	mmi.bufsize = bufsize;
 	mmi.suppress_dbginfo = true; // important!
 
-	mm_snprintf_v7(mmi, _T("  <%.*s> fmtpos:%d+%d %F outpos:%d+%d%s"), 
+	mm_snprintf_v7(mmi, _T("  <%.*s> fmtpos:%d+%d %F stock:%d outpos:%d+%d%s"), 
 		cti.fmtnc, cti.pfmt+cti.fmtpos, // <%.*s>
 		cti.fmtpos, cti.fmtnc, // fmtpos:%d+%d
 		MM_FPAIR_PARAM(_mmF_desc_widpreci, &cti), // %F
+		cti.nchars_stock, // stock: %d
 		cti.outpos, nchars, // output:%d+%d
 		g_mmcrlf_sz);
 

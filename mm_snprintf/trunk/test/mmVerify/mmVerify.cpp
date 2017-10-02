@@ -115,7 +115,7 @@ int mprint(const TCHAR *cmp, const TCHAR *fmt, ...)
 	va_start(args, fmt);
 	
 	if(g_dbi.hfile<0)
-		g_dbi.hfile = logfile_create("mmprogress.log");
+		g_dbi.hfile = logfile_create("_mmprogress.log");
 
 	mm_set_DebugProgressCallback(mm_LogProgressToFile, &g_dbi);
 	//

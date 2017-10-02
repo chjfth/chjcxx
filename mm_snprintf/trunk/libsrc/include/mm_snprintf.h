@@ -17,7 +17,7 @@ DLLEXPORT_mmsnprintf
 unsigned short mmsnprintf_getversion(void);
 	// Returns: Major version in higher byte and minor version in lower byte.
 
-#define MM_DBG_PROGRESS_LINE_MAXCHARS_ 120
+#define MM_DBG_PROGRESS_LINE_MAXCHARS_ 200
 
 
 enum mm_crlf_et
