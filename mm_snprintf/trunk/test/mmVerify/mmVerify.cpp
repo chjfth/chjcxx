@@ -95,9 +95,9 @@ void mm_LogProgressToFile(void *ctx_user, const TCHAR *psz_dbginfo)
 	mmv7_st mmi = {0};
 	mmi.buf_output = buf;
 	mmi.bufsize = bufsize;
-	mmi.suppress_dbginfo = true; // important
+	mmi.suppress_dbginfo = true; // important, to avoid recursive call
 
-	mm_snprintf_v7(mmi, t("[%2d] %s"), dbi.seq++, psz_dbginfo);
+	mm_snprintf_v7(mmi, t("[%2d]%s"), dbi.seq++, psz_dbginfo);
 	
 	int slen = t_strlen(buf);
 	logfile_append(dbi.hfile, buf, slen*sizeof(TCHAR));
@@ -888,7 +888,7 @@ struct mmct_Result_st
 
 struct mmct_Verify_st
 {
-	int idx;
+	int prev_level;
 	int output_accums;
 
 	const mmct_Result_st *rs;
@@ -938,20 +938,27 @@ void mmct_Verify(void *user_ctx, const TCHAR *pcontent, int nchars,
 {
 	assert(pctexi);
 	const mmctexi_st &cti = *pctexi;
-	
+	assert(cti.mmlevel>=1);
+
+	const int indent = (cti.mmlevel-1)*2;
+
 	mmct_Verify_st &iverify = *(mmct_Verify_st*)user_ctx;
 
 	assert(iverify.rs[iverify.cur_rs].mmLevel>0); // verify that rs[] eles is not drained.
 
-	if(iverify.idx==0)
+	if(cti.mmlevel > iverify.prev_level)
 	{
-		mm_printf(t("v7ct: %s\n"), cti.pfmt);
+		mm_printf(t("%*n@Lv%d: %s\n"), indent, t(" "),
+			cti.mmlevel, cti.pfmt);
 	}
+	iverify.prev_level = cti.mmlevel;
 
-	mm_printf(t("  <%.*s> fmtpos:%d+%d %F outpos:%d+%d\n"), 
+	mm_printf(t("%*n<%.*s> fmtpos:%d+%d %F outpos:%d+%d (A:%d+%d)\n"), 
+		indent, t(" "),
 		cti.fmtnc, cti.pfmt+cti.fmtpos,  cti.fmtpos, cti.fmtnc, 
 		MM_FPAIR_PARAM(mmF_desc_widpreci, &cti), // %F
-		iverify.output_accums, nchars // output:%d+%d
+		cti.outpos, nchars, // output:%d+%d , for this level
+		iverify.output_accums, nchars // (A:%d+%d)
 		);
 
 	// verify mm_snprintf's data with manual ones.
@@ -964,7 +971,7 @@ void mmct_Verify(void *user_ctx, const TCHAR *pcontent, int nchars,
 	assert( cti.has_width==rs.has_width && cti.width==rs.width );
 	assert( cti.has_precision==rs.has_precision && cti.precision==rs.precision );
 	assert( cti.valsize==rs.valsize );
-	assert( cti.nchars_stock+cti.outpos == iverify.output_accums );
+	assert( cti.nchars_stock+cti.outpos == iverify.output_accums ); // !
 //	assert( memcmp(cti.placehldr, ) );
 	
 	if(iverify.fmt_partial)
@@ -988,7 +995,6 @@ void mmct_Verify(void *user_ctx, const TCHAR *pcontent, int nchars,
 
 	memcpy(iverify.custbuf+iverify.output_accums, pcontent, nchars*sizeof(TCHAR));
 
-	iverify.idx++;
 	iverify.output_accums += nchars;
 }
 

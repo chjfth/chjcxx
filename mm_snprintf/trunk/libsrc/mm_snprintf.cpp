@@ -388,17 +388,18 @@ mmct_DebugStub(int call_count, const TCHAR *pcontent, int nchars, const mmctexi_
 	
 	const int bufsize = MM_DBG_PROGRESS_LINE_MAXCHARS_;
 	TCHAR dbginfo[bufsize]; 
-//	dbginfo[0] = _T('\0');
-//	int len0 = 0;
 
 	mmv7_st mmi0 = {0};
 	mmi0.buf_output = dbginfo;
 	mmi0.bufsize = bufsize;
 	mmi0.suppress_dbginfo = true; // important!
 
+	int indent = cti.mmlevel * 2;
+
 	if(call_count==0)
 	{
-		mm_snprintf_v7(mmi0, _T("<<fmtstring>>(@lv%d): %s%s"), cti.mmlevel, cti.pfmt, g_mmcrlf_sz);
+		mm_snprintf_v7(mmi0, _T("%*n<<fmtstring>>(@lv%d): %s%s"), indent, _T(" "),
+			cti.mmlevel, cti.pfmt, g_mmcrlf_sz);
 
 		g_procUserDebug(g_cbexUserDebug, dbginfo);
 	}	
@@ -408,7 +409,8 @@ mmct_DebugStub(int call_count, const TCHAR *pcontent, int nchars, const mmctexi_
 	mmi.bufsize = bufsize;
 	mmi.suppress_dbginfo = true; // important!
 
-	mm_snprintf_v7(mmi, _T("  <%.*s> fmtpos:%d+%d %F stock:%d(@lv%d) outpos:%d+%d (~%d+%d)%s"), 
+	mm_snprintf_v7(mmi, _T("%*n<%.*s> fmtpos:%d+%d %F stock:%d(@lv%d) outpos:%d+%d (~%d+%d)%s"), 
+		indent, _T(" "),
 		cti.fmtnc, cti.pfmt+cti.fmtpos, // <%.*s>
 		cti.fmtpos, cti.fmtnc, // fmtpos:%d+%d
 		MM_FPAIR_PARAM(_mmF_desc_widpreci, &cti), // %F
