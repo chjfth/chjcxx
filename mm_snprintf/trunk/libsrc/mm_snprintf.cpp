@@ -430,7 +430,7 @@ ctipack_output(cti_pack_st &ctipack, const TCHAR *pcontent, int nchars)
 
 	if(!ctipack.suppress_dbginfo && g_procUserDebug)
 	{
-		mmct_DebugStub(ctipack.call_count, pcontent, nchars, ctipack.pcti);
+		mmct_DebugStub(ctipack._call_count, pcontent, nchars, ctipack.pcti);
 	}
 	
 	if(ctipack.ct_proc)
@@ -439,7 +439,7 @@ ctipack_output(cti_pack_st &ctipack, const TCHAR *pcontent, int nchars)
 	}
 
 	if(!ctipack.suppress_dbginfo)
-		ctipack.call_count++;	
+		ctipack._call_count++;
 
 	if(nchars>0)
 	{

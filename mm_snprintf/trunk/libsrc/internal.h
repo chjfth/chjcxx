@@ -36,7 +36,7 @@ struct cti_pack_stA
 
 	bool suppress_dbginfo;
 
-	int call_count; // meaningful to one mm_snprintf session
+	int _call_count; // meaningful within one mm_snprintf session
 };
 
 struct cti_pack_stW
@@ -47,7 +47,7 @@ struct cti_pack_stW
 
 	bool suppress_dbginfo;
 
-	int call_count; // meaningful to one mm_snprintf session
+	int _call_count; // meaningful to one mm_snprintf session
 };
 
 int in_snprintfA(char *buf, size_t bufsize, const char *fmt, ...); // internal use

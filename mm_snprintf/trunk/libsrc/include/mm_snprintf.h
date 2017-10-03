@@ -76,8 +76,6 @@ int mm_printfA(const char *fmt, ...);
 // v7 co functions. co: custom output(write to file, serial port etc).
 struct mmctexi_stA // ctexi: custom target extra info
 {
-	int mmlevel;
-
 	const char *pfmt; // original input szfmt
 	int fmtpos; // current advancing position in szfmt
 	int fmtnc;  //	char curtype[6]; // current "'type', "%d", "%llX" etc
@@ -106,6 +104,8 @@ struct mmctexi_stA // ctexi: custom target extra info
 		char val_TCHAR; // char!
 		unsigned char placehldr[16]; 
 	};
+
+	int mmlevel;
 
 	int outpos;
 	int nchars_stock; // already output chars from mmlevel 0
@@ -181,8 +181,6 @@ int mm_printfW(const wchar_t *fmt, ...);
 // v7 co functions. co: custom output(write to file, serial port etc).
 struct mmctexi_stW // ctexi: custom target extra info
 {
-	int mmlevel;
-	
 	const wchar_t *pfmt; // original input szfmt
 	int fmtpos; // current advancing position in szfmt
 	int fmtnc;       //wchar_t curtype[6]; // current "'type', "%d", "%llX" etc
@@ -211,6 +209,8 @@ struct mmctexi_stW // ctexi: custom target extra info
 		wchar_t val_TCHAR; // wchar_t
 		unsigned char placehldr[16];
 	};
+
+	int mmlevel;
 
 	int outpos;
 	int nchars_stock;
