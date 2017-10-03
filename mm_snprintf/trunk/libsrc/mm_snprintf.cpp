@@ -262,6 +262,8 @@
  *        via FUNC_mmct_output() callback.
  *
  *      - Update to %*.*v semantic.
+ *
+ *      - %4n to output a substring 4 times.
  */
 
 
@@ -672,6 +674,27 @@ mmfill_strcpy(mmfill_st &f, const TCHAR *src, cti_pack_st &ctipack)
 	}
 	
 	return f.pbuf + (f.produced - srclen);
+}
+
+void 
+mm_fill_n_substring(const TCHAR *szsub, int n, TCHAR *buf, int bufsize,
+					cti_pack_st &ctipack)
+{
+	// fill n times of szsub.
+	
+	mmfill_st mmfill = {buf, bufsize, 0};
+	
+	if(szsub[1]==_T('\0')) // szsub is a single char
+	{
+		mmfill_fill_chars(mmfill, szsub[0], n, ctipack);
+	}
+	else
+	{
+		for(int i=0; i<n; i++) // can be optimized later
+		{
+			mmfill_strcpy(mmfill, szsub, ctipack);
+		}
+	}
 }
 
 int fill_adcol_text(Uint64 imagine_addr, TCHAR buf[], int bufsize, 
@@ -1730,6 +1753,28 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				p++; // step over the just processed conversion specifier
 				continue; 
 			}
+		case _T('n'):
+			{
+				const TCHAR *szsub = va_arg(ap, TCHAR*);
+				CTI_SETVAL(cti, val_ptr, szsub);
+
+				int n = min_field_width;
+				if(szsub && szsub[0] && n>0)
+				{
+					mm_fill_n_substring(szsub, n, 
+						strbuf+str_l, str_max-str_l, ctipack);
+				}
+				else
+				{	// will still notify the caller
+					if(!szsub)
+						szsub = _T("");
+					ctipack_output(ctipack, NULL, 0);
+				}
+
+				str_l += n * TMM_strlen(szsub);
+				p++;
+				continue;
+			}
 		case _T('T'):
 			{
 				psz_THOUSEP = va_arg(ap, TCHAR*);
@@ -1827,6 +1872,9 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 					mmii.mmlevel = mylevel;
 					mmii.nchars_stock = my_nchars_stock0+str_l; //mmii.pstock = strbuf;
 					int fills = func(func_param, mmii);
+
+					//if(fills<0)
+					//	assert(fills>=0); // todo: enable later!!!
 
 					int adv = _MAX_(0, fills); // ensure not negative
 					str_l += adv;
@@ -2149,7 +2197,7 @@ int mm_vasnprintf (TCHAR **ptr, size_t str_m, const TCHAR *fmt, va_list ap)
 int 
 mm_snprintf_am(TCHAR * &pbuf, int &bufremain, const TCHAR *fmt, ...)
 {
-	if(bufremain<=0)
+	if(bufremain<=0) // todo: to delete later
 		return -1;
 	
 	va_list args;

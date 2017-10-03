@@ -1119,6 +1119,24 @@ void test_v7_ct()
 	
 }
 
+void test_v7_fmtspec_n()
+{
+	oks = t("[###]");
+	mprint(oks, t("[%*n]"), 3, t("#"));
+
+	oks = t("[-+-+-+-+]");
+	mprint(oks, t("[%*n]"), 4, t("-+"));
+
+	oks = t("");
+	mprint(oks, t("%*n"), 222, t(""));
+
+	oks = t("");
+	mprint(oks, t("%*n"), 222, NULL); // use NULL
+
+	oks = t("");
+	mprint(oks, t("%*n"), 0, t("xxx"));
+}
+
 
 int _tmain()
 {
@@ -1151,6 +1169,8 @@ int _tmain()
 	test_am();
 
 	test_v6();
+
+	test_v7_fmtspec_n();
 
 	test_v7_ct();
 
