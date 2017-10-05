@@ -115,7 +115,9 @@ int mprint(const TCHAR *cmp, const TCHAR *fmt, ...)
 	va_start(args, fmt);
 	
 	if(g_dbi.hfile<0)
-		g_dbi.hfile = logfile_create("_mmprogress.log");
+	{
+		g_dbi.hfile = logfile_create(isUnicodeBuild ? "_mmprogressW.log" : "_mmprogressA.log");
+	}
 
 	mm_set_DebugProgressCallback(mm_LogProgressToFile, &g_dbi);
 	//
