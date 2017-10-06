@@ -32,12 +32,13 @@ DLLEXPORT_mmsnprintf
 void mm_set_crlf_style(mm_crlf_et style);
 	// This affects %m's newline style.
 
+typedef int mmbufsize_t;
 
 DLLEXPORT_mmsnprintf
-int mm_snprintfA(char *buf, size_t bufsize, const char *format, ...);
+int mm_snprintfA(char *buf, mmbufsize_t bufsize, const char *format, ...);
 
 DLLEXPORT_mmsnprintf
-int mm_vsnprintfA(char *buf, size_t bufsize, const char *format, va_list);
+int mm_vsnprintfA(char *buf, mmbufsize_t bufsize, const char *format, va_list);
 
 DLLEXPORT_mmsnprintf
 int asprintfA(char **ptr, const char *fmt, ...);
@@ -53,7 +54,7 @@ int mm_vasprintfA(char **ptr, const char *fmt, va_list ap);
 	// Similar to mm_asprintf, but parameters express in va_list .
 
 DLLEXPORT_mmsnprintf
-int mm_asnprintfA(char **ptr, size_t max_alloc_size, const char *fmt, ...);
+int mm_asnprintfA(char **ptr, mmbufsize_t max_alloc_size, const char *fmt, ...);
 	// Similar to mm_asprintf, but mm_asnprintf will malloc a buffer size no larger than 
 	// max_alloc_size of characters(that can hold max_alloc_size-1 chars and a terminating NUL-char),
 	// If max_alloc_size==0, *ptr will be 0 on return.
@@ -61,13 +62,13 @@ int mm_asnprintfA(char **ptr, size_t max_alloc_size, const char *fmt, ...);
 	// -- assuming the buffer size is sufficient. 
 
 DLLEXPORT_mmsnprintf
-int mm_vasnprintfA(char **ptr, size_t max_alloc_size, const char *fmt, va_list ap);
+int mm_vasnprintfA(char **ptr, mmbufsize_t max_alloc_size, const char *fmt, va_list ap);
 
 DLLEXPORT_mmsnprintf
-int mm_snprintf_amA(char * &pbuf, int &bufsize, const char *fmt, ...); // am means auto-update of pbuf & bufsize
+int mm_snprintf_amA(char * &pbuf, mmbufsize_t &bufsize, const char *fmt, ...); // am means auto-update of pbuf & bufsize
 
 DLLEXPORT_mmsnprintf
-int mm_strcatA(char *dest, size_t bufsize, const char *fmt, ...);
+int mm_strcatA(char *dest, mmbufsize_t bufsize, const char *fmt, ...);
 
 DLLEXPORT_mmsnprintf
 int mm_printfA(const char *fmt, ...);
@@ -78,7 +79,7 @@ struct mmctexi_stA // ctexi: custom target extra info
 {
 	const char *pfmt; // original input szfmt
 	int fmtpos; // current advancing position in szfmt
-	int fmtnc;  //	char curtype[6]; // current "'type', "%d", "%llX" etc
+	int fmtnc;  // nc: number of chars, e.g. "%d" is 2 , "%llX" is 4.
 	bool has_width;
 	int width;
 	bool has_precision;
@@ -124,7 +125,7 @@ struct mmv7_stA
 	void *ctx_output;
 	
 	char *buf_output;
-	size_t bufsize;
+	mmbufsize_t bufsize;
 
 	int mmlevel;	
 	int nchars_stock; // only meaningful to %F callee
@@ -150,10 +151,10 @@ void mm_set_DebugProgressCallbackA(FUNC_mm_DebugProgressA *dbgproc, void *ctx_us
 
 
 DLLEXPORT_mmsnprintf
-int mm_snprintfW(wchar_t *buf, size_t bufsize, const wchar_t *format, ...);
+int mm_snprintfW(wchar_t *buf, mmbufsize_t bufsize, const wchar_t *format, ...);
 
 DLLEXPORT_mmsnprintf
-int mm_vsnprintfW(wchar_t *buf, size_t bufsize, const wchar_t *format, va_list);
+int mm_vsnprintfW(wchar_t *buf, mmbufsize_t bufsize, const wchar_t *format, va_list);
 	// `bufsize' in count of wchar_t
 
 DLLEXPORT_mmsnprintf
@@ -163,17 +164,17 @@ DLLEXPORT_mmsnprintf
 int mm_vasprintfW (wchar_t **ptr, const wchar_t *fmt, va_list ap);
 
 DLLEXPORT_mmsnprintf
-int mm_asnprintfW (wchar_t **ptr, size_t max_alloc_size, const wchar_t *fmt, ...);
+int mm_asnprintfW (wchar_t **ptr, mmbufsize_t max_alloc_size, const wchar_t *fmt, ...);
 
 DLLEXPORT_mmsnprintf
-int mm_vasnprintfW(wchar_t **ptr, size_t max_alloc_size, const wchar_t *fmt, va_list ap);
+int mm_vasnprintfW(wchar_t **ptr, mmbufsize_t max_alloc_size, const wchar_t *fmt, va_list ap);
 	// `max_alloc_size' also in count of wchar_t
 
 DLLEXPORT_mmsnprintf
 int mm_snprintf_amW(wchar_t * &pbuf, int &bufsize, const wchar_t *fmt, ...); // am means auto-update of pbuf & bufsize
 
 DLLEXPORT_mmsnprintf
-int mm_strcatW(wchar_t *dest, size_t bufsize, const wchar_t *fmt, ...);
+int mm_strcatW(wchar_t *dest, mmbufsize_t bufsize, const wchar_t *fmt, ...);
 
 DLLEXPORT_mmsnprintf
 int mm_printfW(const wchar_t *fmt, ...);
@@ -183,7 +184,7 @@ struct mmctexi_stW // ctexi: custom target extra info
 {
 	const wchar_t *pfmt; // original input szfmt
 	int fmtpos; // current advancing position in szfmt
-	int fmtnc;       //wchar_t curtype[6]; // current "'type', "%d", "%llX" etc
+	int fmtnc;  // nc: number of chars, e.g. "%d" is 2 , "%llX" is 4.
 	bool has_width;
 	int width;
 	bool has_precision;
@@ -229,7 +230,7 @@ struct mmv7_stW
 	void *ctx_output;
 	
 	wchar_t *buf_output;
-	size_t bufsize;
+	mmbufsize_t bufsize;
 	
 	int mmlevel; // debugging purpose
 	int nchars_stock; // only meaningful to %F callee

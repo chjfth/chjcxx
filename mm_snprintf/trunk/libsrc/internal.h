@@ -3,8 +3,6 @@
 
 #include <ps_TCHAR.h>
 
-typedef int Int;
-
 enum Fmt_et { fmt_unset, fmt_ptr, fmt_decimal_signed, fmt_decimal_unsigned, fmt_float };
 
 extern char g_mmcrlf_szA[];
@@ -50,8 +48,8 @@ struct cti_pack_stW
 	int _call_count; // per-mmlevel value
 };
 
-int in_snprintfA(char *buf, size_t bufsize, const char *fmt, ...); // internal use
-int in_snprintfW(wchar_t *buf, size_t bufsize, const wchar_t *fmt, ...); // internal use
+int in_snprintfA(char *buf, mmbufsize_t bufsize, const char *fmt, ...); // internal use
+int in_snprintfW(wchar_t *buf, mmbufsize_t bufsize, const wchar_t *fmt, ...); // internal use
 
 
 ////////////////

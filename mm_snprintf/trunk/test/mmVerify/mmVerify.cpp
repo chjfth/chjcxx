@@ -769,7 +769,7 @@ void test_am()
 
 int mmF_ansitime2ymdhms_selfcheck(void *ctx_F, const mmv7_st &mmi)
 {
-	assert( mmi.bufsize==0 || (mmi.buf_output && mmi.buf_output[0]==_T('\0')) );
+	assert( mmi.bufsize<=0 || (mmi.buf_output && mmi.buf_output[0]==_T('\0')) );
 
 	static const TCHAR mystock[] = t("time_t will overflow at UTC [");
 	int nstock = GetEleQuan_i(mystock)-1;
@@ -793,7 +793,7 @@ int mmF_ansitime2ymdhms_selfcheck(void *ctx_F, const mmv7_st &mmi)
 
 int mmF_ansitime2ymdhms(void *ctx_F, const mmv7_st &mmi)
 {
-	assert( mmi.bufsize==0 || (mmi.buf_output && mmi.buf_output[0]==_T('\0')) );
+	assert( mmi.bufsize<=0 || (mmi.buf_output && mmi.buf_output[0]==_T('\0')) );
 	
 	time_t now = *(time_t*)ctx_F;
 	struct tm* ptm = gmtime(&now);
@@ -806,7 +806,7 @@ int mmF_ansitime2ymdhms(void *ctx_F, const mmv7_st &mmi)
 
 int mmF_ansitime2ymdhms_method2(void *ctx_F, const mmv7_st &mmi)
 {
-	assert( mmi.bufsize==0 || (mmi.buf_output && mmi.buf_output[0]==_T('\0')) );
+	assert( mmi.bufsize<=0 || (mmi.buf_output && mmi.buf_output[0]==_T('\0')) );
 	
 	time_t now = *(time_t*)ctx_F;
 	struct tm* ptm = gmtime(&now);
@@ -849,7 +849,6 @@ int mmF_callback_from_nullbuf(void *ctx_F, const mmv7_st &mmi)
 
 	ctx.call_count++;
 
-	//assert(mmi.pstock==NULL);
 	assert(mmi.buf_output-(TCHAR*)0==ctx.chk_offset);
 	return 0;
 }
@@ -895,7 +894,7 @@ static const TCHAR *mmf_inner_fmt = t("%04d-%02d-%02d");
 
 int mmF_uepoc2ymd(void *ctx_user, const mmv7_st &mmi)
 {
-	assert( mmi.bufsize==0 || (mmi.buf_output && mmi.buf_output[0]==_T('\0')) );
+	assert( mmi.bufsize<=0 || (mmi.buf_output && mmi.buf_output[0]==_T('\0')) );
 	
 	// mmi.pstock will point to "time_t will overflow at UTC ["
 	
