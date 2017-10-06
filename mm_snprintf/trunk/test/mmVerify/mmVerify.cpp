@@ -56,8 +56,29 @@ const int isUnicodeBuild = 0;
 
 #define BUFMAX 8000
 
-
 int g_cases = 0;
+
+int t_strncmp(const TCHAR *s1, const TCHAR *s2, int nchars)
+{
+	// compare at most nchars
+
+	while(! (*s1=='\0' && *s2=='\0') )
+	{
+		if(nchars-- == 0)
+			return 0; // equal
+
+		if(*s1 != *s2)
+		{
+			if(*s1<*s2)
+				return -1;
+			else
+				return 1;
+		}
+
+		s1++; s2++;
+	}
+	return 0; // equal;
+}
 
 struct Custout_st
 {
@@ -746,13 +767,22 @@ void test_am()
 	assert(pbuf==buf+bufsize-1 && bufremain==1);
 }
 
-int mmF_ansitime2ymdhms(void *param, const mmv7_st &mmi)
+int mmF_ansitime2ymdhms_selfcheck(void *ctx_F, const mmv7_st &mmi)
 {
 	assert( mmi.bufsize==0 || (mmi.buf_output && mmi.buf_output[0]==_T('\0')) );
 
-	// mmi.pstock will point to "time_t will overflow at UTC ["
+	static const TCHAR mystock[] = t("time_t will overflow at UTC [");
+	int nstock = GetEleQuan_i(mystock)-1;
+	const TCHAR *pstock = mmi.buf_output-mmi.nchars_stock; // first char from mmlevel 0
+	if(mmi.bufsize>0) 
+		// This check ensures that mystock string has been filled.
+		// If caller uses mm_print_ct, it would not be filled due to output buffer is NULL.
+	{
+		int cmpre = t_strncmp(mystock, pstock, nstock);
+		assert(cmpre==0); // This is to demonstrate mmi.nchars_stock's meaning
+	}
 
-	time_t now = *(time_t*)param;
+	time_t now = *(time_t*)ctx_F;
 	struct tm* ptm = gmtime(&now);
 	int len = mm_snprintf_v7(mmi, t("%04d-%02d-%02d %02d:%02d:%02d"),
 		ptm->tm_year+1900, ptm->tm_mon+1, ptm->tm_mday,
@@ -761,13 +791,24 @@ int mmF_ansitime2ymdhms(void *param, const mmv7_st &mmi)
 	return len;
 }
 
-int mmF_ansitime2ymdhms_method2(void *param, const mmv7_st &mmi)
+int mmF_ansitime2ymdhms(void *ctx_F, const mmv7_st &mmi)
 {
 	assert( mmi.bufsize==0 || (mmi.buf_output && mmi.buf_output[0]==_T('\0')) );
 	
-	// pstock[] will be "time_t will overflow at UTC ["
+	time_t now = *(time_t*)ctx_F;
+	struct tm* ptm = gmtime(&now);
+	int len = mm_snprintf_v7(mmi, t("%04d-%02d-%02d %02d:%02d:%02d"),
+		ptm->tm_year+1900, ptm->tm_mon+1, ptm->tm_mday,
+		ptm->tm_hour, ptm->tm_min, ptm->tm_sec
+		);
+	return len;
+}
+
+int mmF_ansitime2ymdhms_method2(void *ctx_F, const mmv7_st &mmi)
+{
+	assert( mmi.bufsize==0 || (mmi.buf_output && mmi.buf_output[0]==_T('\0')) );
 	
-	time_t now = *(time_t*)param;
+	time_t now = *(time_t*)ctx_F;
 	struct tm* ptm = gmtime(&now);
 
 	// Two code flows according to whether mmi.proc_output is provided.
@@ -802,9 +843,9 @@ struct mmF_from_nullbuf_st
 	int call_count;
 };
 
-int mmF_callback_from_nullbuf(void *param, const mmv7_st &mmi)
+int mmF_callback_from_nullbuf(void *ctx_F, const mmv7_st &mmi)
 {
-	mmF_from_nullbuf_st &ctx = *(mmF_from_nullbuf_st*)param;
+	mmF_from_nullbuf_st &ctx = *(mmF_from_nullbuf_st*)ctx_F;
 
 	ctx.call_count++;
 
@@ -818,7 +859,7 @@ void test_v6()
 	time_t now_epoch = 0x7FFFffff;
 	oks = t("time_t will overflow at UTC [2038-01-19 03:14:07].");
 	mprint(oks, t("time_t will overflow at UTC [%F]."), 
-		MM_FPAIR_PARAM(mmF_ansitime2ymdhms, &now_epoch)
+		MM_FPAIR_PARAM(mmF_ansitime2ymdhms_selfcheck, &now_epoch)
 		);
 
 	const int smallsize = 18;

@@ -232,7 +232,7 @@ struct mmv7_stW
 	size_t bufsize;
 	
 	int mmlevel; // debugging purpose
-	int nchars_stock; //const wchar_t *pstock; // only meaningful to %F callee
+	int nchars_stock; // only meaningful to %F callee
 
 	bool suppress_dbginfo; // internal use, user should set 0
 };
