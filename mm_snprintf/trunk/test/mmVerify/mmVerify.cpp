@@ -767,7 +767,7 @@ void test_am()
 	assert(pbuf==buf+bufsize-1 && bufremain==1);
 }
 
-int mmF_ansitime2ymdhms_selfcheck(void *ctx_F, const mmv7_st &mmi)
+int mmF_ansitime2ymdhms_checkstock(void *ctx_F, const mmv7_st &mmi)
 {
 	assert( mmi.bufsize<=0 || (mmi.buf_output && mmi.buf_output[0]==_T('\0')) );
 
@@ -855,22 +855,27 @@ int mmF_callback_from_nullbuf(void *ctx_F, const mmv7_st &mmi)
 
 void test_v6()
 {
-	time_t now_epoch = 0x7FFFffff;
+	time_t uepoch_end32 = 0x7FFFffff;
 	oks = t("time_t will overflow at UTC [2038-01-19 03:14:07].");
 	mprint(oks, t("time_t will overflow at UTC [%F]."), 
-		MM_FPAIR_PARAM(mmF_ansitime2ymdhms_selfcheck, &now_epoch)
+		MM_FPAIR_PARAM(mmF_ansitime2ymdhms, &uepoch_end32)
+		);
+	
+	oks = t("time_t will overflow at UTC [2038-01-19 03:14:07].");
+	mprint(oks, t("time_t will overflow at UTC [%F]."), 
+		MM_FPAIR_PARAM(mmF_ansitime2ymdhms_checkstock, &uepoch_end32)
 		);
 
 	const int smallsize = 18;
 	TCHAR smallbuf[smallsize];
 	int retlen = mm_snprintf(smallbuf, smallsize, t("[%F]"),
-		MM_FPAIR_PARAM(mmF_ansitime2ymdhms, &now_epoch));
+		MM_FPAIR_PARAM(mmF_ansitime2ymdhms, &uepoch_end32));
 	assert( t_strcmp(smallbuf, t("[2038-01-19 03:14"))==0 );
 	assert( retlen==21 );
 
 	oks = t("time_t WILL overflow at UTC [2038-01-19 03:14:07].");
 	mprint(oks, t("time_t WILL overflow at UTC [%F]."), 
-		MM_FPAIR_PARAM(mmF_ansitime2ymdhms_method2, &now_epoch)
+		MM_FPAIR_PARAM(mmF_ansitime2ymdhms_method2, &uepoch_end32)
 		);
 
 	mmF_from_nullbuf_st ctx = {0, 0};
