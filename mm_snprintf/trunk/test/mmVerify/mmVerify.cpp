@@ -839,7 +839,7 @@ int mmF_ansitime2ymdhms_method2(void *ctx_F, mmv7_st &mmi)
 
 	if(mmi.bufsize>0)
 	{
-		mm_snprintf(mmi.buf_output, mmi.bufsize, t("%s"), timebuf);
+		memcpy(mmi.buf_output, timebuf, sizeof(TCHAR)*_MIN_(ideal_len, mmi.bufsize));
 	}
 
 	return ideal_len;
