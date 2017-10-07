@@ -33,7 +33,7 @@
 # define TMM_strchr strchr
 # define TMM_strlen(str) ((int)strlen(str))
 # define TMM_isdigit isdigit
-# define TMM_sprintf _snprintf
+# define TMM_snprintf _snprintf
 #endif
 
 

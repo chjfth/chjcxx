@@ -987,7 +987,7 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 	
 	while (*p) 
 	{
-		cti.fmtpos = p - fmt;   // cti(b)
+		cti.fmtpos = (mmbufsize_t)(p - fmt);   // cti(b)
 		cti.valsize = 0;
 		assert(sizeof(cti.placehldr)>=sizeof(double));
 		memset(cti.placehldr, 0, sizeof(cti.placehldr));
@@ -1005,7 +1005,7 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				//[2009-05-20]Chj Note: Don't try to search from p+1 !!
 				//If p points to an MBCS char, that will break the MBCS char and possible swallow the % following that MBCS sequence.
 
-			mmbufsize_t n = !q ? TMM_strlen(p) : (q-p);
+			mmbufsize_t n = (mmbufsize_t)( !q ? TMM_strlen(p) : (q-p) );
 
 			cti.fmtnc = n; // cti(c1)
 			cti.has_width = cti.has_precision = false; cti.width = cti.precision = 0;
@@ -1157,7 +1157,7 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 		
 		fmt_spec = *p;
 
-		cti.fmtnc = p - fmt - cti.fmtpos + 1 ;    // cti(c2)
+		cti.fmtnc = (mmbufsize_t)(p - fmt) - cti.fmtpos + 1 ;    // cti(c2)
 		cti.has_width = min_field_specified, cti.has_precision = precision_specified;
 		cti.width = min_field_width, cti.precision = precision;
 		
@@ -1226,7 +1226,7 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 						str_arg_l = 0; //Chj: Yes, no characters from the string will be printed if `precision' is zero.
 					else { // `precision' specified and > 0 
 						const TCHAR *p0 = _mm_memchr(str_arg, _T('\0'), precision);
-						str_arg_l = p0 ? (p0-str_arg) : precision;
+						str_arg_l = p0 ? (mmbufsize_t)(p0-str_arg) : precision;
 					}
 				}
 				break; // end of process for type '%','c','s' .

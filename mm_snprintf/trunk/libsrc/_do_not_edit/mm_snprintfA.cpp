@@ -253,7 +253,7 @@
  *
  *        Now, your mmF_peek() will see from pstock param: "The ball turns 3 rounds."
  *
- * 2017-09-30  V7.0 by Chj
+ * 2017-10-07  V7.0 by Chj
  *      - New function mm_printf_ct and mm_snprintf_v7, mm_vsnprintf_v7 .
  *        The "ct" means custom-target. You can direct the formatted result to your 
  *        custom target(a file or a COM port) by providing a callback function, 
@@ -262,6 +262,12 @@
  *        via FUNC_mmct_output() callback.
  *
  *      - Update to %*.*v semantic.
+ *
+ *      - %4n to output a substring 4 times.
+ *
+ *      - For now on, I decide to use 'int' type for bufsize, not the unsigned size_t.
+ *        Don't you think it has been decades-long ridiculous that bufsize use 
+ *        *unsigned* type while snprintf returns *signed* type ?
  */
 
 
@@ -354,7 +360,7 @@ mm_set_DebugProgressCallback(FUNC_mm_DebugProgress *dbgproc, void *ctx_user)
 }
 
 static int 
-_mmF_desc_widpreci(void *ctx_user, const mmv7_st &mmi)
+_mmF_desc_widpreci(void *ctx_user, mmv7_st &mmi)
 {
 	mmctexi_st &cti = *(mmctexi_st*)ctx_user;
 	
@@ -387,17 +393,18 @@ mmct_DebugStub(int call_count, const TCHAR *pcontent, int nchars, const mmctexi_
 	
 	const int bufsize = MM_DBG_PROGRESS_LINE_MAXCHARS_;
 	TCHAR dbginfo[bufsize]; 
-//	dbginfo[0] = _T('\0');
-//	int len0 = 0;
 
 	mmv7_st mmi0 = {0};
 	mmi0.buf_output = dbginfo;
 	mmi0.bufsize = bufsize;
 	mmi0.suppress_dbginfo = true; // important!
 
+	int indent = cti.mmlevel * 2;
+
 	if(call_count==0)
 	{
-		mm_snprintf_v7(mmi0, _T("<<fmtstring>>: %s%s"), cti.pfmt, g_mmcrlf_sz);
+		mm_snprintf_v7(mmi0, _T("%*n<<fmtstring>>(@lv%d): %s%s"), indent, _T(" "),
+			cti.mmlevel, cti.pfmt, g_mmcrlf_sz);
 
 		g_procUserDebug(g_cbexUserDebug, dbginfo);
 	}	
@@ -407,11 +414,14 @@ mmct_DebugStub(int call_count, const TCHAR *pcontent, int nchars, const mmctexi_
 	mmi.bufsize = bufsize;
 	mmi.suppress_dbginfo = true; // important!
 
-	mm_snprintf_v7(mmi, _T("  <%.*s> fmtpos:%d+%d %F outpos:%d+%d%s"), 
+	mm_snprintf_v7(mmi, _T("%*n<%.*s> fmtpos:%d+%d %F stock:%d(@lv%d) outpos:%d+%d (~%d+%d)%s"), 
+		indent, _T(" "),
 		cti.fmtnc, cti.pfmt+cti.fmtpos, // <%.*s>
 		cti.fmtpos, cti.fmtnc, // fmtpos:%d+%d
 		MM_FPAIR_PARAM(_mmF_desc_widpreci, &cti), // %F
+		cti.nchars_stock, cti.mmlevel, // stock: %d(@lv%d)
 		cti.outpos, nchars, // output:%d+%d
+		cti.nchars_stock+cti.outpos, nchars, // (~%d+%d)
 		g_mmcrlf_sz);
 
 	g_procUserDebug(g_cbexUserDebug, dbginfo);
@@ -427,7 +437,7 @@ ctipack_output(cti_pack_st &ctipack, const TCHAR *pcontent, int nchars)
 
 	if(!ctipack.suppress_dbginfo && g_procUserDebug)
 	{
-		mmct_DebugStub(ctipack.call_count, pcontent, nchars, ctipack.pcti);
+		mmct_DebugStub(ctipack._call_count, pcontent, nchars, ctipack.pcti);
 	}
 	
 	if(ctipack.ct_proc)
@@ -436,11 +446,11 @@ ctipack_output(cti_pack_st &ctipack, const TCHAR *pcontent, int nchars)
 	}
 
 	if(!ctipack.suppress_dbginfo)
-		ctipack.call_count++;	
+		ctipack._call_count++;
 
 	if(nchars>0)
 	{
-		ctipack.pcti->outpos += nchars;
+		ctipack.pcti->outpos += nchars; // ! %w and %F does not get affected (#mmwF)
 	}
 }
 
@@ -599,11 +609,11 @@ void mmfill_va_append(mmfill_st &f, FUNC_mmct_output *proc_output, void *ctx_out
 #endif
 
 const TCHAR *
-_mm_memchr(const TCHAR *buf, TCHAR c, size_t count)
+_mm_memchr(const TCHAR *buf, TCHAR c, int count)
 {
 	// memo: WinXP ntoskrnl does not have wmemchr, so I write mm_memchr() myself.
 	
-	size_t i=0;
+	int i=0;
 	for(; i<count; i++)
 	{
 		if(buf[i]==c)
@@ -613,15 +623,15 @@ _mm_memchr(const TCHAR *buf, TCHAR c, size_t count)
 }
 
 void 
-_mm_fillchars(TCHAR *pbuf, TCHAR c, size_t n)
+_mm_fillchars(TCHAR *pbuf, TCHAR c, int n)
 {
-	size_t i;
+	int i;
 	for(i=0; i<n; i++)
 		pbuf[i] = c;
 }
 
 void 
-_mm_fillchars_ct(cti_pack_st &ctipack, TCHAR c, size_t n)
+_mm_fillchars_ct(cti_pack_st &ctipack, TCHAR c, int n)
 {
 	if(!ctipack.ct_proc && !g_procUserDebug)
 		return; // a bit optimize
@@ -671,6 +681,27 @@ mmfill_strcpy(mmfill_st &f, const TCHAR *src, cti_pack_st &ctipack)
 	}
 	
 	return f.pbuf + (f.produced - srclen);
+}
+
+void 
+mm_fill_n_substring(const TCHAR *szsub, int n, TCHAR *buf, int bufsize,
+					cti_pack_st &ctipack)
+{
+	// fill n times of szsub.
+	
+	mmfill_st mmfill = {buf, bufsize, 0};
+	
+	if(szsub[1]==_T('\0')) // szsub is a single char
+	{
+		mmfill_fill_chars(mmfill, szsub[0], n, ctipack);
+	}
+	else
+	{
+		for(int i=0; i<n; i++) // can be optimized later
+		{
+			mmfill_strcpy(mmfill, szsub, ctipack);
+		}
+	}
 }
 
 int fill_adcol_text(Uint64 imagine_addr, TCHAR buf[], int bufsize, 
@@ -903,7 +934,7 @@ _mm_dump_bytes(TCHAR *buf, int bufchars,
 
 ///////////////////
 
-int mm_vsnprintf(TCHAR *strbuf, size_t str_m, const TCHAR *fmt, va_list ap)
+int mm_vsnprintf(TCHAR *strbuf, mmbufsize_t str_m, const TCHAR *fmt, va_list ap)
 {
 	mmv7_st mmi = {0};
 	mmi.buf_output = strbuf;
@@ -914,15 +945,16 @@ int mm_vsnprintf(TCHAR *strbuf, size_t str_m, const TCHAR *fmt, va_list ap)
 }
 
 
-int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap) 
+int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap) 
 {
 	TCHAR *strbuf = mmi.buf_output;
-	size_t str_max = Max(0, mmi.bufsize);
+	mmbufsize_t str_max = mmi.bufsize;
 	FUNC_mmct_output *proc_output = mmi.proc_output;
 	void *ctx_output = mmi.ctx_output;
 	int mylevel = mmi.mmlevel + 1;
+	int my_nchars_stock0 = mmi.nchars_stock;
 
-	size_t str_l = 0; // how many output length has been filled, assuming enough output buffer
+	mmbufsize_t str_l = 0; // how many output length has been filled, assuming enough output buffer
 	const TCHAR *p = fmt;
 
 /* In contrast with POSIX, the ISO C99 now says
@@ -949,16 +981,19 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 
 	mmctexi_st cti = {0};     // cti(a)
 	cti.mmlevel = mylevel;
+	cti.nchars_stock = my_nchars_stock0;
 	cti.pfmt = fmt;
 	//
 	cti_pack_st ctipack = {proc_output, ctx_output, &cti, mmi.suppress_dbginfo};
 	
 	while (*p) 
 	{
-		cti.fmtpos = p - fmt;   // cti(b)
+		cti.fmtpos = (mmbufsize_t)(p - fmt);   // cti(b)
 		cti.valsize = 0;
 		assert(sizeof(cti.placehldr)>=sizeof(double));
 		memset(cti.placehldr, 0, sizeof(cti.placehldr));
+
+		assert(str_l>=0);
 
 		// Copy a chunk of normal substring
 		//
@@ -971,15 +1006,15 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				//[2009-05-20]Chj Note: Don't try to search from p+1 !!
 				//If p points to an MBCS char, that will break the MBCS char and possible swallow the % following that MBCS sequence.
 
-			size_t n = !q ? TMM_strlen(p) : (q-p);
+			mmbufsize_t n = (mmbufsize_t)( !q ? TMM_strlen(p) : (q-p) );
 
 			cti.fmtnc = n; // cti(c1)
 			cti.has_width = cti.has_precision = false; cti.width = cti.precision = 0;
 			ctipack_output(ctipack, p, n);
 			
 			if (str_l < str_max) {
-				size_t avail = str_max-str_l;
-				fast_memcpy(strbuf+str_l, p, TMM_strmembytes(n>avail?avail:n));
+				mmbufsize_t avail = str_max-str_l;
+				fast_memcpy(strbuf+str_l, p, TMM_strmembytes(Min(n,avail)));
 			}
 
 			p += n; str_l += n;
@@ -994,7 +1029,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 			//the whole format specifier is output, e.g. "%8.4a" is output as
 			//"%8.4a", not just "a" .
 
-		Int min_field_width = 0, precision = 0;
+		int min_field_width = 0, precision = 0;
 		bool min_field_specified = false, precision_specified = false;
 		bool zero_padding = false, justify_left = false;
 		bool zero_padding_thou = false; // v6.2: if true, we need "001,234" instead of "1,234"
@@ -1012,7 +1047,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 			//[2017-10-00]Chj: %f and %g will use this as system snprintf's output. (ff_16)
 
 		const TCHAR *str_arg = NULL; /* string address in case of string argument */
-		Int str_arg_l = 0;       /* natural field width of arg without padding
+		int str_arg_l = 0;       /* natural field width of arg without padding
 								   and sign */
 		TCHAR uchar_arg; //unsigned char uchar_arg;
 		/* unsigned char argument value - only defined for c conversion.
@@ -1021,11 +1056,11 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 		   for a function like snprintf, since we just copy the char value.
 		*/
 
-		Int number_of_zeros_to_pad = 0;
+		int number_of_zeros_to_pad = 0;
 		/* number of zeros to be inserted for numeric conversions
 		   as required by the precision or minimal field width */
 
-		Int zero_padding_insertion_ind = 0;
+		int zero_padding_insertion_ind = 0;
 		/* index into tmp[] where zero padding is to be inserted */
 
 		bool is_UorD = false;
@@ -1070,7 +1105,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 			min_field_specified = true;
 		} 
 		else if (TMM_isdigit(*p)) {
-			/* size_t could be wider than unsigned int;
+			/* mmbufsize_t could be wider than unsigned int;
 			   make sure we treat argument like common implementations do */
 			unsigned int uj = *p++ - _T('0');
 			while (TMM_isdigit(*p)) 
@@ -1098,7 +1133,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 			  }
 			} 
 			else if (TMM_isdigit(*p)) {
-			  /* size_t could be wider than unsigned int;
+			  /* mmbufsize_t could be wider than unsigned int;
 				 make sure we treat argument like common implementations do */
 			  unsigned int uj = *p++ - '0';
 			  while (TMM_isdigit(*p)) 
@@ -1123,7 +1158,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 		
 		fmt_spec = *p;
 
-		cti.fmtnc = p - fmt - cti.fmtpos + 1 ;    // cti(c2)
+		cti.fmtnc = (mmbufsize_t)(p - fmt) - cti.fmtpos + 1 ;    // cti(c2)
 		cti.has_width = min_field_specified, cti.has_precision = precision_specified;
 		cti.width = min_field_width, cti.precision = precision;
 		
@@ -1192,7 +1227,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 						str_arg_l = 0; //Chj: Yes, no characters from the string will be printed if `precision' is zero.
 					else { // `precision' specified and > 0 
 						const TCHAR *p0 = _mm_memchr(str_arg, _T('\0'), precision);
-						str_arg_l = (Int)(p0 ? (p0-str_arg) : precision);
+						str_arg_l = p0 ? (mmbufsize_t)(p0-str_arg) : precision;
 					}
 				}
 				break; // end of process for type '%','c','s' .
@@ -1593,7 +1628,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 					}
 				}
 				
-				Int num_of_digits = str_arg_l - zero_padding_insertion_ind;
+				int num_of_digits = str_arg_l - zero_padding_insertion_ind;
 				if (alternate_form && fmt_spec == _T('o')
 					/* unless zero is already the first character */
 					&& !(zero_padding_insertion_ind < str_arg_l && tmp[zero_padding_insertion_ind] == _T('0'))
@@ -1685,7 +1720,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				
 				p++; continue;
 			}
-		case _T('m'): case _T('M'): // These will do byte dump
+		case _T('m'): case _T('M'): // These will do memory dump
 			{	
 				const void *pbytes = va_arg(ap, void*);
 				CTI_SETVAL(cti, val_ptr, pbytes);
@@ -1708,7 +1743,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 					}
 				}
 
-				int result_chars = _mm_dump_bytes(strbuf+str_l, (Int)(str_max-str_l), 
+				int result_chars = _mm_dump_bytes(strbuf+str_l, str_max-str_l, 
 					pbytes, dump_bytes, fmt_spec==_T('M')?true:false,
 					mdd_hyphens, mdd_left, mdd_right,
 					mdf_columns, mdf_colskip, is_print_ruler,
@@ -1727,22 +1762,50 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				p++; // step over the just processed conversion specifier
 				continue; 
 			}
+		case _T('n'):
+			{
+				const TCHAR *szsub = va_arg(ap, TCHAR*);
+				CTI_SETVAL(cti, val_ptr, szsub);
+
+				int n = min_field_width;
+				if(szsub && szsub[0] && n>0)
+				{
+					mm_fill_n_substring(szsub, n, 
+						strbuf+str_l, str_max-str_l, ctipack);
+				}
+				else
+				{	// will still notify the caller
+					if(!szsub)
+						szsub = _T("");
+					ctipack_output(ctipack, NULL, 0);
+				}
+
+				str_l += n * TMM_strlen(szsub);
+				p++;
+				continue;
+			}
 		case _T('T'):
 			{
 				psz_THOUSEP = va_arg(ap, TCHAR*);
 				CTI_SETVAL(cti, val_ptr, psz_THOUSEP);
+				ctipack_output(ctipack, NULL, 0);
+
 				p++; continue;
 			}
 		case _T('t'):
 			{
 				psz_thousep = va_arg(ap, TCHAR*);
 				CTI_SETVAL(cti, val_ptr, psz_thousep);
+				ctipack_output(ctipack, NULL, 0);
+
 				p++; continue;
 			}
 		case _T('_'):
 			{
 				thousep_width = va_arg(ap, int);
 				CTI_SETVAL(cti, val_int, thousep_width);
+				ctipack_output(ctipack, NULL, 0);
+
 				p++; continue;
 			}
 		case _T('w'):
@@ -1755,6 +1818,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				
 				const mm_wpair_st *wpair = va_arg(ap, mm_wpair_st*);
 				CTI_SETVAL(cti, val_ptr, wpair);
+				ctipack_output(ctipack, NULL, 0);
 				
 				if(wpair->magic==mm_wpair_magic) // magic detected
 				{
@@ -1769,21 +1833,25 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				//
 				mmv7_st mmi2 = {0};
 				mmi2.buf_output = strbuf+str_l;
-				mmi2.bufsize = str_max>str_l ? str_max-str_l : 0;
+				mmi2.bufsize = str_max-str_l; // can be negative
 				mmi2.proc_output = proc_output;
 				mmi2.ctx_output = ctx_output;
 				mmi2.suppress_dbginfo = mmi.suppress_dbginfo;
 				mmi2.mmlevel = mylevel;
+				mmi2.nchars_stock = my_nchars_stock0+str_l;
 				//
 				int fills = mm_vsnprintf_v7(mmi2, 
 					dig_fmt, *(va_list*)dig_args); // extra (va_list*) type-conversion(drop const) to make gcc 4.8 x64 happy.
+				
 				str_l += fills;
+				cti.outpos += fills; // (#mmwF)
+				
 				p++;
 				continue;
 			}
 		case _T('F'): // inject function call
 			{
-				FUNC_mmF_pair *func = NULL;
+				FUNC_mmF_Formatter *func = NULL;
 				void *func_param = NULL;
 
 				const mmF_pair_st *fpair = va_arg(ap, mmF_pair_st*);
@@ -1806,15 +1874,20 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 
 					mmv7_st mmii = {0};
 					mmii.buf_output = strbuf+str_l;
-					mmii.bufsize = str_max>str_l ? str_max-str_l : 0;
+					mmii.bufsize = str_max-str_l; // can be negative
 					mmii.proc_output = proc_output;
 					mmii.ctx_output = ctx_output;
 					mmii.suppress_dbginfo = mmi.suppress_dbginfo;
 					mmii.mmlevel = mylevel;
-					mmii.pstock = strbuf;
+					mmii.nchars_stock = my_nchars_stock0+str_l; //mmii.pstock = strbuf;
 					int fills = func(func_param, mmii);
 
-					str_l += _MAX_(0, fills);
+					if(fills<0)
+						assert(fills>=0);
+
+					int adv = _MAX_(0, fills); // ensure not negative
+					str_l += adv;
+					cti.outpos += adv;
 				}
 				
 				p++;
@@ -1829,7 +1902,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 //#if defined(LINUX_COMPATIBLE) //[2006-10-03]Chj: I think the Linux-like behavior is more faithful to user.
 				/* keep the entire format string unchanged */
 				str_arg = starting_p; 
-				str_arg_l = (Int)(p - starting_p);
+				str_arg_l = (mmbufsize_t)(p - starting_p);
 				/* well, not exactly so for Linux, which does something in-between,
 				* and I don't feel an urge to imitate it: "%+++++hy" -> "%+y"  */
 // #else
@@ -1867,7 +1940,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				_mm_fillchars_ct(ctipack, cfill, n);
 
 				if (str_l < str_max) {
-					Int avail = (Int)(str_max-str_l);
+					int avail = str_max-str_l;
 					_mm_fillchars(strbuf+str_l, 
 						cfill, 
 						n>avail?avail:n);
@@ -1892,7 +1965,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				ctipack_output(ctipack, str_arg, n);
 				
 				if (str_l < str_max) {
-					Int avail = (Int)(str_max-str_l);
+					int avail = str_max-str_l;
 					fast_memcpy(strbuf+str_l, str_arg, TMM_strmembytes(n>avail?avail:n));
 				}
 
@@ -1906,7 +1979,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				_mm_fillchars_ct(ctipack, cfill, n);
 
 				if (str_l < str_max) {
-					Int avail = (Int)(str_max-str_l);
+					int avail = str_max-str_l;
 					_mm_fillchars(strbuf+str_l, cfill, (n>avail?avail:n));
 				}
 				
@@ -1921,7 +1994,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 			ctipack_output(ctipack, str_arg+zero_padding_insertion_ind, n);
 
 			if (str_l < str_max) {
-				Int avail = (Int)(str_max-str_l);
+				int avail = str_max-str_l;
 				fast_memcpy(strbuf+str_l, str_arg+zero_padding_insertion_ind,
 					TMM_strmembytes(n>avail?avail:n));
 			}
@@ -1938,7 +2011,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				_mm_fillchars_ct(ctipack, cfill, n);
 				
 				if (str_l < str_max) {
-					Int avail = (Int)(str_max-str_l); //Chj
+					int avail = str_max-str_l; //Chj
 					_mm_fillchars(strbuf+str_l, cfill, (n>avail?avail:n));
 				}
 
@@ -1951,7 +2024,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
      even at the expense of overwriting the last character
      (shouldn't happen, but just in case) */
 	if (str_max > 0) { 
-		strbuf[str_l <= str_max-1 ? str_l : str_max-1] = _T('\0');
+		strbuf[Min(str_l, str_max-1)] = _T('\0');
 	}
 
 	/* Return the number of characters formatted (excluding trailing null
@@ -1963,13 +2036,20 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 	 * integer overflow, resulting in a negative return value, which is illegal.
 	 * Both XSH5 and ISO C99 (at least the draft) are silent on this issue.
 	 * Should errno be set to EOVERFLOW and EOF returned in this case???
+	 * -- [2017-10-06] Chj: Now this dilemma has been fixed on v7.
 	 */
+	
+	assert(str_l>=0);
+	mmi.buf_output += str_l;
+	mmi.bufsize -= str_l;
+	mmi.nchars_stock += str_l;
+
 	return (int) str_l;
 }
 
 
 int 
-mm_snprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, /*args*/ ...) 
+mm_snprintf(TCHAR *str, mmbufsize_t str_m, const TCHAR *fmt, /*args*/ ...) 
 {
 	va_list ap;
 	int str_l;
@@ -1984,19 +2064,19 @@ mm_snprintf(TCHAR *str, size_t str_m, const TCHAR *fmt, /*args*/ ...)
 int mm_asprintf(TCHAR **ptr, const TCHAR *fmt, /*args*/ ...) 
 {
 	va_list ap;
-	size_t str_m;
+	mmbufsize_t str_m;
 	int str_l;
 
 	*ptr = NULL;
 	va_start(ap, fmt);                            /* measure the required size */
-	str_l = mm_vsnprintf(NULL, (size_t)0, fmt, ap);
+	str_l = mm_vsnprintf(NULL, 0, fmt, ap);
 	va_end(ap);
 	
 	//assert(str_l >= 0);        /* possible integer overflow if str_m > INT_MAX */
 	if(str_l<0)
 		return -2;
 
-	size_t need_bytes = (str_m = (size_t)str_l + 1) * sizeof(TCHAR);
+	mmbufsize_t need_bytes = (str_m = str_l + 1) * sizeof(TCHAR);
 #ifdef USE_CPP_NEW
 	*ptr = (TCHAR*)new unsigned char[need_bytes];
 #else
@@ -2017,14 +2097,14 @@ int mm_asprintf(TCHAR **ptr, const TCHAR *fmt, /*args*/ ...)
 
 int mm_vasprintf(TCHAR **ptr, const TCHAR *fmt, va_list ap) 
 {
-	size_t str_m;
+	mmbufsize_t str_m;
 	int str_l;
 
 	*ptr = NULL;
 	{ 
 		va_list ap2;
 		va_copy(ap2, ap);  /* don't consume the original ap, we'll need it again */
-		str_l = mm_vsnprintf(NULL, (size_t)0, fmt, ap2);/*get required size*/
+		str_l = mm_vsnprintf(NULL, 0, fmt, ap2);/*get required size*/
 		va_end(ap2);
 	}
 	
@@ -2032,7 +2112,7 @@ int mm_vasprintf(TCHAR **ptr, const TCHAR *fmt, va_list ap)
 	if(str_l<0)
 		return -2;
 
-	size_t need_bytes = (str_m = (size_t)str_l + 1) *sizeof(TCHAR);
+	mmbufsize_t need_bytes = (str_m = str_l + 1) *sizeof(TCHAR);
 #ifdef USE_CPP_NEW
 	*ptr = (TCHAR*)new unsigned char[need_bytes];
 #else
@@ -2048,28 +2128,28 @@ int mm_vasprintf(TCHAR **ptr, const TCHAR *fmt, va_list ap)
 	return str_l;
 }
 
-int mm_asnprintf (TCHAR **ptr, size_t str_m, const TCHAR *fmt, /*args*/ ...) 
+int mm_asnprintf (TCHAR **ptr, mmbufsize_t str_m, const TCHAR *fmt, /*args*/ ...) 
 {
 	va_list ap;
 	int str_l;
 
 	*ptr = NULL;
 	va_start(ap, fmt);                            /* measure the required size */
-	str_l = mm_vsnprintf(NULL, (size_t)0, fmt, ap);
+	str_l = mm_vsnprintf(NULL, 0, fmt, ap);
 	va_end(ap);
 
 	//assert(str_l >= 0);        /* possible integer overflow if str_m > INT_MAX */
 	if(str_l<0)
 		return -2;
 
-	if ((size_t)str_l + 1 < str_m) 
-		str_m = (size_t)str_l + 1;      /* truncate */
+	if (str_l + 1 < str_m) 
+		str_m = str_l + 1;      /* truncate */
 
 	/* if str_m is 0, no buffer is allocated, just set *ptr to NULL */
 	if (str_m == 0) {  /* not interested in resulting string, just return size */
 	} 
 	else {
-		size_t need_bytes = str_m * sizeof(TCHAR);
+		mmbufsize_t need_bytes = str_m * sizeof(TCHAR);
 #ifdef USE_CPP_NEW
 		*ptr = (TCHAR*)new unsigned char[need_bytes];
 #else
@@ -2089,7 +2169,7 @@ int mm_asnprintf (TCHAR **ptr, size_t str_m, const TCHAR *fmt, /*args*/ ...)
   return str_l;
 }
 
-int mm_vasnprintf (TCHAR **ptr, size_t str_m, const TCHAR *fmt, va_list ap) 
+int mm_vasnprintf (TCHAR **ptr, mmbufsize_t str_m, const TCHAR *fmt, va_list ap) 
 {
 	int str_l;
 
@@ -2097,7 +2177,7 @@ int mm_vasnprintf (TCHAR **ptr, size_t str_m, const TCHAR *fmt, va_list ap)
 	{ 
 		va_list ap2;
 		va_copy(ap2, ap);  /* don't consume the original ap, we'll need it again */
-		str_l = mm_vsnprintf(NULL, (size_t)0, fmt, ap2);/*get required size*/
+		str_l = mm_vsnprintf(NULL, 0, fmt, ap2);/*get required size*/
 		va_end(ap2);
 	}
 
@@ -2105,14 +2185,14 @@ int mm_vasnprintf (TCHAR **ptr, size_t str_m, const TCHAR *fmt, va_list ap)
 	if(str_l<0)
 		return -2;
 
-	if ((size_t)str_l + 1 < str_m) 
-		str_m = (size_t)str_l + 1;      /* truncate */
+	if (str_l + 1 < str_m) 
+		str_m = str_l + 1;      /* truncate */
 	
 	/* if str_m is 0, no buffer is allocated, just set *ptr to NULL */
 	if (str_m == 0) {  /* not interested in resulting string, just return size */
 	} 
 	else {
-		size_t need_bytes = str_m * sizeof(TCHAR);
+		mmbufsize_t need_bytes = str_m * sizeof(TCHAR);
 #ifdef USE_CPP_NEW
 		*ptr = (TCHAR*)new unsigned char[need_bytes];
 #else
@@ -2133,24 +2213,13 @@ int mm_vasnprintf (TCHAR **ptr, size_t str_m, const TCHAR *fmt, va_list ap)
 int 
 mm_snprintf_am(TCHAR * &pbuf, int &bufremain, const TCHAR *fmt, ...)
 {
-	if(bufremain<=0)
-		return -1;
-	
 	va_list args;
 	va_start(args, fmt);
 	int allchars = mm_vsnprintf(pbuf, bufremain, fmt, args);
 	va_end(args);
 	
-	if(allchars<bufremain)
-	{
-		pbuf += allchars;
-		bufremain -= allchars;
-	}
-	else
-	{
-		pbuf += (bufremain-1);
-		bufremain = 1;
-	}
+	pbuf += allchars;
+	bufremain -= allchars;
 	
 	return allchars;
 }
@@ -2170,7 +2239,7 @@ mmsnprintf_IsFloatingType(TCHAR fmt_spec)
 
 
 int 
-mm_strcat(TCHAR *dest, size_t bufsize, const TCHAR *fmt, ...)
+mm_strcat(TCHAR *dest, mmbufsize_t bufsize, const TCHAR *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
@@ -2198,7 +2267,7 @@ mm_printf_ct(FUNC_mmct_output proc_output, void *ctx_output, const TCHAR *fmt, .
 	return ret;
 }
 
-int mm_snprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, ...)
+int mm_snprintf_v7(mmv7_st &mmi, const TCHAR *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
@@ -2210,7 +2279,7 @@ int mm_snprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, ...)
 
 }
 
-int in_snprintf(TCHAR *buf, size_t bufsize, const TCHAR *fmt, ...)
+int in_snprintf(TCHAR *buf, mmbufsize_t bufsize, const TCHAR *fmt, ...)
 {
 	mmv7_st mmi = {0};
 	mmi.buf_output = buf;
