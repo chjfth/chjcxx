@@ -803,7 +803,8 @@ int mmF_ansitime2ymdhms_twice(void *ctx_F, mmv7_st &mmi)
 	int len1 = mm_snprintf_v7(mmi, t("%04d-%02d-%02d"),
 		ptm->tm_year+1900, ptm->tm_mon+1, ptm->tm_mday);
 	//
-	// mmi.bufsize and mmi.nchars_stock should have been updated
+	// mmi.buf_output, mmi.bufsize and mmi.nchars_stock all get changed
+	// after a mm_snprintf_v7 call.
 	//
 	int len2 = mm_snprintf_v7(mmi, t(" %02d:%02d:%02d"),
 		ptm->tm_hour, ptm->tm_min, ptm->tm_sec);
@@ -836,9 +837,14 @@ int mmF_ansitime2ymdhms_method2(void *ctx_F, mmv7_st &mmi)
 		mmi.proc_output(mmi.ctx_output, timebuf, ideal_len, NULL);
 	}
 
-	mm_snprintf(mmi.buf_output, mmi.bufsize, t("%s"), timebuf);
+	if(mmi.bufsize>0)
+	{
+		mm_snprintf(mmi.buf_output, mmi.bufsize, t("%s"), timebuf);
+	}
 
 	return ideal_len;
+		// Memo: No need to update any member of mmi, bcz our caller just call us
+		// with a temporal mmv7_st object on the stack. 
 }
 
 
