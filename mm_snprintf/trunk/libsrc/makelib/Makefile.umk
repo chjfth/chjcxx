@@ -44,7 +44,7 @@ ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),msvc wince mingw),1)
     gmp_CFLAGS_MACRO_DEFS += -D NO_assert
   endif
   	  
-  ifneq ($(_msvc_isTargetKrnl),1) # Windows kernel drivers
+  ifeq ($(_msvc_isTargetKrnl),1) # Windows kernel drivers
     gmp_CFLAGS_MACRO_DEFS += -D USE_CPP_NEW -D USE_ONLY_SBCS
   endif
 
