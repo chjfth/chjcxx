@@ -12,7 +12,7 @@
 // #define-ed to mm_snprintfA or mm_snprintfW etc.
 //////////////////////////////////////////////////////////////////////////
 extern"C" int 
-mm_snprintf(char *str, size_t str_m, const char *fmt,  ...) 
+mm_snprintf(char *str, mmbufsize_t str_m, const char *fmt,  ...) 
 {
 	va_list ap;
 	int str_l;
@@ -24,7 +24,7 @@ mm_snprintf(char *str, size_t str_m, const char *fmt,  ...)
 }
 
 extern"C" int 
-mm_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap)
+mm_vsnprintf(char *str, mmbufsize_t str_m, const char *fmt, va_list ap)
 {
 	return mm_vsnprintfA(str, str_m, fmt, ap);
 }
