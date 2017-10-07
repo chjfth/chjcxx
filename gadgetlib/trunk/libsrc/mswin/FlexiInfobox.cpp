@@ -112,6 +112,8 @@ struct FibDlgParams_st
 	FibUserCmds_st *arUserCmds;
 	int nUserCmds; // If any UserCmds, right-click context menu will appear
 
+	bool isLastTextTimeOnTitle;
+
 	JULayout jul; 
 
 public:
@@ -153,6 +155,23 @@ FibDlgParams_st::FibDlgParams_st(const FibInput_st &in, const TCHAR *pszInfo)
 	//
 	arUserCmds = in.arUserCmds;
 	nUserCmds = in.nUserCmds;
+
+	int i;
+	for(i=0; i<nUserCmds; i++)
+	{
+		FibUserCmds_st &ucmd = arUserCmds[i];
+
+		if(ucmd.idCmd==FIBcmd_CopyInfo)
+			ucmd.cmdState = FIBcst_Raw;
+
+		if(ucmd.idCmd==FIBcmd_LastTextTimeOnTitle)
+		{
+			if( ucmd.cmdState!=FIBcst_TickOn && ucmd.cmdState!=FIBcst_TickOff )
+				ucmd.cmdState = FIBcst_TickOff; // fix error param for user
+
+			isLastTextTimeOnTitle = ucmd.cmdState==FIBcst_TickOn ? true : false;
+		}
+	}
 }
 
 void FibDlgParams_st::SetCustomFocus(HWND hdlg)
@@ -330,6 +349,24 @@ fib_CalNewboxTextMax(HWND hdlg, FibDlgParams_st *pr, Size_st *pIdealDrawsize=NUL
 	return rectTextMax;
 }
 
+static void 
+fib_UpdateDlgTitle(HWND hdlg, const FibDlgParams_st *pr)
+{
+	if(pr->isLastTextTimeOnTitle) // todo: move to a function
+	{
+		struct tm t;
+		ggt_localtime(pr->uesecLastText, &t);
+		TCHAR sztitle[40];
+		mm_snprintf(sztitle, GetEleQuan(sztitle), _T("%04d-%02d-%02d %02d:%02d:%02d"),
+			t.tm_year+1900, t.tm_mon+1, t.tm_mday, t.tm_hour, t.tm_min, t.tm_sec);
+		SetWindowText(hdlg, sztitle);
+	}
+	else
+	{
+		SetWindowText(hdlg, pr->input_title);
+	}
+}
+
 static FibCallback_ret  
 fib_CallbackFetchUserText(HWND hdlg, FibCallbackReason_et reason, FibDlgParams_st *pr, 
 	bool isAdjustWindowNow, int idUserCmd=0, bool isTickOn=false)
@@ -375,6 +412,8 @@ fib_CallbackFetchUserText(HWND hdlg, FibCallbackReason_et reason, FibDlgParams_s
 	}
 
 	pr->uesecLastText = ggt_time64();
+
+	fib_UpdateDlgTitle(hdlg, pr);
 
 	if(!isAdjustWindowNow)
 	{
@@ -709,34 +748,33 @@ void fib_RButtonDown(HWND hwnd, BOOL fDoubleClick, int x, int y, UINT keyFlags)
 	ClientToScreen(hwnd, &pos);
 	int retcmd = TrackPopupMenu(hmenu, TPM_RETURNCMD, pos.x, pos.y, 0, hwnd, NULL);
 
+	// Identify the idCmd GUI-user just selected, then do check-mark toggling.
+	for(i=0; i<pr->nUserCmds; i++)
+	{
+		FibUserCmds_st &ucmd = pr->arUserCmds[i];
+		if(ucmd.idCmd==retcmd && ucmd.cmdState!=FIBcst_Raw)
+		{
+			if(ucmd.cmdState==FIBcst_TickOff)
+			{
+				ucmd.cmdState = FIBcst_TickOn;
+				isTickOn = true;
+			}
+			else
+			{
+				ucmd.cmdState = FIBcst_TickOff;
+				isTickOn = false;
+			}
+		}
+	}
+
 	if(retcmd==FIBcmd_CopyInfo)
 	{
 		fib_CopyToClipboard(hwnd);
 	}
 	else if(retcmd==FIBcmd_LastTextTimeOnTitle)
 	{
-		// todo:
-	}
-	else
-	{
-		// Identify the idCmd GUI-user just selected, then do check-mark toggling.
-		for(i=0; i<pr->nUserCmds; i++)
-		{
-			FibUserCmds_st &ucmd = pr->arUserCmds[i];
-			if(ucmd.idCmd==retcmd && ucmd.cmdState!=FIBcst_Raw)
-			{
-				if(ucmd.cmdState==FIBcst_TickOff)
-				{
-					ucmd.cmdState = FIBcst_TickOn;
-					isTickOn = true;
-				}
-				else
-				{
-					ucmd.cmdState = FIBcst_TickOff;
-					isTickOn = false;
-				}
-			}
-		}
+		pr->isLastTextTimeOnTitle = isTickOn;
+		fib_UpdateDlgTitle(hwnd, pr);
 	}
 
 	// Yes, call user callback for FIBcmd_CopyInfo etc as well.

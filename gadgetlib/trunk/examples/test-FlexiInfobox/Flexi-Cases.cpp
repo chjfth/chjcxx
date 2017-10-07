@@ -6,6 +6,7 @@
 #include <mm_snprintf.h>
 #include <EnsureClnup_mswin.h>
 #include <gadgetlib/FlexiInfobox.h>
+#include <gadgetlib/timefuncs.h>
 
 #include "resource.h"
 
@@ -285,6 +286,7 @@ FIB_ret fcCountDownClose(HWND hwnd, LPCTSTR ptext)
 	return ggt_FlexiInfobox(hwnd, &si, mytext);
 }
 
+
 enum { FIBcmd_DisplayUTC = 100  };
 //
 struct fcTimeLocalOrUTC_st
@@ -298,7 +300,7 @@ FibCallback_ret fcTimeLocalOrUTC_GetText(void *_ctx,
 {
 	bool &isutc = ((fcTimeLocalOrUTC_st*)_ctx)->isShowUTC;
 
-	if(cb_info.reason==FIBReason_UserCmd)
+	if(cb_info.reason==FIBReason_UserCmd) // !
 	{
 		if(cb_info.idUserCmd==FIBcmd_DisplayUTC)
 		{
@@ -337,11 +339,65 @@ FIB_ret fcTimeLocalOrUTC(HWND hwnd, LPCTSTR ptext)
 	si.msecAutoRefresh = 1000; 
 	si.isAutoRefreshNow = true;
 	si.bufchars = bufsize;
-	// Define user cmds activated by right-clicking blank area
+	// ! Define user cmds activated by right-clicking blank area
 	FibUserCmds_st arUserCmds[] =
 	{
 		{FIBcmd_CopyInfo, FIBcst_Raw, _T("Copy to clipboard")},
 		{FIBcmd_DisplayUTC, FIBcst_TickOff, _T("Display time in UTC")},
+	};
+	si.arUserCmds = arUserCmds;
+	si.nUserCmds = GetEleQuan_i(arUserCmds);
+	//
+	return ggt_FlexiInfobox(hwnd, &si, mytext);
+}
+
+struct fcTitleShowTime_st
+{
+	__int64 uesecLastRefresh;
+};
+//
+FibCallback_ret fcTitleShowTime_GetText(void *_ctx, 
+	const FibCallback_st &cb_info,
+	TCHAR *textbuf, int bufchars)
+{
+	(void)cb_info; 
+	__int64 &uesecLastRefresh = ((fcTitleShowTime_st*)_ctx)->uesecLastRefresh;
+
+	__int64 uesecNow = ggt_time64();
+	
+	if(uesecNow-uesecLastRefresh<5)
+		return FIBcb_OK_NoChange;
+
+	uesecLastRefresh = uesecNow;
+
+	struct tm tmnow;
+	ggt_localtime(uesecNow, &tmnow);
+	mm_snprintf(textbuf, bufchars, 
+		_T("Now local time %02d:%02d:%02d (refresh every 5 seconds)")
+		_T("\r\n\r\n(hint: right click blank area to toggle title time stamp)"),
+		tmnow.tm_hour, tmnow.tm_min, tmnow.tm_sec);
+	return FIBcb_OK;
+}
+//
+FIB_ret fcTitleShowTime(HWND hwnd, LPCTSTR ptext)
+{
+	const int bufsize = 200;
+	TCHAR mytext[bufsize]= _T("");
+
+	fcTitleShowTime_st ctx = {0};
+	FibInput_st si;
+	si.szBtnOK = _T("&OK");
+	si.procGetText = fcTitleShowTime_GetText;
+	si.ctxGetText = &ctx;
+	si.msecAutoRefresh = 1000;
+	si.isAutoRefreshNow = true;
+	si.bufchars = bufsize;
+	// Define user cmds activated by right-clicking blank area
+	FibUserCmds_st arUserCmds[] =
+	{
+		{FIBcmd_LastTextTimeOnTitle, FIBcst_TickOn, _T("Title show last update time")},
+		{FIBcmd_MenuSeparator}, // only a visual separator
+		{FIBcmd_CopyInfo, FIBcst_Raw, _T("Copy to clipboard")},
 	};
 	si.arUserCmds = arUserCmds;
 	si.nUserCmds = GetEleQuan_i(arUserCmds);
@@ -365,7 +421,7 @@ Case_st gar_FlexiCases[] =
 
 	{ fcCustomizeIcon, _T("Customize icon") },
 
-	{ fcDelayClose, _T("Not allow to close infobox or make choice within 1000 milliseconds.") },
+	{ fcDelayClose, _T("Not allow to close infobox or make choice within 1000 milliseconds") },
 	{ fcUseNoButtons, _T("Deliberately no buttons") },
 
 	{ NULL }, // a menu item separator
@@ -376,6 +432,7 @@ Case_st gar_FlexiCases[] =
 	{ fcTimedRefresh, _T("Auto refresh to show clock time") },
 	{ fcCountDownClose, _T("Countdown close: Only closeable by program") },
 	{ fcTimeLocalOrUTC, _T("Infobox with context menu (right click blank area)") },
+	{ fcTitleShowTime, _T("Title shows last text update time") },
 };
 
 void do_Cases(HWND hwnd)
