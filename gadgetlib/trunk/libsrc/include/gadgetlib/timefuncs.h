@@ -41,6 +41,7 @@ ggt_Minute_t ggt_LocalTimeZone(void);
 DLLEXPORT_gadgetlib
 __int64 ggt_time64(void);
 	//!< Get current UTC time expressed in seconds elapsed since Unix epoch(Jan 1, 1970 UTC).
+	//!< I call this value uepoch-seconds or uesec .
 
 DLLEXPORT_gadgetlib
 __int64 ggt_time64_local(void);

@@ -285,6 +285,70 @@ FIB_ret fcCountDownClose(HWND hwnd, LPCTSTR ptext)
 	return ggt_FlexiInfobox(hwnd, &si, mytext);
 }
 
+enum { FIBcmd_DisplayUTC = 100  };
+//
+struct fcTimeLocalOrUTC_st
+{
+	bool isShowUTC;
+};
+//
+FibCallback_ret fcTimeLocalOrUTC_GetText(void *_ctx, 
+	const FibCallback_st &cb_info,
+	TCHAR *textbuf, int bufchars)
+{
+	bool &isutc = ((fcTimeLocalOrUTC_st*)_ctx)->isShowUTC;
+
+	if(cb_info.reason==FIBReason_UserCmd)
+	{
+		if(cb_info.idUserCmd==FIBcmd_DisplayUTC)
+		{
+			isutc = cb_info.isTickOn ? true : false;
+		}
+	}
+
+	SYSTEMTIME st;
+	if(isutc)
+	{
+		GetSystemTime(&st);
+		mm_snprintf(textbuf, bufchars, 
+			_T("Now UTC %02d:%02d:%02d"),
+			st.wHour, st.wMinute, st.wSecond);
+	}
+	else
+	{
+		GetLocalTime(&st);
+		mm_snprintf(textbuf, bufchars, 
+			_T("Now time %02d:%02d:%02d"),
+			st.wHour, st.wMinute, st.wSecond);
+	}
+	return FIBcb_OK;
+}
+//
+FIB_ret fcTimeLocalOrUTC(HWND hwnd, LPCTSTR ptext)
+{
+	const int bufsize = 50;
+	TCHAR mytext[bufsize]= _T("");
+
+	fcTimeLocalOrUTC_st ctx = {false};
+	FibInput_st si;
+	si.szBtnOK = _T("&OK");
+	si.procGetText = fcTimeLocalOrUTC_GetText;
+	si.ctxGetText = &ctx;
+	si.msecAutoRefresh = 1000; 
+	si.isAutoRefreshNow = true;
+	si.bufchars = bufsize;
+	// Define user cmds activated by right-clicking blank area
+	FibUserCmds_st arUserCmds[] =
+	{
+		{FIBcmd_CopyInfo, FIBcst_Raw, _T("Copy to clipboard")},
+		{FIBcmd_DisplayUTC, FIBcst_TickOff, _T("Display time in UTC")},
+	};
+	si.arUserCmds = arUserCmds;
+	si.nUserCmds = GetEleQuan_i(arUserCmds);
+	//
+	return ggt_FlexiInfobox(hwnd, &si, mytext);
+}
+
 
 Case_st gar_FlexiCases[] = 
 {
@@ -311,6 +375,7 @@ Case_st gar_FlexiCases[] =
 	{ fcRefreshable, _T("Use Refresh button for new info") },
 	{ fcTimedRefresh, _T("Auto refresh to show clock time") },
 	{ fcCountDownClose, _T("Countdown close: Only closeable by program") },
+	{ fcTimeLocalOrUTC, _T("Infobox with context menu (right click blank area)") },
 };
 
 void do_Cases(HWND hwnd)
@@ -335,7 +400,7 @@ void do_Cases(HWND hwnd)
 
 	RECT rectBtn;
 	GetWindowRect(GetDlgItem(hwnd, IDC_BTN_CASES), &rectBtn);
-	int mret = TrackPopupMenu(hmenu, TPM_RETURNCMD , rectBtn.left, rectBtn.bottom, 0, hwnd, NULL);
+	int mret = TrackPopupMenu(hmenu, TPM_RETURNCMD, rectBtn.left, rectBtn.bottom, 0, hwnd, NULL);
 	if(mret>0)
 	{
 		static int s_count = 0;

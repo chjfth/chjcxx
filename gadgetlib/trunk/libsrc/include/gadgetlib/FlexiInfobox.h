@@ -14,12 +14,13 @@ extern"C"{
 
 enum FibCallback_ret
 {
-	FIBcb_OK = 0,
-	FIBcb_Fail = 1,
-	FIBcb_FailIcon = 2,
-	FIBcb_Fail_StopAutoRefresh = 3,
-	FIBcb_FailIcon_StopAutoRefresh = 4,
-	FIBcb_CloseDlg = 5, // the dialog will be closed
+	FIBcb_OK_NoChange = 0, // no text change
+	FIBcb_OK = 1,
+	FIBcb_Fail = 2,
+	FIBcb_FailIcon = 3,
+	FIBcb_Fail_StopAutoRefresh = 4,
+	FIBcb_FailIcon_StopAutoRefresh = 5,
+	FIBcb_CloseDlg = 6, // the dialog will be closed
 };
 
 enum FibCallbackReason_et
@@ -28,6 +29,7 @@ enum FibCallbackReason_et
 	FIBReason_OKBtn = IDOK,
 	FIBReason_CancelBtn = IDCANCEL,
 	FIBReason_RefreshBtn = 3,
+	FIBReason_UserCmd = 4,
 };
 
 struct FibCallback_st
@@ -35,6 +37,9 @@ struct FibCallback_st
 	HWND hDlg; // for user tweak, change [OK] button text etc.
 
 	FibCallbackReason_et reason;
+	
+	int idUserCmd; // only useful for FIBReason_UserCmd
+	bool isTickOn; // only useful for non-FIBcst_Raw cmds.
 
 	bool isAutoRefreshOn;      // whether the [x]Auto check box is checked now
 
@@ -48,6 +53,27 @@ struct FibCallback_st
 };
 
 //#define FIB_NoButton _T("")
+
+enum FIBcmd_et
+{
+	FIBcmd_MenuSeparator = 0,
+	FIBcmd_CopyInfo = -2, // copy info text to clipboard
+	FIBcmd_LastTextTimeOnTitle = -3,
+};
+
+enum FIBcmdstate_et
+{
+	FIBcst_Raw = 0,    // as a plain menu command
+	FIBcst_TickOn = 1, // On state mark in front of the menu item
+	FIBcst_TickOff = 2,
+};
+
+struct FibUserCmds_st
+{
+	int idCmd; // can use FIBcmd_et enum 
+	FIBcmdstate_et cmdState;
+	const TCHAR *cmdText;
+};
 
 typedef FibCallback_ret (*PROC_FibCallback_GetText)(void *ctx, 
 	const FibCallback_st &cb_info,
@@ -65,14 +91,11 @@ struct FibInput_st
 	HICON hIcon;        // optional, =LoadIcon(NULL, IDI_INFORMATION)
 	HICON hIconFail;    // optional, =LoadIcon(NULL, IDI_EXCLAMATION)
 
-	// If procGetText!=NULL, I'll 
 	PROC_FibCallback_GetText procGetText;
 	void *ctxGetText;
 	int bufchars;
 	
 	bool isShowRefreshBtn; // show a [Refresh] btn so that info text can be refreshed by user.
-//	bool isRefreshNow; // deprecated
-		// -- true means calling procGetText() right now once at entrance
 	bool isAutoRefreshNow; 
 		// true means start auto-refresh automatically, 
 		// otherwise,user should enable a check-box to start auto-refresh.
@@ -103,8 +126,8 @@ struct FibInput_st
 	int maxVisualCharsX; // limit max dialog-box width (implement later)
 	int maxVisualLines;  // limit max dialog-box height (implement later)
 
-//	isOnlyClosedByProgram = false; // deprecated
-
+	FibUserCmds_st *arUserCmds;
+	int nUserCmds; // If any UserCmds, right-click context menu will appear
 
 	FibInput_st()
 	{
@@ -138,6 +161,8 @@ struct FibInput_st
 
 		maxVisualCharsX = maxVisualLines = 0;
 		isScrollToEnd = false;
+
+		arUserCmds = NULL; nUserCmds = 0;
 	}
 };
 

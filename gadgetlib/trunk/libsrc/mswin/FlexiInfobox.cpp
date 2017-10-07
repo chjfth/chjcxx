@@ -10,6 +10,7 @@
 
 #include <gadgetlib/clipboard.h>
 
+#include <gadgetlib/timefuncs.h>
 #include <gadgetlib/enum_monitors.h>
 #include <gadgetlib/ReposNewbox.h>
 #include <gadgetlib/unstraddle_dlgbox.h>
@@ -60,7 +61,7 @@ static void Hide_DlgItem(HWND hwnd, int idCtl)
 struct FibDlgParams_st
 {
 	// Input params from caller:
-	const TCHAR *title;
+	const TCHAR *input_title;
 	TCHAR *textbuf;
 	int bufchars;
 	HICON hIconUser;
@@ -74,8 +75,6 @@ struct FibDlgParams_st
 	int msecAutoRefresh; // non-zero will enable auto-refresh feature
 	bool isAutoRefreshNow; 
 	//
-//	bool isOnlyClosedByProgram;
-	//
 	// user can customize button text
 	const TCHAR *szBtnOK;
 	const TCHAR *szBtnCancel;
@@ -87,7 +86,10 @@ struct FibDlgParams_st
 	bool isScrollToEnd;
 	bool isForceHideRefreshCtrl;
 
-	// Internal data for Showinfo-dialog:
+	//
+	// Internal data for Showinfo-dialog below:
+	//
+
 	HWND hwndRealParent;
 	HFONT hfontEditbox;
 
@@ -105,6 +107,11 @@ struct FibDlgParams_st
 	DWORD msecDelayClose;
 	DWORD tkmsecStart;
 
+	__int64 uesecLastText; // the time recent text got updated(FIBcb_OK from user callback)
+
+	FibUserCmds_st *arUserCmds;
+	int nUserCmds; // If any UserCmds, right-click context menu will appear
+
 	JULayout jul; 
 
 public:
@@ -117,7 +124,7 @@ FibDlgParams_st::FibDlgParams_st(const FibInput_st &in, const TCHAR *pszInfo)
 {
 	memset(this, 0, sizeof(*this));
 
-	title = in.title;
+	input_title = in.title;
 	textbuf = (TCHAR*)pszInfo;
 	bufchars = in.bufchars;
 	hIconUser = in.hIcon;
@@ -131,8 +138,6 @@ FibDlgParams_st::FibDlgParams_st(const FibInput_st &in, const TCHAR *pszInfo)
 	msecAutoRefresh = in.msecAutoRefresh;
 	isAutoRefreshNow = in.isAutoRefreshNow;
 	//
-//	isOnlyClosedByProgram = in.isOnlyClosedByProgram;
-	//
 	msecDelayClose = in.msecDelayClose;
 	tkmsecStart = 0;
 	//
@@ -145,6 +150,9 @@ FibDlgParams_st::FibDlgParams_st(const FibInput_st &in, const TCHAR *pszInfo)
 	isNarrowTitle = in.isNarrowTitle;
 	isScrollToEnd = in.isScrollToEnd;
 	isForceHideRefreshCtrl = in.isForceHideRefreshCtrl;
+	//
+	arUserCmds = in.arUserCmds;
+	nUserCmds = in.nUserCmds;
 }
 
 void FibDlgParams_st::SetCustomFocus(HWND hdlg)
@@ -323,11 +331,17 @@ fib_CalNewboxTextMax(HWND hdlg, FibDlgParams_st *pr, Size_st *pIdealDrawsize=NUL
 }
 
 static FibCallback_ret  
-fib_CallbackRefreshUserText(HWND hdlg, FibCallbackReason_et reason, FibDlgParams_st *pr, 
-	bool isAdjustWindowNow)
+fib_CallbackFetchUserText(HWND hdlg, FibCallbackReason_et reason, FibDlgParams_st *pr, 
+	bool isAdjustWindowNow, int idUserCmd=0, bool isTickOn=false)
 {
 	pr->cb_info.hDlg = hdlg;
 	pr->cb_info.reason = reason;
+	pr->cb_info.idUserCmd = 0;
+	if(reason==FIBReason_UserCmd)
+	{
+		pr->cb_info.idUserCmd = idUserCmd;
+		pr->cb_info.isTickOn = isTickOn;
+	}
 	pr->cb_info.ret_replace_offset = 0;
 	pr->cb_info.isAutoRefreshOn = IsDlgButtonChecked(hdlg, IDC_CHK_AUTOREFRESH)?true:false;
 
@@ -335,7 +349,12 @@ fib_CallbackRefreshUserText(HWND hdlg, FibCallbackReason_et reason, FibDlgParams
 		pr->textbuf, pr->bufchars); 
 		// Will update pr->textbuf[]
 	
-	if(ret==FIBcb_OK)
+	if(ret==FIBcb_OK_NoChange)
+	{
+		// pr->SetMyText(hdlg);
+		return ret;
+	}
+	else if(ret==FIBcb_OK)
 	{
 		fib_SetIcon(hdlg, pr->hIconUser, pr);
 	}
@@ -355,13 +374,18 @@ fib_CallbackRefreshUserText(HWND hdlg, FibCallbackReason_et reason, FibDlgParams
 		}
 	}
 
+	pr->uesecLastText = ggt_time64();
+
 	if(!isAdjustWindowNow)
+	{
+		// pr->SetMyText(hdlg); // seems un-necessary
 		return ret;
+	}
 
 	const int px_torrent = 14;
 	Rect_st rectNow;
 	GetWindowRect(hdlg, (RECT*)&rectNow);
-	//bool wasAtVisualMax = RECT_IsSameSize(rectNow, pr->rectNewboxVisualMax) ? true : false; // see secret 6px bias, give up acurate size checking
+	//bool wasAtVisualMax = RECT_IsSameSize(rectNow, pr->rectNewboxVisualMax) ? true : false; // see secret 6px bias, give up accurate size checking
 	bool cxSame = ( RECTcx(pr->rectNewboxVisualMax)-RECTcx(rectNow) <= px_torrent );
 	bool cySame = ( RECTcy(pr->rectNewboxVisualMax)-RECTcy(rectNow) <= px_torrent );
 	bool wasAtVisualMax = cxSame && cySame;
@@ -486,10 +510,10 @@ BOOL fib_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 		SendMessage(hdlg, WM_SETICON, FALSE, (LPARAM)pr->hIconUser);
 	}
 
-	SetWindowText(hdlg, pr->title);
+	SetWindowText(hdlg, pr->input_title);
 
 	if(pr->isAutoRefreshNow)
-		fib_CallbackRefreshUserText(hdlg, FIBReason_Timer, pr, false); // pr->textbuf[] filled
+		fib_CallbackFetchUserText(hdlg, FIBReason_Timer, pr, false); // pr->textbuf[] filled
 	
 	pr->SetMyText(hdlg); // SetDlgItemText(hdlg, IDC_EDIT_SHOW_INFO, pr->textbuf);
 
@@ -631,7 +655,7 @@ void fib_OnTimer(HWND hwnd, UINT id)
 
 	if(id==timerId_AutoRefresh)
 	{
-		fib_CallbackRefreshUserText(hwnd, FIBReason_Timer, pr, true);
+		fib_CallbackFetchUserText(hwnd, FIBReason_Timer, pr, true);
 	}
 	else if(id==timerId_AllowClose)
 	{
@@ -647,6 +671,77 @@ void fib_OnTimer(HWND hwnd, UINT id)
 		assert(0);
 }
 
+static void fib_CopyToClipboard(HWND hdlg)
+{
+	TCHAR text[64000];
+	text[GetEleQuan(text)-1] = _T('\0');
+	GetDlgItemText(hdlg, IDC_EDIT_SHOW_INFO, text, GetEleQuan(text));
+	ggt_SetClipboardText(text, -1, hdlg);
+}
+
+void fib_RButtonDown(HWND hwnd, BOOL fDoubleClick, int x, int y, UINT keyFlags)
+{
+	(void)fDoubleClick;
+	FibDlgParams_st *pr = (FibDlgParams_st*)GetWindowLongPtr(hwnd, DWLP_USER);
+	if(pr->nUserCmds<=0)
+		return;
+
+	Cec_DestroyMenu hmenu = CreatePopupMenu();
+	int i;
+	for(i=0; i<pr->nUserCmds; i++)
+	{
+		FibUserCmds_st &ucmd = pr->arUserCmds[i];
+
+		if(ucmd.idCmd==FIBcmd_MenuSeparator)
+			AppendMenu(hmenu, MF_SEPARATOR, NULL,NULL);
+		else
+			AppendMenu(hmenu, MF_STRING, ucmd.idCmd, ucmd.cmdText);
+
+		// determine whether to place a check-mark on this menu-item.
+		if(ucmd.cmdState==FIBcst_TickOn)
+			CheckMenuItem(hmenu, ucmd.idCmd, MF_BYCOMMAND|MF_CHECKED);
+		else
+			CheckMenuItem(hmenu, ucmd.idCmd, MF_BYCOMMAND|MF_UNCHECKED);
+	}
+
+	bool isTickOn = false;
+	POINT pos = {x,y};
+	ClientToScreen(hwnd, &pos);
+	int retcmd = TrackPopupMenu(hmenu, TPM_RETURNCMD, pos.x, pos.y, 0, hwnd, NULL);
+
+	if(retcmd==FIBcmd_CopyInfo)
+	{
+		fib_CopyToClipboard(hwnd);
+	}
+	else if(retcmd==FIBcmd_LastTextTimeOnTitle)
+	{
+		// todo:
+	}
+	else
+	{
+		// Identify the idCmd GUI-user just selected, then do check-mark toggling.
+		for(i=0; i<pr->nUserCmds; i++)
+		{
+			FibUserCmds_st &ucmd = pr->arUserCmds[i];
+			if(ucmd.idCmd==retcmd && ucmd.cmdState!=FIBcst_Raw)
+			{
+				if(ucmd.cmdState==FIBcst_TickOff)
+				{
+					ucmd.cmdState = FIBcst_TickOn;
+					isTickOn = true;
+				}
+				else
+				{
+					ucmd.cmdState = FIBcst_TickOff;
+					isTickOn = false;
+				}
+			}
+		}
+	}
+
+	// Yes, call user callback for FIBcmd_CopyInfo etc as well.
+	fib_CallbackFetchUserText(hwnd, FIBReason_UserCmd, pr, true, retcmd, isTickOn);
+}
 
 void fib_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify) 
 {
@@ -657,16 +752,14 @@ void fib_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 	{{
 	case IDI_SHOW_INFO:
 	{
-		TCHAR text[64000];
-		GetDlgItemText(hwnd, IDC_EDIT_SHOW_INFO, text, GetEleQuan(text));
-		ggt_SetClipboardText(text, -1, hwnd);
+		fib_CopyToClipboard(hwnd);
 		//MessageBox(hwnd, L"copied", NULL, MB_OK);
 		break;
 	}
 
 	case IDC_BTN_REFRESH:
 	{
-		fib_CallbackRefreshUserText(hwnd, FIBReason_RefreshBtn, pr, true);
+		fib_CallbackFetchUserText(hwnd, FIBReason_RefreshBtn, pr, true);
 		break;
 	}
 
@@ -675,7 +768,7 @@ void fib_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 		UINT chkst = IsDlgButtonChecked(hwnd, IDC_CHK_AUTOREFRESH);
 		if(chkst==BST_CHECKED)
 		{
-			fib_CallbackRefreshUserText(hwnd, FIBReason_Timer, pr, true);
+			fib_CallbackFetchUserText(hwnd, FIBReason_Timer, pr, true);
 			fib_StartTimer(hwnd, pr);
 		}
 		else
@@ -705,7 +798,7 @@ void fib_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 
 	if(id==IDC_BTN_OK || id==IDC_BTN_CANCEL)
 	{
-		FibCallback_ret cbret = fib_CallbackRefreshUserText(hwnd, 
+		FibCallback_ret cbret = fib_CallbackFetchUserText(hwnd, 
 			id==IDOK ? FIBReason_OKBtn : FIBReason_CancelBtn, 
 			pr, true);
 
@@ -741,6 +834,7 @@ fib_DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		chHANDLE_DLGMSG(hwnd, WM_SIZE,          fib_OnSize); // JULayout
 		chHANDLE_DLGMSG(hwnd, WM_GETMINMAXINFO, fib_OnGetMinMaxInfo); // JULayout
 		chHANDLE_DLGMSG(hwnd, WM_TIMER, fib_OnTimer);
+		chHANDLE_DLGMSG(hwnd, WM_RBUTTONDOWN, fib_RButtonDown);
 
 	default: 
 		return FALSE;
