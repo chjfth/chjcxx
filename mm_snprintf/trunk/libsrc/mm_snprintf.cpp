@@ -359,7 +359,7 @@ mm_set_DebugProgressCallback(FUNC_mm_DebugProgress *dbgproc, void *ctx_user)
 }
 
 static int 
-_mmF_desc_widpreci(void *ctx_user, const mmv7_st &mmi)
+_mmF_desc_widpreci(void *ctx_user, mmv7_st &mmi)
 {
 	mmctexi_st &cti = *(mmctexi_st*)ctx_user;
 	
@@ -944,7 +944,7 @@ int mm_vsnprintf(TCHAR *strbuf, mmbufsize_t str_m, const TCHAR *fmt, va_list ap)
 }
 
 
-int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap) 
+int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap) 
 {
 	TCHAR *strbuf = mmi.buf_output;
 	mmbufsize_t str_max = mmi.bufsize;
@@ -1850,7 +1850,7 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 			}
 		case _T('F'): // inject function call
 			{
-				FUNC_mmF_pair *func = NULL;
+				FUNC_mmF_Formatter *func = NULL;
 				void *func_param = NULL;
 
 				const mmF_pair_st *fpair = va_arg(ap, mmF_pair_st*);
@@ -1881,8 +1881,8 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 					mmii.nchars_stock = my_nchars_stock0+str_l; //mmii.pstock = strbuf;
 					int fills = func(func_param, mmii);
 
-					//if(fills<0)
-					//	assert(fills>=0); // todo: enable later!!!
+					if(fills<0)
+						assert(fills>=0);
 
 					int adv = _MAX_(0, fills); // ensure not negative
 					str_l += adv;
@@ -2037,6 +2037,12 @@ int mm_vsnprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 	 * Should errno be set to EOVERFLOW and EOF returned in this case???
 	 * -- [2017-10-06] Chj: Now this dilemma has been fixed on v7.
 	 */
+	
+	assert(str_l>=0);
+	mmi.buf_output += str_l;
+	mmi.bufsize -= str_l;
+	mmi.nchars_stock += str_l;
+
 	return (int) str_l;
 }
 
@@ -2206,24 +2212,13 @@ int mm_vasnprintf (TCHAR **ptr, mmbufsize_t str_m, const TCHAR *fmt, va_list ap)
 int 
 mm_snprintf_am(TCHAR * &pbuf, int &bufremain, const TCHAR *fmt, ...)
 {
-	if(bufremain<=0) // todo: to delete later
-		return -1;
-	
 	va_list args;
 	va_start(args, fmt);
 	int allchars = mm_vsnprintf(pbuf, bufremain, fmt, args);
 	va_end(args);
 	
-	if(allchars<bufremain)
-	{
-		pbuf += allchars;
-		bufremain -= allchars;
-	}
-	else
-	{
-		pbuf += (bufremain-1);
-		bufremain = 1;
-	}
+	pbuf += allchars;
+	bufremain -= allchars;
 	
 	return allchars;
 }
@@ -2271,7 +2266,7 @@ mm_printf_ct(FUNC_mmct_output proc_output, void *ctx_output, const TCHAR *fmt, .
 	return ret;
 }
 
-int mm_snprintf_v7(const mmv7_st &mmi, const TCHAR *fmt, ...)
+int mm_snprintf_v7(mmv7_st &mmi, const TCHAR *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);

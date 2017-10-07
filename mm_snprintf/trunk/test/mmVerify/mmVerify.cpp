@@ -764,13 +764,27 @@ void test_am()
 
 	needed += mm_snprintf_am(pbuf, bufremain, t("%d"), 345);
 	assert(needed==6);
-	assert(pbuf==buf+bufsize-1 && bufremain==1);
+	assert(pbuf==buf+needed && bufremain==bufsize-needed);
 }
 
-int mmF_ansitime2ymdhms_checkstock(void *ctx_F, const mmv7_st &mmi)
+int mmF_ansitime2ymdhms(void *ctx_F, mmv7_st &mmi)
 {
 	assert( mmi.bufsize<=0 || (mmi.buf_output && mmi.buf_output[0]==_T('\0')) );
+	
+	time_t now = *(time_t*)ctx_F;
+	struct tm* ptm = gmtime(&now);
+	int len = mm_snprintf_v7(mmi, t("%04d-%02d-%02d %02d:%02d:%02d"),
+		ptm->tm_year+1900, ptm->tm_mon+1, ptm->tm_mday,
+		ptm->tm_hour, ptm->tm_min, ptm->tm_sec
+		);
+	return len;
+}
 
+int mmF_ansitime2ymdhms_twice(void *ctx_F, mmv7_st &mmi)
+{
+	assert( mmi.bufsize<=0 || (mmi.buf_output && mmi.buf_output[0]==_T('\0')) );
+	
+	// Do extra: verify mmi.nchars_stock validity
 	static const TCHAR mystock[] = t("time_t will overflow at UTC [");
 	int nstock = GetEleQuan_i(mystock)-1;
 	const TCHAR *pstock = mmi.buf_output-mmi.nchars_stock; // first char from mmlevel 0
@@ -781,59 +795,50 @@ int mmF_ansitime2ymdhms_checkstock(void *ctx_F, const mmv7_st &mmi)
 		int cmpre = t_strncmp(mystock, pstock, nstock);
 		assert(cmpre==0); // This is to demonstrate mmi.nchars_stock's meaning
 	}
-
-	time_t now = *(time_t*)ctx_F;
-	struct tm* ptm = gmtime(&now);
-	int len = mm_snprintf_v7(mmi, t("%04d-%02d-%02d %02d:%02d:%02d"),
-		ptm->tm_year+1900, ptm->tm_mon+1, ptm->tm_mday,
-		ptm->tm_hour, ptm->tm_min, ptm->tm_sec
-		);
-	return len;
-}
-
-int mmF_ansitime2ymdhms(void *ctx_F, const mmv7_st &mmi)
-{
-	assert( mmi.bufsize<=0 || (mmi.buf_output && mmi.buf_output[0]==_T('\0')) );
 	
+	// Call mm_snprintf_v7 *twice*
+	//
 	time_t now = *(time_t*)ctx_F;
 	struct tm* ptm = gmtime(&now);
-	int len = mm_snprintf_v7(mmi, t("%04d-%02d-%02d %02d:%02d:%02d"),
-		ptm->tm_year+1900, ptm->tm_mon+1, ptm->tm_mday,
-		ptm->tm_hour, ptm->tm_min, ptm->tm_sec
-		);
-	return len;
+	int len1 = mm_snprintf_v7(mmi, t("%04d-%02d-%02d"),
+		ptm->tm_year+1900, ptm->tm_mon+1, ptm->tm_mday);
+	//
+	// mmi.bufsize and mmi.nchars_stock should have been updated
+	//
+	int len2 = mm_snprintf_v7(mmi, t(" %02d:%02d:%02d"),
+		ptm->tm_hour, ptm->tm_min, ptm->tm_sec);
+	//
+	return len1+len2;
 }
 
-int mmF_ansitime2ymdhms_method2(void *ctx_F, const mmv7_st &mmi)
+int mmF_ansitime2ymdhms_method2(void *ctx_F, mmv7_st &mmi)
 {
 	assert( mmi.bufsize<=0 || (mmi.buf_output && mmi.buf_output[0]==_T('\0')) );
 	
 	time_t now = *(time_t*)ctx_F;
 	struct tm* ptm = gmtime(&now);
 
-	// Two code flows according to whether mmi.proc_output is provided.
+	// We have to cope with two things:
+	// 1. Call mmi.proc_output with mmi.ctx_output
+	// 2. Fill mmi_buf_output if mmi.bufsize>0 
 
-	int len = 0;
+	const int tbsize = 80;
+	TCHAR timebuf[tbsize]; // please ensure this temp buffer is large enough
+	int ideal_len = mm_snprintf(timebuf, tbsize, 
+		t("%04d-%02d-%02d %02d:%02d:%02d"),
+		ptm->tm_year+1900, ptm->tm_mon+1, ptm->tm_mday,
+		ptm->tm_hour, ptm->tm_min, ptm->tm_sec);
+	assert(ideal_len<tbsize);
+
 	if(mmi.proc_output)
 	{	
 		// should call custom-output with real content
-		TCHAR timebuf[80];
-		len = mm_snprintf(timebuf, GetEleQuan(timebuf), t("%04d-%02d-%02d %02d:%02d:%02d"),
-			ptm->tm_year+1900, ptm->tm_mon+1, ptm->tm_mday,
-			ptm->tm_hour, ptm->tm_min, ptm->tm_sec
-			);
-		int reallen = t_strlen(timebuf);
-		mmi.proc_output(mmi.ctx_output, timebuf, _MIN_(len, reallen), NULL);
-	}
-	else
-	{
-		len = mm_snprintf(mmi.buf_output, mmi.bufsize, t("%04d-%02d-%02d %02d:%02d:%02d"),
-			ptm->tm_year+1900, ptm->tm_mon+1, ptm->tm_mday,
-			ptm->tm_hour, ptm->tm_min, ptm->tm_sec
-			);
+		mmi.proc_output(mmi.ctx_output, timebuf, ideal_len, NULL);
 	}
 
-	return len;
+	mm_snprintf(mmi.buf_output, mmi.bufsize, t("%s"), timebuf);
+
+	return ideal_len;
 }
 
 
@@ -843,7 +848,7 @@ struct mmF_from_nullbuf_st
 	int call_count;
 };
 
-int mmF_callback_from_nullbuf(void *ctx_F, const mmv7_st &mmi)
+int mmF_callback_from_nullbuf(void *ctx_F, mmv7_st &mmi)
 {
 	mmF_from_nullbuf_st &ctx = *(mmF_from_nullbuf_st*)ctx_F;
 
@@ -853,7 +858,7 @@ int mmF_callback_from_nullbuf(void *ctx_F, const mmv7_st &mmi)
 	return 0;
 }
 
-void test_v6()
+void test_v7_F()
 {
 	time_t uepoch_end32 = 0x7FFFffff;
 	oks = t("time_t will overflow at UTC [2038-01-19 03:14:07].");
@@ -863,7 +868,7 @@ void test_v6()
 	
 	oks = t("time_t will overflow at UTC [2038-01-19 03:14:07].");
 	mprint(oks, t("time_t will overflow at UTC [%F]."), 
-		MM_FPAIR_PARAM(mmF_ansitime2ymdhms_checkstock, &uepoch_end32)
+		MM_FPAIR_PARAM(mmF_ansitime2ymdhms_twice, &uepoch_end32)
 		);
 
 	const int smallsize = 18;
@@ -897,7 +902,7 @@ void test_v6()
 
 static const TCHAR *mmf_inner_fmt = t("%04d-%02d-%02d");
 
-int mmF_uepoc2ymd(void *ctx_user, const mmv7_st &mmi)
+int mmF_uepoc2ymd(void *ctx_user, mmv7_st &mmi)
 {
 	assert( mmi.bufsize<=0 || (mmi.buf_output && mmi.buf_output[0]==_T('\0')) );
 	
@@ -951,7 +956,7 @@ struct mmct_Verify_st
 	} 
 };
 
-int mmF_desc_widpreci(void *ctx_user, const mmv7_st &mmi)
+int mmF_desc_widpreci(void *ctx_user, mmv7_st &mmi)
 {
 	mmctexi_st &cti = *(mmctexi_st*)ctx_user;
 
@@ -1060,6 +1065,16 @@ void verify_printf_ct(const TCHAR *oks, const mmct_Result_st rs[], const TCHAR *
 	mprint(oks, t("%s"), iverify.custbuf);
 
 	va_end(args);
+}
+
+void test_v7_generic()
+{
+	mmv7_st mmi = {0};
+	int len = mm_snprintf_v7(mmi, t("[%s]"), t("abc"));
+	assert(len==5);
+	assert(mmi.buf_output==(void*)(5*sizeof(TCHAR)));
+	assert(mmi.bufsize==-5);
+	assert(mmi.nchars_stock==5);
 }
 
 void test_v7_ct()
@@ -1221,16 +1236,19 @@ int _tmain()
 	
 	test_am();
 
-	test_v6();
-
 	test_v7_fmtspec_n();
-
+	test_v7_generic();
+	test_v7_F();
 	test_v7_ct();
 
 	mm_printf(_T("\nAll %d test cases passed.\n"), g_cases);
 
 	if(g_dbi.hfile<0)
 		logfile_close(g_dbi.hfile);
+
+//	time_t uepoch_end32 = 0x7FFFffff;
+//	mm_printf(t("time_t will overflow at UTC [%F]!\n"), 
+//		MM_FPAIR_PARAM(mmF_ansitime2ymdhms, &uepoch_end32));
 
 	// a casual fp number test.
 	TCHAR flbuf[50]; 
