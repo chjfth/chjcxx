@@ -28,9 +28,9 @@ ggt_IsLeapYear(int y)
 }
 
 
-static int mmF_localtime_str(void *param, const TCHAR *pstock, TCHAR *buf, int bufsize)
+static int 
+mmF_localtime_str(void *param, mmv7_st &mmi)
 {
-	(void)pstock;
 	PrnTs_et tsmode = *(PrnTs_et*)param;
 	int ideallen = 0;
 
@@ -47,7 +47,7 @@ static int mmF_localtime_str(void *param, const TCHAR *pstock, TCHAR *buf, int b
 		else
 			ggt_localtime_now(&tmnow);
 
-		ideallen = mm_snprintf(buf, bufsize, _T("[%d-%02d-%02d_%02d:%02d:%02d%s]"),
+		ideallen = mm_snprintf_v7(mmi, _T("[%d-%02d-%02d_%02d:%02d:%02d%s]"),
 			tmnow.tm_year+1900, tmnow.tm_mon+1, tmnow.tm_mday,
 			tmnow.tm_hour, tmnow.tm_min, tmnow.tm_sec, 
 			sz_msec);
