@@ -28,7 +28,7 @@
 # define TMM_strchr wcschr
 # define TMM_strlen(str) ((int)wcslen(str))
 # define TMM_isdigit iswdigit
-# define TMM_snprintf swprintf
+# define TMM_snprintf _snwprintf
 #else
 # define TMM_strchr strchr
 # define TMM_strlen(str) ((int)strlen(str))

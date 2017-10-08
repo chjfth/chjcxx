@@ -44,9 +44,9 @@ ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),msvc wince mingw),1)
     gmp_CFLAGS_MACRO_DEFS += -D NO_assert
   endif
   	  
-  ifeq ($(_msvc_isTargetKrnl),1) # Windows kernel drivers
-    gmp_CFLAGS_MACRO_DEFS += -D USE_CPP_NEW -D USE_ONLY_SBCS
-  endif
+  # $(_msvc_isTargetKrnl) implies buiding Windows kernel driver
+  # Memo: $(_msvc_isTargetKrnl) is delay-expanded, so we cannot use ifeq/endif .
+  gmp_CFLAGS_MACRO_DEFS += $(if $(_msvc_isTargetKrnl),-D USE_CPP_NEW -D USE_ONLY_SBCS)
 
 else ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),linuxgcc),1)
   # GCC compiling linux program
