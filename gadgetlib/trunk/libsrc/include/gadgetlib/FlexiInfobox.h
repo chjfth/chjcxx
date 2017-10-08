@@ -68,6 +68,16 @@ enum FIBcmdstate_et
 	FIBcst_TickOff = 2,
 };
 
+inline FIBcmdstate_et FIBcmdstate_toggle(FIBcmdstate_et *pState)
+{
+	if(*pState==FIBcst_TickOff)
+		return *pState = FIBcst_TickOn;
+	else if(*pState==FIBcst_TickOn)
+		return *pState = FIBcst_TickOff;
+	else
+		return *pState;
+}
+
 struct FibUserCmds_st
 {
 	int idCmd; // can use FIBcmd_et enum 
