@@ -90,7 +90,7 @@ struct FibDlgParams_st
 	// Internal data for Showinfo-dialog below:
 	//
 
-	HWND hwndRealParent;
+	HWND hwndRealOwner;
 	HFONT hfontEditbox;
 
 	Rect_st rectNewboxVisualMax; 
@@ -327,8 +327,8 @@ fib_CalNewboxTextMax(HWND hdlg, FibDlgParams_st *pr, Size_st *pIdealDrawsize=NUL
 	for(int i=0; i<nbi.nMonitors; i++)
 		nbi.arMonitorRect[i] = *(Rect_st*)&abMonsinfo[i].rcWorkArea;
 	//
-	if(pr->hwndRealParent)
-		GetWindowRect(pr->hwndRealParent, (RECT*)&nbi.rectParent);
+	if(pr->hwndRealOwner)
+		GetWindowRect(pr->hwndRealOwner, (RECT*)&nbi.rectParent);
 	else {
 		POINT pt;
 		GetCursorPos(&pt);
@@ -885,7 +885,7 @@ fib_DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 FIB_ret 
 in_FlexiInfobox(HINSTANCE hinstExeDll, 
 	LPCTSTR resIdDlgbox, DLGTEMPLATE *pDlgTemplate,
-	HWND hwndRealParent, const FibInput_st *p_usr_opt, const TCHAR *pszInfo)
+	HWND hwndRealOwner, const FibInput_st *p_usr_opt, const TCHAR *pszInfo)
 {
 	// Choose only one between resIdDlgbox and *pDlgTemplate.
 	if(!resIdDlgbox && !pDlgTemplate)
@@ -923,18 +923,18 @@ in_FlexiInfobox(HINSTANCE hinstExeDll,
 	
 	FibDlgParams_st dsi(opt, pszInfo);
 
-	dsi.hwndRealParent = hwndRealParent;
+	dsi.hwndRealOwner = hwndRealOwner;
 
 	INT_PTR dlgret = 0;
 	if(resIdDlgbox)
 	{
 		dlgret = DialogBoxParam(hinstExeDll, resIdDlgbox,
-			hwndRealParent, fib_DlgProc, (LPARAM)&dsi);
+			hwndRealOwner, fib_DlgProc, (LPARAM)&dsi);
 	}
 	else
 	{
 		dlgret = DialogBoxIndirectParam(hinstExeDll, pDlgTemplate,
-			hwndRealParent, fib_DlgProc, (LPARAM)&dsi);
+			hwndRealOwner, fib_DlgProc, (LPARAM)&dsi);
 	}
 	
 	if(dlgret==-1)
@@ -1116,15 +1116,15 @@ ggt_FlexiInfobox_userc(HINSTANCE hinstExeDll, LPCTSTR resIdDlgbox,
 }
 
 void 
-ggt_FlexiInfo(HWND hwndParent, const TCHAR *pszInfo)
+ggt_FlexiInfo(HWND hwndOwner, const TCHAR *pszInfo)
 {
 	FibInput_st si;
 	si.szBtnOK = _T("OK");
-	ggt_FlexiInfobox(hwndParent, &si, pszInfo);
+	ggt_FlexiInfobox(hwndOwner, &si, pszInfo);
 }
 
 FIB_ret 
-ggt_vaFlexiInfobox(HWND hwndParent, const FibInput_st *p_usr_opt, const TCHAR *fmtInfo, ...)
+ggt_vaFlexiInfobox(HWND hwndOwner, const FibInput_st *p_usr_opt, const TCHAR *fmtInfo, ...)
 {
 	va_list args;
 	va_start(args, fmtInfo);
@@ -1136,21 +1136,21 @@ ggt_vaFlexiInfobox(HWND hwndParent, const FibInput_st *p_usr_opt, const TCHAR *f
 	int req2 = mm_vsnprintf(bufInfo, reqlen_, fmtInfo, args);
 	assert(req2+1==reqlen_);
 
-	FIB_ret fibret = ggt_FlexiInfobox(hwndParent, p_usr_opt, bufInfo);
+	FIB_ret fibret = ggt_FlexiInfobox(hwndOwner, p_usr_opt, bufInfo);
 
 	va_end(args);
 	return fibret;
 }
 
 void 
-ggt_vaFlexiInfo(HWND hwndParent, const TCHAR *fmtInfo, ...)
+ggt_vaFlexiInfo(HWND hwndOwner, const TCHAR *fmtInfo, ...)
 {
 	va_list args;
 	va_start(args, fmtInfo);
 	
 	FibInput_st si;
 	si.szBtnOK = _T("OK");
-	ggt_vaFlexiInfobox(hwndParent, &si, _T("%w"), MM_WPAIR_PARAM(fmtInfo, args));
+	ggt_vaFlexiInfobox(hwndOwner, &si, _T("%w"), MM_WPAIR_PARAM(fmtInfo, args));
 
 	va_end(args);
 }

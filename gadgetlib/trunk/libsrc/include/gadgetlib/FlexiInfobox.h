@@ -197,22 +197,22 @@ enum FIB_ret
 
 DLLEXPORT_gadgetlib
 FIB_ret ggt_FlexiInfobox(
-	HWND hwndParent, const FibInput_st *p_usr_opt, const TCHAR *pszInfo);
+	HWND hwndOwner, const FibInput_st *p_usr_opt, const TCHAR *pszInfo);
 
 DLLEXPORT_gadgetlib
-void ggt_FlexiInfo(HWND hwndParent, const TCHAR *pszInfo);
+void ggt_FlexiInfo(HWND hwndOwner, const TCHAR *pszInfo);
 
 DLLEXPORT_gadgetlib
 FIB_ret ggt_vaFlexiInfobox(
-	HWND hwndParent, const FibInput_st *p_usr_opt, const TCHAR *fmtInfo, ...);
+	HWND hwndOwner, const FibInput_st *p_usr_opt, const TCHAR *fmtInfo, ...);
 
 DLLEXPORT_gadgetlib
-void ggt_vaFlexiInfo(HWND hwndParent, const TCHAR *fmtInfo, ...);
+void ggt_vaFlexiInfo(HWND hwndOwner, const TCHAR *fmtInfo, ...);
 
 
 DLLEXPORT_gadgetlib
 FIB_ret ggt_FlexiInfobox_userc(HINSTANCE hinstExeDll, LPCTSTR resIdDlgbox,
-	HWND hwndParent, const FibInput_st *p_usr_opt, const TCHAR *pszInfo);
+	HWND hwndOwner, const FibInput_st *p_usr_opt, const TCHAR *pszInfo);
 
 
 
