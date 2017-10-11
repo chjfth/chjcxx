@@ -53,6 +53,9 @@
     </ClCompile>
     <ClCompile Include="..\..\libsrc\unstraddle_dlgbox.cpp" />
     <ClCompile Include="..\..\libsrc\mswin\FlexiInfobox.cpp" />
+    <ClCompile Include="..\..\libsrc\mswin\wintooltip.cpp">
+      <Filter>mswin</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\libsrc\include\stdafx.h">
@@ -113,6 +116,12 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="..\..\libsrc\include\gadgetlib\FlexiInfobox_ids.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\wintooltip.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\ggt-mswin.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>

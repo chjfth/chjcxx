@@ -4,10 +4,12 @@
 #include <CommCtrl.h>
 #include <tchar.h>
 #include <stdio.h>
+#include <commdefs.h>
 
 #include <mm_snprintf.h>
 #include <mswin/CmnHdr-Jeffrey.h>
 
+#include <gadgetlib/wintooltip.h>
 #include <gadgetlib/FlexiInfobox.h>
 
 #include "resource.h"
@@ -25,6 +27,8 @@ HINSTANCE g_hinst;
 struct DlgPrivate_st
 {
 	const WCHAR *mystr;
+
+	TooltipHandle_t htt;
 };
 
 BOOL Dlg_OnInitDialog(HWND hwnd, HWND hwndFocus, LPARAM lParam) 
@@ -34,6 +38,8 @@ BOOL Dlg_OnInitDialog(HWND hwnd, HWND hwndFocus, LPARAM lParam)
 
 	DlgPrivate_st *pr = new DlgPrivate_st;
 	pr->mystr = (const WCHAR*)lParam;
+
+	pr->htt = ggt_CreateManualTooltip(hwnd, true);
 
 	SetWindowLongPtr(hwnd, DWLP_USER, (LONG_PTR)pr);
 
@@ -49,6 +55,8 @@ BOOL Dlg_OnInitDialog(HWND hwnd, HWND hwndFocus, LPARAM lParam)
 void Dlg_OnDestroy(HWND hwnd)
 {
 	DlgPrivate_st *pr = (DlgPrivate_st*)GetWindowLongPtr(hwnd, DWLP_USER);
+
+	ggt_TooltipDelete(pr->htt);
 
 	// Destroy all resources allocated back in Dlg_OnInitDialog().
 	delete pr;
@@ -164,6 +172,24 @@ void Dlg_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 	}}
 }
 
+void Dlg_OnLButtonDown(HWND hdlg, BOOL fDoubleClick, int x, int y, UINT keyFlags)
+{
+	DlgPrivate_st *pr = (DlgPrivate_st*)GetWindowLongPtr(hdlg, DWLP_USER);
+
+	if(fDoubleClick)
+	{
+		ggt_TooltipShow(pr->htt, false);
+		return;
+	}
+
+	static int s_count = 0;
+	POINT arpt[] = { {0,0}, {-1,0}, {-1,-1}, {0,-1} };
+	ggt_TooltipShow(pr->htt, true, arpt+s_count%GetEleQuan(arpt), 
+		_T("Manual-tooltip test (%d)"), s_count);
+
+	s_count++;
+}
+
 void Dlg_OnSize(HWND hwnd, UINT state, int cx, int cy) 
 {
 	// Reposition the child controls
@@ -187,8 +213,10 @@ INT_PTR WINAPI Dlg_Proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		chHANDLE_DLGMSG(hwnd, WM_INITDIALOG,    Dlg_OnInitDialog);
 		chHANDLE_DLGMSG(hwnd, WM_DESTROY,       Dlg_OnDestroy);
 		chHANDLE_DLGMSG(hwnd, WM_COMMAND,       Dlg_OnCommand);
-		chHANDLE_DLGMSG(hwnd, WM_SIZE,          Dlg_OnSize);
-		chHANDLE_DLGMSG(hwnd, WM_GETMINMAXINFO, Dlg_OnGetMinMaxInfo);
+		chHANDLE_DLGMSG(hwnd, WM_LBUTTONDOWN,   Dlg_OnLButtonDown);
+		chHANDLE_DLGMSG(hwnd, WM_LBUTTONDBLCLK, Dlg_OnLButtonDown);
+//		chHANDLE_DLGMSG(hwnd, WM_SIZE,          Dlg_OnSize);
+//		chHANDLE_DLGMSG(hwnd, WM_GETMINMAXINFO, Dlg_OnGetMinMaxInfo);
 //		chHANDLE_DLGMSG(hwnd, WM_RBUTTONUP,     Dlg_OnRButtonUp);
 	}
 	return(FALSE);
