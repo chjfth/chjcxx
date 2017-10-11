@@ -174,7 +174,7 @@ FibDlgParams_st::FibDlgParams_st(const FibInput_st &in, const TCHAR *pszInfo)
 	{
 		FibUserCmds_st &ucmd = arUserCmds[i];
 
-		if(ucmd.idCmd==FIBcmd_CopyInfo)
+		if(ucmd.idCmd==FIBcmd_CopyText)
 			ucmd.cmdState = FIBcst_Raw;
 
 		if(ucmd.idCmd==FIBcmd_LastTextTimeOnTitle)
@@ -821,7 +821,7 @@ void fib_RButtonDown(HWND hdlg, BOOL fDoubleClick, int x, int y, UINT keyFlags)
 		}
 	}
 
-	if(retcmd==FIBcmd_CopyInfo)
+	if(retcmd==FIBcmd_CopyText)
 	{
 		fib_CopyToClipboard(hdlg);
 	}

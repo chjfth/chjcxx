@@ -57,7 +57,7 @@ struct FibCallback_st
 enum FIBcmd_et
 {
 	FIBcmd_MenuSeparator = 0,
-	FIBcmd_CopyInfo = -2, // copy info text to clipboard
+	FIBcmd_CopyText = -2, // copy info text to clipboard
 	FIBcmd_LastTextTimeOnTitle = -3,
 };
 
