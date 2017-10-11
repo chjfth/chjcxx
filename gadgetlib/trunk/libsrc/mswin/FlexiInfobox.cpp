@@ -24,6 +24,7 @@ extern"C" void gadgetlib_lib__dlg_showinfo__DLL_AUTO_EXPORT_STUB(void){}
 
 const int timerId_AutoRefresh = 1;
 const int timerId_AllowClose = 2;
+const int timerId_HideTooltip = 3;
 
 inline bool FIBcb__IsFail(FibCallback_ret ret)
 {
@@ -115,6 +116,7 @@ struct FibDlgParams_st
 
 	bool isLastTextTimeOnTitle;
 
+	int secTooltip;
 	TooltipHandle_gt hTooltip;
 
 	JULayout jul; 
@@ -158,7 +160,8 @@ FibDlgParams_st::FibDlgParams_st(const FibInput_st &in, const TCHAR *pszInfo)
 	//
 	arUserCmds = in.arUserCmds;
 	nUserCmds = in.nUserCmds;
-
+	//
+	secTooltip = in.secTooltip;
 	hTooltip = NULL;
 
 	int i;
@@ -651,11 +654,16 @@ BOOL fib_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 		Hide_DlgItem(hdlg, IDC_CHK_AUTOREFRESH);
 	}
 
-	if(pr->nUserCmds>0)
+	if(pr->nUserCmds>0 && pr->secTooltip>=0)
 	{
+		if(pr->secTooltip==0)
+			pr->secTooltip = 2; // default to show 2 seconds
+
 		pr->hTooltip = ggt_CreateManualTooltip(hdlg, true);
 		POINT ptTooltip = {4, -4}; // lower-left corner
 		ggt_TooltipShow(pr->hTooltip, true, &ptTooltip, _T("Right-click blank area to get context menu."));
+
+		SetTimer(hdlg, timerId_HideTooltip, 1000*pr->secTooltip, NULL);
 	}
 
 	return FALSE; // will customize the focus
@@ -718,6 +726,10 @@ void fib_OnTimer(HWND hwnd, UINT id)
 
 		pr->SetCustomFocus(hwnd);
 	}
+	else if(id==timerId_HideTooltip)
+	{
+		ggt_TooltipShow(pr->hTooltip, false);
+	}
 	else 
 		assert(0);
 }
@@ -730,10 +742,19 @@ static void fib_CopyToClipboard(HWND hdlg)
 	ggt_SetClipboardText(text, -1, hdlg);
 }
 
-void fib_RButtonDown(HWND hwnd, BOOL fDoubleClick, int x, int y, UINT keyFlags)
+void fib_LButtonDown(HWND hdlg, BOOL fDoubleClick, int x, int y, UINT keyFlags)
 {
 	(void)fDoubleClick;
-	FibDlgParams_st *pr = (FibDlgParams_st*)GetWindowLongPtr(hwnd, DWLP_USER);
+	FibDlgParams_st *pr = (FibDlgParams_st*)GetWindowLongPtr(hdlg, DWLP_USER);
+	ggt_TooltipShow(pr->hTooltip, false);
+}
+
+void fib_RButtonDown(HWND hdlg, BOOL fDoubleClick, int x, int y, UINT keyFlags)
+{
+	(void)fDoubleClick;
+	FibDlgParams_st *pr = (FibDlgParams_st*)GetWindowLongPtr(hdlg, DWLP_USER);
+	ggt_TooltipShow(pr->hTooltip, false);
+
 	if(pr->nUserCmds<=0)
 		return;
 
@@ -757,8 +778,8 @@ void fib_RButtonDown(HWND hwnd, BOOL fDoubleClick, int x, int y, UINT keyFlags)
 
 	bool isTickOn = false;
 	POINT pos = {x,y};
-	ClientToScreen(hwnd, &pos);
-	int retcmd = TrackPopupMenu(hmenu, TPM_RETURNCMD, pos.x, pos.y, 0, hwnd, NULL);
+	ClientToScreen(hdlg, &pos);
+	int retcmd = TrackPopupMenu(hmenu, TPM_RETURNCMD, pos.x, pos.y, 0, hdlg, NULL);
 
 	// Identify the idCmd GUI-user just selected, then do check-mark toggling.
 	for(i=0; i<pr->nUserCmds; i++)
@@ -781,16 +802,16 @@ void fib_RButtonDown(HWND hwnd, BOOL fDoubleClick, int x, int y, UINT keyFlags)
 
 	if(retcmd==FIBcmd_CopyInfo)
 	{
-		fib_CopyToClipboard(hwnd);
+		fib_CopyToClipboard(hdlg);
 	}
 	else if(retcmd==FIBcmd_LastTextTimeOnTitle)
 	{
 		pr->isLastTextTimeOnTitle = isTickOn;
-		fib_UpdateDlgTitle(hwnd, pr);
+		fib_UpdateDlgTitle(hdlg, pr);
 	}
 
 	// Yes, call user callback for FIBcmd_CopyInfo etc as well.
-	fib_CallbackFetchUserText(hwnd, FIBReason_UserCmd, pr, true, retcmd, isTickOn);
+	fib_CallbackFetchUserText(hdlg, FIBReason_UserCmd, pr, true, retcmd, isTickOn);
 }
 
 void fib_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify) 
@@ -884,6 +905,7 @@ fib_DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		chHANDLE_DLGMSG(hwnd, WM_SIZE,          fib_OnSize); // JULayout
 		chHANDLE_DLGMSG(hwnd, WM_GETMINMAXINFO, fib_OnGetMinMaxInfo); // JULayout
 		chHANDLE_DLGMSG(hwnd, WM_TIMER, fib_OnTimer);
+		chHANDLE_DLGMSG(hwnd, WM_LBUTTONDOWN, fib_LButtonDown);
 		chHANDLE_DLGMSG(hwnd, WM_RBUTTONDOWN, fib_RButtonDown);
 
 	default: 
