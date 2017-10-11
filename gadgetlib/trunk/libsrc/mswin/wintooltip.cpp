@@ -61,8 +61,8 @@ CTooltipHandle::CreateManualTip(HWND hOwner, bool isBalloon)
 	m_toolinfo.uFlags   = TTF_TRACK | TTF_ABSOLUTE;
 	m_toolinfo.hwnd     = NULL; // no need to notify for a manual tooltip
 	m_toolinfo.hinst    = NULL;
-	m_toolinfo.lpszText = L"InitABC"; // weird! Assigning  // todo: make it NULL
-	m_toolinfo.uId      = NULL; // // no need to notify for a manual tooltip
+	m_toolinfo.lpszText = NULL; // ok
+	m_toolinfo.uId      = NULL; // no need to notify for a manual tooltip
 
 //	GetClientRect (hOwner, &m_toolinfo.rect);
 	LRESULT lret = SendMessage(m_htt, TTM_ADDTOOL, 0, (LPARAM)&m_toolinfo); 

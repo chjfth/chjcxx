@@ -4,6 +4,8 @@
 #include <CommCtrl.h>
 #include <tchar.h>
 #include <stdio.h>
+#include <assert.h>
+
 #include <commdefs.h>
 
 #include <mm_snprintf.h>
@@ -40,6 +42,8 @@ BOOL Dlg_OnInitDialog(HWND hwnd, HWND hwndFocus, LPARAM lParam)
 	pr->mystr = (const WCHAR*)lParam;
 
 	pr->htt = ggt_CreateManualTooltip(hwnd, true);
+	assert(pr->htt);
+//	ggt_TooltipShow(pr->htt, true, NULL, _T("Manual tooltip")); // tested, effective
 
 	SetWindowLongPtr(hwnd, DWLP_USER, (LONG_PTR)pr);
 
