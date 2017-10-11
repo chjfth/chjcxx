@@ -119,6 +119,7 @@ struct FibDlgParams_st
 	bool isLastTextTimeOnTitle;
 
 	int secTooltip;
+	const TCHAR *szTooltipText;
 	TooltipHandle_gt hTooltip;
 	bool isTooltipShowing;
 
@@ -167,6 +168,7 @@ FibDlgParams_st::FibDlgParams_st(const FibInput_st &in, const TCHAR *pszInfo)
 	nUserCmds = in.nUserCmds;
 	//
 	secTooltip = in.secTooltip;
+	szTooltipText = in.szTooltipText;
 	hTooltip = NULL;
 
 	int i;
@@ -672,7 +674,8 @@ BOOL fib_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 
 		pr->hTooltip = ggt_CreateManualTooltip(hdlg, true);
 		ggt_TooltipShow(pr->hTooltip, true, &ptTooltipCorner, 
-			_T("Right-click blank area to get context menu."));
+			pr->szTooltipText ? pr->szTooltipText : _T("Right-click blank area to get context menu.")
+			);
 		pr->isTooltipShowing = true;
 
 		SetTimer(hdlg, timerId_HideTooltip, 1000*pr->secTooltip, NULL);

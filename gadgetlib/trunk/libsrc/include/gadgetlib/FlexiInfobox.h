@@ -137,6 +137,7 @@ struct FibInput_st
 	int maxVisualLines;  // limit max dialog-box height (implement later)
 
 	int secTooltip; // Tooltip show seconds. If -1 force no tooltip.
+	const TCHAR *szTooltipText;
 
 	FibUserCmds_st *arUserCmds;
 	int nUserCmds; // If any UserCmds, right-click context menu will appear

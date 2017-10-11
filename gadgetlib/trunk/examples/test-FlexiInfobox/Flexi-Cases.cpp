@@ -402,6 +402,7 @@ FIB_ret fcTitleShowTime(HWND hwnd, LPCTSTR ptext)
 	};
 	si.arUserCmds = arUserCmds;
 	si.nUserCmds = GetEleQuan_i(arUserCmds);
+//	si.szTooltipText = _T("cutom tooltip text");
 	//
 	return ggt_FlexiInfobox(hwnd, &si, mytext);
 }
