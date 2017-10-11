@@ -124,5 +124,8 @@
     <ClInclude Include="..\..\libsrc\include\gadgetlib\ggt-mswin.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\libsrc\include\iversion.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

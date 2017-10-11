@@ -74,6 +74,7 @@
     <ClInclude Include="..\..\libsrc\include\gadgetlib\T_string.h" />
     <ClInclude Include="..\..\libsrc\include\gadgetlib\unstraddle_dlgbox.h" />
     <ClInclude Include="..\..\libsrc\include\gadgetlib\wintooltip.h" />
+    <ClInclude Include="..\..\libsrc\include\iversion.h" />
     <ClInclude Include="..\..\libsrc\include\my_winapi.h" />
     <ClInclude Include="..\..\libsrc\include\stdafx.h" />
   </ItemGroup>
