@@ -19,10 +19,12 @@ TooltipHandle_gt ggt_CreateManualTooltip(HWND hOwner, bool isBalloon=false, WinE
 	// return NULL on fail
 
 DLLEXPORT_gadgetlib
-WinErr_gt ggt_TooltipShow(TooltipHandle_gt htt, bool isShow, POINT *pt=NULL,
+WinErr_gt ggt_TooltipShow(TooltipHandle_gt htt, bool isShow, const POINT *pt=NULL,
 	const TCHAR *szfmt=NULL, ...);
 	// pt.x/pt.y can be negative, which mean count from right/bottom edge.
 	// For example: {0,-1} means lower-left corner, {-1,0} means upper-right corner.
+	//
+	// If szfmt==NULL, text is not changed. Use this to move tooltip only.
 
 DLLEXPORT_gadgetlib
 bool ggt_TooltipDelete(TooltipHandle_gt htt);

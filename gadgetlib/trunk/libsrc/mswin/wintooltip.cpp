@@ -10,7 +10,7 @@ public:
 	~CTooltipHandle();
 
 	WinErr_gt CreateManualTip(HWND hOwner, bool isBalloon);
-	WinErr_gt TooltipShow(bool isShow, POINT *pt=NULL, const TCHAR *szfmt=NULL, ...);
+	WinErr_gt TooltipShow(bool isShow, const POINT *pt=NULL, const TCHAR *szfmt=NULL, ...);
 
 private:
 	HWND m_htt; // tooltip handle
@@ -75,7 +75,7 @@ CTooltipHandle::CreateManualTip(HWND hOwner, bool isBalloon)
 }
 
 WinErr_gt 
-CTooltipHandle::TooltipShow(bool isShow, POINT *pt, const TCHAR *fmt, ...)
+CTooltipHandle::TooltipShow(bool isShow, const POINT *pt_in, const TCHAR *fmt, ...)
 {
 	WinErr_gt winerr = 0;
 	bool malloc_error = false;
@@ -89,9 +89,9 @@ CTooltipHandle::TooltipShow(bool isShow, POINT *pt, const TCHAR *fmt, ...)
 	va_list args;
 	va_start(args, fmt);
 
-	POINT pt0 = {0,0};
-	if(!pt)
-		pt = &pt0;
+	POINT pt0 = {0,0}, *pt = &pt0;
+	if(pt_in)
+		pt0 = *pt_in;
 
 	RECT rectOwner;
 	BOOL Succ = GetClientRect(m_hwndOwner, &rectOwner);
@@ -108,20 +108,30 @@ CTooltipHandle::TooltipShow(bool isShow, POINT *pt, const TCHAR *fmt, ...)
 	ClientToScreen(m_hwndOwner, pt);
 	SendMessage(m_htt, TTM_TRACKPOSITION, 0, MAKELONG(pt->x, pt->y));
 
-	// Set tooltip text
-	int textlen = mm_vsnprintf(m_textbuf, m_buflen_, fmt, args);
-	if(textlen>=m_buflen_)
+	if(fmt)
 	{
-		TCHAR *newbuf = (TCHAR*)realloc(m_textbuf, (textlen+1)*sizeof(TCHAR));
-		if(newbuf)
+		// Set new tooltip text
+		int textlen = mm_vsnprintf(m_textbuf, m_buflen_, fmt, args);
+		if(textlen>=m_buflen_)
 		{
-			m_textbuf = newbuf;
-			m_buflen_ =  textlen+1;
-			mm_vsnprintf(m_textbuf, m_buflen_, fmt, args);
+			TCHAR *newbuf = (TCHAR*)realloc(m_textbuf, (textlen+1)*sizeof(TCHAR));
+			if(newbuf)
+			{
+				m_textbuf = newbuf;
+				m_buflen_ =  textlen+1;
+				mm_vsnprintf(m_textbuf, m_buflen_, fmt, args);
+			}
+			else
+				malloc_error = true;
 		}
-		else
-			malloc_error = true;
 	}
+	else
+	{
+		// Use old text
+		if(m_textbuf==NULL)
+			m_textbuf = _T(" ");
+	}
+
 	m_toolinfo.lpszText = m_textbuf;
 	SendMessage(m_htt, TTM_SETTOOLINFO, 0, (LPARAM)&m_toolinfo);
 
@@ -163,18 +173,27 @@ ggt_CreateManualTooltip(HWND hOwner, bool isBalloon, WinErr_gt *pWinErr)
 //////////////////////////////////////////////////////////////////////////
 
 WinErr_gt 
-ggt_TooltipShow(TooltipHandle_gt htt, bool isShow, POINT *pt, const TCHAR *szfmt, ...)
+ggt_TooltipShow(TooltipHandle_gt htt, bool isShow, const POINT *pt, const TCHAR *szfmt, ...)
 {
 	if(!htt)
 		return ERROR_INVALID_DATA;
 
-	va_list args;
-	va_start(args, szfmt);
-
 	CTooltipHandle *ptt = (CTooltipHandle*)htt;
-	return ptt->TooltipShow(isShow, pt, _T("%w"), MM_WPAIR_PARAM(szfmt, args));
+	WinErr_gt winerr = 0;
 
-	va_end(args);
+	if(szfmt)
+	{
+		va_list args;
+		va_start(args, szfmt);
+		winerr = ptt->TooltipShow(isShow, pt, _T("%w"), MM_WPAIR_PARAM(szfmt, args));
+		va_end(args);
+	}
+	else
+	{
+		winerr = ptt->TooltipShow(isShow, pt, NULL);
+	}
+
+	return winerr;
 }
 
 bool 

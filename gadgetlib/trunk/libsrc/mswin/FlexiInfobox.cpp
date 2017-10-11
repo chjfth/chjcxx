@@ -26,6 +26,8 @@ const int timerId_AutoRefresh = 1;
 const int timerId_AllowClose = 2;
 const int timerId_HideTooltip = 3;
 
+static const POINT ptTooltipCorner = {4, -4}; // lower-left corner
+
 inline bool FIBcb__IsFail(FibCallback_ret ret)
 {
 	if(ret==FIBcb_Fail || ret==FIBcb_FailIcon || ret==FIBcb_Fail_StopAutoRefresh || ret==FIBcb_FailIcon_StopAutoRefresh)
@@ -118,6 +120,7 @@ struct FibDlgParams_st
 
 	int secTooltip;
 	TooltipHandle_gt hTooltip;
+	bool isTooltipShowing;
 
 	JULayout jul; 
 
@@ -125,6 +128,8 @@ public:
 	FibDlgParams_st(const FibInput_st &in, const TCHAR *pszInfo);
 	void SetCustomFocus(HWND hdlg);
 	void SetMyText(HWND hdlg);
+
+	void HideTooltip();
 };
 
 FibDlgParams_st::FibDlgParams_st(const FibInput_st &in, const TCHAR *pszInfo)
@@ -227,6 +232,12 @@ void FibDlgParams_st::SetMyText(HWND hdlg)
 		int lines = Edit_GetLineCount(hEdit);
 		SNDMSG(hEdit, EM_LINESCROLL, 0, lines);
 	}
+}
+
+void FibDlgParams_st::HideTooltip()
+{
+	ggt_TooltipShow(hTooltip, false);
+	isTooltipShowing = false;
 }
 
 static void 
@@ -660,8 +671,9 @@ BOOL fib_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 			pr->secTooltip = 2; // default to show 2 seconds
 
 		pr->hTooltip = ggt_CreateManualTooltip(hdlg, true);
-		POINT ptTooltip = {4, -4}; // lower-left corner
-		ggt_TooltipShow(pr->hTooltip, true, &ptTooltip, _T("Right-click blank area to get context menu."));
+		ggt_TooltipShow(pr->hTooltip, true, &ptTooltipCorner, 
+			_T("Right-click blank area to get context menu."));
+		pr->isTooltipShowing = true;
 
 		SetTimer(hdlg, timerId_HideTooltip, 1000*pr->secTooltip, NULL);
 	}
@@ -728,7 +740,7 @@ void fib_OnTimer(HWND hwnd, UINT id)
 	}
 	else if(id==timerId_HideTooltip)
 	{
-		ggt_TooltipShow(pr->hTooltip, false);
+		pr->HideTooltip();
 	}
 	else 
 		assert(0);
@@ -742,18 +754,27 @@ static void fib_CopyToClipboard(HWND hdlg)
 	ggt_SetClipboardText(text, -1, hdlg);
 }
 
+void fib_OnMove(HWND hdlg, int x, int y)
+{
+	FibDlgParams_st *pr = (FibDlgParams_st*)GetWindowLongPtr(hdlg, DWLP_USER);
+	if(pr->isTooltipShowing)
+	{
+		ggt_TooltipShow(pr->hTooltip, true, &ptTooltipCorner);
+	}
+}
+
 void fib_LButtonDown(HWND hdlg, BOOL fDoubleClick, int x, int y, UINT keyFlags)
 {
 	(void)fDoubleClick;
 	FibDlgParams_st *pr = (FibDlgParams_st*)GetWindowLongPtr(hdlg, DWLP_USER);
-	ggt_TooltipShow(pr->hTooltip, false);
+	pr->HideTooltip();
 }
 
 void fib_RButtonDown(HWND hdlg, BOOL fDoubleClick, int x, int y, UINT keyFlags)
 {
 	(void)fDoubleClick;
 	FibDlgParams_st *pr = (FibDlgParams_st*)GetWindowLongPtr(hdlg, DWLP_USER);
-	ggt_TooltipShow(pr->hTooltip, false);
+	pr->HideTooltip();
 
 	if(pr->nUserCmds<=0)
 		return;
@@ -907,6 +928,7 @@ fib_DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		chHANDLE_DLGMSG(hwnd, WM_TIMER, fib_OnTimer);
 		chHANDLE_DLGMSG(hwnd, WM_LBUTTONDOWN, fib_LButtonDown);
 		chHANDLE_DLGMSG(hwnd, WM_RBUTTONDOWN, fib_RButtonDown);
+		chHANDLE_DLGMSG(hwnd, WM_MOVE, fib_OnMove);
 
 	default: 
 		return FALSE;
