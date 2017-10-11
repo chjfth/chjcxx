@@ -688,6 +688,8 @@ void fib_OnDestroy(HWND hwnd)
 {
 	FibDlgParams_st *pr = (FibDlgParams_st*)GetWindowLongPtr(hwnd, DWLP_USER);
 
+	ggt_TooltipDelete(pr->hTooltip);
+
 	if(pr->hfontEditbox)
 		DeleteObject(pr->hfontEditbox);
 }
