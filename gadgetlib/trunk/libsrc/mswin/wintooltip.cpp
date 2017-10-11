@@ -1,5 +1,7 @@
 #include "stdafx.h"
 
+#ifdef TOOLTIPS_CLASS // PPC2003 SDK don't have this, WM5-SDK and PC-SDK do.
+
 #include <_MINMAX_.h>
 #include <gadgetlib/wintooltip.h>
 
@@ -37,6 +39,10 @@ WinErr_gt
 CTooltipHandle::CreateManualTip(HWND hOwner, bool isBalloon)
 {
 	WinErr_gt winerr = 0;
+
+#ifndef TTS_BALLOON
+#define TTS_BALLOON 0 // WinCE 5.0 SDK don't have this
+#endif
 
 	m_hwndOwner = hOwner;
 	m_htt = CreateWindowEx(WS_EX_TOPMOST, TOOLTIPS_CLASS , NULL, 
@@ -207,3 +213,5 @@ ggt_TooltipDelete(TooltipHandle_gt htt)
 
 	return true;
 }
+
+#endif
