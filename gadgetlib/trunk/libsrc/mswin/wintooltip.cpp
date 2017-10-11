@@ -97,9 +97,9 @@ CTooltipHandle::TooltipShow(bool isShow, POINT *pt, const TCHAR *fmt, ...)
 	BOOL Succ = GetClientRect(m_hwndOwner, &rectOwner);
 
 	if(pt->x<0)
-		pt->x = rectOwner.right - pt->x;
+		pt->x = rectOwner.right + pt->x;
 	if(pt->y<0)
-		pt->y = rectOwner.bottom - pt->y;
+		pt->y = rectOwner.bottom + pt->y;
 
 	pt->x = _MID_(0, pt->x, rectOwner.right);
 	pt->y = _MID_(0, pt->y, rectOwner.bottom);
@@ -135,7 +135,7 @@ CTooltipHandle::TooltipShow(bool isShow, POINT *pt, const TCHAR *fmt, ...)
 		return ERROR_SUCCESS;
 }
 
-TooltipHandle_t 
+TooltipHandle_gt 
 ggt_CreateManualTooltip(HWND hOwner, bool isBalloon, WinErr_gt *pWinErr)
 {
 	WinErr_gt _winerr = 0;
@@ -157,14 +157,17 @@ ggt_CreateManualTooltip(HWND hOwner, bool isBalloon, WinErr_gt *pWinErr)
 		return NULL;
 	}
 
-	return (TooltipHandle_t)ptt;
+	return (TooltipHandle_gt)ptt;
 }
 
 //////////////////////////////////////////////////////////////////////////
 
 WinErr_gt 
-ggt_TooltipShow(TooltipHandle_t htt, bool isShow, POINT *pt, const TCHAR *szfmt, ...)
+ggt_TooltipShow(TooltipHandle_gt htt, bool isShow, POINT *pt, const TCHAR *szfmt, ...)
 {
+	if(!htt)
+		return ERROR_INVALID_DATA;
+
 	va_list args;
 	va_start(args, szfmt);
 
@@ -175,7 +178,7 @@ ggt_TooltipShow(TooltipHandle_t htt, bool isShow, POINT *pt, const TCHAR *szfmt,
 }
 
 bool 
-ggt_TooltipDelete(TooltipHandle_t htt)
+ggt_TooltipDelete(TooltipHandle_gt htt)
 {
 	if(!htt)
 		return false;

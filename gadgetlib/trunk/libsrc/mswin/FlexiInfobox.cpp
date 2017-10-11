@@ -14,6 +14,7 @@
 #include <gadgetlib/enum_monitors.h>
 #include <gadgetlib/ReposNewbox.h>
 #include <gadgetlib/unstraddle_dlgbox.h>
+#include <gadgetlib/wintooltip.h>
 
 #include <gadgetlib/FlexiInfobox_ids.h>
 #include <gadgetlib/FlexiInfobox.h>
@@ -114,6 +115,8 @@ struct FibDlgParams_st
 
 	bool isLastTextTimeOnTitle;
 
+	TooltipHandle_gt hTooltip;
+
 	JULayout jul; 
 
 public:
@@ -155,6 +158,8 @@ FibDlgParams_st::FibDlgParams_st(const FibInput_st &in, const TCHAR *pszInfo)
 	//
 	arUserCmds = in.arUserCmds;
 	nUserCmds = in.nUserCmds;
+
+	hTooltip = NULL;
 
 	int i;
 	for(i=0; i<nUserCmds; i++)
@@ -644,6 +649,13 @@ BOOL fib_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 	{
 		Hide_DlgItem(hdlg, IDC_BTN_REFRESH);
 		Hide_DlgItem(hdlg, IDC_CHK_AUTOREFRESH);
+	}
+
+	if(pr->nUserCmds>0)
+	{
+		pr->hTooltip = ggt_CreateManualTooltip(hdlg, true);
+		POINT ptTooltip = {4, -4}; // lower-left corner
+		ggt_TooltipShow(pr->hTooltip, true, &ptTooltip, _T("Right-click blank area to get context menu."));
 	}
 
 	return FALSE; // will customize the focus

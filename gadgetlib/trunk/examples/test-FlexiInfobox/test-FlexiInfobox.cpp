@@ -30,7 +30,7 @@ struct DlgPrivate_st
 {
 	const WCHAR *mystr;
 
-	TooltipHandle_t htt;
+	TooltipHandle_gt htt;
 };
 
 BOOL Dlg_OnInitDialog(HWND hwnd, HWND hwndFocus, LPARAM lParam) 

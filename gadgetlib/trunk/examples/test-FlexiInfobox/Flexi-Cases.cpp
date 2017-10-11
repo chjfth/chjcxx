@@ -372,10 +372,10 @@ FibCallback_ret fcTitleShowTime_GetText(void *_ctx,
 
 	struct tm tmnow;
 	ggt_localtime(uesecNow, &tmnow);
-	mm_snprintf(textbuf, bufchars, 
-		_T("Now local time %02d:%02d:%02d (refresh every 5 seconds)")
-		_T("\r\n\r\n(hint: right click blank area to toggle title time stamp)"),
-		tmnow.tm_hour, tmnow.tm_min, tmnow.tm_sec);
+ 	mm_snprintf(textbuf, bufchars, 
+ 		_T("Now local time %02d:%02d:%02d (refresh every 5 seconds)")
+ 		_T("\r\n\r\n(hint: right click blank area to toggle title time stamp)"),
+ 		tmnow.tm_hour, tmnow.tm_min, tmnow.tm_sec);
 	return FIBcb_OK;
 }
 //
