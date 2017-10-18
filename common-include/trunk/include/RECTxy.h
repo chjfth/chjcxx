@@ -73,12 +73,12 @@ Point_st::PaceToRect(const Rect_st &r) const
 	if(x<r.left)
 		pace.x = r.left - x;
 	else if(x>=r.right)
-		pace.x = r.right - x;
+		pace.x = r.right - x -1; // -1 bcz right border not inclusive
 
 	if(y<r.top)
 		pace.y = r.top - y;
 	else if(y>=r.bottom)
-		pace.y = r.bottom - y;
+		pace.y = r.bottom - y -1; // -1 bcz bottom not inclusive
 
 	return pace;
 }
