@@ -16,8 +16,15 @@
 
 #include "resource.h"
 
+#ifdef WINCE
+#define GetWindowLongPtr GetWindowLong
+#define SetWindowLongPtr SetWindowLong
+#define DWLP_USER DWL_USER
+#endif
 
+#ifndef WINCE
 #pragma comment(lib, "comctl32.lib")
+#endif
 
 //#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
 // -- set in .rc.
@@ -35,9 +42,10 @@ struct DlgPrivate_st
 
 BOOL Dlg_OnInitDialog(HWND hwnd, HWND hwndFocus, LPARAM lParam) 
 {
+#ifdef IDI_INFORMATION
 	chSETDLGICONS(hwnd, IDI_INFORMATION, NULL, true);
 	//chSETDLGICONS(hwnd, IDI_NEWLAND);
-
+#endif
 	DlgPrivate_st *pr = new DlgPrivate_st;
 	pr->mystr = (const WCHAR*)lParam;
 
@@ -106,7 +114,7 @@ void do_Flexi(HWND hwndParent, bool isUseRC, bool isMono)
 	si.fixedwidth_font = isMono ? true : false;
 	si.procGetText = DSI_GetNowTime;
 	si.ctxGetText = &ctx;
-	si.bufchars = ARRAYSIZE(szTimeText);
+	si.bufchars = GetEleQuan(szTimeText);
 	si.msecAutoRefresh = 500;
 	si.isAutoRefreshNow = true;
 	si.msecDelayClose = 1000;
@@ -127,8 +135,7 @@ void do_Flexi(HWND hwndParent, bool isUseRC, bool isMono)
 	FIB_ret fibret;
 	if(isUseRC)
 	{
-		fibret = ggt_FlexiInfobox_userc( 
-			(HINSTANCE)GetWindowLongPtr(hwndParent, GWLP_HINSTANCE), 
+		fibret = ggt_FlexiInfobox_userc(g_hinst, 
 			MAKEINTRESOURCE(IDD_SHOW_INFO),
 			useParent, &si, szTimeText); 
 	}
@@ -138,7 +145,7 @@ void do_Flexi(HWND hwndParent, bool isUseRC, bool isMono)
 	}
 
 	TCHAR szret[80];
-	_sntprintf_s(szret, ARRAYSIZE(szret), 
+	mm_snprintf(szret, GetEleQuan(szret), 
 		_T("FIB_ret=%d\r\n")
 		_T("1=OK/Yes 2=Cancel/No"), 
 		fibret);
@@ -201,11 +208,11 @@ void Dlg_OnSize(HWND hwnd, UINT state, int cx, int cy)
 }
 
 
-void Dlg_OnGetMinMaxInfo(HWND hwnd, PMINMAXINFO pMinMaxInfo) 
-{
-	// Return minimum size of dialog box
-	//	g_UILayout.HandleMinMax(pMinMaxInfo);
-}
+// void Dlg_OnGetMinMaxInfo(HWND hwnd, PMINMAXINFO pMinMaxInfo) 
+// {
+// 	// Return minimum size of dialog box
+// 	//	g_UILayout.HandleMinMax(pMinMaxInfo);
+// }
 
 
 
@@ -226,8 +233,11 @@ INT_PTR WINAPI Dlg_Proc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return(FALSE);
 }
 
-
+#ifdef WINCE
+int WINAPI WinMain(HINSTANCE hinstExe, HINSTANCE, LPWSTR lpCmdLine, int)
+#else
 int WINAPI _tWinMain(HINSTANCE hinstExe, HINSTANCE, PTSTR pszCmdLine, int) 
+#endif
 {
 	InitCommonControls(); // WinXP requires this to see any v6 dialogbox.
 

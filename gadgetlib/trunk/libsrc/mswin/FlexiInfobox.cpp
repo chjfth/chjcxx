@@ -907,7 +907,7 @@ void fib_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 		if(  pr->msecDelayClose>0 &&
 			(GetTickCount() - pr->tkmsecStart < pr->msecDelayClose) )
 		{
-			Beep(500, 500);
+			Beep(500, 500); // alert user "close action in vain"
 			return;
 		}
 
@@ -1031,7 +1031,7 @@ END
 	// Prepare DLG template header:
 
 	DLGTEMPLATE &dt = *(DLGTEMPLATE*)memblock;
-	dt.style = DS_SETFONT|DS_FIXEDSYS|WS_MINIMIZEBOX|WS_POPUP|WS_VISIBLE|WS_CAPTION|WS_SYSMENU|WS_THICKFRAME;
+	dt.style = DS_SETFONT|WS_MINIMIZEBOX|WS_POPUP|WS_VISIBLE|WS_CAPTION|WS_SYSMENU|WS_THICKFRAME; // DS_FIXEDSYS
 	dt.dwExtendedStyle = 0;
 	dt.cdit = 0; // count of child controls, increase later
 	dt.x=0, dt.y=0, dt.cx=156, dt.cy=56;

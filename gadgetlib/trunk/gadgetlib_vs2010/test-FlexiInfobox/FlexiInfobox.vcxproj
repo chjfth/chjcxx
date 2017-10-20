@@ -209,6 +209,7 @@
     <ResourceCompile Include="..\..\examples\test-FlexiInfobox\demo.rc" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\examples\test-FlexiInfobox\green-clock-64.ico" />
     <None Include="..\..\examples\test-FlexiInfobox\NewLand.ico" />
   </ItemGroup>
   <ItemGroup>
