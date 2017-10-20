@@ -237,33 +237,52 @@ public:
 #define MakeCleanupIntArrayClass(CecClassName, RET_TYPE_of_CleanupFunction, pCleanupFunction, USER_TYPE, valInvalid) \
 	typedef CEnsureCleanupIntArray<USER_TYPE, RET_TYPE_of_CleanupFunction, pCleanupFunction, valInvalid> CecClassName;
 
-
-
 /////////////////////////////////// C++ ///////////////////////////////////////
 
 
-template<typename PTR_TYPE>
+template<typename PTR_TYPE> // 2017-10-20: deprecated?
 inline void _EnsureClnup_cpp_delete(PTR_TYPE p){ delete p; }
 //
 #define MakeCleanupPtrClass_delete(CecClassName, PTR_TYPE) \
 	MakeCleanupPtrClass(CecClassName, void, _EnsureClnup_cpp_delete<PTR_TYPE>, PTR_TYPE)
 
 
-template<typename PTR_TYPE>
+template<typename PTR_TYPE> // 2017-10-20: deprecated?
 inline void _EnsureClnup_cpp_delete_array(PTR_TYPE p){ delete[] p; }
 //
 #define MakeCleanupPtrClass_delete_array(CecClassName, PTR_TYPE) \
 	MakeCleanupPtrClass(CecClassName, void, _EnsureClnup_cpp_delete_array<PTR_TYPE>, PTR_TYPE)
 
-
 // Now define a class named Cec_NewMemory representing a void*-pointed memory block,
 // that would be de-allocated by C++-delete.
 MakeCleanupPtrClass_delete(Cec_NewMemory, void*)
-// 
-// Usage example:
+	// 
+	// Usage example:
+	//
+	//	Cec_NewMemory cec_memblock = new unsigned char[1000];
+	//	memcpy(cec_memblock, src, 1000);
+
+
+
+// [2017-10-20]
+#define MakeCleanupCxxClass(CMyClass) \
+	inline void _cxx_delete_1_ ## CMyClass(CMyClass *pobj) { delete pobj; } \
+	inline void _cxx_delete_n_ ## CMyClass(CMyClass *arobj) { delete []arobj; } \
+	MakeCleanupPtrClass(Cec_ ## CMyClass,      void, _cxx_delete_1_ ## CMyClass, CMyClass*) \
+	MakeCleanupPtrClass(CecArray_ ## CMyClass, void, _cxx_delete_n_ ## CMyClass, CMyClass*) \
+// So, a statement on global statement
 //
-//	Cec_NewMemory cec_memblock = new unsigned char[1000];
-//	memcpy(cec_memblock, src, 1000);
+//	MakeCleanupCxxClass(Cfoobar)
+//
+// enables these features in function scope:
+//
+// Writing:
+//		Cec_Cfoobar       pfoobar = new Cfoobar;
+//		CecArray_Cfoobar arfoobar = new Cfoobar[3];
+// will automatically execute these destructions on leaving function scope:
+//		delete    pfoobar;
+//		delete []arfoobar;
+
 
 
 //////////////////////////////////////////////////////////////////////////
