@@ -218,8 +218,13 @@ inline void chASSERTFAIL(LPCSTR file, int line, PCSTR expr) // un-tested
 inline void chSETDLGICONS(HWND hwnd, LPCTSTR ids, HINSTANCE hExeDll=NULL, bool useStock=false) 
 {
 	if(hExeDll==NULL && useStock==false)
+	{
+#ifdef GWLP_HINSTANCE // PC Windows MsSDK2003+
 		hExeDll = (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE);
-
+#else // WinCE 
+		hExeDll = NULL;
+#endif
+	}
 	HICON hIcon = LoadIcon(hExeDll, ids);
 
 	SendMessage(hwnd, WM_SETICON, TRUE,  (LPARAM)hIcon);
@@ -265,6 +270,7 @@ inline void chWindows2000Required() {
 // executed before WinMain.
 
 #ifdef UNICODE
+#ifndef WINCE // WinCE does not have GetWindowsDirectoryW()
 
 class CUnicodeSupported {
 public:
@@ -280,6 +286,7 @@ public:
 // object exist when a single project contains multiple source files.
 static CUnicodeSupported g_UnicodeSupported;
 
+#endif
 #endif
 
 
