@@ -43,10 +43,11 @@ ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),msvc wince),1)
   #    warning C4652: compiler option 'Warning level (/W<n>)' inconsistent with precompiled header; current command-line option will override that defined in the precompiled header
   
   gmu_up_list_SRC_FROM_ROOT += \
-	$(if $(filter wince%,$(gmp_COMPILER_ID)),,\
+	$(if $(filter wince%,$(gmp_COMPILER_ID)),\
+	  \
+	  ,\
 	  fstream-aux.cpp           \
 	  mswin/MenuWithIcon.cpp    \
-	  mswin/enum_monitors.cpp   \
 	  mswin/FlexiInfobox.cpp    \
 	  mswin/impl_winapi.cpp     \
 	  unstraddle_dlgbox.cpp \
@@ -56,6 +57,7 @@ ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),msvc wince),1)
 	mswin/charenccvt-win.cpp \
 	mswin/T_string-msvc.cpp \
 	mswin/simple_thread.cpp \
+	mswin/enum_monitors.cpp   \
 	mswin/clipboard.cpp     \
 	mswin/wintooltip.cpp    \
 	# WinCE 5.0 still don't provide fopen etc, so don't add fstream-aux.cpp .

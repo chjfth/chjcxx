@@ -43,7 +43,7 @@ MonitorEnumProc(
 
 
 WinErr_t 
-ggt_EnumMonitors(OneMonitorInfo_st arMonInfo[], int arEles, int *pTotalMonitors)
+ggt_EnumMonitors(OneMonitorInfo_st arMonInfo[], int nEles, int *pTotalMonitors)
 {
 	int TotalMonitors = 0;
 	if(!pTotalMonitors)
@@ -53,7 +53,7 @@ ggt_EnumMonitors(OneMonitorInfo_st arMonInfo[], int arEles, int *pTotalMonitors)
 
 	EnumMonitorPrivate_st emp = {0};
 	emp.arUserMoninfo = arMonInfo;
-	emp.nUserMoninfo = arEles;
+	emp.nUserMoninfo = nEles;
 	emp.nUserFilled = 0;
 	emp.nMonitorCount = 0;
 
