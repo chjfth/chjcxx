@@ -765,6 +765,11 @@ void test_am()
 	needed += mm_snprintf_am(pbuf, bufremain, t("%d"), 345);
 	assert(needed==6);
 	assert(pbuf==buf+needed && bufremain==bufsize-needed);
+
+	assert(bufremain==-1);
+	needed += mm_snprintf_am(pbuf, bufremain, t("%u"), 678);
+	assert(needed==9);
+	assert(bufremain==-4);
 }
 
 int mmF_ansitime2ymdhms(void *ctx_F, mmv7_st &mmi)
