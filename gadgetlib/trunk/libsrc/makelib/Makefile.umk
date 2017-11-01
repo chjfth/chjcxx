@@ -50,6 +50,7 @@ ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),msvc wince),1)
 	  mswin/MenuWithIcon.cpp    \
 	  mswin/FlexiInfobox.cpp    \
 	  mswin/impl_winapi.cpp     \
+	  mswin/getch.cpp       \
 	  unstraddle_dlgbox.cpp \
 	  ) \
 	mswin/wintime.cpp \
@@ -87,6 +88,7 @@ else ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),linuxgcc),1)
 	linux/dirfuncs.cpp \
 	linux/T_string-glibc.cpp \
 	linux/simple_thread.cpp \
+	linux/getch.cpp \
 
   gmu_ud_list_PRJ_HEADER += # $(gmu_ud_SRC_ROOT)/linux 
 
