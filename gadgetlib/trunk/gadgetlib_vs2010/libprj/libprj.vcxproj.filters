@@ -56,6 +56,9 @@
     <ClCompile Include="..\..\libsrc\mswin\wintooltip.cpp">
       <Filter>mswin</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\libsrc\mswin\getch.cpp">
+      <Filter>mswin</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\libsrc\include\stdafx.h">
@@ -125,6 +128,9 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="..\..\libsrc\include\iversion.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\getch.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>

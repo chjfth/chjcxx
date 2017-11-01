@@ -31,6 +31,7 @@
     <ClCompile Include="..\..\libsrc\mswin\FlexiInfobox.cpp" />
     <ClCompile Include="..\..\libsrc\mswin\enum_monitors.cpp" />
     <ClCompile Include="..\..\libsrc\mswin\fstream64.cpp" />
+    <ClCompile Include="..\..\libsrc\mswin\getch.cpp" />
     <ClCompile Include="..\..\libsrc\mswin\impl_winapi.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Unicode|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Unicode|Win32'">NotUsing</PrecompiledHeader>
@@ -63,6 +64,7 @@
     <ClInclude Include="..\..\libsrc\include\gadgetlib\fstream-aux.h" />
     <ClInclude Include="..\..\libsrc\include\gadgetlib\fstream64.h" />
     <ClInclude Include="..\..\libsrc\include\gadgetlib\gadgetlib.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\getch.h" />
     <ClInclude Include="..\..\libsrc\include\gadgetlib\ggt-const.h" />
     <ClInclude Include="..\..\libsrc\include\gadgetlib\ggt-mswin.h" />
     <ClInclude Include="..\..\libsrc\include\gadgetlib\gsm0338cvt.h" />
