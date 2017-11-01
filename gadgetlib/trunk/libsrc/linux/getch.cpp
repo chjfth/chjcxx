@@ -136,7 +136,8 @@ in_ggt_getch(const termios &tios_orig, int timeout_millisec)
 		{
 			int vtime = _MID_(1, msec_remain/100, 250);
 			
-			terr = tty_set_raw(fd, tios_orig, 1, vtime);
+			int vmin = 0; // cannot be 1, which would cause infinite wait
+			terr = tty_set_raw(fd, tios_orig, vmin, vtime);
 			if (terr)
 				return -1;
 
@@ -162,11 +163,11 @@ ggt_getch(int timeout_millisec)
 	if (tcgetattr(STDIN_FILENO, &tios_orig) < 0)
 		return -1;
 	
-	int ch = in_ggt_getch(tios_orig, timeout_millisec);
+	int chret = in_ggt_getch(tios_orig, timeout_millisec);
 	
 	tcsetattr(STDIN_FILENO, TCSANOW, &tios_orig);
 	
-	return ch;
+	return chret;
 }
 
 
