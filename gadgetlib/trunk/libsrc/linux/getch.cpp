@@ -22,32 +22,32 @@ tty_set_raw(int fd, const termios &tios_orig, int vmin_val, int vtime_val)
 	struct termios  tios = tios_orig;
 
 	// Turn OFF these *local* flags:
-	tios.c_lflag &= ~( 0
-		| ICANON // non-canonical mode
+	tcflag_t local_flags =
+		ICANON  // non-canonical mode
 		| ECHO  // (human)input char does not get echo back (to human)
-		| ISIG  // Special input char will not generate signals like INTR, QUIT, SUSP.
-		);
+		| ISIG;  // Special input char will not generate signals like INTR, QUIT, SUSP.
+	tios.c_lflag &= ~local_flags;
 	// Chj: Not need to care about these canonical-mode flags:
 	//	* ECHONL: echo the NL(new-line) character even if ECHO is not set.
 	//	* IEXTEN: Enable implementation-defined input processing
 	
 	
 	// Turn off these *input* flags:
-	tios.c_iflag &= ~( 0
-		| BRKINT // No generating SIGINT on serial-line BREAK (hardware)signal.
+	tcflag_t input_flags = 
+		BRKINT   // No generating SIGINT on serial-line BREAK (hardware)signal.
 		| INPCK  // No input parity checking
 		| ISTRIP // No Strip off eighth bit
 		| ICRNL  // No convertion CR to LF
-		| IXON   // No XON/XOFF flow control on output
-		);
+		| IXON;  // No XON/XOFF flow control on output
+	tios.c_iflag &= ~input_flags;
 	// note: IGNBRK is determined by caller input, and I don't touch it here.
 	// No need to care: PARMRK, IGNCR
 	
 	// Turn off these *control* flags:
-	tios.c_cflag &= ~( 0
-		| CSIZE  // Clear byte-size mask(couple with ``tios.c_cflag|=CS8;`` later)
-		| PARENB // No input parity check. Dup of INPCK, explicity mention it for safety.
-		);
+	tcflag_t control_flags = 
+		CSIZE     // Clear byte-size mask(couple with ``tios.c_cflag|=CS8;`` later)
+		| PARENB; // No input parity check. Dup of INPCK, explicity mention it for safety.
+	tios.c_cflag &= ~control_flags;
 	tios.c_cflag |= CS8; // Set 8 bits/char.
 
 	// Output processing off.
@@ -75,14 +75,16 @@ tty_set_raw(int fd, const termios &tios_orig, int vmin_val, int vtime_val)
 		return ETIO_Unknown;
 	}
 	
-	if ((tios_chk.c_lflag & (ECHO | ICANON | IEXTEN | ISIG)) ||
-	  (tios.c_iflag & (BRKINT | INPCK | ISTRIP | ICRNL | IXON)) ||
-	  (tios.c_cflag & (CSIZE | PARENB | CS8)) != CS8 ||
-	  (tios.c_oflag & OPOST) || 
-	  tios.c_cc[VMIN] != vmin_val || tios.c_cc[VTIME] != vtime_val) 
+	if (tios_chk.c_lflag & local_flags)
+		return ETIO_CheckFail;
+	if (tios.c_iflag & input_flags)
+		return ETIO_CheckFail;
+	if ( (tios.c_cflag & (control_flags | CS8)) != CS8 )
+		return ETIO_CheckFail;
+	if (tios.c_oflag & OPOST)
+		return ETIO_CheckFail;
+	if( tios.c_cc[VMIN]!=vmin_val || tios.c_cc[VTIME]!=vtime_val)
 	{
-//		printf("Hmm! Read not equal set!");
-		// Only some of the changes were made. Fail it!
 		return ETIO_CheckFail;
 	}
 
