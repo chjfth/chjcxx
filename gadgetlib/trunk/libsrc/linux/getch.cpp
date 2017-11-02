@@ -16,7 +16,7 @@ enum TermioErr_et
 };
 
 static TermioErr_et // put terminal into a raw mode
-tty_set_raw(int fd, const termios &tios_orig, int vmin_val, int vtime_val)
+tty_set_input_raw(int fd, const termios &tios_orig, int vmin_val, int vtime_val)
 {
 	int             err;
 	struct termios  tios = tios_orig;
@@ -50,8 +50,8 @@ tty_set_raw(int fd, const termios &tios_orig, int vmin_val, int vtime_val)
 	tios.c_cflag &= ~control_flags;
 	tios.c_cflag |= CS8; // Set 8 bits/char.
 
-	// Output processing off.
-	tios.c_oflag &= ~(OPOST);
+	// Nothing to do with output processing, we care for input-raw here.
+//	tios.c_oflag &= ~(OPOST);
 
 	tios.c_cc[VMIN] = vmin_val;
 	tios.c_cc[VTIME] = vtime_val;
@@ -81,8 +81,8 @@ tty_set_raw(int fd, const termios &tios_orig, int vmin_val, int vtime_val)
 		return ETIO_CheckFail;
 	if ( (tios.c_cflag & (control_flags | CS8)) != CS8 )
 		return ETIO_CheckFail;
-	if (tios.c_oflag & OPOST)
-		return ETIO_CheckFail;
+//	if (tios.c_oflag & OPOST)
+//		return ETIO_CheckFail;
 	if( tios.c_cc[VMIN]!=vmin_val || tios.c_cc[VTIME]!=vtime_val)
 	{
 		return ETIO_CheckFail;
@@ -104,11 +104,11 @@ in_ggt_getch(const termios &tios_orig, int timeout_millisec)
 	{
 		if (timeout_millisec < 0) // wait infinitely, blocking read
 		{
-			terr = tty_set_raw(fd, tios_orig, 1, 0);		
+			terr = tty_set_input_raw(fd, tios_orig, 1, 0);		
 		}
 		else if (timeout_millisec == ggt_getch_peek) // ==0, polling read
 		{
-			terr = tty_set_raw(fd, tios_orig, 0, 0);
+			terr = tty_set_input_raw(fd, tios_orig, 0, 0);
 		}
 		
 		if (terr)
@@ -137,7 +137,7 @@ in_ggt_getch(const termios &tios_orig, int timeout_millisec)
 			int vtime = _MID_(1, msec_remain/100, 250);
 			
 			int vmin = 0; // cannot be 1, which would cause infinite wait
-			terr = tty_set_raw(fd, tios_orig, vmin, vtime);
+			terr = tty_set_input_raw(fd, tios_orig, vmin, vtime);
 			if (terr)
 				return -1;
 
