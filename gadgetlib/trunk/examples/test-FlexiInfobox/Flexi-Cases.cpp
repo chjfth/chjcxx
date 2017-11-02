@@ -407,6 +407,23 @@ FIB_ret fcTitleShowTime(HWND hwnd, LPCTSTR ptext)
 	return ggt_FlexiInfobox(hwnd, &si, mytext);
 }
 
+FIB_ret fcSwitchAttachDetach(HWND hwnd, LPCTSTR ptext)
+{
+	FibUserCmds_st arUserCmds[] =
+	{
+		{FIBcmd_CopyText, FIBcst_Default, _T("Copy to clipboard")},
+		{FIBcmd_DetachFromParent, FIBcst_Default, _T("Detach infobox from parent")},
+	};
+
+	FibInput_st si;
+	si.szBtnOK = _T("&Apple");
+	si.szBtnCancel = _T("&Pear");
+	si.arUserCmds = arUserCmds;
+	si.nUserCmds = GetEleQuan_i(arUserCmds);
+	return ggt_FlexiInfobox(hwnd, &si, ptext);
+}
+
+
 
 Case_st gar_FlexiCases[] = 
 {
@@ -435,6 +452,7 @@ Case_st gar_FlexiCases[] =
 	{ fcCountDownClose, _T("Countdown close: Only closeable by program") },
 	{ fcTimeLocalOrUTC, _T("Infobox with context menu (right click blank area)") },
 	{ fcTitleShowTime, _T("Title shows last text update time") },
+	{ fcSwitchAttachDetach, _T("Use context menu to switch between attached/detached infobox") },
 };
 
 void do_Cases(HWND hwnd)
@@ -465,6 +483,7 @@ void do_Cases(HWND hwnd)
 		static int s_count = 0;
 		bool isShiftDown = GetAsyncKeyState(VK_SHIFT)<0 ? true:false;
 
+		// Call case function:
 		FIB_ret fibret = gar_FlexiCases[mret-1].func(
 			isShiftDown ? NULL : hwnd, 
 			gar_FlexiCases[mret-1].text

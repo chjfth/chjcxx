@@ -61,6 +61,12 @@ static void Hide_DlgItem(HWND hwnd, int idCtl)
 	ShowWindow(hctl, SW_HIDE);
 }
 
+// enum FibAgain_et // whether to display infobox again
+// {
+// 	FibNoAgain = 0,
+// 	FibAgainAttached = 1,
+// 	FibAgainDetached = 2, // use NULL as owner
+// };
 
 struct FibDlgParams_st
 {
@@ -94,7 +100,9 @@ struct FibDlgParams_st
 	// Internal data for Showinfo-dialog below:
 	//
 
-	HWND hwndRealOwner;
+	HWND hwndOwnerFibIn; // Fib user passed in HWND
+	HWND hwndRealOwner;  // may equal to hwndOwnerFibin or NULL.
+
 	HFONT hfontEditbox;
 
 	Rect_st rectNewboxVisualMax; 
@@ -123,17 +131,26 @@ struct FibDlgParams_st
 	TooltipHandle_gt hTooltip;
 	bool isTooltipShowing;
 
+//	FibAgain_et again;
+
 	JULayout jul; 
 
 public:
-	FibDlgParams_st(const FibInput_st &in, const TCHAR *pszInfo);
+	FibDlgParams_st(const FibInput_st &in, HWND hwndOwner, const TCHAR *pszInfo); // called in in_FlexiInfobox()
+
 	void SetCustomFocus(HWND hdlg);
 	void SetMyText(HWND hdlg);
 
 	void HideTooltip();
 };
 
-FibDlgParams_st::FibDlgParams_st(const FibInput_st &in, const TCHAR *pszInfo)
+static void FixDefaultOnOffCmd(FIBcmdstate_et &cmdState, FIBcmdstate_et default_val)
+{
+	if( cmdState!=FIBcst_TickOn && cmdState!=FIBcst_TickOff )
+		cmdState = default_val; 
+}
+
+FibDlgParams_st::FibDlgParams_st(const FibInput_st &in, HWND hwndOwner, const TCHAR *pszInfo)
 {
 	memset(this, 0, sizeof(*this));
 
@@ -171,20 +188,37 @@ FibDlgParams_st::FibDlgParams_st(const FibInput_st &in, const TCHAR *pszInfo)
 	szTooltipText = in.szTooltipText;
 	hTooltip = NULL;
 
+	hwndOwnerFibIn = hwndOwner;
+	hwndRealOwner = in.isInitDetached ? NULL : hwndOwner;
+
 	int i;
 	for(i=0; i<nUserCmds; i++)
 	{
 		FibUserCmds_st &ucmd = arUserCmds[i];
+
+		// fix erroneous/irrational/dangling params for user input
 
 		if(ucmd.idCmd==FIBcmd_CopyText)
 			ucmd.cmdState = FIBcst_Raw;
 
 		if(ucmd.idCmd==FIBcmd_LastTextTimeOnTitle)
 		{
-			if( ucmd.cmdState!=FIBcst_TickOn && ucmd.cmdState!=FIBcst_TickOff )
-				ucmd.cmdState = FIBcst_TickOff; // fix error param for user
+			FixDefaultOnOffCmd(ucmd.cmdState, FIBcst_TickOff);
 
 			isLastTextTimeOnTitle = ucmd.cmdState==FIBcst_TickOn ? true : false;
+		}
+
+		if(ucmd.idCmd==FIBcmd_DetachFromParent)
+		{
+			if(hwndOwnerFibIn==NULL)
+			{
+				// No choice. We can only present a detached infobox.
+				ucmd.cmdState = FIBcst_Invalid;
+			}
+			else
+			{
+				ucmd.cmdState = hwndRealOwner ? FIBcst_TickOff : FIBcst_TickOn;
+			}
 		}
 	}
 }
@@ -790,6 +824,9 @@ void fib_RButtonDown(HWND hdlg, BOOL fDoubleClick, int x, int y, UINT keyFlags)
 	{
 		FibUserCmds_st &ucmd = pr->arUserCmds[i];
 
+		if(ucmd.cmdState==FIBcst_Invalid)
+			continue;
+
 		if(ucmd.idCmd==FIBcmd_MenuSeparator)
 			AppendMenu(hmenu, MF_SEPARATOR, NULL,NULL);
 		else
@@ -834,6 +871,14 @@ void fib_RButtonDown(HWND hdlg, BOOL fDoubleClick, int x, int y, UINT keyFlags)
 	{
 		pr->isLastTextTimeOnTitle = isTickOn;
 		fib_UpdateDlgTitle(hdlg, pr);
+	}
+	else if(retcmd==FIBcmd_DetachFromParent) // note: this is a toggle value
+	{
+		assert(pr->hwndOwnerFibIn);
+		
+		// toggle the 'again' value
+//		pr->again = pr->hwndRealOwner ? FibAgainDetached : FibAgainAttached;
+		EndDialog(hdlg, pr->hwndRealOwner ? FIB_AgainDetached : FIB_AgainAttached);
 	}
 
 	// Yes, call user callback for FIBcmd_CopyInfo etc as well.
@@ -946,7 +991,7 @@ fib_DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 FIB_ret 
 in_FlexiInfobox(HINSTANCE hinstExeDll, 
 	LPCTSTR resIdDlgbox, DLGTEMPLATE *pDlgTemplate,
-	HWND hwndRealOwner, const FibInput_st *p_usr_opt, const TCHAR *pszInfo)
+	HWND hwndOwner, const FibInput_st *p_usr_opt, const TCHAR *pszInfo)
 {
 	// Choose only one between resIdDlgbox and *pDlgTemplate.
 	if(!resIdDlgbox && !pDlgTemplate)
@@ -982,20 +1027,28 @@ in_FlexiInfobox(HINSTANCE hinstExeDll,
 		opt.isAutoRefreshNow = false;
 	}
 	
-	FibDlgParams_st dsi(opt, pszInfo);
-
-	dsi.hwndRealOwner = hwndRealOwner;
+	FibDlgParams_st dsi(opt, hwndOwner, pszInfo);
 
 	INT_PTR dlgret = 0;
-	if(resIdDlgbox)
+	for(;;)
 	{
-		dlgret = DialogBoxParam(hinstExeDll, resIdDlgbox,
-			hwndRealOwner, fib_DlgProc, (LPARAM)&dsi);
-	}
-	else
-	{
-		dlgret = DialogBoxIndirectParam(hinstExeDll, pDlgTemplate,
-			hwndRealOwner, fib_DlgProc, (LPARAM)&dsi);
+		if(resIdDlgbox)
+		{
+			dlgret = DialogBoxParam(hinstExeDll, resIdDlgbox,
+				dsi.hwndRealOwner, fib_DlgProc, (LPARAM)&dsi);
+		}
+		else
+		{
+			dlgret = DialogBoxIndirectParam(hinstExeDll, pDlgTemplate,
+				dsi.hwndRealOwner, fib_DlgProc, (LPARAM)&dsi);
+		}
+
+		if(dlgret==FIB_AgainAttached)
+			dsi.hwndRealOwner = hwndOwner;
+		else if(dlgret==FIB_AgainDetached)
+			dsi.hwndRealOwner = NULL;
+		else
+			break;
 	}
 	
 	if(dlgret==-1)

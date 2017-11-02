@@ -54,15 +54,19 @@ struct FibCallback_st
 
 //#define FIB_NoButton _T("")
 
-enum FIBcmd_et
+enum FIBcmd_et // stock FIB context menu commands
 {
 	FIBcmd_MenuSeparator = 0,
 	FIBcmd_CopyText = -2, // copy info text to clipboard
 	FIBcmd_LastTextTimeOnTitle = -3,
+	FIBcmd_DetachFromParent = -4, // So-called 'parent' HWND is actually 'owner'.
 };
 
 enum FIBcmdstate_et
 {
+	FIBcst_Invalid = -1, // internal use
+	FIBcst_Default = 0,
+
 	FIBcst_Raw = 0,    // as a plain menu command
 	FIBcst_TickOn = 1, // On state mark in front of the menu item
 	FIBcst_TickOff = 2,
@@ -111,6 +115,8 @@ struct FibInput_st
 		// otherwise,user should enable a check-box to start auto-refresh.
 
 	int msecAutoRefresh; // non-zero will enable auto-refresh feature
+
+	bool isInitDetached; // init infobox use hwndOwnerInput as owner(attached) or Desktop as owner(detached)
 
 	int fontsize; // if 0, default to 9
 
@@ -192,6 +198,9 @@ enum FIB_ret
 	FIB_Fail = 4,
 	FIB_NoMem = 5,
 	FIB_BadParam = 6,
+
+	FIB_AgainAttached = 7,
+	FIB_AgainDetached = 8,
 
 	// Invalid param error:
 
