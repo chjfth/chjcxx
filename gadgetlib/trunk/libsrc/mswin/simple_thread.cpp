@@ -33,7 +33,7 @@ _WinThreadWrapper(void * param)
 
 
 ggt_hsimplethread
-ggt_simple_thread_create(PROC_ggt_simple_thread proc, void *param)
+ggt_simple_thread_create(PROC_ggt_simple_thread proc, void *param, int stack_size)
 {
 	HANDLE hThread = NULL;
 	SwThreadParam *pwp = new SwThreadParam;
@@ -44,11 +44,11 @@ ggt_simple_thread_create(PROC_ggt_simple_thread proc, void *param)
 	
 #ifdef _WIN32_WCE
 	DWORD tid;
-	hThread = CreateThread(NULL, 0, _WinThreadWrapper, pwp, 0, &tid);
+	hThread = CreateThread(NULL, stack_size, _WinThreadWrapper, pwp, 0, &tid);
 #else
 	// PC Windows
 	unsigned tid;
-	hThread = (HANDLE)_beginthreadex(NULL, 0 , _WinThreadWrapper, pwp ,0, &tid);
+	hThread = (HANDLE)_beginthreadex(NULL, stack_size, _WinThreadWrapper, pwp ,0, &tid);
 #endif
 	
 	return hThread;
