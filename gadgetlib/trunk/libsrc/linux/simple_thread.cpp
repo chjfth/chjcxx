@@ -31,13 +31,31 @@ _LinuxThreadWrapper(void * param)
 
 
 ggt_hsimplethread 
-ggt_simple_thread_create(PROC_ggt_simple_thread proc, void *param)
+ggt_simple_thread_create(PROC_ggt_simple_thread proc, void *param, int stack_size)
 {
 	SwThreadParam *pwp = new SwThreadParam;
 	pwp->proc = proc;
 	pwp->param = param;
 	
-	int err = pthread_create(&pwp->th, NULL, _LinuxThreadWrapper, pwp);
+	int err = 0;
+	pthread_attr_t attr;
+	
+	if(stack_size>0)
+	{
+		pthread_attr_init(&attr);
+		
+		size_t stksize = stack_size;
+		pthread_attr_setstacksize(&attr, stksize);
+
+		err = pthread_create(&pwp->th, &attr, _LinuxThreadWrapper, pwp);
+
+		pthread_attr_destroy(&attr);
+	}
+	else
+	{
+		err = pthread_create(&pwp->th, NULL, _LinuxThreadWrapper, pwp);
+	}
+
 	if(!err)
 		return pwp;
 	else
