@@ -342,7 +342,7 @@ FIB_ret fcTimeLocalOrUTC(HWND hwnd, LPCTSTR ptext)
 	// ! Define user cmds activated by right-clicking blank area
 	FibUserCmds_st arUserCmds[] =
 	{
-		{FIBcmd_CopyText, FIBcst_Raw, _T("Copy to clipboard")},
+		{FIBcmd_CopyText, FIBcst_Default, _T("Copy to clipboard")},
 		{FIBcmd_DisplayUTC, FIBcst_TickOff, _T("Display time in UTC")},
 	};
 	si.arUserCmds = arUserCmds;
@@ -398,7 +398,7 @@ FIB_ret fcTitleShowTime(HWND hwnd, LPCTSTR ptext)
 	{
 		{FIBcmd_LastTextTimeOnTitle, FIBcst_TickOn, _T("Title show last update time")},
 		{FIBcmd_MenuSeparator}, // only a visual separator
-		{FIBcmd_CopyText, FIBcst_Raw, _T("Copy to clipboard")},
+		{FIBcmd_CopyText, FIBcst_Default, _T("Copy to clipboard")},
 	};
 	si.arUserCmds = arUserCmds;
 	si.nUserCmds = GetEleQuan_i(arUserCmds);
