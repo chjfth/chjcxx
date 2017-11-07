@@ -50,6 +50,7 @@ TestCase_st garCases[] =
 	// Whole parent and whole center-newbox fall outsize all monitors, pick a nearest monitor(3).
 	{ {1420,1514+10, 1620,1514+110},   {200, 100},   {1600,1514-100, 1600+200,1514}, 3 },
 };
+const int g_nCases = COUNT(garCases);
 
 bool verify_ReposNewbox()
 {
@@ -60,7 +61,7 @@ bool verify_ReposNewbox()
 	int failcount = 0;
 
 	int i;
-	for(i=0; i<COUNT(garCases); i++)
+	for(i=0; i<g_nCases; i++)
 	{
 		TestCase_st &cs = garCases[i];
 		input.rectParent = cs.Parent;
