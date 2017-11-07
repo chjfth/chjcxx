@@ -724,6 +724,10 @@ void fib_OnDestroy(HWND hwnd)
 
 	ggt_TooltipDelete(pr->hTooltip);
 
+	fib_StopTimer(hwnd, pr); 
+		// key purpose: to set pr->isTimerOn=false
+		// so that a re-displayed detached/attached infobox will start from a reset value.
+
 	if(pr->hfontEditbox)
 		DeleteObject(pr->hfontEditbox);
 }
