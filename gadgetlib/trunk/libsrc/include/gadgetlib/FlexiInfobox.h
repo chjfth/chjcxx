@@ -58,7 +58,7 @@ enum FIBcmd_et // stock FIB context menu commands
 {
 	FIBcmd_MenuSeparator = 0,
 	FIBcmd_CopyText = -2, // copy info text to clipboard
-	FIBcmd_LastTextTimeOnTitle = -3,
+	FIBcmd_LastTextTimeOnTitle = -3, // user needs to assign timer
 	FIBcmd_DetachFromParent = -4, // So-called 'parent' HWND is actually 'owner'.
 };
 

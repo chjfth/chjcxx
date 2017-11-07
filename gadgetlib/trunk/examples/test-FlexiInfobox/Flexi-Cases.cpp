@@ -423,6 +423,32 @@ FIB_ret fcSwitchAttachDetach(HWND hwnd, LPCTSTR ptext)
 	return ggt_FlexiInfobox(hwnd, &si, ptext);
 }
 
+FibCallback_ret fcSwitchAttachDetach_withTimer_GetText(void *_ctx, 
+	const FibCallback_st &cb_info,
+	TCHAR *textbuf, int bufchars)
+{
+	return FIBcb_OK;
+}
+
+FIB_ret fcSwitchAttachDetach_withTimer(HWND hwnd, LPCTSTR ptext)
+{
+	FibUserCmds_st arUserCmds[] =
+	{
+		{FIBcmd_LastTextTimeOnTitle, FIBcst_TickOn, _T("Title show last update time")},
+		{FIBcmd_DetachFromParent, FIBcst_Default, _T("Detach infobox from parent")},
+	};
+
+	FibInput_st si;
+	si.szBtnOK = _T("&Apple");
+	si.szBtnCancel = _T("&Pear");
+	si.procGetText = fcSwitchAttachDetach_withTimer_GetText;
+	si.msecAutoRefresh = 1000;
+	si.isAutoRefreshNow = true;
+	si.arUserCmds = arUserCmds;
+	si.nUserCmds = GetEleQuan_i(arUserCmds);
+	return ggt_FlexiInfobox(hwnd, &si, ptext);
+}
+
 
 
 Case_st gar_FlexiCases[] = 
@@ -453,6 +479,7 @@ Case_st gar_FlexiCases[] =
 	{ fcTimeLocalOrUTC, _T("Infobox with context menu (right click blank area)") },
 	{ fcTitleShowTime, _T("Title shows last text update time") },
 	{ fcSwitchAttachDetach, _T("Use context menu to switch between attached/detached infobox") },
+	{ fcSwitchAttachDetach_withTimer, _T("Context menu attached/detached and timer") },
 };
 
 void do_Cases(HWND hwnd)
