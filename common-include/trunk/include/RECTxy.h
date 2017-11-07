@@ -1,7 +1,7 @@
 #ifndef __RECTxy_h_20170720_
 #define __RECTxy_h_20170720_
 
-// The Rect struct here is described in .left .top .right .bottom .
+// The Rect_st struct here is described in .left .top .right .bottom .
 // The .right and .bottom value is not inclusive -- same as Windows API RECT.
 // So, rect.right-rect.left is the width, rect.bottom-rect.top is the height.
 
