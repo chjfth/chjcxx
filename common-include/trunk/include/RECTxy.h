@@ -1,14 +1,26 @@
 #ifndef __RECTxy_h_20170720_
 #define __RECTxy_h_20170720_
 
+// The Rect struct here is described in .left .top .right .bottom .
+// The .right and .bottom value is not inclusive -- same as Windows API RECT.
+// So, rect.right-rect.left is the width, rect.bottom-rect.top is the height.
+
 #define RECTxy_Abs(i) ( (i)>=0 ? (i) : 0-(i) )
 
+enum IsRB_et // is right/bottom point
+{
+	RB_No = 0,
+	RB_Yes = 1
+};
 
-inline bool InRange2(int n, const int *pi)
+inline bool InRange2(int n, const int *pi, IsRB_et isrb=RB_No)
 {
 	// If pi points to RECT.left, it will check whether n in range [RECT.left, RECT.right) .
 	// If pi points to RECT.top, it will check whether n in range [RECT.top, RECT.bottom) .
-	return (n>=pi[0] && n<pi[2]) ? true : false;
+	if(!isrb)
+		return (n>=pi[0] && n<pi[2]) ? true : false;
+	else
+		return (n>pi[0] && n<=pi[2]) ? true : false;
 }
 
 struct Rect_st;
@@ -19,9 +31,9 @@ struct Point_st
 {
 	int x, y;
 
-	inline bool InRect(const Rect_st &r) const;
+	inline bool InRect(const Rect_st &r, IsRB_et isrb=RB_No) const;
 
-	inline Pace_st PaceToRect(const Rect_st &r) const;
+	inline Pace_st PaceToRect(const Rect_st &r, IsRB_et isrb=RB_No) const;
 };
 
 struct Size_st
@@ -53,16 +65,20 @@ struct Rect_st // same as Windows API RECT
 };
 
 bool 
-Point_st::InRect(const Rect_st &r) const
+Point_st::InRect(const Rect_st &r, IsRB_et isrb) const
 {
-	bool xInRange = InRange2(x, &r.left);
-	bool yInRange = InRange2(y, &r.top);
+	// isrb: Is this Point a [RECT:right/bottom] point?
+
+	bool xInRange = InRange2(x, &r.left, isrb);
+	bool yInRange = InRange2(y, &r.top, isrb);
 	return (xInRange && yInRange) ? true : false;
 }
 
 Pace_st 
-Point_st::PaceToRect(const Rect_st &r) const
+Point_st::PaceToRect(const Rect_st &r, IsRB_et isrb) const
 {
+	// isrb: Is this Point a [RECT:right/bottom] point?
+	//
 	// Return: 
 	// If ret.x==30, it means this pt should walk toward right 30 pixels to reach the Rect's left border.
 	// If ret.x==-20, it means this pt should walk toward left 20 pixels to reach the Rect's right border.
@@ -70,15 +86,30 @@ Point_st::PaceToRect(const Rect_st &r) const
 
 	Pace_st pace = {0,0};
 
-	if(x<r.left)
-		pace.x = r.left - x;
-	else if(x>=r.right)
-		pace.x = r.right - x -1; // -1 bcz right border not inclusive
+	if(!isrb)
+	{
+		if(x<r.left)
+			pace.x = r.left - x;
+		else if(x>=r.right)
+			pace.x = r.right - x -1; // -1 bcz right border not inclusive
 
-	if(y<r.top)
-		pace.y = r.top - y;
-	else if(y>=r.bottom)
-		pace.y = r.bottom - y -1; // -1 bcz bottom not inclusive
+		if(y<r.top)
+			pace.y = r.top - y;
+		else if(y>=r.bottom)
+			pace.y = r.bottom - y -1; // -1 bcz bottom not inclusive
+	}
+	else
+	{
+		if(x<=r.left)
+			pace.x = r.left - x +1;
+		else if(x>r.right)
+			pace.x = r.right - x;
+
+		if(y<=r.top)
+			pace.y = r.top - y +1;
+		else if(y>r.bottom)
+			pace.y = r.bottom - y;
+	}
 
 	return pace;
 }
@@ -92,8 +123,8 @@ Rect_st::PaceToRect(const Rect_st &rBig)
 	Pace_st paceRet = {0,0};
 
 	// memo: A is this-rect's left-top corner; B is this-rect's right-bottom corner.
-	Pace_st paceA = ((Point_st*)(&this->left))->PaceToRect(rBig);
-	Pace_st paceB = ((Point_st*)(&this->right))->PaceToRect(rBig);
+	Pace_st paceA = ((Point_st*)(&this->left))->PaceToRect(rBig, RB_No);
+	Pace_st paceB = ((Point_st*)(&this->right))->PaceToRect(rBig, RB_Yes);
 
 	// For each pace.x/pace.y, pick the one with larger abs-value.
 	// We pick the "larger" value, bcz it is the pace to move this Rect_st wholly inside rBig.
