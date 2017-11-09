@@ -2,6 +2,7 @@
 #define __dl_winapi_h_20170820_
 
 /*
+dl_winapi.h: dynamic-linking(loading) WinAPI functions when SDK header is lacking
 
 See usage example in https://nlssvn/svnreps/personal/chj/ChjTests/trunk/dl_winapi
 
@@ -11,6 +12,10 @@ Usage Sugguestion: Prepare two files.
 
 This file contains a series of
  
+	#define WIN32_LEAN_AND_MEAN
+	#include <windows.h>
+	#include ... // any other headers required for your dl_xxx function prototype
+	
 	#include "dl_winapi.h"
  
 	DL_MAKE_WINAPI_WRAPPER("foo.dll", ...)
