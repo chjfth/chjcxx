@@ -18,16 +18,16 @@ This file contains a series of
 	
 	#include "dl_winapi.h"
  
-	DL_MAKE_WINAPI_WRAPPER("foo.dll", ...)
-	DL_MAKE_WINAPI_WRAPPER("bar.dll", ...)
+	DL_WINAPI_MAKE_WRAPPER("foo.dll", ...)
+	DL_WINAPI_MAKE_WRAPPER("bar.dll", ...)
 	...
 	
-(2) impl_winapi. cpp
+(2) my_winapi.cpp
 
 The file content is fixed(same for every project):
 
 	// If using StdAfx.h, you should not pre-compile this file.
-	#define DL_MAKE_WINAPI_ImplementWrapperInThisFile
+	#define DL_WINAPI_ImplementWrapperInThisFile
 	#include "my_winapi.h"
 
 */
@@ -39,19 +39,15 @@ extern"C" {
 #endif
 
 
-#define DL_WINAPI_ERROR_FIND_ENTRY 0xEE0000ee
+#define DL_WINAPI_ERROR_FIND_ENTRY 0xE00000ee
 
-#ifdef UNICODE
-#define DL_WINAPI_SUFFIX_AorW(apiname) apiname "W"
-#else
-#define DL_WINAPI_SUFFIX_AorW(apiname) apiname "A"
-#endif
+#define DL_winapi_MAKE_STRING(s) #s
 
-#ifdef DL_MAKE_WINAPI_ImplementWrapperInThisFile
+#ifdef DL_WINAPI_ImplementWrapperInThisFile
 
 // Implement dl_SomeWinApi() function in this compilation unit.
 
-#define DL_MAKE_WINAPI_WRAPPER(dllname, rettype, apiname, _Tparams_, _params_, retval_onfail) \
+#define DL_WINAPI_MAKE_WRAPPER(dllname, rettype, apiname, _Tparams_, _params_, retval_onfail) \
 rettype WINAPI dl_ ## apiname _Tparams_ \
 { \
 	typedef rettype (WINAPI * PROC_ThisApi) _Tparams_; \
@@ -59,7 +55,7 @@ rettype WINAPI dl_ ## apiname _Tparams_ \
 	if(!s_func) { \
 		HMODULE hDll = LoadLibrary(_T(dllname)); \
 		if(!hDll) return retval_onfail; \
-		s_func = (PROC_ThisApi)GetProcAddress(hDll, #apiname); \
+		s_func = (PROC_ThisApi)GetProcAddress(hDll, DL_winapi_MAKE_STRING(apiname)); \
 		if(!s_func) return retval_onfail; \
 	} \
 	return (*s_func) _params_; \
@@ -69,7 +65,7 @@ rettype WINAPI dl_ ## apiname _Tparams_ \
 
 // Only make a function declaration of dl_SomeWinApi()
 
-#define DL_MAKE_WINAPI_WRAPPER(dllname, rettype, apiname, _Tparams_, _params_, retval_onfail) \
+#define DL_WINAPI_MAKE_WRAPPER(dllname, rettype, apiname, _Tparams_, _params_, retval_onfail) \
 	rettype WINAPI dl_ ## apiname _Tparams_ ; \
 
 
@@ -78,9 +74,9 @@ rettype WINAPI dl_ ## apiname _Tparams_ \
 /// END ///
 
 
-#if 0
+#if 0 // Example:
 /*
-	DL_MAKE_WINAPI_WRAPPER("user32.dll", int, MessageBoxW,
+	DL_WINAPI_MAKE_WRAPPER("user32.dll", int, MessageBoxW,
 		(HWND hWnd, LPCTSTR lpText, LPCTSTR lpCaption, UINT uType),
 		(hWnd, lpText, lpCaption, uType),
 		-2)
