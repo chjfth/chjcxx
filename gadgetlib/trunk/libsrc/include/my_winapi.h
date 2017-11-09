@@ -1,6 +1,7 @@
 #ifndef __my_winapi_h_
 #define __my_winapi_h_
 
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <Uxtheme.h>
 #include <ShlObj.h>
@@ -25,7 +26,7 @@ DL_MAKE_WINAPI_WRAPPER("user32.dll", int, MessageBoxW,
 DL_MAKE_WINAPI_WRAPPER("uxtheme.dll", HRESULT, GetBufferedPaintBits,
 	(HPAINTBUFFER hBufferedPaint,__out RGBQUAD **ppbBuffer, __out int *pcxRow),
 	(hBufferedPaint, ppbBuffer, pcxRow),
-	hrERR_DL_ENTRY);
+	hrERR_DL_ENTRY)
 
 DL_MAKE_WINAPI_WRAPPER("uxtheme.dll", HPAINTBUFFER, BeginBufferedPaint,
 	(HDC hdcTarget, const RECT* prcTarget, BP_BUFFERFORMAT dwFormat, __in_opt BP_PAINTPARAMS *pPaintParams, __out HDC *phdc),
@@ -36,7 +37,7 @@ DL_MAKE_WINAPI_WRAPPER("uxtheme.dll", HPAINTBUFFER, BeginBufferedPaint,
 DL_MAKE_WINAPI_WRAPPER("uxtheme.dll", HRESULT, EndBufferedPaint,
 	(HPAINTBUFFER hBufferedPaint, BOOL fUpdateTarget),
 	(hBufferedPaint, fUpdateTarget),
-	hrERR_DL_ENTRY);
+	hrERR_DL_ENTRY)
 
 
 DL_MAKE_WINAPI_WRAPPER("comctl32.dll", HRESULT, LoadIconMetric,
