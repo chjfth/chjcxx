@@ -6,7 +6,7 @@ dl_winapi.h: dynamic-linking(loading) WinAPI functions when SDK header is lackin
 
 See usage example in https://nlssvn/svnreps/personal/chj/ChjTests/trunk/dl_winapi
 
-Usage Sugguestion: Prepare two files.
+Usage Suggestion: Prepare two files.
 
 (1) my_winapi.h
 
