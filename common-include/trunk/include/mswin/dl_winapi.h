@@ -38,13 +38,13 @@ The file content is fixed(same for every project):
 extern"C" {
 #endif
 
-#define WINAPI_FAIL_0    // as retval_onfail
-#define WINAPI_FAIL_NULL // as retval_onfail
+
+#define DL_WINAPI_ERROR_FIND_ENTRY 0xEE0000ee
 
 #ifdef UNICODE
-#define WINAPI_SUFFIX_AorW(apiname) apiname "W"
+#define DL_WINAPI_SUFFIX_AorW(apiname) apiname "W"
 #else
-#define WINAPI_SUFFIX_AorW(apiname) apiname "A"
+#define DL_WINAPI_SUFFIX_AorW(apiname) apiname "A"
 #endif
 
 #ifdef DL_MAKE_WINAPI_ImplementWrapperInThisFile
