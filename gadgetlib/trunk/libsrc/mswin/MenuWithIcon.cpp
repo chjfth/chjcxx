@@ -300,7 +300,7 @@ vista_AttachIconToMenuitem(HINSTANCE hInstExeDll, LPCTSTR iconResId, HMENU hmenu
 	}
 	else 
 	{
-		if(hr==hrERR_DL_ENTRY)
+		if(hr==DL_WINAPI_ERROR_FIND_ENTRY)
 			return LIE_LoadIconMetric;
 		else
 			return LIE_LoadIcon;

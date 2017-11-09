@@ -32,7 +32,7 @@
     <ClCompile Include="..\..\libsrc\mswin\enum_monitors.cpp" />
     <ClCompile Include="..\..\libsrc\mswin\fstream64.cpp" />
     <ClCompile Include="..\..\libsrc\mswin\getch.cpp" />
-    <ClCompile Include="..\..\libsrc\mswin\impl_winapi.cpp">
+    <ClCompile Include="..\..\libsrc\mswin\my_winapi.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Unicode|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Unicode|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='ANSI|Win32'">NotUsing</PrecompiledHeader>

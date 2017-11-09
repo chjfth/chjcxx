@@ -39,9 +39,6 @@
     <ClCompile Include="..\..\libsrc\T_string.cpp" />
     <ClCompile Include="..\..\libsrc\time-common.cpp" />
     <ClCompile Include="..\..\libsrc\ReposNewbox.cpp" />
-    <ClCompile Include="..\..\libsrc\mswin\impl_winapi.cpp">
-      <Filter>mswin</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\libsrc\mswin\MenuWithIcon.cpp">
       <Filter>mswin</Filter>
     </ClCompile>
@@ -57,6 +54,9 @@
       <Filter>mswin</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libsrc\mswin\getch.cpp">
+      <Filter>mswin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\mswin\my_winapi.cpp">
       <Filter>mswin</Filter>
     </ClCompile>
   </ItemGroup>
