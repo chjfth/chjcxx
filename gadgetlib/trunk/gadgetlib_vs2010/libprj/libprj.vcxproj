@@ -44,6 +44,7 @@
     <ClCompile Include="..\..\libsrc\mswin\wintime.cpp" />
     <ClCompile Include="..\..\libsrc\mswin\wintooltip.cpp" />
     <ClCompile Include="..\..\libsrc\ReposNewbox.cpp" />
+    <ClCompile Include="..\..\libsrc\textcrlf.cpp" />
     <ClCompile Include="..\..\libsrc\time-common.cpp" />
     <ClCompile Include="..\..\libsrc\T_string.cpp" />
     <ClCompile Include="..\..\libsrc\unstraddle_dlgbox.cpp" />
@@ -72,6 +73,7 @@
     <ClInclude Include="..\..\libsrc\include\gadgetlib\MenuWithIcon.h" />
     <ClInclude Include="..\..\libsrc\include\gadgetlib\ReposNewbox.h" />
     <ClInclude Include="..\..\libsrc\include\gadgetlib\simple_thread.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\textcrlf.h" />
     <ClInclude Include="..\..\libsrc\include\gadgetlib\timefuncs.h" />
     <ClInclude Include="..\..\libsrc\include\gadgetlib\T_string.h" />
     <ClInclude Include="..\..\libsrc\include\gadgetlib\unstraddle_dlgbox.h" />

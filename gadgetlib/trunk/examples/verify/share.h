@@ -8,6 +8,8 @@ extern"C" {
 
 void verify_timefuncs();
 
+void verify_textcrlf();
+
 bool verify_ReposNewbox();
 
 

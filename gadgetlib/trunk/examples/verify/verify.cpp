@@ -36,6 +36,8 @@ int main()
 
 	test_printf();
 
+	verify_textcrlf();
+
 	verify_timefuncs();
 
 	succ = verify_ReposNewbox();
