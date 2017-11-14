@@ -179,7 +179,7 @@ public:
 };
 
 template<typename USER_TYPE, typename RET_TYPE, RET_TYPE (*pfn)(USER_TYPE), USER_TYPE valInvalid> 
-class CEnsureCleanupIntArray
+class CEnsureCleanupIntArray // Should give it a better name: no 'Int' in name.
 {
 	int m_ArraySize;
 	USER_TYPE *m_ar;           // This member representing the object array ptr
@@ -223,16 +223,16 @@ public:
 	// pCleanupFunction will later be replaced by _EnsureClnup_cpp_delete<PTR_TYPE> which would 
 	// otherwise result in a bogus >> operator .
 
-#define MakeCleanupClass(CecClassName, RET_TYPE_of_CleanupFunction, pCleanupFunction, DATA_TYPE, IntValueInvalid) \
-	typedef CEnsureCleanupData<DATA_TYPE, RET_TYPE_of_CleanupFunction, pCleanupFunction, IntValueInvalid> CecClassName;
+#define MakeCleanupClass(CecClassName, RET_TYPE_of_CleanupFunction, pCleanupFunction, DATA_TYPE, ValueInvalid) \
+	typedef CEnsureCleanupData<DATA_TYPE, RET_TYPE_of_CleanupFunction, pCleanupFunction, ValueInvalid> CecClassName;
 
 #define MakeCleanupPtrClass_winapi(CecClassName, RetType, pCleanupFunction, PTR_TYPE) \
 	inline RetType pCleanupFunction ## _Ptr__plain(PTR_TYPE ptr){ return pCleanupFunction(ptr); } \
 	typedef CEnsureCleanupPtr< PTR_TYPE, RetType, pCleanupFunction ## _Ptr__plain > CecClassName;
 
-#define MakeCleanupClass_winapi(CecClassName, RetType, pCleanupFunction, DATA_TYPE, IntValueInvalid) \
+#define MakeCleanupClass_winapi(CecClassName, RetType, pCleanupFunction, DATA_TYPE, ValueInvalid) \
 	inline RetType pCleanupFunction ## __plain(DATA_TYPE h){ return pCleanupFunction(h); } \
-	typedef CEnsureCleanupData<DATA_TYPE, RetType, pCleanupFunction ## __plain, IntValueInvalid> CecClassName;
+	typedef CEnsureCleanupData<DATA_TYPE, RetType, pCleanupFunction ## __plain, ValueInvalid> CecClassName;
 	// MakeCleanupClass_winapi provide a non-__stdcall wrapper so that CEnsureCleanupData can be used smoothly.
 
 
