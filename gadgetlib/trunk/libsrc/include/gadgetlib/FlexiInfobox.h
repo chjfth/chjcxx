@@ -54,7 +54,7 @@ struct FibCallback_st
 
 //#define FIB_NoButton _T("")
 
-enum FIBcmd_et // stock FIB context menu commands
+enum FIBcmd_et // stock FIB context menu commands, use negative numbers so that user can use positives.
 {
 	FIBcmd_MenuSeparator = 0,
 	FIBcmd_CopyText = -2, // copy info text to clipboard

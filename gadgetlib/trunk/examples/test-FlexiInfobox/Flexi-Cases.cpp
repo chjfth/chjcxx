@@ -286,7 +286,7 @@ FIB_ret fcCountDownClose(HWND hwnd, LPCTSTR ptext)
 }
 
 
-enum { FIBcmd_DisplayUTC = 100  };
+enum { fibcmd_DisplayUTC = 1  };
 //
 struct fcTimeLocalOrUTC_st
 {
@@ -301,7 +301,7 @@ FibCallback_ret fcTimeLocalOrUTC_GetText(void *_ctx,
 
 	if(cb_info.reason==FIBReason_UserCmd) // !
 	{
-		if(cb_info.idUserCmd==FIBcmd_DisplayUTC)
+		if(cb_info.idUserCmd==fibcmd_DisplayUTC)
 		{
 			isutc = cb_info.isTickOn ? true : false;
 		}
@@ -342,7 +342,7 @@ FIB_ret fcTimeLocalOrUTC(HWND hwnd, LPCTSTR ptext)
 	FibUserCmds_st arUserCmds[] =
 	{
 		{FIBcmd_CopyText, FIBcst_Default, _T("Copy to clipboard")},
-		{FIBcmd_DisplayUTC, FIBcst_TickOff, _T("Display time in UTC")},
+		{fibcmd_DisplayUTC, FIBcst_TickOff, _T("Display time in UTC")},
 	};
 	si.arUserCmds = arUserCmds;
 	si.nUserCmds = GetEleQuan_i(arUserCmds);
@@ -428,7 +428,7 @@ FibCallback_ret fcSwitchAttachDetach_withTimer_GetText(void *_ctx,
 {
 	return FIBcb_OK;
 }
-
+//
 FIB_ret fcSwitchAttachDetach_withTimer(HWND hwnd, LPCTSTR ptext)
 {
 	FibUserCmds_st arUserCmds[] =
@@ -446,6 +446,66 @@ FIB_ret fcSwitchAttachDetach_withTimer(HWND hwnd, LPCTSTR ptext)
 	si.arUserCmds = arUserCmds;
 	si.nUserCmds = GetEleQuan_i(arUserCmds);
 	return ggt_FlexiInfobox(hwnd, &si, ptext);
+}
+
+enum { fibcmd_EnableCancel = 1 } ;
+struct fcDenyCancelSoft_st
+{
+	bool enable_cancel;
+};
+//
+FibCallback_ret fcDenyCancelSoft_GetText(void *ctx, 
+	const FibCallback_st &cb_info,
+	TCHAR *textbuf, int bufchars)
+{
+	bool &en_cancel = ((fcDenyCancelSoft_st*)ctx)->enable_cancel;
+	if(cb_info.reason==FIBReason_CancelBtn)
+	{
+		if(!en_cancel)
+		{
+			ggt_vaFlexiInfo(cb_info.hDlg, _T("Cancel button cannot be used now."));
+			return FIBcb_Fail;
+		}
+	}
+	else if(cb_info.reason==FIBReason_UserCmd) 
+	{
+		if(cb_info.idUserCmd==fibcmd_EnableCancel)
+		{
+			if(cb_info.isTickOn)
+			{
+				SetDlgItemText(cb_info.hDlg, IDCANCEL, _T("&Cancel")); // tweak with hDlg
+				en_cancel = true;
+			}
+			else
+			{
+				SetDlgItemText(cb_info.hDlg, IDCANCEL, _T("&No cancel")); // tweak with hDlg
+				en_cancel = false;
+			}
+		}
+	}
+	
+	return FIBcb_OK;
+}
+//
+FIB_ret fcDenyCancelSoft(HWND hwnd, LPCTSTR ptext)
+{
+	FibUserCmds_st arUserCmds[] =
+	{
+		{fibcmd_EnableCancel, FIBcst_TickOff, _T("Enable Cancel button")},
+	};
+
+	FibInput_st si;
+	si.szBtnOK = _T("&OK");
+	si.szBtnCancel = _T("&No Cancel");
+	si.procGetText = fcDenyCancelSoft_GetText;
+	fcDenyCancelSoft_st ctx = {false};
+	si.ctxGetText = &ctx;
+	si.arUserCmds = arUserCmds;
+	si.nUserCmds = GetEleQuan_i(arUserCmds);
+
+	return ggt_vaFlexiInfobox(hwnd, &si, _T("%s\n\n%s"), ptext,
+		_T("Cancel button is now disabled. Use context menu to enable it.\n\n")
+		);
 }
 
 
@@ -479,6 +539,8 @@ Case_st gar_FlexiCases[] =
 	{ fcTitleShowTime, _T("Title shows last text update time") },
 	{ fcSwitchAttachDetach, _T("Use context menu to switch between attached/detached infobox") },
 	{ fcSwitchAttachDetach_withTimer, _T("Context menu attached/detached and timer") },
+
+	{ fcDenyCancelSoft, _T("Deny Cancel button, but can be enabled") },
 };
 
 void do_Cases(HWND hwnd)
