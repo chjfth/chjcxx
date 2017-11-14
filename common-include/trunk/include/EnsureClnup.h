@@ -82,20 +82,27 @@ public:
 };
 
 
-template<class INT_TYPE, class RET_TYPE, RET_TYPE (*pfn)(INT_TYPE), INT_TYPE tInvalid> 
-class CEnsureCleanupInt
+// CHJ MEMO: CEnsureCleanupData's DATA_TYPE can be specialized to any type, 
+// including any pointer-type like void*, char*, MyClass* etc.
+// In other word, it can supercede CEnsureCleanupPtr, and it is really so for Visual C++ 98 and above.
+// However, CEnsureCleanupPtr exists to cope with GCC(3.4~4.8~...)'s long existing stubborn stupid behavior of 
+//
+//		error: could not convert template argument '0' to 'void*'
+//
+template<class DATA_TYPE, class RET_TYPE, RET_TYPE (*pfn)(DATA_TYPE), DATA_TYPE tInvalid> 
+class CEnsureCleanupData
 {
-	INT_TYPE m_t;           // The member representing the object
+	DATA_TYPE m_t;           // The member representing the object
 
 public:
 	// Default constructor assumes an invalid value (nothing to cleanup)
-	CEnsureCleanupInt() { m_t = tInvalid; }
+	CEnsureCleanupData() { m_t = tInvalid; }
 	
 	// This constructor sets the value to the specified value
-	CEnsureCleanupInt(INT_TYPE t) : m_t(t) { }
+	CEnsureCleanupData(DATA_TYPE t) : m_t(t) { }
 	
 	// The destructor performs the cleanup.
-	~CEnsureCleanupInt() { Cleanup(); }
+	~CEnsureCleanupData() { Cleanup(); }
 	
 	// Helper methods to tell if the value represents a valid object or not..
 	bool IsValid() { return(m_t != tInvalid); }
@@ -104,7 +111,7 @@ public:
 	bool operator !(){ return !IsValid(); }
 	
 	// Re-assigning the object forces the current object to be cleaned-up.
-	INT_TYPE operator=(INT_TYPE t) 
+	DATA_TYPE operator=(DATA_TYPE t) 
 	{ 
 		Cleanup(); 
 		m_t = t;
@@ -112,7 +119,7 @@ public:
 	}
 	
 	// Returns the value (supports both 32-bit and 64-bit Windows).
-	operator INT_TYPE() 
+	operator DATA_TYPE() 
 	{ 
 		return m_t;
 	}
@@ -216,17 +223,17 @@ public:
 	// pCleanupFunction will later be replaced by _EnsureClnup_cpp_delete<PTR_TYPE> which would 
 	// otherwise result in a bogus >> operator .
 
-#define MakeCleanupIntClass(CecClassName, RET_TYPE_of_CleanupFunction, pCleanupFunction, INT_TYPE, IntValueInvalid) \
-	typedef CEnsureCleanupInt<INT_TYPE, RET_TYPE_of_CleanupFunction, pCleanupFunction, IntValueInvalid> CecClassName;
+#define MakeCleanupClass(CecClassName, RET_TYPE_of_CleanupFunction, pCleanupFunction, DATA_TYPE, IntValueInvalid) \
+	typedef CEnsureCleanupData<DATA_TYPE, RET_TYPE_of_CleanupFunction, pCleanupFunction, IntValueInvalid> CecClassName;
 
 #define MakeCleanupPtrClass_winapi(CecClassName, RetType, pCleanupFunction, PTR_TYPE) \
 	inline RetType pCleanupFunction ## _Ptr__plain(PTR_TYPE ptr){ return pCleanupFunction(ptr); } \
 	typedef CEnsureCleanupPtr< PTR_TYPE, RetType, pCleanupFunction ## _Ptr__plain > CecClassName;
 
-#define MakeCleanupIntClass_winapi(CecClassName, RetType, pCleanupFunction, INT_TYPE, IntValueInvalid) \
-	inline RetType pCleanupFunction ## _Int__plain(INT_TYPE h){ return pCleanupFunction(h); } \
-	typedef CEnsureCleanupInt<INT_TYPE, RetType, pCleanupFunction ## _Int__plain, IntValueInvalid> CecClassName;
-	// MakeCleanupIntClass_winapi provide a non-__stdcall wrapper so that CEnsureCleanupInt can be used smoothly.
+#define MakeCleanupClass_winapi(CecClassName, RetType, pCleanupFunction, DATA_TYPE, IntValueInvalid) \
+	inline RetType pCleanupFunction ## __plain(DATA_TYPE h){ return pCleanupFunction(h); } \
+	typedef CEnsureCleanupData<DATA_TYPE, RetType, pCleanupFunction ## __plain, IntValueInvalid> CecClassName;
+	// MakeCleanupClass_winapi provide a non-__stdcall wrapper so that CEnsureCleanupData can be used smoothly.
 
 
 //
@@ -290,7 +297,7 @@ MakeCleanupPtrClass(Cec_NewMemory, void, _EnsureClnup_cpp_delete_pvoid, void*)
 
 /* Some usage examples:
 
-MakeCleanupIntClass(Cec_LibcFh, int, close, int, -1)
+MakeCleanupClass(Cec_LibcFh, int, close, int, -1)
 	// Use ` int close(int); ' to cleanup a file handle opened by 
 	// ` int open (const char *, int, ...); ' , and the invalid(default) value is -1 .
 
@@ -301,7 +308,7 @@ MakeCleanupPtrClass(Cec_pVoid, void, free, void*)
 // Windows API examples:
 MakeCleanupPtrClass_winapi(Cec_PTRHANDLE, BOOL, CloseHandle, HANDLE);
 	// This is for OpenProcess, who returns NULL as fail.
-MakeCleanupIntClass_winapi(Cec_FILEHANDLE, BOOL, CloseHandle, HANDLE, INVALID_HANDLE_VALUE); 
+MakeCleanupClass_winapi(Cec_FILEHANDLE, BOOL, CloseHandle, HANDLE, INVALID_HANDLE_VALUE); 
 	// This is for CreateFile, who returns INVALID_HANDLE_VALUE as fail. Damn M$.
 
 

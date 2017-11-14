@@ -9,7 +9,7 @@
 
 MakeCleanupPtrClass_winapi(Cec_PTRHANDLE, BOOL, CloseHandle, HANDLE)
 	// This is for CreateEvent,OpenProcess, who return NULL as fail.
-MakeCleanupIntClass_winapi(Cec_FILEHANDLE, BOOL, CloseHandle, HANDLE, INVALID_HANDLE_VALUE)
+MakeCleanupClass_winapi(Cec_FILEHANDLE, BOOL, CloseHandle, HANDLE, INVALID_HANDLE_VALUE)
 	// This is for CreateFile, who returns INVALID_HANDLE_VALUE as fail. Damn M$.
 
 MakeCleanupPtrClass_winapi(Cec_HKEY, LONG, RegCloseKey, HKEY)
@@ -28,9 +28,9 @@ MakeCleanupPtrClass_winapi(Cec_DestroyIcon, BOOL, DestroyIcon, HICON)
 
 #ifdef _INC_SETUPAPI // #include <setupapi.h>
 
-MakeCleanupIntClass_winapi(Cec_HDEVINFO, BOOL, SetupDiDestroyDeviceInfoList, HDEVINFO, INVALID_HANDLE_VALUE)
+MakeCleanupClass_winapi(Cec_HDEVINFO, BOOL, SetupDiDestroyDeviceInfoList, HDEVINFO, INVALID_HANDLE_VALUE)
 
-MakeCleanupIntClass_winapi(Cec_SetupDiHKEY, LONG, RegCloseKey, HKEY, (HKEY)INVALID_HANDLE_VALUE)
+MakeCleanupClass_winapi(Cec_SetupDiHKEY, LONG, RegCloseKey, HKEY, (HKEY)INVALID_HANDLE_VALUE)
 	// for SetupDiOpenDevRegKey
 	// Note: We need to write '(HKEY)INVALID_HANDLE_VALUE', otherwise we get VS2010 cl.exe error:
 	// error C2440: 'specialization' : cannot convert from 'HANDLE' to 'HKEY'
