@@ -137,6 +137,34 @@ typedef int YorN;
 	// NOTE: ENUM_ENABLE_BITWISE_OR should normally be used in global scope, not in a class definition.
 #endif // #ifdef __cplusplus
 
+
+
+
+#define MAKE_LSTRING_FROM_STRING_pass2(s) L ## s
+#define MAKE_LSTRING_FROM_STRING(s) MAKE_LSTRING_FROM_STRING_pass2(s)
+
+#define MAKE_STRING_FROM_SYMBOL_pass2(s) #s
+#define MAKE_STRING_FROM_SYMBOL(s) MAKE_STRING_FROM_SYMBOL_pass2(s)
+
+#define MAKE_LSTRING_FROM_SYMBOL_pass2(s) L ## #s
+#define MAKE_LSTRING_FROM_SYMBOL(s) MAKE_LSTRING_FROM_SYMBOL_pass2(s)
+
+//Usage example:
+//
+//#define MY_STRA "jimm"
+//#define MY_STRW      MAKE_LSTRING_FROM_STRING(MY_STRA)
+//const wchar_t ws[] = MY_STRW; // const wchar_t ws[] = L"jimm"; 
+//
+//#define NAME_SYMBOL jimm chen    // value may be passed in from cmdline argument
+//#define MY_NAMEA  MAKE_STRING_FROM_SYMBOL(NAME_SYMBOL)
+//#define MY_NAMEW  MAKE_LSTRING_FROM_SYMBOL(NAME_SYMBOL)
+//
+//const char    namea[] = MY_NAMEA;
+//const wchar_t namew[] = MY_NAMEW; // const wchar_t namew[] = L"jimm chen"; 
+
+
+
+
 #endif // #ifndef __CHJ_COMMDEFS_H
 
 
