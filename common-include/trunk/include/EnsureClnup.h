@@ -16,14 +16,14 @@
 	// Outter headers check this macro and offer to define MakeCleanupPtrClass(...) for user.
 
 
-template<typename PTR_TYPE, typename RET_TYPE, RET_TYPE (*pfn)(PTR_TYPE)> 
+template<typename PTR_TYPE, typename RET_TYPE, RET_TYPE (*pfn)(PTR_TYPE), PTR_TYPE invalid=NULL>
 class CEnsureCleanupPtr
 {
 	PTR_TYPE m_t;           // The member representing the object
 
 public:
 	// Default constructor assumes an invalid value (nothing to cleanup)
-	CEnsureCleanupPtr() { m_t = NULL; }
+	CEnsureCleanupPtr() { m_t = invalid; }
 	
 	// This constructor sets the value to the specified value
 	CEnsureCleanupPtr(PTR_TYPE t) : m_t(t) { }
@@ -32,7 +32,7 @@ public:
 	~CEnsureCleanupPtr() { Cleanup(); }
 	
 	// Helper methods to tell if the value represents a valid object or not..
-	bool IsValid() { return(m_t != NULL); }
+	bool IsValid() { return(m_t != invalid); }
 	bool IsInvalid() { return(!IsValid()); }
 	operator bool(){ return IsValid(); }
 	bool operator !(){ return !IsValid(); }
@@ -211,7 +211,7 @@ public:
 
 
 #define MakeCleanupPtrClass(CecClassName, RET_TYPE_of_CleanupFunction, pCleanupFunction, PTR_TYPE) \
-	typedef CEnsureCleanupPtr< PTR_TYPE, RET_TYPE_of_CleanupFunction, pCleanupFunction > CecClassName;
+	typedef CEnsureCleanupPtr< PTR_TYPE, RET_TYPE_of_CleanupFunction, pCleanupFunction, NULL > CecClassName;
 	// Note: There should be a space between pCleanupfunction and the right angle bracket, because
 	// pCleanupFunction will later be replaced by _EnsureClnup_cpp_delete<PTR_TYPE> which would 
 	// otherwise result in a bogus >> operator .
@@ -221,7 +221,12 @@ public:
 
 #define MakeCleanupPtrClass_winapi(CecClassName, RetType, pCleanupFunction, PTR_TYPE) \
 	inline RetType pCleanupFunction ## _Ptr__plain(PTR_TYPE ptr){ return pCleanupFunction(ptr); } \
-	typedef CEnsureCleanupPtr< PTR_TYPE, RetType, pCleanupFunction ## _Ptr__plain > CecClassName;
+	typedef CEnsureCleanupPtr< PTR_TYPE, RetType, pCleanupFunction ## _Ptr__plain, NULL > CecClassName;
+
+// _siv: special invalid value
+#define MakeCleanupPtrClass_winapi_siv(CecClassName, RetType, pCleanupFunction, PTR_TYPE, InvalidVal) \
+	inline RetType pCleanupFunction ## _Ptr_siv__plain(PTR_TYPE ptr){ return pCleanupFunction(ptr); } \
+	typedef CEnsureCleanupPtr< PTR_TYPE, RetType, pCleanupFunction ## _Ptr_siv__plain, InvalidVal> CecClassName;
 
 #define MakeCleanupIntClass_winapi(CecClassName, RetType, pCleanupFunction, INT_TYPE, IntValueInvalid) \
 	inline RetType pCleanupFunction ## _Int__plain(INT_TYPE h){ return pCleanupFunction(h); } \

@@ -9,7 +9,7 @@
 
 MakeCleanupPtrClass_winapi(Cec_PTRHANDLE, BOOL, CloseHandle, HANDLE)
 	// This is for CreateEvent,OpenProcess, who return NULL as fail.
-MakeCleanupIntClass_winapi(Cec_FILEHANDLE, BOOL, CloseHandle, HANDLE, INVALID_HANDLE_VALUE)
+MakeCleanupPtrClass_winapi_siv(Cec_FILEHANDLE, BOOL, CloseHandle, HANDLE, INVALID_HANDLE_VALUE)
 	// This is for CreateFile, who returns INVALID_HANDLE_VALUE as fail. Damn M$.
 
 MakeCleanupPtrClass_winapi(Cec_HKEY, LONG, RegCloseKey, HKEY)
