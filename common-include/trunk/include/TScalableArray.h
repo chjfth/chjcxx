@@ -585,9 +585,9 @@ TScalableArray<T>::Free(void *ptr)
 		return;
 
 #ifdef TScalableArray_free
-	return TScalableArray_free(ptr);
+	TScalableArray_free(ptr);
 #else
-	return free(ptr); // Call standard CRT
+	free(ptr); // Call standard CRT
 #endif
 
 }
