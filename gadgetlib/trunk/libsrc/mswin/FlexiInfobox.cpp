@@ -262,12 +262,6 @@ void FibDlgParams_st::SetCustomFocus(HWND hdlg)
 	}
 }
 
-template<typename T>
-bool Is_TsaErr(T err) // change to IsTsaErr for new common-include 
-{ 
-	return err ? true : false; 
-}
-
 void FibDlgParams_st::SetMyText(HWND hdlg)
 {
 	assert(textbuf);
@@ -279,7 +273,7 @@ void FibDlgParams_st::SetMyText(HWND hdlg)
 	int nreq_ = 1 + ggt_normalize_crlf(textbuf, m_saNormText, nspace, _T("\r\n"));
 	if(nreq_>nspace)
 	{
-		if( Is_TsaErr(m_saNormText.SetEleQuan(nreq_)) )
+		if( IsTsaErr(m_saNormText.SetEleQuan(nreq_)) )
 		{
 			mm_snprintf(textbuf, bufchars, _T("No memory!"));
 			return;
