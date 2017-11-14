@@ -207,6 +207,8 @@ enum FIB_ret
 //	FIB_OnlyClosedByProgram_but_NoCallback = 10,
 };
 
+enum { FlexiInfobox_TextMax = 1024000 };
+
 DLLEXPORT_gadgetlib
 FIB_ret ggt_FlexiInfobox(
 	HWND hwndOwner, const FibInput_st *p_usr_opt, const TCHAR *pszInfo);

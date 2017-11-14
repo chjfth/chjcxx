@@ -114,7 +114,7 @@ FIB_ret fcDelayClose(HWND hwnd, LPCTSTR ptext)
 FIB_ret fcUseNoButtons(HWND hwnd, LPCTSTR ptext)
 {
 	FibInput_st si;
-	return ggt_vaFlexiInfobox(hwnd, &si, _T("%s\r\n\r\n%s"), ptext,
+	return ggt_vaFlexiInfobox(hwnd, &si, _T("%s\n\n%s"), ptext,
 		_T("Use Close nib or Alt+F4 to close this infobox."));
 }
 
@@ -133,7 +133,7 @@ FIB_ret fcDenyCancel(HWND hwnd, LPCTSTR ptext)
 	si.szBtnOK = _T("&OK");
 	si.szBtnCancel = _T("No &Cancel");
 	si.procGetText = fcDenyCancel_GetText;
-	return ggt_vaFlexiInfobox(hwnd, &si, _T("%s\r\n\r\n%s"), ptext,
+	return ggt_vaFlexiInfobox(hwnd, &si, _T("%s\n\n%s"), ptext,
 		_T("You can only click OK to close this infobox."));
 }
 
@@ -185,7 +185,7 @@ FibCallback_ret fcRefreshable_GetText(void *_ctx,
 
 		ctx.count++;
 		mm_strcat(textbuf, bufchars, 
-			_T("[%2d]%.*s\r\n"), 
+			_T("[%2d]%.*s\n"), 
 			ctx.count, ctx.count, ctx.ptn);
 	}
 	return FIBcb_OK;
@@ -259,7 +259,6 @@ FibCallback_ret fcCountDownClose_GetText(void *_ctx,
 	{
 		mm_snprintf(textbuf, bufchars, 
 			_T("Wait %d seconds before this infobox closes itself."), 
-//			_T("\r\n\r\n\r\n\r\n\r\n\r\n\r\nWait %d seconds before this infobox closes itself."), 
 			msec_remain/1000+1);
 		return FIBcb_Fail;
 	}
@@ -375,7 +374,7 @@ FibCallback_ret fcTitleShowTime_GetText(void *_ctx,
 	ggt_localtime(uesecNow, &tmnow);
  	mm_snprintf(textbuf, bufchars, 
  		_T("Now local time %02d:%02d:%02d (refresh every 5 seconds)")
- 		_T("\r\n\r\n(hint: right click blank area to toggle title time stamp)"),
+ 		_T("\n\n(hint: right click blank area to toggle title time stamp)"),
  		tmnow.tm_hour, tmnow.tm_min, tmnow.tm_sec);
 	return FIBcb_OK;
 }

@@ -1,6 +1,7 @@
 #include "stdafx.h"
 
 #include <_MINMAX_.h>
+#include <TScalableArray.h>
 #include <EnsureClnup_common.h>
 #include <EnsureClnup_mswin.h>
 #include <AutoBuf.h>
@@ -9,12 +10,12 @@
 #include <mswin/CmnHdr-Jeffrey.h>
 
 #include <gadgetlib/clipboard.h>
-
 #include <gadgetlib/timefuncs.h>
 #include <gadgetlib/enum_monitors.h>
 #include <gadgetlib/ReposNewbox.h>
 #include <gadgetlib/unstraddle_dlgbox.h>
 #include <gadgetlib/wintooltip.h>
+#include <gadgetlib/textcrlf.h>
 
 #include <gadgetlib/FlexiInfobox_ids.h>
 #include <gadgetlib/FlexiInfobox.h>
@@ -72,7 +73,7 @@ struct FibDlgParams_st
 {
 	// Input params from caller:
 	const TCHAR *input_title;
-	TCHAR *textbuf;
+	TCHAR *textbuf; // can use \n as line-separator
 	int bufchars;
 	HICON hIconUser;
 	HICON hIconFail;
@@ -134,6 +135,8 @@ struct FibDlgParams_st
 //	FibAgain_et again;
 
 	JULayout jul; 
+
+	TScalableArray<TCHAR> m_saNormText; // Text here will have \r\n as line-separator.
 
 public:
 	FibDlgParams_st(const FibInput_st &in, HWND hwndOwner, const TCHAR *pszInfo); // called in in_FlexiInfobox()
@@ -221,6 +224,8 @@ FibDlgParams_st::FibDlgParams_st(const FibInput_st &in, HWND hwndOwner, const TC
 			}
 		}
 	}
+
+	m_saNormText.Init(FlexiInfobox_TextMax, 84, 2048, 4096);
 }
 
 void FibDlgParams_st::SetCustomFocus(HWND hdlg)
@@ -257,11 +262,32 @@ void FibDlgParams_st::SetCustomFocus(HWND hdlg)
 	}
 }
 
+template<typename T>
+bool Is_TsaErr(T err) // change to IsTsaErr for new common-include 
+{ 
+	return err ? true : false; 
+}
+
 void FibDlgParams_st::SetMyText(HWND hdlg)
 {
+	assert(textbuf);
+
 	HWND hEdit = GetDlgItem(hdlg, IDC_EDIT_SHOW_INFO);
 	assert(hEdit);
-	SetWindowText(hEdit, textbuf);
+	
+	int nspace = m_saNormText.CurrentEles();
+	int nreq_ = 1 + ggt_normalize_crlf(textbuf, m_saNormText, nspace, _T("\r\n"));
+	if(nreq_>nspace)
+	{
+		if( Is_TsaErr(m_saNormText.SetEleQuan(nreq_)) )
+		{
+			mm_snprintf(textbuf, bufchars, _T("No memory!"));
+			return;
+		}
+		ggt_normalize_crlf(textbuf, m_saNormText, nspace, _T("\r\n"));
+	}
+
+	SetWindowText(hEdit, m_saNormText);
 
 	if(isScrollToEnd)
 	{
