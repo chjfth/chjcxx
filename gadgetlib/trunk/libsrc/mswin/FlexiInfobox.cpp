@@ -278,7 +278,7 @@ void FibDlgParams_st::SetMyText(HWND hdlg)
 			mm_snprintf(textbuf, bufchars, _T("No memory!"));
 			return;
 		}
-		ggt_normalize_crlf(textbuf, m_saNormText, nspace, _T("\r\n"));
+		ggt_normalize_crlf(textbuf, m_saNormText, nreq_, _T("\r\n"));
 	}
 
 	SetWindowText(hEdit, m_saNormText);
