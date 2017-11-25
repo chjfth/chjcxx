@@ -178,12 +178,12 @@ void gbufo_reset()
 	gbufo[0] = _T('\0');
 }
 
-void mm_Strcat(const TCHAR *fmt, ...)
+void gbufo_strcat(const TCHAR *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
 
-	mm_snprintf(gbufo, GBUFO_CHARS, _T("%s%w"), gbufo, fmt, &args);
+	mm_Strcat(gbufo, GBUFO_CHARS, _T("%w"), MM_WPAIR_PARAM(fmt, args));
 
 	va_end(args);
 }
@@ -210,10 +210,10 @@ sgetopt_err_et verify_one_case(int argc, TCHAR *argv[], const TCHAR *boilerplate
 		switch (c)
 		{{
 		case 0:
-			mm_Strcat(_T("long option --%s"), app_long_options[longindex].name);
+			gbufo_strcat(_T("long option --%s"), app_long_options[longindex].name);
 			if(si->optarg)
-				mm_Strcat(_T("=%s"), si->optarg);
-			mm_Strcat(_T("\n"));
+				gbufo_strcat(_T("=%s"), si->optarg);
+			gbufo_strcat(_T("\n"));
 
 			break;
 
@@ -222,49 +222,49 @@ sgetopt_err_et verify_one_case(int argc, TCHAR *argv[], const TCHAR *boilerplate
 		case '2':
 		case '3':
 			if (digit_optind != 0 && digit_optind != this_option_optind)
-				mm_Strcat(_T("digits occur in two different argv-elements.\n"));
+				gbufo_strcat(_T("digits occur in two different argv-elements.\n"));
 			digit_optind = this_option_optind;
-			mm_Strcat(_T("option %c\n"), c);
+			gbufo_strcat(_T("option %c\n"), c);
 			break;
 
 		case 'a':
-			mm_Strcat(_T("option -a\n"));
+			gbufo_strcat(_T("option -a\n"));
 			break;
 
 		case 'b':
-			mm_Strcat(_T("option -b\n"));
+			gbufo_strcat(_T("option -b\n"));
 			break;
 
 		case 'c':
-			mm_Strcat(_T("option -c : '%s'\n"), si->optarg);
+			gbufo_strcat(_T("option -c : '%s'\n"), si->optarg);
 			break;
 
 		case '?':
 		{
 			const TCHAR *problem_opt = argv[si->optind-1];
 			if(sgetopt_is_listed_option(problem_opt, app_short_options, app_long_options))
-				mm_Strcat(_T("Option '%s' missing an argument\n"), problem_opt); 
+				gbufo_strcat(_T("Option '%s' missing an argument\n"), problem_opt); 
 			else
-				mm_Strcat(_T("Bad option '%s'\n"), problem_opt); 
+				gbufo_strcat(_T("Bad option '%s'\n"), problem_opt); 
 			break;
 		}
 
 		default:
-			mm_Strcat(_T("?? getopt returned character code 0x%X ??\n"), c);
+			gbufo_strcat(_T("?? getopt returned character code 0x%X ??\n"), c);
 		}}
 	}
 
 	if (si->optind < argc)
 	{
-		mm_Strcat(_T("non-option ARGV-elements: "));
+		gbufo_strcat(_T("non-option ARGV-elements: "));
 		while (si->optind < argc)
 		{
 			if(si->optind == argc-1)
-				mm_Strcat(_T("%s"), argv[si->optind++]);
+				gbufo_strcat(_T("%s"), argv[si->optind++]);
 			else
-				mm_Strcat(_T("%s "), argv[si->optind++]); // an extra tail space
+				gbufo_strcat(_T("%s "), argv[si->optind++]); // an extra tail space
 		}
-		mm_Strcat(_T("\n"));
+		gbufo_strcat(_T("\n"));
 	}
 
 	sgetopt_ctx_delete(si);
