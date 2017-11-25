@@ -106,6 +106,16 @@ verify_st gar_verify_cases[] =
 		_T("Option '--file' missing an argument\n")
 		_T("non-option ARGV-elements: codo\n")
 	},
+	{	// a single argument and it is a bad short option
+		_T("-z"),
+
+		_T("Bad option '-z'\n")
+	},
+	{	// a single argument and it is a bad long option
+		_T("--badlong"),
+
+		_T("Bad option '--badlong'\n")
+	},
 };
 
 
@@ -163,7 +173,7 @@ int my_split_argvstr(const TCHAR *argvstr)
 	return argcount;
 }
 
-void mm_strcat_reset()
+void gbufo_reset()
 {
 	gbufo[0] = _T('\0');
 }
@@ -184,7 +194,7 @@ sgetopt_err_et verify_one_case(int argc, TCHAR *argv[], const TCHAR *boilerplate
 	int digit_optind = 0;
 	sgetopt_ctx *si = sgetopt_ctx_create();
 
-	mm_strcat_reset();
+	gbufo_reset();
 
 	while (1)
 	{
@@ -232,7 +242,7 @@ sgetopt_err_et verify_one_case(int argc, TCHAR *argv[], const TCHAR *boilerplate
 		case '?':
 		{
 			const TCHAR *problem_opt = argv[si->optind-1];
-			if(si->optind == argc)
+			if(sgetopt_is_listed_option(problem_opt, app_short_options, app_long_options))
 				mm_Strcat(_T("Option '%s' missing an argument\n"), problem_opt); 
 			else
 				mm_Strcat(_T("Bad option '%s'\n"), problem_opt); 

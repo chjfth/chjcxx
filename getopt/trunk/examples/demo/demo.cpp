@@ -19,36 +19,6 @@ static sgetopt_option app_long_options[] =
 	{0, 0, 0, 0}
 };
 
-bool is_app_option(const TCHAR *opt)
-{
-	// Check if opt is a defined(=expected) option.
-	// opt is one argv[n] element
-	int i=0;
-	if(opt[0]==_T('-') && opt[1]==_T('-'))
-	{
-		// long option format
-		for(i=0; app_long_options[i].name!=NULL; i++)
-		{
-			if( T_strcmp(app_long_options[i].name, opt+2)==0 )
-				return true;
-		}
-		return false;
-	}
-	else if(opt[0]==_T('-'))
-	{
-		// short option format
-		int len = T_strlen(app_short_options);
-		for(i=0; i<len; i++)
-		{
-			if( app_short_options[i]==opt[1] )
-				return true;
-		}
-		return false;
-	}
-	return false;
-}
-
-
 #ifdef _MSC_VER
 int _tmain(int argc, TCHAR *init_argv[])
 #else
@@ -120,7 +90,7 @@ int main(int argc, char *init_argv[])
 		case '?':
 		{
 			const TCHAR *problem_opt = argv[si->optind-1];
-			if(is_app_option(problem_opt))
+			if(sgetopt_is_listed_option(problem_opt, app_short_options, app_long_options))
 				T_printf(_T("Option '%s' missing an argument\n"), problem_opt); 
 			else
 				T_printf(_T("Bad option '%s'\n"), problem_opt); 

@@ -106,6 +106,9 @@ int sgetopt_long_only(sgetopt_ctx *si,
 	int argc, TCHAR * const argv[], const TCHAR *optstring,
 	const sgetopt_option *longopts, int *longindex);
 
+DLLEXPORT_sgetopt
+bool sgetopt_is_listed_option(const TCHAR *opt, 
+	const TCHAR *short_options, const sgetopt_option long_options[]);
 
 #ifdef __cplusplus
 } // extern"C" {
