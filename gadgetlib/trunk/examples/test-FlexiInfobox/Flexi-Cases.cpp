@@ -184,7 +184,7 @@ FibCallback_ret fcRefreshable_GetText(void *_ctx,
 			textbuf[0] = _T('\0');
 
 		ctx.count++;
-		mm_strcat(textbuf, bufchars, 
+		mm_Strcat(textbuf, bufchars, 
 			_T("[%2d]%.*s\n"), 
 			ctx.count, ctx.count, ctx.ptn);
 	}
