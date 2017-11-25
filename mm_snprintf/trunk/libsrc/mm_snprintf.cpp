@@ -205,7 +205,7 @@
  *		- Creative %w format, recursive va_args formatting.
  *
  * 2016-03-27  V4.3 by Chj
- *		- Add mm_strcat, demonstrating the use of %w .
+ *		- Add mm_Strcat, demonstrating the use of %w .
  *
  * 2017-01-28  V4.4 by Chj
  *		- When compiling, USE_CPP_NEW determines whether C++ new is used for asprintf.
@@ -2238,7 +2238,7 @@ mmsnprintf_IsFloatingType(TCHAR fmt_spec)
 
 
 int 
-mm_strcat(TCHAR *dest, mmbufsize_t bufsize, const TCHAR *fmt, ...)
+mm_Strcat(TCHAR *dest, mmbufsize_t bufsize, const TCHAR *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);

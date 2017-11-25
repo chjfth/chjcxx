@@ -68,7 +68,7 @@ DLLEXPORT_mmsnprintf
 int mm_snprintf_amA(char * &pbuf, mmbufsize_t &bufsize, const char *fmt, ...); // am means auto-update of pbuf & bufsize
 
 DLLEXPORT_mmsnprintf
-int mm_strcatA(char *dest, mmbufsize_t bufsize, const char *fmt, ...);
+int mm_StrcatA(char *dest, mmbufsize_t bufsize, const char *fmt, ...);
 
 DLLEXPORT_mmsnprintf
 int mm_printfA(const char *fmt, ...);
@@ -174,7 +174,7 @@ DLLEXPORT_mmsnprintf
 int mm_snprintf_amW(wchar_t * &pbuf, int &bufsize, const wchar_t *fmt, ...); // am means auto-update of pbuf & bufsize
 
 DLLEXPORT_mmsnprintf
-int mm_strcatW(wchar_t *dest, mmbufsize_t bufsize, const wchar_t *fmt, ...);
+int mm_StrcatW(wchar_t *dest, mmbufsize_t bufsize, const wchar_t *fmt, ...);
 
 DLLEXPORT_mmsnprintf
 int mm_printfW(const wchar_t *fmt, ...);
@@ -256,6 +256,11 @@ int mm_free_buf(void *ptr);
 	// Free the buffer pointer returned by mm_asprintf, mm_asnprintf, mm_vasprintf, mm_vasnprintf
 	// Return 0 on success.
 
+#define mm_strcpy(dst, bufsize, src) mm_snprintf(dst, bufsize, _T("%s"), src)
+#define mm_strcat(dst, bufsize, src) mm_Strcat(dst, bufsize, _T("%s"), src)
+
+
+
 // The struct used for %w, since v4.4
 //
 enum { mm_wpair_magic = 0xEF160913 };
@@ -325,7 +330,7 @@ struct mmF_pair_stW
 
 # define mm_snprintf mm_snprintfW
 # define mm_vsnprintf mm_vsnprintfW
-# define mm_strcat mm_strcatW
+# define mm_Strcat mm_StrcatW
 # define mm_asprintf mm_asprintfW
 # define mm_vasprintf mm_vasprintfW
 # define mm_asnprintf mm_asnprintfW
@@ -352,7 +357,7 @@ struct mmF_pair_stW
 
 # define mm_snprintf mm_snprintfA
 # define mm_vsnprintf mm_vsnprintfA
-# define mm_strcat mm_strcatA
+# define mm_Strcat mm_StrcatA
 # define mm_asprintf mm_asprintfA
 # define mm_vasprintf mm_vasprintfA
 # define mm_asnprintf mm_asnprintfA
