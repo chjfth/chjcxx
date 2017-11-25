@@ -116,6 +116,53 @@ verify_st gar_verify_cases[] =
 
 		_T("Bad option '--badlong'\n")
 	},
+	{	// Error checking implemented in v1.0.2 example.
+		_T("-XYZ"),
+
+		_T("Bad option '-X'\n")
+		_T("Bad option '-Y'\n")
+		_T("Bad option '-Z'\n")
+	},
+	{	// condensed short options
+		_T("-ab"),
+
+		_T("option -a\n")
+		_T("option -b\n")
+	},
+	{	// condensed short options with -c missing argument
+		_T("-abc"),
+
+		_T("option -a\n")
+		_T("option -b\n")
+		_T("Option '-c' missing an argument\n")
+	},
+	{	// condensed short options with argument
+		_T("-cba"),
+
+		_T("option -c : 'ba'\n")
+	},
+	{	// condensed short options with argument, mix long and bad opts
+		_T("--badlong -cba --delete oldfile mytail"),
+
+		_T("Bad option '--badlong'\n")
+		_T("option -c : 'ba'\n")
+		_T("long option --delete=oldfile\n")
+		_T("non-option ARGV-elements: mytail\n")
+	},
+	{	// casual 1
+		_T("--c"),
+			
+		_T("Bad option '--c'\n")
+	},
+	{	// casual 2
+		_T("-zxa --c"),
+			
+		_T("Bad option '-z'\n")
+		_T("Bad option '-x'\n")
+		_T("option -a\n")
+		_T("Bad option '--c'\n")
+	},
+
 };
 
 
@@ -241,11 +288,26 @@ sgetopt_err_et verify_one_case(int argc, TCHAR *argv[], const TCHAR *boilerplate
 
 		case '?':
 		{
-			const TCHAR *problem_opt = argv[si->optind-1];
-			if(sgetopt_is_listed_option(problem_opt, app_short_options, app_long_options))
-				gbufo_strcat(_T("Option '%s' missing an argument\n"), problem_opt); 
+			// Chj: Short-option error and Long-option error are determined differently.
+			if(si->optopt)
+			{
+				// Short-option error
+				if(sgetopt_is_valid_short(si->optopt, app_short_options))
+					gbufo_strcat(_T("Option '-%c' missing an argument\n"), si->optopt);
+				else
+					gbufo_strcat(_T("Bad option '-%c'\n"), si->optopt);
+
+				si->optopt = 0; // otherwise, the err will stay there when next error is on long-option
+			}
 			else
-				gbufo_strcat(_T("Bad option '%s'\n"), problem_opt); 
+			{
+				// Long-option error
+				const TCHAR *problem_opt = argv[si->optind-1];
+				if(sgetopt_is_valid_long(problem_opt, app_long_options))
+					gbufo_strcat(_T("Option '%s' missing an argument\n"), problem_opt); 
+				else
+					gbufo_strcat(_T("Bad option '%s'\n"), problem_opt); 
+			}
 			break;
 		}
 

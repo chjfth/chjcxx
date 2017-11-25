@@ -15,11 +15,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\libsrc\is_listed_option.cpp" />
+    <ClCompile Include="..\..\libsrc\is_valid_option.cpp" />
     <ClCompile Include="..\..\libsrc\sgetopt.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\libsrc\include\getopt\sgetopt.h" />
+    <ClInclude Include="..\..\libsrc\include\iversion.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E8B4569C-65D7-449F-93E0-844EBEB673F7}</ProjectGuid>

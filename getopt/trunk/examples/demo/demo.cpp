@@ -76,24 +76,39 @@ int main(int argc, char *init_argv[])
 			break;
 
 		case 'a':
-			T_printf(_T("option -a\n"));
+			T_printf(_T("Valid option -a\n"));
 			break;
 
 		case 'b':
-			T_printf(_T("option -b\n"));
+			T_printf(_T("Valid option -b\n"));
 			break;
 
 		case 'c':
-			T_printf(_T("option -c : '%s'\n"), si->optarg);
+			T_printf(_T("Valid option '-c' with argument '%s'\n"), si->optarg);
 			break;
 
 		case '?':
 		{
-			const TCHAR *problem_opt = argv[si->optind-1];
-			if(sgetopt_is_listed_option(problem_opt, app_short_options, app_long_options))
-				T_printf(_T("Option '%s' missing an argument\n"), problem_opt); 
+			// Chj: Short-option error and Long-option error are determined differently.
+			if(si->optopt)
+			{
+				// Short-option error
+				if(sgetopt_is_valid_short(si->optopt, app_short_options))
+					T_printf(_T("Short option '-%c' missing an argument.\n"), si->optopt);
+				else
+					T_printf(_T("Bad short option '-%c'.\n"), si->optopt);
+
+				si->optopt = 0; // otherwise, the err will stay there when next error is on long-option
+			}
 			else
-				T_printf(_T("Bad option '%s'\n"), problem_opt); 
+			{
+				// Long-option error
+				const TCHAR *problem_opt = argv[si->optind-1];
+				if(sgetopt_is_valid_long(problem_opt, app_long_options))
+					T_printf(_T("Long option '%s' missing an argument\n"), problem_opt); 
+				else
+					T_printf(_T("Bad long option '%s'\n"), problem_opt); 
+			}
 			break;
 		}
 

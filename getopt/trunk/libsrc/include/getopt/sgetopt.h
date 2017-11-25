@@ -99,16 +99,20 @@ int	sgetopt(sgetopt_ctx *si, int argc, TCHAR *const argv[], const TCHAR *optstri
 DLLEXPORT_sgetopt
 int sgetopt_long(sgetopt_ctx *si, 
 	int argc, TCHAR * const argv[], const TCHAR *optstring,
-	const sgetopt_option *longopts, int *longindex);
+	const sgetopt_option *longopts, int *longindex); // preferred
 
 DLLEXPORT_sgetopt
 int sgetopt_long_only(sgetopt_ctx *si, 
 	int argc, TCHAR * const argv[], const TCHAR *optstring,
 	const sgetopt_option *longopts, int *longindex);
 
+//
+
 DLLEXPORT_sgetopt
-bool sgetopt_is_listed_option(const TCHAR *opt, 
-	const TCHAR *short_options, const sgetopt_option long_options[]);
+bool sgetopt_is_valid_short(TCHAR short_opt, const TCHAR *short_options);
+
+DLLEXPORT_sgetopt
+bool sgetopt_is_valid_long(const TCHAR *long_opt, const sgetopt_option long_options[]);
 
 #ifdef __cplusplus
 } // extern"C" {
