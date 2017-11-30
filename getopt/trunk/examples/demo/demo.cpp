@@ -8,7 +8,7 @@
 
 static const TCHAR *app_short_options = _T("abc:d:0123");
 
-enum { optn_verbose = 128, optn_more1, optn_more2 };
+enum { optn_verbose = 128, optn_filename, optn_more1, optn_more2 };
 
 static sgetopt_option app_long_options[] = 
 {
@@ -17,7 +17,7 @@ static sgetopt_option app_long_options[] =
 	{_T("append"),  has_arg_no , 0,  0 },
 	{_T("delete"),  has_arg_yes, 0,  0 },
 	{_T("create"),  has_arg_yes, 0, 'c'},
-	{_T("file"),    has_arg_yes, 0,  0 },
+	{_T("file"),    has_arg_yes, 0,  optn_filename },
 	{0, 0, 0, 0}
 };
 
@@ -57,23 +57,29 @@ int main(int argc, char *init_argv[])
 		if (c == -1)
 			break;
 
+		const TCHAR *optval = si->optarg;
+
 		switch (c)
 		{{
 
 		// Two flavors of using long-options:
 		// (1) Got case 0 then check app_long_options[longindex]
-		// (2) Got an int-result as assigned in sgetopt_option.optval
+		// (2) Got an int-result as assigned in sgetopt_option.opt_id
 
 		case 0:
 			T_printf(_T("long option --%s"), app_long_options[longindex].name);
-			if(si->optarg)
-				T_printf(_T("=%s"), si->optarg);
+			if(optval)
+				T_printf(_T("=%s"), optval);
 			T_printf(_T("\n"));
 
 			break;
 
 		case optn_verbose:
 			T_printf(_T("Valid option --verbose\n"));
+			break;
+
+		case optn_filename:
+			T_printf(_T("Valid option --file=%s\n"), optval);
 			break;
 
 		case '0':
