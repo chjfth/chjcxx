@@ -81,7 +81,7 @@ typedef struct _sgetopt_option {
 	const TCHAR *name;
 	int         has_arg;	// [input] has_arg_no or has_arg_yes, =2 not supported
 	int        *flag;
-	int         val;
+	int         optval;
 } sgetopt_option;
 
 

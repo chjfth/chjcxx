@@ -437,10 +437,10 @@ _sgetopt_internal (
 				
 				if (pfound->flag)
 				{
-					*(pfound->flag) = pfound->val;
+					*(pfound->flag) = pfound->optval;
 					return 0;
 				}
-				return pfound->val;
+				return pfound->optval;
 			}
 
 			/* Can't find it as a long option.  If this is not getopt_long_only,
