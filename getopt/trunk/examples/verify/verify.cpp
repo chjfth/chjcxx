@@ -149,6 +149,13 @@ verify_st gar_verify_cases[] =
 		_T("long option --delete=oldfile\n")
 		_T("non-option ARGV-elements: mytail\n")
 	},
+	{	// Passing same optname multiple times are all recognized
+		_T("--file=f1.txt --file=f2.txt --file=f3.txt"),
+
+		_T("long option --file=f1.txt\n")
+		_T("long option --file=f2.txt\n")
+		_T("long option --file=f3.txt\n")
+	},
 	{	// casual 1
 		_T("--c"),
 			
