@@ -15,7 +15,7 @@ extern"C" void sgetopt_lib__sgetopt__DLL_AUTO_EXPORT_STUB(void){}
 // Chj's major change: 
 // * Make all getopt operation into a sgetopt_info object.
 // * Error is not fprintf to stderr, but saved to sgetopt_info.
-// * Make the library stramphibian(i.e. TCHAR operation£©
+// * Make the library stramphibian(i.e. TCHAR operation)
 // You can imagine the _T('s') prefix as "super".
 //
 // Usage example: 

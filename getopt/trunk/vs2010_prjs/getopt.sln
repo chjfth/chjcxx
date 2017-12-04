@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "verify-sgetopt", "..\exampl
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "demo", "..\examples\demo\demo.vcxproj", "{8CF6D236-8039-4ED5-83BB-100020171204}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dll-getopt", "dllprj\dllprj.vcxproj", "{8CF6D236-8039-4ED5-83BB-D11020171204}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		ANSI|Win32 = ANSI|Win32
@@ -39,6 +41,14 @@ Global
 		{8CF6D236-8039-4ED5-83BB-100020171204}.Unicode|Win32.Build.0 = Unicode|Win32
 		{8CF6D236-8039-4ED5-83BB-100020171204}.Unicode|x64.ActiveCfg = Unicode|x64
 		{8CF6D236-8039-4ED5-83BB-100020171204}.Unicode|x64.Build.0 = Unicode|x64
+		{8CF6D236-8039-4ED5-83BB-D11020171204}.ANSI|Win32.ActiveCfg = ANSI|Win32
+		{8CF6D236-8039-4ED5-83BB-D11020171204}.ANSI|Win32.Build.0 = ANSI|Win32
+		{8CF6D236-8039-4ED5-83BB-D11020171204}.ANSI|x64.ActiveCfg = ANSI|x64
+		{8CF6D236-8039-4ED5-83BB-D11020171204}.ANSI|x64.Build.0 = ANSI|x64
+		{8CF6D236-8039-4ED5-83BB-D11020171204}.Unicode|Win32.ActiveCfg = Unicode|Win32
+		{8CF6D236-8039-4ED5-83BB-D11020171204}.Unicode|Win32.Build.0 = Unicode|Win32
+		{8CF6D236-8039-4ED5-83BB-D11020171204}.Unicode|x64.ActiveCfg = Unicode|x64
+		{8CF6D236-8039-4ED5-83BB-D11020171204}.Unicode|x64.Build.0 = Unicode|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
