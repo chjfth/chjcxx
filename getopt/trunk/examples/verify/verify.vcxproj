@@ -103,7 +103,7 @@
       <AdditionalIncludeDirectories>../../libsrc/include;../../sdkin/include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
       <ProgramDatabaseFile>%(OutputFile).pdb</ProgramDatabaseFile>
@@ -125,7 +125,7 @@
       <AdditionalIncludeDirectories>../../libsrc/include;../../sdkin/include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
       <ProgramDatabaseFile>%(OutputFile).pdb</ProgramDatabaseFile>
@@ -152,7 +152,7 @@
       <AdditionalIncludeDirectories>../../libsrc/include;../../sdkin/include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
       <ProgramDatabaseFile>%(OutputFile).pdb</ProgramDatabaseFile>
@@ -193,8 +193,8 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ProjectReference Include="..\libprj\libprj.vcxproj">
-      <Project>{c61ac906-75c9-4ae8-ab40-219ed1a25529}</Project>
+    <ProjectReference Include="..\..\vs2010_prjs\libprj\libprj.vcxproj">
+      <Project>{c61ac906-75c9-4ae8-ab40-000020171204}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
