@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{8CF6D236-8039-4ED5-83BB-000020171204}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>tdlg_showinfo</RootNamespace>
+    <RootNamespace>myexe</RootNamespace>
     <ProjectName>verify-sgetopt</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
