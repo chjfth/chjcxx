@@ -202,6 +202,12 @@
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\..\libsrc\mswin\dll.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\libsrc\mswin\resource.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

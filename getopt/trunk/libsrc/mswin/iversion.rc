@@ -1,9 +1,5 @@
 // Chj Note: This .rc is only edited by hand, not by Visual Studio IDE.
 
-// #include "_vside.rc" 
-// -- If some .rc content(Dialogbox resources etc) is to be edited within Visual Studio IDE, 
-//    put them in "_vside.rc", so that VSIDE can double click it and visually edit it.
-
 #include "..\include\iversion.h"
 
 
