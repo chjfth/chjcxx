@@ -7,8 +7,12 @@ mmps_i64_type_prefix(char *szPrefix)
 	return 2; // "ll" is 2 characters.
 }
 
+#ifndef MMSNPRINTF_NO_UNICODE
+
 wchar_t 
 mmps_wsfmt_char()
 {
 	return L'S';
 }
+
+#endif

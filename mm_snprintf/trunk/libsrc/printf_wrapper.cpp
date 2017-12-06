@@ -1,4 +1,6 @@
+#ifndef MMSNPRINTF_NO_UNICODE
 #include <wchar.h> // Linux glibc wprintf needs this.
+#endif
 
 #include "mm_psfunc.h"
 #include <mm_snprintf.h>
@@ -25,7 +27,7 @@ int mm_printfA(const char *fmt, ...)
 }
 
 //////////////////////////////////////////////////////////////////////////
-
+#ifndef MMSNPRINTF_NO_UNICODE
 #ifndef OS_DONT_HAVE_wprintf
 
 void mmct_os_printfW(void *ctx_user, const wchar_t *pcontent, int nchars, 
@@ -54,4 +56,5 @@ int mm_printfW(const wchar_t *fmt, ...)
 	return ret;
 }
 
+#endif
 #endif

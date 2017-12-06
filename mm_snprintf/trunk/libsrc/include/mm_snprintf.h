@@ -145,6 +145,7 @@ DLLEXPORT_mmsnprintf
 void mm_set_DebugProgressCallbackA(FUNC_mm_DebugProgressA *dbgproc, void *ctx_user);
 
 
+#ifndef MMSNPRINTF_NO_UNICODE
 //
 // Unicode version of the above mm_ functions
 //
@@ -249,6 +250,7 @@ typedef void FUNC_mm_DebugProgressW(void *ctx_user, const wchar_t *psz_dbginfo);
 DLLEXPORT_mmsnprintf
 void mm_set_DebugProgressCallbackW(FUNC_mm_DebugProgressW *dbgproc, void *ctx_user);
 
+#endif // #ifndef MMSNPRINTF_NO_UNICODE
 
 
 DLLEXPORT_mmsnprintf
@@ -279,6 +281,7 @@ struct mm_wpair_stA
 #endif
 };
 //
+#ifndef MMSNPRINTF_NO_UNICODE
 struct mm_wpair_stW
 {
 	unsigned int magic;
@@ -290,6 +293,7 @@ struct mm_wpair_stW
 	#define MM_WPAIR_PARAMW(fmt, args) &mm_wpair_stW((fmt), &(args)) // only for C++
 #endif
 };
+#endif // #ifndef MMSNPRINTF_NO_UNICODE
 
 
 // The struct used for %F (function call injection), since v6.0
@@ -297,9 +301,7 @@ struct mm_wpair_stW
 enum { mm_fpair_magic = 0xEF170321 };
 //
 typedef int (FUNC_mmF_FormatterA)(void *ctx_formatter, mmv7_stA &mmi);
-typedef int (FUNC_mmF_FormatterW)(void *ctx_formatter, mmv7_stW &mmi);
 // -- Return value tells output characters count, assuming buffer is enough (not counting ending NUL).
-//
 struct mmF_pair_stA
 {
 	unsigned int magic;
@@ -312,6 +314,9 @@ struct mmF_pair_stA
 #endif
 };
 //
+#ifndef MMSNPRINTF_NO_UNICODE
+typedef int (FUNC_mmF_FormatterW)(void *ctx_formatter, mmv7_stW &mmi);
+// -- Return value tells output characters count, assuming buffer is enough (not counting ending NUL).
 struct mmF_pair_stW
 {
 	unsigned int magic;
@@ -323,6 +328,7 @@ struct mmF_pair_stW
 #define MM_FPAIR_PARAMW(f, p) &mmF_pair_stW( (f), ((void*)(p)) ) // only for C++
 #endif
 };
+#endif // #ifndef MMSNPRINTF_NO_UNICODE
 
 ////
 

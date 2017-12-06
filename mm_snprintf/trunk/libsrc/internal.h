@@ -37,6 +37,11 @@ struct cti_pack_stA
 	int _call_count; // per-mmlevel value
 };
 
+int in_snprintfA(char *buf, mmbufsize_t bufsize, const char *fmt, ...); // internal use
+
+
+#ifndef MMSNPRINTF_NO_UNICODE
+
 struct cti_pack_stW
 {
 	FUNC_mmct_outputW *ct_proc;
@@ -48,9 +53,9 @@ struct cti_pack_stW
 	int _call_count; // per-mmlevel value
 };
 
-int in_snprintfA(char *buf, mmbufsize_t bufsize, const char *fmt, ...); // internal use
 int in_snprintfW(wchar_t *buf, mmbufsize_t bufsize, const wchar_t *fmt, ...); // internal use
 
+#endif // #ifndef MMSNPRINTF_NO_UNICODE
 
 ////////////////
 

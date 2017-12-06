@@ -62,6 +62,10 @@ else ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),armcpp),1)
 
   # armcpp
   MMSNPRINTF_NO_UNICODE = 1
+  gmp_CFLAGS_MACRO_DEFS += -DMMSNPRINTF_NO_UNICODE=1
+  gmp_CFLAGS_MACRO_DEFS += -DTCHAR=char -D"wchar_t=unsigned short" -D"__T(s)=s"
+  gmp_CFLAGS_MACRO_DEFS += -D"TMM_snprintf(a,b,c,d)=sprintf(a,c,d)" # although danger, nothin' we can do when ARM SDT250 don't have snprintf
+  	  
   gmu_up_list_SRC_FROM_ROOT += glibc/mm_psfunc.cpp
   gmu_ud_list_PRJ_HEADER += $(gmu_ud_SRC_ROOT)/armcpp
 
@@ -155,7 +159,7 @@ gmp_CFLAGS_INCLUDES += # $(addprefix -I,<dir1> <dir2> ...)
 
 gmp_CFLAGS_CODE_GEN_ALL +=
   # You may want to dispense options for gmp_CFLAGS_CODE_GEN_ALL into following 2 categories:
-  gmp_CFLAGS_MACRO_DEFS += $(gmp_CFLAGS_MACRO_DEFS_preset) # append other macro defines, e.g. -Dxxx=yyy
+  gmp_CFLAGS_MACRO_DEFS += $(gmp_CFLAGS_MACRO_DEFS_preset)
   gmp_CFLAGS_CODE_GEN += $(gmp_CFLAGS_CODE_GEN_preset) # append other code generation related options
 
 gmp_CFLAGS_NON_CODE_GEN += $(gmp_CFLAGS_NON_CODE_GEN_preset)

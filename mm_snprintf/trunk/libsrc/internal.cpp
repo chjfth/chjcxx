@@ -1,6 +1,7 @@
 #include <stdlib.h> // free()
 #include <string.h>
-#include <DlOpe.h> // this .h is only to test my magical .h PDB-sewing
+#include <assert.h>
+//#include <DlOpe.h> // this .h is only to test my magical .h PDB-sewing
 #include "mm_snprintf.h"
 #include "internal.h"
 #include "libversion.h"
@@ -16,7 +17,7 @@ mmsnprintf_getversion(void)
 
 char g_mmcrlf_szA[4] = "\n";
 
-wchar_t g_mmcrlf_szW[4] = L"\n";
+wchar_t g_mmcrlf_szW[4] = { '\n', 0 };  //L"\n"; // workaround for MMSNPRINTF_NO_UNICODE
 
 void mm_set_crlf_style(mm_crlf_et style)
 {

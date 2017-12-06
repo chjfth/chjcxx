@@ -311,7 +311,6 @@
 #include "mm_psfunc.h"
 
 #define DLL_AUTO_EXPORT_STUB
-extern"C" void mmsnprintf_lib__mm_snprintfA__DLL_AUTO_EXPORT_STUB(void){}
 
 #ifdef NO_assert // specific for this library
 # undef assert
@@ -364,8 +363,8 @@ _mmF_desc_widpreci(void *ctx_user, mmv7_st &mmi)
 {
 	mmctexi_st &cti = *(mmctexi_st*)ctx_user;
 	
-	TCHAR *pbuf = mmi.buf_output;
-	int bufremain = mmi.bufsize;
+//	TCHAR *pbuf = mmi.buf_output;
+//	int bufremain = mmi.bufsize;
 	
 	// prepare string-form of width & precision 
 	const int IW16 = 16;
@@ -389,6 +388,7 @@ _mmF_desc_widpreci(void *ctx_user, mmv7_st &mmi)
 static void 
 mmct_DebugStub(int call_count, const TCHAR *pcontent, int nchars, const mmctexi_st *pctexi)
 {
+	(void)pcontent;
 	const mmctexi_st &cti = *pctexi;
 	
 	const int bufsize = MM_DBG_PROGRESS_LINE_MAXCHARS_;
@@ -1529,7 +1529,7 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 						str_arg_l += signed_ntos(i64, 
 							RdxDec, false, 
 							is_zp_thoubody(zero_padding_thou, precision) ? precision : 0, // stuff_zero_max
-							psz_thousep_now, thousep_width,
+							psz_thousep_now, thousep_width_now,
 							tmp+str_arg_l, mmquan(tmp)-str_arg_l
 							);
 					} 
