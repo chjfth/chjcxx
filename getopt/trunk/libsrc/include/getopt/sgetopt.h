@@ -82,7 +82,7 @@ typedef struct _sgetopt_option {
 	int         has_arg;	// [input] has_arg_no or has_arg_yes, =2 not supported
 	int        *flag;
 	int         opt_id;
-	void *user_context;
+	const void *user_context;
 } sgetopt_option;
 
 
