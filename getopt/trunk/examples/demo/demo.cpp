@@ -40,9 +40,6 @@ int main(int argc, char *init_argv[])
 		return 0;
 	}
 
-	int optc = 0;
-	int digit_optind = 0; // not important
-
 	sgetopt_ctx *si = sgetopt_ctx_create(); // important 
 	si->opterr = 1; // (optional)
 
@@ -51,7 +48,7 @@ int main(int argc, char *init_argv[])
 		int this_option_optind = si->optind ? si->optind : 1;
 		int longindex = 0;
 
-		optc = sgetopt_long(si, argc, argv, app_short_options,
+		int optc = sgetopt_long(si, argc, argv, app_short_options,
 			app_long_options, &longindex);
 		
 		if (optc == -1)
