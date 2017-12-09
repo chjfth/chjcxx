@@ -11,6 +11,10 @@
 
 #elif defined(__GNUC__)   // GNU GCC
 
+#ifndef __int64
+#define __int64 long long
+#endif
+
 // Define 64-bit integer
 #define DECL_INT64(n) n##LL
 #define DECL_UINT64(n) n##ULL
@@ -19,9 +23,9 @@
 
 
 #define DELTA_EPOCH_IN_MILLISEC    DECL_INT64(11644473600000)
-	// Millisec diff: WindowsEpoch-UnixEpoch
-	// WindowsEpoch is year 1600-01-01 00:00:00
+	// Millisec diff: UnixEpoch-WindowsEpoch
 	// UnixEpoch    is year 1970-01-01 00:00:00
+	// WindowsEpoch is year 1600-01-01 00:00:00
 
 
 #endif
