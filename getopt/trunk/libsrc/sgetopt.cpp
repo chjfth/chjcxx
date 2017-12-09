@@ -230,7 +230,7 @@ _sgetopt_initialize (sgetopt_ctx *si, const TCHAR *optstring)
 	It is only valid when a long-named option has been found by the most
 	recent call.
 
-	If LONG_ONLY is nonzero, _T('-') as well as '--' can introduce
+	If LONG_ONLY is nonzero, '-' as well as '--' can introduce
 	long-named options.  
 */
 int
@@ -245,6 +245,9 @@ _sgetopt_internal (
 	)
 {
 	si->optarg = NULL;
+
+	if(longind)
+		*longind = -1; // assume not a long-option
 
 	if (si->optind == 0)
 		optstring = _sgetopt_initialize (si, optstring);

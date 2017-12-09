@@ -18,7 +18,7 @@ static sgetopt_option app_long_options[] =
 	{_T("delete"),  has_arg_yes, 0,  0 },
 	{_T("create"),  has_arg_yes, 0, 'c'},
 	{_T("file"),    has_arg_yes, 0,  optn_filename },
-	{0, 0, 0, 0}
+	{0}
 };
 
 #ifdef _MSC_VER
@@ -40,7 +40,7 @@ int main(int argc, char *init_argv[])
 		return 0;
 	}
 
-	int c = 0;
+	int optc = 0;
 	int digit_optind = 0; // not important
 
 	sgetopt_ctx *si = sgetopt_ctx_create(); // important 
@@ -51,60 +51,13 @@ int main(int argc, char *init_argv[])
 		int this_option_optind = si->optind ? si->optind : 1;
 		int longindex = 0;
 
-		c = sgetopt_long(si, argc, argv, app_short_options,
+		optc = sgetopt_long(si, argc, argv, app_short_options,
 			app_long_options, &longindex);
 		
-		if (c == -1)
+		if (optc == -1)
 			break;
 
-		const TCHAR *optval = si->optarg;
-
-		switch (c)
-		{{
-
-		// Two flavors of using long-options:
-		// (1) Got case 0 then check app_long_options[longindex]
-		// (2) Got an int-result as assigned in sgetopt_option.opt_id
-
-		case 0:
-			T_printf(_T("long option --%s"), app_long_options[longindex].name);
-			if(optval)
-				T_printf(_T("=%s"), optval);
-			T_printf(_T("\n"));
-
-			break;
-
-		case optn_verbose:
-			T_printf(_T("Valid option --verbose\n"));
-			break;
-
-		case optn_filename:
-			T_printf(_T("Valid option --file=%s\n"), optval);
-			break;
-
-		case '0':
-		case '1':
-		case '2':
-		case '3':
-			if (digit_optind != 0 && digit_optind != this_option_optind)
-				T_printf(_T("digits occur in two different argv-elements.\n"));
-			digit_optind = this_option_optind;
-			T_printf(_T("option %c\n"), c);
-			break;
-
-		case 'a':
-			T_printf(_T("Valid option -a\n"));
-			break;
-
-		case 'b':
-			T_printf(_T("Valid option -b\n"));
-			break;
-
-		case 'c':
-			T_printf(_T("Valid option '-c' with argument '%s'\n"), si->optarg);
-			break;
-
-		case '?':
+		if(optc=='?')
 		{
 			// Chj: Short-option error and Long-option error are determined differently.
 			if(si->optopt)
@@ -115,7 +68,7 @@ int main(int argc, char *init_argv[])
 				else
 					T_printf(_T("Bad short option '-%c'.\n"), si->optopt);
 
-				si->optopt = 0; // otherwise, the err will stay there when next error is on long-option
+				si->optopt = 0; // otherwise, the err will still be there when next error is on a long-option
 			}
 			else
 			{
@@ -126,12 +79,36 @@ int main(int argc, char *init_argv[])
 				else
 					T_printf(_T("Bad long option '%s'\n"), problem_opt); 
 			}
-			break;
+			continue; // yes, we can go on checking further valid params
 		}
 
-		default:
-			T_printf(_T("?? getopt returned character code 0x%X ??\n"), c);
-		}}
+		const TCHAR *optarg = si->optarg;
+
+		// Two flavors of checking long-options:
+		// (1) Check short-options and long-options separately.
+		//
+		// (2) If you have set all different .opt_id in app_long_options[],
+		//     you can directly check optc value for both short and long options.
+		//
+		// The following code uses flavor (1); 
+		// Another demo program, Verify-sgetopt, uses flavor (2).
+
+		if(longindex>=0) // meet a long option
+		{
+			const TCHAR *longopt = app_long_options[longindex].name;
+			if(optarg)
+				T_printf(_T("long option --%s=%s\n"), longopt, optarg);
+			else
+				T_printf(_T("long option --%s\n"), longopt);
+		}
+		else // meet a short option
+		{
+			if(optarg)
+				T_printf(_T("short option -%c %s\n"), optc, optarg);
+			else
+				T_printf(_T("short option -%c\n"), optc);
+		}
+	
 	}
 
 	if (si->optind < argc)
