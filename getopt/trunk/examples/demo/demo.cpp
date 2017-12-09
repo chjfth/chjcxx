@@ -45,7 +45,6 @@ int main(int argc, char *init_argv[])
 
 	while (1)
 	{
-		int this_option_optind = si->optind ? si->optind : 1;
 		int longindex = 0;
 
 		int optc = sgetopt_long(si, argc, argv, app_short_options,
