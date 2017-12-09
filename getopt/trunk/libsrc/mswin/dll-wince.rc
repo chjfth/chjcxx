@@ -1,0 +1,3 @@
+// Chj: WinCE does not have "afxres.h"
+#include "_iversion.rc"
+
