@@ -2,8 +2,8 @@
 #define __sgetopt_iversion_h_20160325_
 
 #define THISLIB_VMAJOR 1
-#define THISLIB_VMINOR 0
-#define THISLIB_VBUILD 2
+#define THISLIB_VMINOR 1
+#define THISLIB_VBUILD 0
 
 #define THISLIBstr__(n) #n
 #define THISLIBstr(n) THISLIBstr__(n)

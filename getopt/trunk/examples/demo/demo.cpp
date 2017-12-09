@@ -12,11 +12,11 @@ enum { optn_verbose = 128, optn_filename, optn_more1, optn_more2 };
 
 static sgetopt_option app_long_options[] = 
 {
-	{_T("verbose"), has_arg_no , 0,  optn_verbose },
+	{_T("verbose"), has_arg_no , 0,  optn_verbose, _T("v.ctx")},
 	{_T("add"),     has_arg_yes, 0,  0 },
 	{_T("append"),  has_arg_no , 0,  0 },
 	{_T("delete"),  has_arg_yes, 0,  0 },
-	{_T("create"),  has_arg_yes, 0, 'c'},
+	{_T("create"),  has_arg_yes, 0, 'c', _T("c.ctx")},
 	{_T("file"),    has_arg_yes, 0,  optn_filename },
 	{0}
 };
@@ -97,9 +97,15 @@ int main(int argc, char *init_argv[])
 		{
 			const TCHAR *longopt = app_long_options[longindex].name;
 			if(optarg)
-				T_printf(_T("long option --%s=%s\n"), longopt, optarg);
+				T_printf(_T("long option --%s=%s"), longopt, optarg);
 			else
-				T_printf(_T("long option --%s\n"), longopt);
+				T_printf(_T("long option --%s"), longopt);
+
+			const TCHAR *usrctx = (const TCHAR*)app_long_options[longindex].user_context;
+			if(usrctx)
+				T_printf(_T(" [%s]\n"), usrctx);
+			else
+				T_printf(_T("\n"));
 		}
 		else // meet a short option
 		{
@@ -130,3 +136,8 @@ int main(int argc, char *init_argv[])
 	return (0);
 }
 
+/* Sample run options:
+
+-c  "shortc" --verbose --create=longc
+
+*/
