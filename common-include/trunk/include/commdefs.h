@@ -24,7 +24,9 @@ typedef unsigned char Uint8;
 typedef unsigned long Ulong;
 typedef unsigned short Ushort;
 
-typedef unsigned __int64 Uint64; // for gcc, please add compiler flag '-D__int64=long long'
+typedef unsigned __int64 Uint64; 
+	// for gcc, please add compiler flag -D__int64="long long" ,
+	// or, include my "ps_TypeDecl.h" first.
 
 typedef unsigned long WinErr_t;  // as Windows API error code
 
