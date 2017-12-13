@@ -1,4 +1,6 @@
 #include <string.h>
+#include <wchar.h> // Linux requires this for wcslen() etc
+
 #include "t_string.h"
 
 int 
