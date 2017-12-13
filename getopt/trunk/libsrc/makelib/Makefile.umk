@@ -106,7 +106,7 @@ dirSdkInclude = $(dirThisRepo)/$(gmb_dirname_sdkin)/include
 # * You cannot use ``../myfunc.c'', which actually resides in $(gmu_ud_SRC_ROOT)'s parent dir.
 # * You can use ``subdir1/../myfunc.c'' or ``subdir1/subdir2/../myfunc.c'', which are 
 #	still in $(gmu_ud_SRC_ROOT) or $(gmu_ud_SRC_ROOT)'s subdir.
-gmu_up_list_SRC_FROM_ROOT += sgetopt.cpp is_valid_option.cpp
+gmu_up_list_SRC_FROM_ROOT += sgetopt.cpp is_valid_option.cpp t_string.cpp
 
 # GMU-var: gmu_ud_list_PRJ_HEADER
 #	Define header file dirs, multiple dirs should be separated by spaces or tabs.

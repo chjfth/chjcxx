@@ -4,8 +4,10 @@
 #include <string.h>
 
 #include <ps_TCHAR.h>
-#include <gadgetlib/T_string.h>
+//#include <gadgetlib/T_string.h>
 #include <getopt/sgetopt.h>
+
+#include "t_string.h"
 
 bool 
 sgetopt_is_valid_short(TCHAR short_opt, const TCHAR *short_list)
@@ -15,7 +17,7 @@ sgetopt_is_valid_short(TCHAR short_opt, const TCHAR *short_list)
 	if(short_opt==_T('-'))
 		return false;
 
-	int len = T_strlen(short_list);
+	int len = t_strlen(short_list);
 	for(int i=0; i<len; i++)
 	{
 		if( short_list[i]==short_opt )
@@ -35,7 +37,7 @@ sgetopt_is_valid_long(const TCHAR *long_opt, const sgetopt_option long_list[])
 
 	for(int i=0; long_list[i].name!=NULL; i++)
 	{
-		if( T_strcmp(long_list[i].name, long_opt+2)==0 )
+		if( t_strcmp(long_list[i].name, long_opt+2)==0 )
 			return true;
 	}
 

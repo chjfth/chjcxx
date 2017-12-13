@@ -2,7 +2,8 @@
 #include <ctype.h>
 
 #include <ps_TCHAR.h>
-#include <gadgetlib/T_string.h>
+//#include <gadgetlib/T_string.h>
+#include <mm_snprintf.h>
 #include <gadgetlib/charenccvt.h>
 #include <getopt/sgetopt.h>
 
@@ -36,7 +37,7 @@ int main(int argc, char *init_argv[])
 
 	if(argc==1)
 	{
-		T_printf(_T("No options given.\n"));
+		mm_printf(_T("No options given.\n"));
 		return 0;
 	}
 
@@ -60,9 +61,9 @@ int main(int argc, char *init_argv[])
 			{
 				// Short-option error
 				if(sgetopt_is_valid_short(si->optopt, app_short_options))
-					T_printf(_T("Short option '-%c' missing an argument.\n"), si->optopt);
+					mm_printf(_T("Short option '-%c' missing an argument.\n"), si->optopt);
 				else
-					T_printf(_T("Bad short option '-%c'.\n"), si->optopt);
+					mm_printf(_T("Bad short option '-%c'.\n"), si->optopt);
 
 				si->optopt = 0; // otherwise, the err will still be there when next error is on a long-option
 			}
@@ -71,9 +72,9 @@ int main(int argc, char *init_argv[])
 				// Long-option error
 				const TCHAR *problem_opt = argv[si->optind-1];
 				if(sgetopt_is_valid_long(problem_opt, app_long_options))
-					T_printf(_T("Long option '%s' missing an argument\n"), problem_opt); 
+					mm_printf(_T("Long option '%s' missing an argument\n"), problem_opt); 
 				else
-					T_printf(_T("Bad long option '%s'\n"), problem_opt); 
+					mm_printf(_T("Bad long option '%s'\n"), problem_opt); 
 			}
 			continue; // yes, we can go on checking further valid params
 		}
@@ -93,34 +94,34 @@ int main(int argc, char *init_argv[])
 		{
 			const TCHAR *longopt = app_long_options[longindex].name;
 			if(optarg)
-				T_printf(_T("long option --%s=%s"), longopt, optarg);
+				mm_printf(_T("long option --%s=%s"), longopt, optarg);
 			else
-				T_printf(_T("long option --%s"), longopt);
+				mm_printf(_T("long option --%s"), longopt);
 
 			const TCHAR *usrctx = (const TCHAR*)app_long_options[longindex].user_context;
 			if(usrctx)
-				T_printf(_T(" [%s]\n"), usrctx);
+				mm_printf(_T(" [%s]\n"), usrctx);
 			else
-				T_printf(_T("\n"));
+				mm_printf(_T("\n"));
 		}
 		else // meet a short option
 		{
 			if(optarg)
-				T_printf(_T("short option -%c %s\n"), optc, optarg);
+				mm_printf(_T("short option -%c %s\n"), optc, optarg);
 			else
-				T_printf(_T("short option -%c\n"), optc);
+				mm_printf(_T("short option -%c\n"), optc);
 		}
 	
 	}
 
 	if (si->optind < argc)
 	{
-		T_printf(_T("non-option ARGV-elements: "));
+		mm_printf(_T("non-option ARGV-elements: "));
 		while (si->optind < argc)
 		{
-			T_printf(_T("%s "), argv[si->optind++]);
+			mm_printf(_T("%s "), argv[si->optind++]);
 		}
-		T_printf(_T("\n"));
+		mm_printf(_T("\n"));
 	}
 
 	sgetopt_ctx_delete(si);

@@ -363,12 +363,12 @@ int main()
 {
 	int casecount = GetEleQuan_i(gar_verify_cases);
 
-	T_printf(_T("Verifying %d cases...\n"), casecount);
+	mm_printf(_T("Verifying %d cases...\n"), casecount);
 
 	int i;
 	for(i=0; i<casecount; i++)
 	{
-		T_printf(_T("[Case %d] %s\n"), i, gar_verify_cases[i].input);
+		mm_printf(_T("[Case %d] %s\n"), i, gar_verify_cases[i].input);
 
 		int argc = my_split_argvstr(gar_verify_cases[i].input); // outputs gargv[]
 		
@@ -378,21 +378,21 @@ int main()
 
 	if(i==casecount)
 	{
-		T_printf(_T("sgetopt: All %d cases verify success.\n"), i);
+		mm_printf(_T("sgetopt: All %d cases verify success.\n"), i);
 		return 0; // success
 	}
 	else
 	{
-		T_printf(_T("sgetopt: Case idx %d verify fail!\n"), i);
+		mm_printf(_T("sgetopt: Case idx %d verify fail!\n"), i);
 
-		T_printf(_T("========= Input command line ==========\n"));
-		T_printf(_T("%s\n"), gar_verify_cases[i].input);
+		mm_printf(_T("========= Input command line ==========\n"));
+		mm_printf(_T("%s\n"), gar_verify_cases[i].input);
 
-		T_printf(_T("=========== Expected output ===========\n"));
-		T_printf(_T("%s\n"), gar_verify_cases[i].output);
+		mm_printf(_T("=========== Expected output ===========\n"));
+		mm_printf(_T("%s\n"), gar_verify_cases[i].output);
 
-		T_printf(_T("====== Program output (mismatch) ======\n"));
-		T_printf(_T("%s\n"), gbufo);
+		mm_printf(_T("====== Program output (mismatch) ======\n"));
+		mm_printf(_T("%s\n"), gbufo);
 
 		return 4; // fail
 	}

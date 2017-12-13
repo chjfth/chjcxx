@@ -27,10 +27,12 @@
   <ItemGroup>
     <ClInclude Include="..\..\libsrc\include\getopt\sgetopt.h" />
     <ClInclude Include="..\..\libsrc\include\iversion.h" />
+    <ClInclude Include="..\..\libsrc\t_string.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\libsrc\is_valid_option.cpp" />
     <ClCompile Include="..\..\libsrc\sgetopt.cpp" />
+    <ClCompile Include="..\..\libsrc\t_string.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Unicode|Win32'" Label="Configuration">

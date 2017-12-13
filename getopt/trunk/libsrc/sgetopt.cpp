@@ -3,9 +3,11 @@
 #include <string.h>
 
 #include <ps_TCHAR.h>
-#include <gadgetlib/T_string.h>
+//#include <gadgetlib/T_string.h>
 #include <getopt/sgetopt.h>
 #include <mm_snprintf.h>
+
+#include "t_string.h"
 
 #define DLL_AUTO_EXPORT_STUB
 extern"C" void sgetopt_lib__sgetopt__DLL_AUTO_EXPORT_STUB(void){}
@@ -280,7 +282,7 @@ _sgetopt_internal (
 		then exchange with previous non-options as if it were an option,
 		then skip everything else like a non-option.  */
 
-		if (si->optind != argc && !T_strcmp(argv[si->optind], _T("--")))
+		if (si->optind != argc && !t_strcmp(argv[si->optind], _T("--")))
 		{
 			si->optind++;
 
@@ -340,7 +342,7 @@ _sgetopt_internal (
 
 	if (longopts != NULL
 		&& (argv[si->optind][1] == _T('-')
-		|| (long_only && (argv[si->optind][2] || !T_strchr (optstring, argv[si->optind][1]))))
+		|| (long_only && (argv[si->optind][2] || !t_strchr (optstring, argv[si->optind][1]))))
 		)
 	{
 		TCHAR *nameend;
@@ -357,9 +359,9 @@ _sgetopt_internal (
 		/* Test all long options for either exact match
 		or abbreviated matches.  */
 		for (p = longopts, option_index = 0; p->name; p++, option_index++)
-			if (!T_strncmp (p->name, si->nextchar, nameend - si->nextchar))
+			if (!t_strncmp (p->name, si->nextchar, nameend - si->nextchar))
 			{
-				if (nameend - si->nextchar == T_strlen (p->name))
+				if (nameend - si->nextchar == t_strlen (p->name))
 				{
 					/* Exact match found.  */
 					pfound = p;
@@ -383,7 +385,7 @@ _sgetopt_internal (
 				if (si->opterr)
 					fprintf (stderr, "%s: option `%s' is ambiguous\n",
 					argv[0], argv[si->optind]);
-				si->nextchar += T_strlen (si->nextchar);
+				si->nextchar += t_strlen (si->nextchar);
 				si->optind++;
 				return _T('?');
 			}
@@ -415,7 +417,7 @@ _sgetopt_internal (
 									argv[0], argv[si->optind - 1][0], pfound->name);
 							}
 						}
-						si->nextchar += T_strlen (si->nextchar);
+						si->nextchar += t_strlen (si->nextchar);
 						return _T('?');
 					}
 				}
@@ -430,11 +432,11 @@ _sgetopt_internal (
 								_T("%s: option `%s' requires an argument\n"),
 								argv[0], argv[si->optind - 1]);
 						}
-						si->nextchar += T_strlen (si->nextchar);
+						si->nextchar += t_strlen (si->nextchar);
 						return optstring[0] == _T(':') ? _T(':') : _T('?');
 					}
 				}
-				si->nextchar += T_strlen (si->nextchar);
+				si->nextchar += t_strlen (si->nextchar);
 				if (longind != NULL)
 					*longind = option_index;
 				
@@ -451,7 +453,7 @@ _sgetopt_internal (
 			option, then it's an error.
 			Otherwise interpret it as a short option.  */
 			if (!long_only || argv[si->optind][1] == _T('-')
-				|| T_strchr (optstring, *si->nextchar) == NULL)
+				|| t_strchr (optstring, *si->nextchar) == NULL)
 			{
 				if (si->opterr)
 				{
@@ -478,7 +480,7 @@ _sgetopt_internal (
 
 	{
 		TCHAR c = *si->nextchar++;
-		TCHAR *temp = T_strchr (optstring, c);
+		TCHAR *temp = t_strchr (optstring, c);
 
 		/* Increment `si->optind' when we start to process its last character.  */
 		if (*si->nextchar == '\0')
