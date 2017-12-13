@@ -34,7 +34,7 @@ ggt_normalize_crlf(const TCHAR *ibuf, TCHAR *obuf, int obufchars, const TCHAR *s
 			continue;
 		}
 		
-		omove = mm_snprintf(po, po_end0-po+1, _T("%s"), szcrlf);
+		omove = mm_snprintf(po, (mmbufsize_t)(po_end0-po+1), _T("%s"), szcrlf);
 		po += omove;
 
 		if(c=='\n' || pi[1]!='\n')
@@ -52,6 +52,6 @@ ggt_normalize_crlf(const TCHAR *ibuf, TCHAR *obuf, int obufchars, const TCHAR *s
 	else
 		*po_end0 = '\0';
 
-	return po - obuf;
+	return (int)(po - obuf);
 }
 
