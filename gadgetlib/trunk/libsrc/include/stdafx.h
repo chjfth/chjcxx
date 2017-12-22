@@ -3,6 +3,9 @@
 // are changed infrequently
 //
 
+///////////////// SYSTEM HEADERS START ///////////////// 
+#ifndef _GMU_GCC_M_GEN_HDEPEND // hdepend-gcc does not need to see system headers
+
 #if defined(_MSC_VER)     // Visual C++ compiler:
 
 // #include "targetver.h"
@@ -51,9 +54,10 @@
 
 #endif // Complier checking done
 
+#endif //_GMU_GCC_M_GEN_HDEPEND
 
+///////////////// SYSTEM HEADERS END ///////////////// 
 
-//////////////////////////////////////////////////////////////////////////
 
 // Platform unrelated headers below:
 

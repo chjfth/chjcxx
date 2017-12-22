@@ -32,7 +32,7 @@ _WinThreadWrapper(void * param)
 }
 
 
-ggt_hsimplethread
+GGT_HSimpleThread
 ggt_simple_thread_create(PROC_ggt_simple_thread proc, void *param, int stack_size)
 {
 	HANDLE hThread = NULL;
@@ -51,15 +51,14 @@ ggt_simple_thread_create(PROC_ggt_simple_thread proc, void *param, int stack_siz
 	hThread = (HANDLE)_beginthreadex(NULL, stack_size, _WinThreadWrapper, pwp ,0, &tid);
 #endif
 	
-	return hThread;
+	return (GGT_HSimpleThread)hThread;
 }
 
 bool 
-ggt_simple_thread_waitend(ggt_hsimplethread h)
+ggt_simple_thread_waitend(GGT_HSimpleThread h)
 {
 	if(!h) {
-		// make it dead
-		while(1) Sleep(100);
+		return false;
 	}
 
 	DWORD waitre = WaitForSingleObject(h, INFINITE);

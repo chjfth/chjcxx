@@ -30,7 +30,7 @@ _LinuxThreadWrapper(void * param)
 }
 
 
-ggt_hsimplethread 
+GGT_HSimpleThread 
 ggt_simple_thread_create(PROC_ggt_simple_thread proc, void *param, int stack_size)
 {
 	SwThreadParam *pwp = new SwThreadParam;
@@ -57,17 +57,16 @@ ggt_simple_thread_create(PROC_ggt_simple_thread proc, void *param, int stack_siz
 	}
 
 	if(!err)
-		return pwp;
+		return (GGT_HSimpleThread)pwp;
 	else
 		return NULL;
 }
 
 bool 
-ggt_simple_thread_waitend(ggt_hsimplethread h)
+ggt_simple_thread_waitend(GGT_HSimpleThread h)
 {
 	if(!h) {
-		// make it dead
-		while(1) usleep(1000*100);
+		return false;
 	}
 	
 	SwThreadParam *pwp = (SwThreadParam*)h;

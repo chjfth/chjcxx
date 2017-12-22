@@ -10,16 +10,17 @@ extern"C" {
 #define DLLEXPORT_gadgetlib
 #endif
 
-typedef void *ggt_hsimplethread;
+typedef struct _GGT_HSimpleThread_st { } *GGT_HSimpleThread;
+
 typedef void (*PROC_ggt_simple_thread)(void *param);
 	// Note: On x86 Windows, this defaults to __cdecl, not __stdcall .
 
 DLLEXPORT_gadgetlib
-ggt_hsimplethread ggt_simple_thread_create(PROC_ggt_simple_thread proc, void *param, int stack_size);
+GGT_HSimpleThread ggt_simple_thread_create(PROC_ggt_simple_thread proc, void *param, int stack_size);
 	// return non-NULL handle on thread creation success.
 
 DLLEXPORT_gadgetlib
-bool ggt_simple_thread_waitend(ggt_hsimplethread h);
+bool ggt_simple_thread_waitend(GGT_HSimpleThread h);
 
 
 #ifdef __cplusplus
@@ -50,7 +51,7 @@ inline void cxx_threadbegin_stub(void *_param)
 }
 
 template<typename TClass>
-inline ggt_hsimplethread 
+inline GGT_HSimpleThread 
 ggt_cxx_thread_create(TClass &cxxobj, void (TClass::*memberfunc)(), int stack_size=0)
 {
 	struct SParam
@@ -59,11 +60,11 @@ ggt_cxx_thread_create(TClass &cxxobj, void (TClass::*memberfunc)(), int stack_si
 		void (TClass::*Func)();
 	};
 
-	SParam *param = new SParam; // delete in cxx_threadbegin_stub()
+	SParam *param = new SParam; // will `delete` in cxx_threadbegin_stub()
 	param->obj = &cxxobj;
 	param->Func = memberfunc;
 
-	ggt_hsimplethread handle = 
+	GGT_HSimpleThread handle = 
 		ggt_simple_thread_create(&cxx_threadbegin_stub<TClass>, param, stack_size);
 
 //	Sleep(2000);
@@ -78,7 +79,7 @@ struct A {
 	void thread_start() { printf("A::thread_start. x=%u\n", x); }
 };
 
-ggt_hsimplethread ht = ggt_cxx_thread_create(a1, &A::thread_func);
+ggt_hsimplethread ht = ggt_cxx_thread_create(a1, &A::thread_start);
 
 ggt_simple_thread_waitend(ht);
 
