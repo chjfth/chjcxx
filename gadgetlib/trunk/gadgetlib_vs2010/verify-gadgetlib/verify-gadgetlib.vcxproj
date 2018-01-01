@@ -183,6 +183,7 @@
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\examples\verify\verify-CalSpeed.cpp" />
     <ClCompile Include="..\..\examples\verify\verify-ReposNewbox.cpp" />
     <ClCompile Include="..\..\examples\verify\verify-textcrlf.cpp" />
     <ClCompile Include="..\..\examples\verify\verify-timefuncs.cpp" />

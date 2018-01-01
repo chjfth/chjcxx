@@ -6,6 +6,7 @@ gmu_up_list_SRC_FROM_ROOT += verify.cpp \
 	verify-timefuncs.cpp  \
 	verify-textcrlf.cpp   \
 	verify-ReposNewbox.cpp \
+	verify-CalSpeed.cpp \
 
 include ../share.mki
 

@@ -12,6 +12,8 @@ void verify_textcrlf();
 
 bool verify_ReposNewbox();
 
+bool verify_CalSpeed();
+
 
 #ifdef __cplusplus
 } // extern"C" {

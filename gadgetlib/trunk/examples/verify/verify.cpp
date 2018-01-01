@@ -43,6 +43,9 @@ int main()
 	succ = verify_ReposNewbox();
 	assert(succ);
 
+	succ = verify_CalSpeed();
+	assert(succ);
+
 	T_printf(_T("Verify success.\n"));
 	return 0;
 }
