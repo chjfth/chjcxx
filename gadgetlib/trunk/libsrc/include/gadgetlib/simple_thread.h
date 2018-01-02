@@ -16,7 +16,7 @@ typedef void (*PROC_ggt_simple_thread)(void *param);
 	// Note: On x86 Windows, this defaults to __cdecl, not __stdcall .
 
 DLLEXPORT_gadgetlib
-GGT_HSimpleThread ggt_simple_thread_create(PROC_ggt_simple_thread proc, void *param, int stack_size);
+GGT_HSimpleThread ggt_simple_thread_create(PROC_ggt_simple_thread proc, void *param, int stack_size=0);
 	// return non-NULL handle on thread creation success.
 
 DLLEXPORT_gadgetlib
