@@ -39,6 +39,8 @@ const char *RTE2Name(RawTermError_ret val);
 
 #ifdef TERMIOS_UTIL_IMPL
 
+#include <sys/ioctl.h> // for TIOCEXCL
+
 struct RTE_E2N_map_st
 {
 	int errnum;
