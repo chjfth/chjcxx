@@ -74,7 +74,7 @@ private:
 //////////////////////// IMPLEMENTATION CODE BELOW ////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 
-#ifdef CALSPEED_IMPL
+#ifdef CalSpeed_IMPL
 
 #include <mm_snprintf.h>
 
@@ -166,6 +166,6 @@ TCHAR *CCalSpeed::sprint(Uint diffmsec, Uint64 diffbytes64, TCHAR *buf, int bufs
 }
 
 
-#endif // CALSPEED_IMPL
+#endif // CalSpeed_IMPL
 
 #endif

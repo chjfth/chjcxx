@@ -37,7 +37,7 @@ const char *RTE2Name(RawTermError_ret val);
 //////////////////////// IMPLEMENTATION CODE BELOW ////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 
-#ifdef TERMIOS_UTIL_IMPL
+#ifdef termios_util_IMPL
 
 #include <sys/ioctl.h> // for TIOCEXCL
 
@@ -261,6 +261,6 @@ ERROR_END:
 	return ret;
 }
 
-#endif // TERMIOS_UTIL_IMPL
+#endif // termios_util_IMPL
 
 #endif

@@ -14,7 +14,7 @@ const char *errno2name(int errnum);
 #endif
 
 
-#ifdef ERRNO2NAME_IMPL // user should define this in one of his .c/.cpp to get implementation
+#ifdef errno2name_IMPL // user should define this in one of his .c/.cpp to get implementation
 
 struct errno2name_map_st
 {
@@ -174,9 +174,9 @@ const char *errno2name(int errnum)
 			return s_map[i].errname;
 	}
 	
-	return "UnknownErrno";
+	return "Unknown_errno";
 }
 
 
-#endif // ERRNO2NAME_IMPL
+#endif // errno2name_IMPL
 #endif
