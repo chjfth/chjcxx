@@ -33,6 +33,11 @@ public:
 		m_nowTotal += bytes;
 	}
 	
+	Uint64 GetTotal()
+	{
+		return m_nowTotal;
+	}
+	
 	Uint GetSpeed(Uint64 *pDiffBytes)
 	{
 		Uint now_msec = m_procGetmsec();
