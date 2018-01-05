@@ -626,5 +626,5 @@ CircBufws_MoveData(CCircBufws &src, CCircBufws &dst, int reqCopy)
 }
 
 
-#endif // CCIRCBUFWS_IMPL
+#endif // CircBufws_IMPL
 #endif // __CircBufws_h_20161123_
