@@ -26,6 +26,8 @@ enum RawTermError_ret
 	
 RawTermError_ret termios_SetRawTerm(int fd, int Baudrate, termios *pTioOrig=NULL);
 
+RawTermError_ret termios_SetVminVtime(int fd, int vmin, int vtime, termios *pTioOrig=NULL);
+
 const char *RTE2Name(RawTermError_ret val);
 		
 	
@@ -233,7 +235,8 @@ termios_SetRawTerm(int fd, int Baudrate, termios *pTioOrig)
 	
 	///
 	
-	// Set exclusive lock, but no "exclusion" effect on root user.
+	// Set exclusive lock, so other process or other user gets EBUSY on open().
+	// But be aware, this has no "exclusion" effect on root user.
 	// https://stackoverflow.com/a/17983721/151453 
 	err = ioctl(fd, TIOCEXCL);
 	if (err)
@@ -260,6 +263,39 @@ ERROR_END:
 	err = tcsetattr(fd, TCSANOW, &tio_orig);
 	return ret;
 }
+
+RawTermError_ret 
+termios_SetVminVtime(int fd, int vmin, int vtime, termios *pTioOrig)
+{
+	RawTermError_ret ret = RTE_Unknown;
+	int ret_errno = 0;
+	bool succ = false;
+	termios tio_orig = {};
+	if (!pTioOrig)
+		pTioOrig = &tio_orig;
+	memset(pTioOrig, 0, sizeof(termios));
+	
+	if (!isatty(fd))
+		return RTE_NotTTY;
+
+	if(! (vmin>=0 && vmin<=255 && vtime>=0 && vtime<=255) )
+		return RTE_BadParam;
+	
+	int err = tcgetattr(fd, pTioOrig);
+	if (err)
+		return RTE_Unknown;
+	
+	termios tio = *pTioOrig;
+	tio.c_cc[VMIN] = vmin;
+	tio.c_cc[VTIME] = vtime;
+	
+	err = tcsetattr(fd, TCSANOW, &tio);
+	if (err)
+		return RTE_Unknown;
+	
+	return RTE_Success;
+}
+
 
 #endif // termios_util_IMPL
 
