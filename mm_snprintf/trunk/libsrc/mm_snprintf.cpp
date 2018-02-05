@@ -279,6 +279,8 @@
 
 // Some configuration macros:
 
+#define _CRT_SECURE_NO_WARNINGS // Disable VC8+ warning of strcpy etc.
+
 #define SNPRINTF_LONGLONG_SUPPORT
 
 // USE_CPP_NEW:
