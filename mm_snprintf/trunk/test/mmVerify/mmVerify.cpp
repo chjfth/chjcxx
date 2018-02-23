@@ -8,6 +8,7 @@
 #endif
 
 # ifdef _WIN32_WCE
+#  include <windows.h>
 #  include <altcecrt.h> // for _gmtime64_s on WinCE
 # endif
 
@@ -1285,10 +1286,6 @@ int _tmain()
 
 	mm_printf(_T("\nAll %d test cases passed.\n"), g_cases);
 
-#ifndef _WIN32_WCE
-	logfile_close(g_dbi.hfile);
-#endif
-
 //	time_t uepoch_end32 = 0x7FFFffff;
 //	mm_printf(t("time_t will overflow at UTC [%F]!\n"), 
 //		MM_FPAIR_PARAM(mmF_ansitime2ymdhms, &uepoch_end32));
@@ -1296,6 +1293,13 @@ int _tmain()
 	// a casual fp number test.
 	TCHAR flbuf[50]; 
 	int ret = mm_snprintf(flbuf, GetEleQuan(flbuf), t("[%20.200f]"), 1234567890123456789.4321);
+
+#ifndef _WIN32_WCE
+	logfile_close(g_dbi.hfile);
+#else
+	Sleep(1000); // a pause on WinCE CMD console
+#endif
+
 	return 0;
 }
 
