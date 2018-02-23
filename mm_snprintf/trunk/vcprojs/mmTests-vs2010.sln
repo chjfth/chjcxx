@@ -1,17 +1,17 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mmVerify", "..\test\mmVerify\mmVerify.vcxproj", "{67960783-25B4-F7DD-ECC4-0C7C982E8B1D}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mmVerify", "..\test\mmVerify\mmVerify.vcxproj", "{A33FD2BA-B4AE-4C44-A512-201802230001}"
 	ProjectSection(ProjectDependencies) = postProject
-		{71FCDC10-FB9F-6304-834A-E332D85406BD} = {71FCDC10-FB9F-6304-834A-E332D85406BD}
+		{A33FD2BA-B4AE-4C44-A512-201802230000} = {A33FD2BA-B4AE-4C44-A512-201802230000}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ct_winfile", "..\test\ct_winfile\ct_winfile.vcxproj", "{60804867-741F-9EA3-219D-D91A6C09F907}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ct_winfile", "..\test\ct_winfile\ct_winfile.vcxproj", "{A33FD2BA-B4AE-4C44-A512-201802230002}"
 	ProjectSection(ProjectDependencies) = postProject
-		{71FCDC10-FB9F-6304-834A-E332D85406BD} = {71FCDC10-FB9F-6304-834A-E332D85406BD}
+		{A33FD2BA-B4AE-4C44-A512-201802230000} = {A33FD2BA-B4AE-4C44-A512-201802230000}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lib_mm_snprintf", "lib_mm_snprintf\lib_mm_snprintf.vcxproj", "{71FCDC10-FB9F-6304-834A-E332D85406BD}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lib_mm_snprintf", "lib_mm_snprintf\lib_mm_snprintf.vcxproj", "{A33FD2BA-B4AE-4C44-A512-201802230000}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,18 +19,18 @@ Global
 		Unicode|Win32 = Unicode|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{67960783-25B4-F7DD-ECC4-0C7C982E8B1D}.ANSI|Win32.ActiveCfg = ANSI|Win32
-		{67960783-25B4-F7DD-ECC4-0C7C982E8B1D}.ANSI|Win32.Build.0 = ANSI|Win32
-		{67960783-25B4-F7DD-ECC4-0C7C982E8B1D}.Unicode|Win32.ActiveCfg = Unicode|Win32
-		{67960783-25B4-F7DD-ECC4-0C7C982E8B1D}.Unicode|Win32.Build.0 = Unicode|Win32
-		{60804867-741F-9EA3-219D-D91A6C09F907}.ANSI|Win32.ActiveCfg = ANSI|Win32
-		{60804867-741F-9EA3-219D-D91A6C09F907}.ANSI|Win32.Build.0 = ANSI|Win32
-		{60804867-741F-9EA3-219D-D91A6C09F907}.Unicode|Win32.ActiveCfg = Unicode|Win32
-		{60804867-741F-9EA3-219D-D91A6C09F907}.Unicode|Win32.Build.0 = Unicode|Win32
-		{71FCDC10-FB9F-6304-834A-E332D85406BD}.ANSI|Win32.ActiveCfg = ANSI|Win32
-		{71FCDC10-FB9F-6304-834A-E332D85406BD}.ANSI|Win32.Build.0 = ANSI|Win32
-		{71FCDC10-FB9F-6304-834A-E332D85406BD}.Unicode|Win32.ActiveCfg = Unicode|Win32
-		{71FCDC10-FB9F-6304-834A-E332D85406BD}.Unicode|Win32.Build.0 = Unicode|Win32
+		{A33FD2BA-B4AE-4C44-A512-201802230001}.ANSI|Win32.ActiveCfg = ANSI|Win32
+		{A33FD2BA-B4AE-4C44-A512-201802230001}.ANSI|Win32.Build.0 = ANSI|Win32
+		{A33FD2BA-B4AE-4C44-A512-201802230001}.Unicode|Win32.ActiveCfg = Unicode|Win32
+		{A33FD2BA-B4AE-4C44-A512-201802230001}.Unicode|Win32.Build.0 = Unicode|Win32
+		{A33FD2BA-B4AE-4C44-A512-201802230002}.ANSI|Win32.ActiveCfg = ANSI|Win32
+		{A33FD2BA-B4AE-4C44-A512-201802230002}.ANSI|Win32.Build.0 = ANSI|Win32
+		{A33FD2BA-B4AE-4C44-A512-201802230002}.Unicode|Win32.ActiveCfg = Unicode|Win32
+		{A33FD2BA-B4AE-4C44-A512-201802230002}.Unicode|Win32.Build.0 = Unicode|Win32
+		{A33FD2BA-B4AE-4C44-A512-201802230000}.ANSI|Win32.ActiveCfg = ANSI|Win32
+		{A33FD2BA-B4AE-4C44-A512-201802230000}.ANSI|Win32.Build.0 = ANSI|Win32
+		{A33FD2BA-B4AE-4C44-A512-201802230000}.Unicode|Win32.ActiveCfg = Unicode|Win32
+		{A33FD2BA-B4AE-4C44-A512-201802230000}.Unicode|Win32.Build.0 = Unicode|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
