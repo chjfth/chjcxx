@@ -4,6 +4,7 @@
 # define WIN32_LEAN_AND_MEAN
 # include <windows.h>
 # include <tchar.h>
+#define _CRT_SECURE_NO_WARNINGS // Disable old-function warning on VS2010
 #endif
 
 #include <assert.h>
