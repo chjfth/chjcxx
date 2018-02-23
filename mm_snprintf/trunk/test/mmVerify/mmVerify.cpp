@@ -7,6 +7,10 @@
 # include <tchar.h>
 #endif
 
+# ifdef _WIN32_WCE
+#  include <altcecrt.h> // for _gmtime64_s on WinCE
+# endif
+
 #include <assert.h>
 #include <stdarg.h>
 #include <string.h>
@@ -124,7 +128,9 @@ void mm_LogProgressToFile(void *ctx_user, const TCHAR *psz_dbginfo)
 	mm_snprintf_v7(mmi, t("[%2d]%s"), dbi.seq++, psz_dbginfo);
 	
 	int slen = t_strlen(buf);
+#ifndef _WIN32_WCE
 	logfile_append(dbi.hfile, buf, slen*sizeof(TCHAR));
+#endif
 }
 
 
@@ -775,12 +781,26 @@ void test_am()
 	assert(bufremain==-4);
 }
 
+void my_gmtime(time_t now, struct tm *ptm)
+{
+#ifndef _WIN32_WCE
+	struct tm* ptm_sys = gmtime(&now);
+	*ptm = *ptm_sys;
+#else
+	__time64_t t64now = now;
+	_gmtime64_s(ptm, &t64now);
+#endif
+}
+
 int mmF_ansitime2ymdhms(void *ctx_F, mmv7_st &mmi)
 {
 	assert( mmi.bufsize<=0 || (mmi.buf_output && mmi.buf_output[0]==_T('\0')) );
 	
 	time_t now = *(time_t*)ctx_F;
-	struct tm* ptm = gmtime(&now);
+	
+	struct tm tm_now, *ptm = &tm_now;
+	my_gmtime(now, ptm);
+	
 	int len = mm_snprintf_v7(mmi, t("%04d-%02d-%02d %02d:%02d:%02d"),
 		ptm->tm_year+1900, ptm->tm_mon+1, ptm->tm_mday,
 		ptm->tm_hour, ptm->tm_min, ptm->tm_sec
@@ -807,7 +827,8 @@ int mmF_ansitime2ymdhms_twice(void *ctx_F, mmv7_st &mmi)
 	// Call mm_snprintf_v7 *twice*
 	//
 	time_t now = *(time_t*)ctx_F;
-	struct tm* ptm = gmtime(&now);
+	struct tm tm_now, *ptm = &tm_now;
+	my_gmtime(now, ptm);
 	int len1 = mm_snprintf_v7(mmi, t("%04d-%02d-%02d"),
 		ptm->tm_year+1900, ptm->tm_mon+1, ptm->tm_mday);
 	//
@@ -825,7 +846,9 @@ int mmF_ansitime2ymdhms_method2(void *ctx_F, mmv7_st &mmi)
 	assert( mmi.bufsize<=0 || (mmi.buf_output && mmi.buf_output[0]==_T('\0')) );
 	
 	time_t now = *(time_t*)ctx_F;
-	struct tm* ptm = gmtime(&now);
+
+	struct tm tm_now, *ptm = &tm_now;
+	my_gmtime(now, ptm);
 
 	// We have to cope with two things:
 	// 1. Call mmi.proc_output with mmi.ctx_output
@@ -923,7 +946,8 @@ int mmF_uepoc2ymd(void *ctx_user, mmv7_st &mmi)
 	// mmi.pstock will point to "time_t will overflow at UTC ["
 	
 	time_t uepoch = *(time_t*)ctx_user;
-	struct tm* ptm = gmtime(&uepoch);
+	struct tm tm_now, *ptm = &tm_now;
+	my_gmtime(uepoch, ptm);
 
 	// Relay mmi to inner mm_snprintf_v7:
 	int len = mm_snprintf_v7(mmi, mmf_inner_fmt, 
@@ -1219,7 +1243,9 @@ int _tmain()
 {
 	// note: glibc bans mixing printf and wprintf, so avoid using mprintA here. (?)
 
+#ifndef _WIN32_WCE
 	setlocale(LC_ALL, "");
+#endif
 
 	unsigned short mmver = mmsnprintf_getversion();
 	int ver1 = mmver>>8, ver2 = mmver&0xff;
@@ -1229,11 +1255,13 @@ int _tmain()
 		ver1, ver2,
 		sizeof(TCHAR));
 
+#ifndef _WIN32_WCE
 	if(g_dbi.hfile<0)
 	{
 		g_dbi.hfile = logfile_create(isUnicodeBuild ? "_mmprogressW.log" : "_mmprogressA.log");
 	}
-	
+#endif
+
 	test_fms_s();
 
 	test_v2();
@@ -1257,8 +1285,9 @@ int _tmain()
 
 	mm_printf(_T("\nAll %d test cases passed.\n"), g_cases);
 
-	if(g_dbi.hfile<0)
-		logfile_close(g_dbi.hfile);
+#ifndef _WIN32_WCE
+	logfile_close(g_dbi.hfile);
+#endif
 
 //	time_t uepoch_end32 = 0x7FFFffff;
 //	mm_printf(t("time_t will overflow at UTC [%F]!\n"), 

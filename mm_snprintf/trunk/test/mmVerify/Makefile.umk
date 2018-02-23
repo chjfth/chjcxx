@@ -2,6 +2,10 @@ gmu_PRJ_NAME = mmVerify$(if $(MAKE_LIB),-libdev)
 
 gmu_uf_LINK_OUTPUT = $(call gmpf_MakeExeName,mmVerify)
 
-gmu_up_list_SRC_FROM_ROOT += mmVerify.cpp logtofile.cpp
+gmu_up_list_SRC_FROM_ROOT += mmVerify.cpp 
+	
+ifneq ($(gmp_COMPILER_ID),wince)
+	gmu_up_list_SRC_FROM_ROOT += logtofile.cpp # Don't add this file in WinCE
+endif
 
 include ../share.mki
