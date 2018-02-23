@@ -1,3 +1,5 @@
+#define _CRT_SECURE_NO_WARNINGS // to avoid VS2010 warning on open
+
 #include <stdio.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -6,9 +8,10 @@
 #ifdef WIN32
 
 #include <io.h>
+
 int o_binary = O_BINARY;
-#define open _open // to avoid VS2010 warning
-#define write _write
+#define open _open
+#define write _write // to avoid VS2010 warning
 #define close _close
 
 #else // assume linux
