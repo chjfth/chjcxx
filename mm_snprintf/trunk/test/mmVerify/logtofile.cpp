@@ -7,6 +7,9 @@
 
 #include <io.h>
 int o_binary = O_BINARY;
+#define open _open // to avoid VS2010 warning
+#define write _write
+#define close _close
 
 #else // assume linux
 
@@ -27,11 +30,13 @@ int logfile_create(const char *filename) // create a new file
 
 void logfile_append(int hfile, const void *pcontent, int bytes)
 {
-	write(hfile, pcontent, bytes);
+	if(hfile>=0)
+		write(hfile, pcontent, bytes);
 }
 
 void logfile_close(int hfile)
 {
-	close(hfile);
+	if(hfile>=0)
+		close(hfile);
 }
 

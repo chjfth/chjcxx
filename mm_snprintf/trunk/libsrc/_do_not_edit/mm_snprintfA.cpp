@@ -279,6 +279,8 @@
 
 // Some configuration macros:
 
+#define _CRT_SECURE_NO_WARNINGS // Disable VC8+ warning of strcpy etc.
+
 #define SNPRINTF_LONGLONG_SUPPORT
 
 // USE_CPP_NEW:
@@ -311,7 +313,6 @@
 #include "mm_psfunc.h"
 
 #define DLL_AUTO_EXPORT_STUB
-extern"C" void mmsnprintf_lib__mm_snprintfA__DLL_AUTO_EXPORT_STUB(void){}
 
 #ifdef NO_assert // specific for this library
 # undef assert

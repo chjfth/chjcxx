@@ -117,7 +117,9 @@ void mm_LogProgressToFile(void *ctx_user, const TCHAR *psz_dbginfo)
 	mmv7_st mmi = {0};
 	mmi.buf_output = buf;
 	mmi.bufsize = bufsize;
-	mmi.suppress_dbginfo = true; // important, to avoid recursive call
+
+	mmi.suppress_dbginfo = true; 
+		// important, to avoid recursive call from within mm_snprintf_v7() at next line.
 
 	mm_snprintf_v7(mmi, t("[%2d]%s"), dbi.seq++, psz_dbginfo);
 	
