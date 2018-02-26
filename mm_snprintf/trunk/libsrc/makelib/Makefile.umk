@@ -67,6 +67,12 @@ else ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),armcpp),1)
   	  
   gmu_ud_list_PRJ_HEADER += $(gmu_ud_SRC_ROOT)/armcpp
 
+else 
+
+  gmu_ud_list_PRJ_HEADER += $(gmu_ud_SRC_ROOT)/glibc
+    # Currently we still need ps_Tstrdef.h in this directory.
+
+
 endif
 
 # GMU-var: gmp_u_list_PLUGIN_TO_LOAD
