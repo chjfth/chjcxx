@@ -2,6 +2,8 @@
 #include <string.h>
 #include "../mm_psfunc.h"
 
+#if 0 // This file is no longer needed since v5
+
 int 
 mmps_i64_type_prefix(char *szPrefix)
 {
@@ -14,3 +16,5 @@ mmps_wsfmt_char()
 {
 	return L's';
 }
+
+#endif

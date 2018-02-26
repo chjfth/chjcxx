@@ -14,9 +14,6 @@
     <ClCompile Include="..\..\libsrc\internal.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libsrc\msvc\mm_psfunc.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="mm_snprintfW.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
