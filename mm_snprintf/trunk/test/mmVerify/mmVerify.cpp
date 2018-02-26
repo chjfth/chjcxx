@@ -1284,7 +1284,7 @@ int _tmain()
 	test_v7_F();
 	test_v7_ct();
 
-	mm_printf(_T("\nAll %d test cases passed.\n"), g_cases);
+	mm_printf(_T("\n[[[ All %d test cases passed. ]]]\n"), g_cases);
 
 //	time_t uepoch_end32 = 0x7FFFffff;
 //	mm_printf(t("time_t will overflow at UTC [%F]!\n"), 

@@ -35,8 +35,9 @@ void mmct_os_printfW(void *ctx_user, const wchar_t *pcontent, int nchars,
 {
 	(void)ctx_user; (void)pctexi;
 
-	wchar_t szfmt[] = L"%.*s";
-	szfmt[3] = mmps_wsfmt_char(); // will be "%.*S" on linux(glibc)
+	wchar_t szfmt[] = L"%.*ls";
+		// wprintf with %ls is both OK for VC6+ and glibc.
+		// So don't bother with %s and %S which are inconsistent on VC and glibc
 
 	wprintf(szfmt, nchars, pcontent);
 }
