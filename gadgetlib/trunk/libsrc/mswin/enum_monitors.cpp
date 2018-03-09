@@ -2,6 +2,9 @@
 
 #include <gadgetlib/enum_monitors.h>
 
+#define DLL_AUTO_EXPORT_STUB
+extern"C" void gadgetlib_lib__enum_monitors__DLL_AUTO_EXPORT_STUB(void){}
+
 struct EnumMonitorPrivate_st
 {
 	OneMonitorInfo_st *arUserMoninfo;

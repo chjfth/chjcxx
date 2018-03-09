@@ -4,6 +4,9 @@
 
 #include <gadgetlib/getch.h>
 
+#define DLL_AUTO_EXPORT_STUB
+extern"C" void gadgetlib_lib__getch__DLL_AUTO_EXPORT_STUB(void){}
+
 int 
 ggt_getch(int timeout_millisec)
 {

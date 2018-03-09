@@ -5,6 +5,9 @@
 #include <_MINMAX_.h>
 #include <gadgetlib/wintooltip.h>
 
+#define DLL_AUTO_EXPORT_STUB
+extern"C" void gadgetlib_lib__wintooltip__DLL_AUTO_EXPORT_STUB(void){}
+
 class CTooltipHandle
 {
 public:
