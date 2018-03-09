@@ -21,7 +21,7 @@
 #include <gadgetlib/FlexiInfobox.h>
 
 #define DLL_AUTO_EXPORT_STUB
-extern"C" void gadgetlib_lib__dlg_showinfo__DLL_AUTO_EXPORT_STUB(void){}
+extern"C" void gadgetlib_lib__FlexiInfobox__DLL_AUTO_EXPORT_STUB(void){}
 
 const int timerId_AutoRefresh = 1;
 const int timerId_AllowClose = 2;

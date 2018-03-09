@@ -1,12 +1,13 @@
 #include "stdafx.h"
 
+#define DLL_AUTO_EXPORT_STUB
+extern"C" void gadgetlib_lib__wintooltip__DLL_AUTO_EXPORT_STUB(void){}
+
+
 #ifdef TOOLTIPS_CLASS // PPC2003 SDK don't have this, WM5-SDK and PC-SDK do.
 
 #include <_MINMAX_.h>
 #include <gadgetlib/wintooltip.h>
-
-#define DLL_AUTO_EXPORT_STUB
-extern"C" void gadgetlib_lib__wintooltip__DLL_AUTO_EXPORT_STUB(void){}
 
 class CTooltipHandle
 {
