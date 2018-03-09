@@ -5,6 +5,8 @@
 #include "mm_psfunc.h"
 #include <mm_snprintf.h>
 
+#define DLL_AUTO_EXPORT_STUB
+
 void mmct_os_printfA(void *ctx_user, const char *pcontent, int nchars, 
 					const mmctexi_stA *pctexi)
 {
