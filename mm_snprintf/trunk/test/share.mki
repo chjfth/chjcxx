@@ -150,7 +150,11 @@ gmu_up_list_EXTRA_OBJ_TO_LINK +=
 
 ifdef MAKE_LIB
 else
-  gmp_bc_EXTRALIBS += $(call UserLibNameForLink_D,mm_snprintf)
+  ifeq (1,$(gmp_bc_UNICODE))
+    gmp_bc_EXTRALIBS += $(call UserDllNameForLink_D,mm_snprintf)
+  else
+    gmp_bc_EXTRALIBS += $(call UserLibNameForLink_D,mm_snprintf)
+  endif
 endif
 
 #gmp_bc_EXTRALIBS += $(call UserLibNameForLink_UD,gadgetlib)
