@@ -7,6 +7,8 @@
 //#include <gadgetlib/T_string.h>
 #include <getopt/sgetopt.h>
 
+#include "t_string.h"
+
 #define DLL_AUTO_EXPORT_STUB
 extern"C" void sgetopt_lib__is_valid_option__DLL_AUTO_EXPORT_STUB(void){}
 
