@@ -312,8 +312,20 @@
 #include "internal.h"
 #include "mm_psfunc.h"
 
+/// Scalacon DLL auto-export helper code >>>
+#if (defined _UNICODE) || (defined UNICODE)
+#define        mmsnprintf_lib__maincode__DLL_AUTO_EXPORT_STUB mmsnprintf_lib__maincodeW__DLL_AUTO_EXPORT_STUB
+#else 
+extern"C" void mmsnprintf_lib__maincode__DLL_AUTO_EXPORT_STUB(void){} // bcz we always build ANSI version
+#define        mmsnprintf_lib__maincode__DLL_AUTO_EXPORT_STUB mmsnprintf_lib__maincodeA__DLL_AUTO_EXPORT_STUB
+#endif
+//
 #define DLL_AUTO_EXPORT_STUB
-extern"C" void mmsnprintf_lib__mm_snprintfA__DLL_AUTO_EXPORT_STUB(void){}
+extern"C" void mmsnprintf_lib__maincode__DLL_AUTO_EXPORT_STUB(void){}
+//
+#undef mmsnprintf_lib__maincode__DLL_AUTO_EXPORT_STUB
+/// Scalacon DLL auto-export helper code <<<
+
 
 #ifdef NO_assert // specific for this library
 # undef assert
