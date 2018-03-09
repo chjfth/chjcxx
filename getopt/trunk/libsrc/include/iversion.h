@@ -3,7 +3,7 @@
 
 #define THISLIB_VMAJOR 1
 #define THISLIB_VMINOR 1
-#define THISLIB_VBUILD 1
+#define THISLIB_VBUILD 2
 
 #define THISLIBstr__(n) #n
 #define THISLIBstr(n) THISLIBstr__(n)
