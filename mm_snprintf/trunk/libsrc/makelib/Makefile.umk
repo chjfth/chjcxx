@@ -29,9 +29,7 @@ ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),msvc wince mingw),1)
 	# 1: Use static CRT lib (compiler option /MT or /MTd)
 	# (null): use DLL CRT lib (compiler option /MD or /MDd)
 
-  gmp_CFLAGS_NON_CODE_GEN += /W3 \
-	-D_CRT_SECURE_NO_WARNINGS -D_CRT_NON_CONFORMING_SWPRINTFS
-  
+  gmp_CFLAGS_NON_CODE_GEN += /W3  
   gmu_up_list_SRC_FROM_ROOT += # msvc/mm_psfunc.cpp
   gmu_ud_list_PRJ_HEADER += $(gmu_ud_SRC_ROOT)/msvc
 
@@ -61,7 +59,6 @@ else ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),armcpp),1)
 
   # armcpp
   MMSNPRINTF_NO_UNICODE = 1
-  gmp_CFLAGS_MACRO_DEFS += -DMMSNPRINTF_NO_UNICODE=1
   gmp_CFLAGS_MACRO_DEFS += -DTCHAR=char -D"wchar_t=unsigned short" -D"__T(s)=s"
   gmp_CFLAGS_MACRO_DEFS += -D"TMM_snprintf(a,b,c,d)=sprintf(a,c,d)" # although danger, nothin' we can do when ARM SDT250 don't have snprintf
   	  
@@ -72,8 +69,12 @@ else
   gmu_ud_list_PRJ_HEADER += $(gmu_ud_SRC_ROOT)/glibc
     # Currently we still need ps_Tstrdef.h in this directory.
 
-
 endif
+
+ifeq ($(MMSNPRINTF_NO_UNICODE),1)
+  gmp_CFLAGS_MACRO_DEFS += -DMMSNPRINTF_NO_UNICODE=1
+endif
+
 
 # GMU-var: gmp_u_list_PLUGIN_TO_LOAD
 #	Designate plugins to load in this make-var, multiple plugin names separated
