@@ -178,7 +178,7 @@ gmp_bc_SYSLIBS += # $(call gmpf_MakeUpSysLibsToLink,<sys-lib-list>)
 # GMU-var: gmu_uv_list_SUBPRJ_LINK_ALL_LEVEL (recommended)
 #	This one is the superset of gmu_uv_list_SUBPRJ_TO_LINK. It's powerful.
 #	Not only output-images of sub-projects explicitly listed in gmu_uv_list_SUBPRJ_LINK_ALL_LEVEL 
-# will be linked by this project, but also sub-projects' of those explictly listed ones 
+# will be linked by this project, but also sub-projects' of those explicitly listed ones 
 # -- any level of sub-projects can be linked. Anyhow, there are two factors that 
 # determines whether deeper projects' outputs will be automatically linked:
 # 1. a deeper project must claim himself a link-component(gmu_I_AM_A_LINK_COMPONENT=1).
@@ -189,8 +189,16 @@ gmp_bc_SYSLIBS += # $(call gmpf_MakeUpSysLibsToLink,<sys-lib-list>)
 # by you.
 
 ifdef MAKE_LIB
-  # Build our lib from source if we work with NLSSVN server.
+  # Build our lib from source as this library's developer.
   gmu_uv_list_SUBPRJ_LINK_ALL_LEVEL += thelib
+else
+  # Use existing binary lib-files
+  ifeq (1,$(gmp_bc_UNICODE))
+    # I deliberately have Unicode build link to DLL so to verify functions are corrected exported from DLL.
+    gmp_bc_EXTRALIBS += $(call UserDllNameForLink_U,sgetopt)
+  else
+    gmp_bc_EXTRALIBS += $(call UserLibNameForLink_UD,sgetopt)
+  endif
 endif
 
 
