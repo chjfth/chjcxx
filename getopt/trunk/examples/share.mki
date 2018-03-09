@@ -148,11 +148,6 @@ gmp_LINKFLAGS += $(gmp_LINKFLAGS_preset)
 gmu_up_list_EXTRA_OBJ_TO_LINK +=
 	# Extra object files to link
 
-ifdef MAKE_LIB
-else
-  gmp_bc_EXTRALIBS += $(call UserLibNameForLink_UD,sgetopt)
-endif
-
 gmp_bc_EXTRALIBS += $(call UserLibNameForLink_UD,gadgetlib)
 gmp_bc_EXTRALIBS += $(call UserLibNameForLink_D,mm_snprintf)
 
