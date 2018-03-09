@@ -35,7 +35,7 @@ const wchar_t *oks = 0;
 //#define mprint mprintW
 //#define mprintN mprintNW
 #define t_strcmp wcscmp
-#define t_strlen wcslen
+#define t_strlen(s) (int)wcslen(s)
 
 #else
 
@@ -44,7 +44,7 @@ const char *oks = 0;
 //#define mprint mprintA
 //#define mprintN mprintNA
 #define t_strcmp strcmp
-#define t_strlen strlen
+#define t_strlen(s) (int)strlen(s)
 
 #endif
 

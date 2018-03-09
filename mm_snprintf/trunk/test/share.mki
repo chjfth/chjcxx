@@ -151,8 +151,9 @@ gmu_up_list_EXTRA_OBJ_TO_LINK +=
 ifdef MAKE_LIB
 else
   ifeq (1,$(gmp_bc_UNICODE))
-    gmp_bc_EXTRALIBS += $(call UserDllNameForLink_D,mm_snprintf)
+    gmp_bc_EXTRALIBS += $(call UserDllNameForLink_,mm_snprintf)
   else
+    # I deliberately have Unicode build link to DLL so to verify functions are corrected exported from DLL.
     gmp_bc_EXTRALIBS += $(call UserLibNameForLink_D,mm_snprintf)
   endif
 endif
