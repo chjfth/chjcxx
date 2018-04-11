@@ -260,8 +260,9 @@ void CAutoBufBase::AdjustBuffer()
 				m_uCurrentSize = m_uNewSize;
 		}
 */
-		// chj: what if m_ReqEle==0 ?
-		PBYTE_t newbuf = new unsigned char[(m_ReqEle+m_ExtraEle)*m_nMult];
+		assert(m_ReqEle>0);
+		int newsize = (m_ReqEle+m_ExtraEle)*m_nMult;
+		PBYTE_t newbuf = new unsigned char[newsize];
 		if(!newbuf)
 			return; 
 
@@ -270,6 +271,12 @@ void CAutoBufBase::AdjustBuffer()
 		if(*m_ppbBuffer)
 		{
 			memcpy(newbuf, *m_ppbBuffer, (m_CurEle+m_ExtraEle)*m_nMult);
+		}
+		else
+		{
+			// We nullify first bytes of the new space, so that, when this space is 
+			// used to store C string, user will see a NUL string.
+			memset(newbuf, 0, _MIN_(newsize, 4));
 		}
 
 		delete *m_ppbBuffer;
