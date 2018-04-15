@@ -14,6 +14,7 @@
 
 bool tsuite_TScalableArray();
 
+#define _0_ 0
 #define _1_ 1
 #define _2_ 2
 #define _3_ 3
