@@ -35,7 +35,9 @@ public:
 
 		// All below means invalid-params
 		E_InvalidParam = -10,
-		E_DecSizeShouldBeMultipleOfIncSize = -11,
+		E_IncSizeMustBeAtleast1 = -11,
+		E_DecSizeShouldBeMultipleOfIncSize = -12,
+		E_MaxEleLessthanCurEle = -13
 	};
 	typedef ReCode_et ReCode_t;
 
@@ -161,8 +163,6 @@ protected:
 	void _init0();
 		// reset the non-class-object members
 
-	ReCode_t init(int MaxEle, int InitEle=0, int IncSize=DEF_INCSIZE, int DecSize=DEF_DECSIZE);
-
 	void ShiftDownEles(int pos, int n);
 	void ShiftUpEles(int pos, int n);
 
@@ -232,14 +232,19 @@ template<typename T>
 typename TScalableArray<T>::ReCode_t 
 TScalableArray<T>::SetTrait(int MaxEle, int IncSize, int DecSize, int DecThres)
 {
-	if(MaxEle<=0 || IncSize<=0 || DecSize<0 || DecThres<0
-		|| MaxEle<m_nCurStorage)
+	if(MaxEle<=0 || DecSize<0 || DecThres<0)
 	{
 		return E_InvalidParam;
 	}
 
+	if(IncSize<=0)
+		return E_IncSizeMustBeAtleast1;
+
 	if(DecSize%IncSize!=0)
 		return E_DecSizeShouldBeMultipleOfIncSize;
+
+	if(MaxEle<m_nCurEle)
+		return E_MaxEleLessthanCurEle;
 
 	// If DecSize==0, it means the storage will increase forever, never decrease,
 	// unless a Cleanup() is called.

@@ -8,7 +8,7 @@ typedef TSA_tchar::ReCode_et Terr;
 typedef TScalableArray<int> TSA_int;
 
 template<typename T>
-bool tsa_imatch(const TScalableArray<T> &sa, int ele, int sto, int reallocs)
+bool tsa_imatch(const TScalableArray<T> &sa, int ele, int sto, int reallocs=-1)
 {
 	TScalableArray<T>::Internal_st ins = sa.GetInternal();
 	if( ins.ele==ele && ins.sto==sto && (ins.reallocs==reallocs || reallocs==-1) )
@@ -21,7 +21,7 @@ bool tsa_imatch(const TScalableArray<T> &sa, int ele, int sto, int reallocs)
 			printf("tsa_imatch ERR: .ele expect=%d, actual=%d\n", ele, ins.ele);
 		if(ins.sto!=sto)
 			printf("tsa_imatch ERR: .sto expect=%d, actual=%d\n", sto, ins.sto);
-		if(ins.reallocs!=reallocs)
+		if(reallocs!=-1 && reallocs!=ins.reallocs)
 			printf("tsa_imatch ERR: .reallocs expect=%d, actual=%d\n", reallocs, ins.reallocs);
 		return false;
 	}
@@ -354,4 +354,42 @@ TEST(tc_TScalableArray, operator_index)
 
 	int &obref2 = sa[-5];
 	EXPECT_EQ(NULL, &obref2);
+}
+
+TEST(tc_TScalableArray, InvalidParams)
+{
+	TSA_tchar sa;
+	Terr err;
+
+#define EXPECT_INVLPARM EXPECT_EQ(TSA_tchar::E_InvalidParam, err)
+
+	// Memo: SetTrait(MaxEle, IncSize, DecSize, DecThres)
+	err = sa.SetTrait(_0_, 1, 1, 0);
+	EXPECT_INVLPARM;
+
+	err = sa.SetTrait(1, 1, 1, -1);
+	EXPECT_INVLPARM;
+
+	err = sa.SetTrait(1, _0_, 0, 0);
+	EXPECT_EQ(TSA_tchar::E_IncSizeMustBeAtleast1, err);
+
+	err = sa.SetTrait(1, 2, 3);
+	EXPECT_EQ(TSA_tchar::E_DecSizeShouldBeMultipleOfIncSize, err);
+
+	err = sa.SetTrait(4, 2, 2);
+	EXPECT_EQ(TSA_tchar::E_Success, err);
+
+	// fill 3 eles
+	sa.SetEleQuan(3);
+	EXPECT_TRUE( tsa_imatch(sa, 3, 4) );
+
+	err = sa.SetTrait(2, 8, 16);
+	EXPECT_EQ(TSA_tchar::E_MaxEleLessthanCurEle, err); 
+	EXPECT_EQ(2, sa.GetIncSize()); // incsize should not change
+	EXPECT_EQ(2, sa.GetDecSize()); // decsize should not change
+
+	err = sa.SetTrait(3, 2, 2);
+	EXPECT_EQ(TSA_tchar::E_Success, err); 
+	EXPECT_TRUE( tsa_imatch(sa, 3, 3) );
+
 }
