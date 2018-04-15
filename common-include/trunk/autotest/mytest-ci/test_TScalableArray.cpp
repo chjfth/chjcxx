@@ -54,6 +54,7 @@ TEST(tc_TScalableArray, Incsize1_Decsize1_Thres0) // tc: gtest test-case
 	// memo: TScalableArray(MaxEle, IncSize, DecSize, DecThres);
 	TSA_tchar sa(3, 1, 1, 0);
 	EXPECT_TRUE( tsa_imatch(sa, 0, 0, 0) );
+//	ASSERT_PRED4(tsa_imatch, sa, 0, 0, 0); // VS2010: no appropriate default constructor available
 
 	sa.SetEleQuan(1);
 	EXPECT_TRUE( tsa_imatch(sa, 1, 1, 1) );
