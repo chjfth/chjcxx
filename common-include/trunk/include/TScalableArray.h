@@ -30,8 +30,12 @@ public:
 		E_Success = 0,
 		E_Unknown = -1,
 		E_NoMem = -2,
-		E_InvalidParam = -3,
-		E_Full = -4
+		// E_InvalidParam = -3,
+		E_Full = -4,
+
+		// All below means invalid-params
+		E_InvalidParam = -10,
+		E_DecSizeShouldBeMultipleOfIncSize = -11,
 	};
 	typedef ReCode_et ReCode_t;
 
@@ -211,7 +215,7 @@ TScalableArray<T>::TScalableArray(int MaxEle, int IncSize, int DecSize, int DecT
 
 	ReCode_t err = SetTrait(MaxEle, IncSize, DecSize, DecThres);
 	if(err) {
-		assert(err==E_InvalidParam);
+		assert(err<=E_InvalidParam);
 		_init0();
 	}
 }
@@ -227,7 +231,7 @@ TScalableArray<T>::SetTrait(int MaxEle, int IncSize, int DecSize, int DecThres)
 	}
 
 	if(DecSize%IncSize!=0)
-		return E_InvalidParam;
+		return E_DecSizeShouldBeMultipleOfIncSize;
 
 	// If DecSize==0, it means the storage will increase forever, never decrease,
 	// unless a Cleanup() is called.
@@ -359,10 +363,11 @@ TScalableArray<T>::DeleteEles(int pos, int n)
 	if(m_nDecSize==0)
 		return E_Success;
 
-	if(m_nCurEle > m_nCurStorage-m_nDecSize-m_nDecThres)
-	{	// the optimize: Check this to avoid doing OCC_DIVIDE every time.
-		return E_Success;
-	}
+	// We cannot use this "optimize", bcz m_nCurStorage may not be multiples of m_nCurEle.
+// 	if(m_nCurEle > m_nCurStorage-m_nDecSize-m_nDecThres)
+// 	{	// the optimize: Check this to avoid doing OCC_DIVIDE every time.
+// 		return E_Success;
+// 	}
 
 	int occn_orig = OCC_DIVIDE(m_nCurStorage, m_nDecSize);
 	int occn_new = OCC_DIVIDE(m_nCurEle+m_nDecThres, m_nDecSize);
@@ -426,6 +431,9 @@ TScalableArray<T>::ExtendEles(int nTotalEles)
 	assert(m_nCurStorage%m_nIncSize==0); //`m_nCurStorage' should be multiple of m_nIncSize
 
 	int nNewStorage = UP_ROUND(nTotalEles, m_nIncSize);
+
+	if(nNewStorage>m_nMaxEle)
+		nNewStorage = m_nMaxEle;
 
 	void *pNew = NULL;
 

@@ -23,7 +23,7 @@ bool tsa_imatch(const TScalableArray<T> &sa, int ele, int sto, int reallocs)
 	}
 }
 
-TEST(ts_TScalableArray, Incsize1_Decsize1_Thres0)
+TEST(tc_TScalableArray, Incsize1_Decsize1_Thres0) // tc: gtest test-case
 {
 	// memo: TScalableArray(MaxEle, IncSize, DecSize, DecThres);
 	TSA_tchar sa(3, 1, 1, 0);
@@ -60,7 +60,7 @@ TEST(ts_TScalableArray, Incsize1_Decsize1_Thres0)
 	EXPECT_TRUE( tsa_imatch(sa, 0, 0, 7 ) );
 }
 
-TEST(ts_TScalableArray, Incsize1_Decsize1_Thres1)
+TEST(tc_TScalableArray, Incsize1_Decsize1_Thres1)
 {
 	const int DECTHRES1 = 1;
 	// memo: TScalableArray(MaxEle, IncSize, DecSize, DecThres);
@@ -92,5 +92,34 @@ TEST(ts_TScalableArray, Incsize1_Decsize1_Thres1)
 
 	sa.Cleanup(); // a Cleanup now clears all vacant storage
 	EXPECT_TRUE( tsa_imatch(sa, 0, 0, 4) ); 
+}
 
+TEST(tc_TScalableArray, DecSize0)
+{
+	// TODO:
+}
+
+TEST(tc_TScalableArray, Incsize2)
+{
+	// memo: TScalableArray(MaxEle, IncSize, DecSize, DecThres);
+	TSA_tchar sa(5, 2, 2, 0);
+	EXPECT_TRUE( tsa_imatch(sa, 0, 0, 0) );
+
+	sa.SetEleQuan(1);
+	EXPECT_TRUE( tsa_imatch(sa, 1, _2_, 1) );
+
+	sa.SetEleQuan(2);
+	EXPECT_TRUE( tsa_imatch(sa, 2, 2, 1) );
+
+	sa.SetEleQuan(3);
+	EXPECT_TRUE( tsa_imatch(sa, 3, 4, 2) );
+
+	sa.SetEleQuan(4);
+	EXPECT_TRUE( tsa_imatch(sa, 4, 4, 2) );
+
+	sa.SetEleQuan(5); // storage is not 6, bcz it will not exceed maxele
+	EXPECT_TRUE( tsa_imatch(sa, 5, _5_, 3) );
+
+	sa.SetEleQuan(4);
+	EXPECT_TRUE( tsa_imatch(sa, 4, 4, 4) );
 }
