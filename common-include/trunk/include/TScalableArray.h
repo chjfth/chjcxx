@@ -39,26 +39,19 @@ private:
 	enum
 	{
 		DEF_INCSIZE = 8,
-		DEF_DECSIZE = DEF_INCSIZE*2
+		DEF_DECSIZE = DEF_INCSIZE*2,
+		DEF_DECTHRES = 1
 	};
 
 public:
-	ReCode_t m_InitErr;
-	TScalableArray(){ reset(); }
-
-	TScalableArray(int &err, int MaxEle, int InitEle=0, int IncSize=DEF_INCSIZE, int DecSize=DEF_DECSIZE);
-		/*!< 
-		 Note: User must set err to 0 on input.
-		 Note: If InitEle is 0, the object will not cost any heap storage, so it will always succeed.
-		*/
+	TScalableArray(){ _init0(); }
+	TScalableArray(int MaxEle, int IncSize=DEF_INCSIZE, int DecSize=DEF_DECSIZE,
+		int DecThres=DEF_DECTHRES);
 	
-	~TScalableArray();
+	~TScalableArray(){ DeleteAllStorage(); }
 
-	ReCode_t Init(int MaxEle, int InitEle=0, int IncSize=DEF_INCSIZE, int DecSize=DEF_DECSIZE)
-	{
-		// Note: When IncSize==0 && DecSize==0, MaxEle' storage will be allocated now, once and for all.
-		return init(MaxEle, InitEle, IncSize, DecSize);
-	}
+	ReCode_t SetTrait(int MaxEle, int IncSize=DEF_INCSIZE, int DecSize=DEF_DECSIZE,
+		int DecThres=DEF_DECTHRES);
 
 	int CurrentEles() const { return m_nCurEle; }
 	int CurrentStorage() const { return m_nCurStorage; }
@@ -105,7 +98,7 @@ public:
 		//    he can instead use ``AppendAt(int pos, const T* array, int n);'' for efficiency.
 
 	ReCode_t DeleteEles(int pos, int n);
-		// A too large `n' means delete all eles starting at `pos'
+		// A too large `n' means to delete all eles starting at `pos'
 	ReCode_t DeleteEle(int pos)
 	{
 		return DeleteEles(pos, 1);
@@ -132,13 +125,28 @@ public:
 			If array size is extended, whether clear new array element to zero.
 		*/
 
+	void Cleanup()
+	{
+		if(m_nCurEle==0 && mar_Ele)
+			DeleteAllStorage();
+	}
+
 	int GetIncSize() { return m_nIncSize; }
 	int GetDecSize() { return m_nDecSize; }
 
-	ReCode_t SetNewIncDecSize(int IncSize, int DecSize);
+	struct Internal_st
+	{
+		int ele, sto;
+		Uint reallocs;
+	};
+	Internal_st GetInternal() const
+	{
+		Internal_st st = {m_nCurEle, m_nCurStorage, m_reallocs};
+		return st;
+	}
 
 protected:
-	void reset();
+	void _init0();
 		// reset the non-class-object members
 
 	ReCode_t init(int MaxEle, int InitEle=0, int IncSize=DEF_INCSIZE, int DecSize=DEF_DECSIZE);
@@ -153,19 +161,22 @@ protected:
 
 protected:
 	// Memory allocation/free functions, like those of CRTs.
-	static void *Malloc(size_t new_size);
+//	static void *Malloc(size_t new_size);
 	static void *Realloc(void *oldbuf, size_t new_size);
 	static void Free(void *ptr);
 
 protected:
 	T* mar_Ele;	// pointer to the dynamically allocated array of type T
 	
-	int m_nMaxEle; // max elements 
 	int m_nCurEle; // current elements
 	int m_nCurStorage; // current storage allocated (in element)
 
+	int m_nMaxEle; // max elements 
 	int m_nIncSize;
 	int m_nDecSize;
+	int m_nDecThres; // storage decreasing threshold
+
+	Uint m_reallocs; // memory reallocation count, for self test
 };
 
 template<typename T>
@@ -180,93 +191,55 @@ bool IsTsaErr(T err)
 
 template<typename T>
 void 
-TScalableArray<T>::reset()
+TScalableArray<T>::_init0()
 {
-	m_InitErr = E_Success;
-
 	mar_Ele = NULL;
 	m_nCurEle = m_nCurStorage = 0;
 
-	m_nMaxEle = 0x7FFFfff;
+	m_nMaxEle = 0x7FFFffff;
 
 	m_nIncSize = DEF_INCSIZE; 
 	m_nDecSize = DEF_DECSIZE;
+	m_nDecThres = DEF_DECTHRES;
+	m_reallocs = 0;
+}
+
+template<typename T>
+TScalableArray<T>::TScalableArray(int MaxEle, int IncSize, int DecSize, int DecThres)
+{
+	_init0();
+
+	ReCode_t err = SetTrait(MaxEle, IncSize, DecSize, DecThres);
+	if(err) {
+		assert(err==E_InvalidParam);
+		_init0();
+	}
 }
 
 template<typename T>
 typename TScalableArray<T>::ReCode_t 
-	/* [2005-09-20] Note of using
-		typename TScalableArray<T>::ReCode_t 
-	instead of 
-		TScalableArray<T>::ReCode_t 
-	as the return value: 
-		Although Visual C++ 6.0 SP5 happily accept the two forms, but gcc-3.3.x
-	issue a warning on the latter one: "implicit typename is deprecated".
-		Someone's words may give you a clue:
-			C++ standard rule is that every identifier that involves a template 
-			is interpreted as a value unless it is explicitly qualified as a typename.
-	*/
-TScalableArray<T>::init(int MaxEle, int InitEle, int IncSize, int DecSize)
+TScalableArray<T>::SetTrait(int MaxEle, int IncSize, int DecSize, int DecThres)
 {
-	// Check error params
-
-	if(MaxEle<0 || InitEle<0 || IncSize<0 || DecSize<0 ||
-		MaxEle<InitEle)
+	if(MaxEle<=0 || IncSize<=0 || DecSize<0 || DecThres<0
+		|| MaxEle<m_nCurStorage)
 	{
 		return E_InvalidParam;
 	}
 
-	if(IncSize==0)
-	{	// Allocate MaxEle storage once and for all
-		m_nCurStorage = MaxEle;
-	}
-	else
-	{
-		m_nCurStorage = UP_ROUND(InitEle, IncSize);
-	}
+	if(DecSize%IncSize!=0)
+		return E_InvalidParam;
 
-	if(m_nCurStorage) // ARM C++'s C-lib returns 0 for malloc(0), therefore...
-	{
-		mar_Ele = (T*)Malloc(m_nCurStorage*sizeof(T)); 
-		if(!mar_Ele) 
-			return E_NoMem;
-		memset(mar_Ele, 0, m_nCurStorage*sizeof(T)); // clear to 0
-	}
-
-	//if(isClearToZero) memset(mar_Ele, 0, m_nCurStorage*sizeof(T));
-		// If `T' is a simple type, such as int, double ... , you'd better
-		//set `isClearToZero' and have this done.
+	// If DecSize==0, it means the storage will increase forever, never decrease,
+	// unless a Cleanup() is called.
 
 	m_nMaxEle = MaxEle;
-	m_nCurEle = InitEle;
 	m_nIncSize = IncSize;
 	m_nDecSize = DecSize;
-
-// 	if(m_nIncSize==0)  // pre-201611 old code
-// 		m_nIncSize = DEF_INCSIZE;
-// 	if(m_nDecSize==0) 
-// 		m_nDecSize = DEF_DECSIZE;
+	m_nDecThres = DecThres;
 
 	return E_Success;
 }
 
-template<typename T>
-TScalableArray<T>::TScalableArray(int &err, 
-	int MaxEle, int InitEle, int IncSize, int DecSize)
-{
-	reset();
-	if(err) 
-		return;
-
-	err = init(MaxEle, InitEle, IncSize, DecSize);
-	return;
-}
-
-template<typename T>
-TScalableArray<T>::~TScalableArray()
-{
-	Free(mar_Ele);
-}
 
 template<typename T>
 typename TScalableArray<T>::ReCode_t 
@@ -386,27 +359,36 @@ TScalableArray<T>::DeleteEles(int pos, int n)
 	if(m_nDecSize==0)
 		return E_Success;
 
-	if(m_nCurEle >= m_nCurStorage-m_nDecSize)
-	{	//[2008-12-16] Optimize: Check this to avoid doing OCC_DIVIDE every time.
+	if(m_nCurEle > m_nCurStorage-m_nDecSize-m_nDecThres)
+	{	// the optimize: Check this to avoid doing OCC_DIVIDE every time.
 		return E_Success;
 	}
 
-	int occn_orig = OCC_DIVIDE(m_nCurStorage, m_nDecSize); //?
-	int occn_new = OCC_DIVIDE(m_nCurEle+m_nIncSize, m_nDecSize);
+	int occn_orig = OCC_DIVIDE(m_nCurStorage, m_nDecSize);
+	int occn_new = OCC_DIVIDE(m_nCurEle+m_nDecThres, m_nDecSize);
 
-	void *pNew = NULL;
-	int nNewStorage = UP_ROUND(m_nCurEle+m_nIncSize, m_nIncSize);
+	assert(occn_new<=occn_orig);
 
-	if(occn_new<occn_orig && nNewStorage<m_nCurStorage)
+	if(occn_new==0)
 	{
-		pNew = Realloc(mar_Ele, nNewStorage*sizeof(T)); // shrink storage
+		assert(occn_orig!=0);
+		assert(m_nCurEle==0 && m_nDecThres==0);
+
+		DeleteAllStorage();
+	}
+	else if(occn_new<occn_orig)
+	{
+		int nNewStorage = occn_new * m_nDecSize;
+
+		void *pNew = Realloc(mar_Ele, nNewStorage*sizeof(T)); // shrink storage
 		if(pNew) 
 		{
 			mar_Ele = (T*)pNew;
+			m_reallocs++;
 		}
 		else
 		{
-			//If fail(rarely possible), do nothing, just use original storage.
+			// If fail(rarely possible on shrink), do nothing, just use original storage.
 		}
 		m_nCurStorage = nNewStorage;
 	}
@@ -418,13 +400,17 @@ template<typename T>
 void 
 TScalableArray<T>::DeleteAllStorage()
 {
-	if(mar_Ele) 
+	if(mar_Ele)
 	{
 		Free(mar_Ele);
 		mar_Ele = NULL;
+		m_nCurEle = m_nCurStorage = 0;
+		m_reallocs++;
 	}
-	m_nCurStorage = m_nCurEle = 0;
-
+	else
+	{
+		assert(m_nCurStorage==0 && m_nCurEle==0);
+	}
 }
 
 template<typename T>
@@ -437,23 +423,23 @@ TScalableArray<T>::ExtendEles(int nTotalEles)
 	if(nTotalEles > m_nMaxEle) 
 		return E_Full;
 
-	if(m_nIncSize>0)
+	assert(m_nCurStorage%m_nIncSize==0); //`m_nCurStorage' should be multiple of m_nIncSize
+
+	int nNewStorage = UP_ROUND(nTotalEles, m_nIncSize);
+
+	void *pNew = NULL;
+
+	if(nNewStorage>m_nCurStorage)
 	{
-		assert(m_nCurStorage%m_nIncSize==0); //`m_nCurStorage' should be multiple of m_nIncSize
-		int nNewStorage = UP_ROUND(nTotalEles, m_nIncSize);
+		pNew = Realloc(mar_Ele, nNewStorage*sizeof(T));
+		if(!pNew) 
+			return E_NoMem;
 
-		void *pNew = NULL;
+		m_reallocs++;
 
-		if(nNewStorage>m_nCurStorage)
-		{
-			pNew = Realloc(mar_Ele, nNewStorage*sizeof(T));
-			if(!pNew) 
-				return E_NoMem;
-
-			// Update the related members ...
-			mar_Ele = (T*)pNew;
-			m_nCurStorage = nNewStorage;
-		}
+		// Update the related members
+		mar_Ele = (T*)pNew;
+		m_nCurStorage = nNewStorage;
 	}
 
 	m_nCurEle = nTotalEles;
@@ -467,11 +453,17 @@ TScalableArray<T>::SetEleQuan(int nNewEle, bool isZeroContent)
 {
 	if(nNewEle<0) 
 		return E_InvalidParam;
+	if(nNewEle>m_nMaxEle)
+		return E_Full;
 
 	if(nNewEle==m_nCurEle) 
+	{
 		return E_Success; // Do nothing
+	}
 	else if(nNewEle<m_nCurEle) 
+	{
 		return DeleteEles(nNewEle, m_nCurEle-nNewEle);
+	}
 	else 
 	{
 		int nOrigEle = m_nCurEle;
@@ -486,31 +478,6 @@ TScalableArray<T>::SetEleQuan(int nNewEle, bool isZeroContent)
 	}
 }
 
-template<typename T>
-typename TScalableArray<T>::ReCode_t 
-TScalableArray<T>::SetNewIncDecSize(int IncSize, int DecSize)
-{
-	if(IncSize<=0 || DecSize<=0) 
-		return E_InvalidParam;
-
-	int nNewStorage = UP_ROUND(m_nCurEle, IncSize);
-	
-	if(nNewStorage!=m_nCurStorage)
-	{
-		void *pNew = Realloc(mar_Ele, nNewStorage*sizeof(T));
-		if(!pNew) 
-			return E_NoMem;
-
-		// Update related members ...
-		mar_Ele = (T*)pNew;
-		m_nCurStorage = nNewStorage;
-	}
-
-	m_nIncSize = IncSize;
-	m_nDecSize = DecSize;
-	
-	return E_Success;
-}
 
 template<typename T>
 typename TScalableArray<T>::ReCode_t 
@@ -552,19 +519,6 @@ TScalableArray<T>::AppendAt(int pos, const T tobj)
 }
 
 
-
-template<typename T>
-void *
-TScalableArray<T>::Malloc(size_t new_size)
-{
-#ifdef TScalableArray_malloc
-	void *p = TScalableArray_malloc(new_size);
-#else
-	void *p = malloc(new_size); // Call standard CRT
-#endif
-	return p;
-}
-
 template<typename T>
 void *
 TScalableArray<T>::Realloc(void *oldbuf, size_t new_size)
@@ -595,16 +549,10 @@ TScalableArray<T>::Free(void *ptr)
 
 /* Sample porting code:
 
-#define TScalableArray_malloc ufcom_malloc
 #define TScalableArray_realloc ufcom_realloc
 #define TScalableArray_free ufcom_free
 
 void* ufcom_realloc(void *oldbuf, size_t new_size)
-{
-	...
-}
-
-void* ufcom_malloc(size_t new_size)
 {
 	...
 }
