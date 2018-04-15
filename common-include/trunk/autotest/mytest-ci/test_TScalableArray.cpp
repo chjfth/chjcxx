@@ -163,6 +163,8 @@ TEST(tc_TScalableArray, Incsize2)
 
 	sa.SetEleQuan(4);
 	EXPECT_TRUE( tsa_imatch(sa, 4, 4, 4) );
+
+	EXPECT_EQ(4, sa.CurrentEles());
 }
 
 TEST(tc_TScalableArray, InsertBefore)
@@ -254,4 +256,102 @@ TEST(tc_TScalableArray, DeleteEles)
 	err = a.DeleteEles(1, 3);
 	EXPECT_EQ(TSA_int::E_Success, err);
 	EXPECT_TRUE( tsa_compare_eles(a, a1, 1) );
+}
+
+
+TEST(tc_TScalableArray, AppendAt)
+{
+	// memo: TScalableArray(MaxEle, IncSize, DecSize, DecThres);
+	TSA_int a(7, 2, 4, 1);
+
+	int a4[4] = {0,1,2,3};
+	a.SetEleQuan(4);
+	int *pints = a.GetElePtr();
+	memcpy(pints, a4, sizeof(a4));
+	EXPECT_TRUE( tsa_compare_eles(a, a4, 4) );
+
+	int a41[4] = {0,10,2,3};
+	a.AppendAt(1, 10);
+	EXPECT_TRUE( tsa_compare_eles(a, a41, 4) );
+
+	int atail2[2] = {30,40};
+	int a5[5] = {0,10,2,30,40};
+	a.AppendAt(3, atail2, 2);
+	EXPECT_TRUE( tsa_compare_eles(a, a5, 5) );
+
+	int noweles = a.CurrentEles();
+
+	int a6[6] = {0,10,2,30,40, 50};
+	TSA_int::ReCode_et err = a.AppendAt(noweles, 50);
+	EXPECT_EQ(TSA_int::E_Success, err);
+	EXPECT_TRUE( tsa_compare_eles(a, a6, 6) );
+
+	// AppendAt got E_Full and no change is made to TSA
+	int atail3[3] = {-1,-2,-3};
+	err = a.AppendAt(5, atail3, 3);
+	EXPECT_EQ(TSA_int::E_Full, err);
+	EXPECT_TRUE( tsa_compare_eles(a, a6, 6) );
+
+	// Now append to exact full
+	int a7[7] = {0,10,2,30,40, 30,40};
+	err = a.AppendAt(5, atail2, 2);
+	EXPECT_EQ(TSA_int::E_Success, err);
+	EXPECT_TRUE( tsa_compare_eles(a, a7, 7) );
+}
+
+TEST(tc_TScalableArray, operator_bool)
+{
+	// memo: TScalableArray(MaxEle, IncSize, DecSize, DecThres);
+	TSA_int sa(0xffff, 1, 1, _1_);
+
+	EXPECT_TRUE(!sa);
+	EXPECT_FALSE(sa);
+
+	sa.SetEleQuan(2);
+	EXPECT_TRUE( tsa_imatch(sa, 2, 2, 1) );
+	EXPECT_TRUE( (bool)sa);
+	EXPECT_FALSE(!sa);
+
+	int answer[2] = {100, 200};
+
+	sa[0] = answer[0], sa[1] = answer[1];
+
+	int output[2];
+	sa.GetEles(0, output, 2);
+	EXPECT_TRUE( memcmp(output, answer, sizeof(answer))==0 );
+
+	// storage==true does not mean sa is true
+ 	sa.DeleteEles(0, 2);
+ 	EXPECT_TRUE( tsa_imatch(sa, 0, _1_, 2) );
+ 	EXPECT_TRUE(!sa);
+ 	EXPECT_FALSE(sa);
+}
+
+TEST(tc_TScalableArray, operator_index)
+{
+	// memo: TScalableArray(MaxEle, IncSize, DecSize, DecThres);
+	TSA_int sa(4, 1, 1, 0);
+
+	sa.AppendTail(7);
+	sa.AppendTail(10);
+	sa.AppendTail(20);
+	sa.AppendTail(30);
+
+	EXPECT_EQ(7, sa[0]);
+	EXPECT_EQ(10, sa[1]);
+	EXPECT_EQ(20, sa[2]);
+	EXPECT_EQ(30, sa[3]);
+
+	// python style, index from tail
+	EXPECT_EQ(30, sa[-1]);
+	EXPECT_EQ(20, sa[-2]);
+	EXPECT_EQ(10, sa[-3]);
+	EXPECT_EQ(7, sa[-4]);
+
+	// out-of-bound test
+	int &obref1 = sa[4];
+	EXPECT_EQ(NULL, &obref1);
+
+	int &obref2 = sa[-5];
+	EXPECT_EQ(NULL, &obref2);
 }

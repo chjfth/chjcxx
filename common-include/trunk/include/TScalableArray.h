@@ -72,9 +72,17 @@ public:
 
 	T& operator[](int pos) const ;
 
-	operator T* () { return GetElePtr(0); }
+	operator T* ()
+	{
+		if(m_nCurEle>0)
+			return mar_Ele;
+		else
+			return NULL;
+	}
 
-	bool operator !() { return GetElePtr(0) ? false : true; } // check for empty array
+	operator bool() { return (T*)(*this) ? true : false; }
+
+	bool operator !() { return (T*)(*this) ? false : true; } // check for empty array
 		
 	ReCode_t InsertBefore(int pos, const T* array, int n);
 		// Insert `n' elements at position `pos'. Insert all or insert none.
@@ -502,6 +510,10 @@ TScalableArray<T>::AppendAt(int pos, const T* array, int n)
 	{
 		CopyInEles(pos, n, array);
 		return E_Success;
+	}
+	else if(pos+n>m_nMaxEle)
+	{
+		return E_Full;
 	}
 	else
 	{
