@@ -18,6 +18,8 @@
 // [2008-08-26] NOTE: This template class is not aware of class ctor, dtor or copy-ctor.
 // If using this template class to hold objects who needs special destruction process,
 // users have to do it themselves!
+//
+// [2018-04-15] Important interface rationale fix. Unit-tests added with Google Test framework.
 
 
 
