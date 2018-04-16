@@ -203,6 +203,7 @@ private:
 
 #ifdef AUTOBUF_IMPL // only one .cpp should define this (defined in khelper.h)
 
+#include <assert.h>
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -276,7 +277,7 @@ void CAutoBufBase::AdjustBuffer()
 		{
 			// We nullify first bytes of the new space, so that, when this space is 
 			// used to store C string, user will see a NUL string.
-			memset(newbuf, 0, _MIN_(newsize, 4));
+			memset(newbuf, 0, (newsize<4 ? newsize : 4));
 		}
 
 		delete *m_ppbBuffer;
