@@ -406,8 +406,16 @@ TEST(tc_TScalableArray, Cxx_operator_misc)
 
 	sa[0]=L'A', sa[1]=L'B', sa[2]=L'C', sa[3]=L'\0';
 
+#ifdef _MSC_VER
+/*	Sigh, this is still complained by gcc 4.8, so only enable it for MSVC.
+	
+xxx.cpp: error: invalid conversion from 'int' to 'wchar_t*' [-fpermissive]
+  wchar_t *pc1 = sa+1; // This is ambiguous
+*/
 	wchar_t *pc1 = sa+1; // This is ambiguous
-	wchar_t *pc2 = &sa[1];
 	EXPECT_STREQ(pc1, L"BC");
+#endif
+
+	wchar_t *pc2 = &sa[1];
 	EXPECT_STREQ(pc2, L"BC");
 }
