@@ -385,11 +385,13 @@ TEST(tc_TScalableArray, InvalidParams)
 
 	err = sa.SetTrait(2, 8, 16);
 	EXPECT_EQ(TSA_tchar::E_MaxEleLessthanCurEle, err); 
-	EXPECT_EQ(2, sa.GetIncSize()); // incsize should not change
-	EXPECT_EQ(2, sa.GetDecSize()); // decsize should not change
+	EXPECT_EQ(2, sa.GetIncSize()); // incsize should not change on above error
+	EXPECT_EQ(2, sa.GetDecSize()); // decsize should not change on above error
 
-	err = sa.SetTrait(3, 2, 2);
-	EXPECT_EQ(TSA_tchar::E_Success, err); 
-	EXPECT_TRUE( tsa_imatch(sa, 3, 3) );
+	err = sa.SetTrait(3, 2, 2, 0);
+	EXPECT_EQ(TSA_tchar::E_Success, err);
+	EXPECT_TRUE( tsa_imatch(sa, 3, 4) ); 
+	// -- pending behavior: SetTrait() alone does not shrink the storage,
+	// but it may if we design it so.
 
 }
