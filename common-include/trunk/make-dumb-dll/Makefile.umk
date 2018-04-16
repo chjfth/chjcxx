@@ -38,6 +38,14 @@ ret := $(shell cd $(gmu_ud_list_PRJ_HEADER); \
 ### <<< special
 
 
+ifeq (msvc,$(gmp_COMPILER_ID))
+  # So we do not run autotest on PPC2003 bcz the VS2005 ppc2003 compiler does not compile Google Test 1.8 .
+  gmu_uv_list_ALL_SUBPRJ += autotest 
+endif
+
+autotest_Makefile = ../autotest/mytest-ci/Makefile.umk
+
+
 # ----------- below for plugin PI_sync_devoutput -----------
 
 # If you use plugin PI_sync_devoutput, you may want to set:

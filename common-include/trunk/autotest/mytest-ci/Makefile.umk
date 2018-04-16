@@ -24,6 +24,12 @@ ifndef gmu_PRJ_NAME
   gmu_PRJ_NAME = mytest-ci
 endif
 
+gmp_USER_POST_TARGETS += runexe
+runexe: 
+	@echo "Running autotest ..."
+	$(gmu_Gp_LINK_OUTPUT)
+
+
 ############################################################################
 # GMU-var: gmp_bc_IMAGE_TYPE
 #	Define the "image-type" to generated for this project.
