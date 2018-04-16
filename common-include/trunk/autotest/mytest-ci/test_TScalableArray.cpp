@@ -10,7 +10,7 @@ typedef TScalableArray<int> TSA_int;
 template<typename T>
 bool tsa_imatch(const TScalableArray<T> &sa, int ele, int sto, int reallocs=-1)
 {
-	TScalableArray<T>::Internal_st ins = sa.GetInternal();
+	typename TScalableArray<T>::Internal_st ins = sa.GetInternal();
 	if( ins.ele==ele && ins.sto==sto && (ins.reallocs==reallocs || reallocs==-1) )
 	{
 		return true;

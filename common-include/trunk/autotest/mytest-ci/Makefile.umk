@@ -61,6 +61,7 @@ ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),msvc wince),1)
 else ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),linuxgcc),1)
   # GCC compiling linux program
 
+  gmp_bc_SYSLIBS += $(call gmpf_MakeUpSysLibsToLink,pthread) # GoogleTest needs pthread
   # gmp_u_list_PLUGIN_TO_LOAD += PI_gcc_strip_lo      # strip output executable
   # gmp_u_list_PLUGIN_TO_LOAD += PI_use_pch_gcc       # use precompile header
   
