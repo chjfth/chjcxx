@@ -406,19 +406,8 @@ TEST(tc_TScalableArray, Cxx_operator_misc)
 
 	sa[0]=L'A', sa[1]=L'B', sa[2]=L'C', sa[3]=L'\0';
 
-	// char *pc = sa+1; // This is ambiguous
-/*
-d:\ws\common-include\autotest\mytest-ci\test_tscalablearray.cpp(408): error C2593: 'operator +' is ambiguous
-	  could be 'built-in C++ operator+(bool, int)'
-	  or       'built-in C++ operator+(char *, int)'
-	  while trying to match the argument list '(TSA_char, int)'
-*/
-	wchar_t *pc = &sa[1];
-	EXPECT_STREQ(pc, L"BC");
-
-
-	TSA_wchar saw;
-	saw.SetEleQuan(4);
-	int n=1;
-	wchar_t *pw = saw+n;
+	wchar_t *pc1 = sa+1; // This is ambiguous
+	wchar_t *pc2 = &sa[1];
+	EXPECT_STREQ(pc1, L"BC");
+	EXPECT_STREQ(pc2, L"BC");
 }

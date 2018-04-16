@@ -84,7 +84,16 @@ public:
 			return NULL;
 	}
 
-	operator bool() { return (T*)(*this) ? true : false; }
+	// operator bool() { return (T*)(*this) ? true : false; }
+	// -- Don't define this `bool operator` bcz sth like
+	//	char *pc = sa+1;
+	// will cause compliation error. E.g. on VS2010 x86 compiler:
+#if 0
+d:\ws\common-include\autotest\mytest-ci\test_tscalablearray.cpp(408): error C2593: 'operator +' is ambiguous
+	  could be 'built-in C++ operator+(bool, int)'
+	  or       'built-in C++ operator+(char *, int)'
+	  while trying to match the argument list '(TSA_char, int)'
+#endif
 
 	bool operator !() { return (T*)(*this) ? false : true; } // check for empty array
 		
