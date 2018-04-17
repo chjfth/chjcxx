@@ -225,7 +225,7 @@ FibDlgParams_st::FibDlgParams_st(const FibInput_st &in, HWND hwndOwner, const TC
 		}
 	}
 
-	m_saNormText.Init(FlexiInfobox_TextMax, 84, 2048, 4096);
+	m_saNormText.SetTrait(FlexiInfobox_TextMax, 1024, 2048, 16);
 }
 
 void FibDlgParams_st::SetCustomFocus(HWND hdlg)
@@ -269,6 +269,8 @@ void FibDlgParams_st::SetMyText(HWND hdlg)
 	HWND hEdit = GetDlgItem(hdlg, IDC_EDIT_SHOW_INFO);
 	assert(hEdit);
 	
+	//	TCHAR t1[1]={'z'}; int ttt = ggt_normalize_crlf(textbuf, t1, 1, _T("\r\n")); // test
+
 	int nspace = m_saNormText.CurrentEles();
 	int nreq_ = 1 + ggt_normalize_crlf(textbuf, m_saNormText, nspace, _T("\r\n"));
 	if(nreq_>nspace)

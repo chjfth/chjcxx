@@ -1,5 +1,7 @@
-#define CALSPEED_IMPL
+#define CalSpeed_IMPL
 #include <CalSpeed.h> // from common-include
+
+#include <mm_snprintf.h>
 #include <gadgetlib/T_string.h>
 
 #include "share.h"

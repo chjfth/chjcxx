@@ -18,7 +18,7 @@ ggt_normalize_crlf(const TCHAR *ibuf, TCHAR *obuf, int obufchars, const TCHAR *s
 
 	const TCHAR *pi = ibuf; // in pointer
 	TCHAR *po = obuf; // out pointer
-	TCHAR *po_end0 = obuf+obufchars-1;
+	TCHAR *po_end0 = obuf+obufchars-1; // note: po_end0 may be 'negative' when obuf==obufchars==0
 	int omove = 0;
 
 	for(; *pi; )
@@ -26,7 +26,7 @@ ggt_normalize_crlf(const TCHAR *ibuf, TCHAR *obuf, int obufchars, const TCHAR *s
 		TCHAR c = *pi;
 		if(c!='\r' && c!='\n')
 		{
-			if(po<po_end0)
+			if( (int)(po_end0-po) > 0 ) 
 				*po = c;
 
 			po++;
@@ -42,15 +42,18 @@ ggt_normalize_crlf(const TCHAR *ibuf, TCHAR *obuf, int obufchars, const TCHAR *s
 			pi++;
 		}
 		else // meet a \r\n
-		{
+		{	assert(c=='\r' && pi[1]=='\n');
 			pi+=2;
 		}
 	}
 
-	if(po<po_end0)
-		*po = '\0';
-	else
-		*po_end0 = '\0';
+	if(obufchars>0)
+	{
+		if( (int)(po_end0-po) > 0 )
+			*po = '\0';
+		else
+			*po_end0 = '\0';
+	}
 
 	return (int)(po - obuf);
 }
