@@ -34,7 +34,19 @@ public:
 	// Helper methods to tell if the value represents a valid object or not..
 	bool IsValid() { return(m_t != NULL); }
 	bool IsInvalid() { return(!IsValid()); }
-	operator bool(){ return IsValid(); }
+
+	// operator bool(){ return IsValid(); }
+	// Don't define this, bcz it will cause ambiguous error:
+/*
+	Cec_delete_pUchar cbuf = new unsigned char[22];
+	unsigned char *p = cbuf+1;
+	==
+	1>error C2593: 'operator +' is ambiguous
+	1>          could be 'built-in C++ operator+(bool, int)'
+	1>          or       'built-in C++ operator+(unsigned char *, int)'
+	1>          while trying to match the argument list '(Cec_delete_pUchar, int)'
+*/
+
 	bool operator !(){ return !IsValid(); }
 	
 	// Re-assigning the object forces the current object to be cleaned-up.
