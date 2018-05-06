@@ -1110,7 +1110,7 @@ END
 	// Prepare DLG template header:
 
 	DLGTEMPLATE &dt = *(DLGTEMPLATE*)memblock;
-	dt.style = DS_SETFONT|WS_MINIMIZEBOX|WS_POPUP|WS_VISIBLE|WS_CAPTION|WS_SYSMENU|WS_THICKFRAME; // DS_FIXEDSYS
+	dt.style = DS_SETFONT|WS_MINIMIZEBOX|WS_POPUP|WS_VISIBLE|WS_CAPTION|WS_SYSMENU|WS_THICKFRAME; //DS_FIXEDSYS
 	dt.dwExtendedStyle = 0;
 	dt.cdit = 0; // count of child controls, increase later
 	dt.x=0, dt.y=0, dt.cx=156, dt.cy=56;
