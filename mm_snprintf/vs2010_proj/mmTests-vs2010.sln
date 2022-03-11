@@ -15,15 +15,22 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lib_mm_snprintf", "lib_mm_s
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		StringANW|Win32 = StringANW|Win32
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{A33FD2BA-B4AE-4C44-A512-201802230001}.StringANW|Win32.ActiveCfg = ANSI|Win32
-		{A33FD2BA-B4AE-4C44-A512-201802230001}.StringANW|Win32.Build.0 = ANSI|Win32
-		{A33FD2BA-B4AE-4C44-A512-201802230002}.StringANW|Win32.ActiveCfg = ANSI|Win32
-		{A33FD2BA-B4AE-4C44-A512-201802230002}.StringANW|Win32.Build.0 = ANSI|Win32
-		{A33FD2BA-B4AE-4C44-A512-201802230000}.StringANW|Win32.ActiveCfg = StringANW|Win32
-		{A33FD2BA-B4AE-4C44-A512-201802230000}.StringANW|Win32.Build.0 = StringANW|Win32
+		{A33FD2BA-B4AE-4C44-A512-201802230001}.Debug|Win32.ActiveCfg = ANSI|Win32
+		{A33FD2BA-B4AE-4C44-A512-201802230001}.Debug|Win32.Build.0 = ANSI|Win32
+		{A33FD2BA-B4AE-4C44-A512-201802230001}.Release|Win32.ActiveCfg = Release|Win32
+		{A33FD2BA-B4AE-4C44-A512-201802230001}.Release|Win32.Build.0 = Release|Win32
+		{A33FD2BA-B4AE-4C44-A512-201802230002}.Debug|Win32.ActiveCfg = ANSI|Win32
+		{A33FD2BA-B4AE-4C44-A512-201802230002}.Debug|Win32.Build.0 = ANSI|Win32
+		{A33FD2BA-B4AE-4C44-A512-201802230002}.Release|Win32.ActiveCfg = Release|Win32
+		{A33FD2BA-B4AE-4C44-A512-201802230002}.Release|Win32.Build.0 = Release|Win32
+		{A33FD2BA-B4AE-4C44-A512-201802230000}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A33FD2BA-B4AE-4C44-A512-201802230000}.Debug|Win32.Build.0 = Debug|Win32
+		{A33FD2BA-B4AE-4C44-A512-201802230000}.Release|Win32.ActiveCfg = Release|Win32
+		{A33FD2BA-B4AE-4C44-A512-201802230000}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

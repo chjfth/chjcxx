@@ -1,8 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="StringANW|Win32">
-      <Configuration>StringANW</Configuration>
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
@@ -23,8 +27,13 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-    <OutDir>$(SolutionDir)_slnOutput\$(Platform)\</OutDir>
-    <IntDir>objdir</IntDir>
+    <OutDir>$(SolutionDir)_slnOutput\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>objdir\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <TargetName>mm_snprintf_D</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
     <TargetName>mm_snprintf</TargetName>
   </PropertyGroup>
   <!-- Shared compile/link options -->
@@ -35,6 +44,7 @@
       <WarningLevel>Level3</WarningLevel>
       <AdditionalIncludeDirectories>../../libsrc/msvc;../../libsrc/include;../../libsrc;../../../common-include/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_LIB;DLLEXPORT_mmsnprintf=__declspec(dllexport);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ProgramDataBaseFileName>$(TargetDir)$(TargetName).lib.pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Lib>
       <SuppressStartupBanner>true</SuppressStartupBanner>
