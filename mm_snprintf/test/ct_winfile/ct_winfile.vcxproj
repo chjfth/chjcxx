@@ -1,6 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|ARM64">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
@@ -8,6 +12,10 @@
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM64">
+      <Configuration>Release</Configuration>
+      <Platform>ARM64</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|Win32">
       <Configuration>Release</Configuration>
@@ -21,6 +29,8 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{A33FD2BA-B4AE-4C44-A512-201802230002}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <!-- Project General Part 1 -->
@@ -88,7 +98,7 @@
     <ClCompile Include="ct_winfile.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\vs2010_proj\lib_mm_snprintf\lib_mm_snprintf.vcxproj">
+    <ProjectReference Include="..\..\vs2019_proj\lib_mm_snprintf\lib_mm_snprintf.vcxproj">
       <Project>{a33fd2ba-b4ae-4c44-a512-201802230000}</Project>
     </ProjectReference>
   </ItemGroup>
