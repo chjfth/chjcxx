@@ -1,12 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="ANSI|Win32">
-      <Configuration>ANSI</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Unicode|Win32">
-      <Configuration>Unicode</Configuration>
+    <ProjectConfiguration Include="StringANW|Win32">
+      <Configuration>StringANW</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
@@ -14,126 +10,75 @@
     <ProjectGuid>{A33FD2BA-B4AE-4C44-A512-201802230000}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Unicode|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <UseOfMfc>false</UseOfMfc>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ANSI|Win32'" Label="Configuration">
+  <PropertyGroup Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Unicode|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(VCTargetsPath)Microsoft.Cpp.UpgradeFromVC60.props" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ANSI|Win32'" Label="PropertySheets">
+  <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(VCTargetsPath)Microsoft.Cpp.UpgradeFromVC60.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ANSI|Win32'">
-    <OutDir>.\ANSI\</OutDir>
-    <IntDir>.\ANSI\</IntDir>
+  <PropertyGroup>
+    <OutDir>$(SolutionDir)_slnOutput\$(Platform)\</OutDir>
+    <IntDir>objdir</IntDir>
     <TargetName>mm_snprintf</TargetName>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Unicode|Win32'">
-    <OutDir>.\Unicode\</OutDir>
-    <IntDir>.\Unicode\</IntDir>
-    <TargetName>mm_snprintf_U</TargetName>
-  </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ANSI|Win32'">
+  <!-- Shared compile/link options -->
+  <ItemDefinitionGroup>
     <ClCompile>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
-      <StringPooling>true</StringPooling>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <Optimization>MaxSpeed</Optimization>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <WarningLevel>Level3</WarningLevel>
-      <AdditionalIncludeDirectories>../../libsrc/msvc;../../libsrc/include;../../libsrc;../../sdkin/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_DEBUG;WIN32;_LIB;DLLEXPORT_mmsnprintf=__declspec(dllexport);%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
-      <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
-      <ObjectFileName>$(IntDir)</ObjectFileName>
-      <ProgramDataBaseFileName>$(IntDir)vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
+      <AdditionalIncludeDirectories>../../libsrc/msvc;../../libsrc/include;../../libsrc;../../../common-include/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_LIB;DLLEXPORT_mmsnprintf=__declspec(dllexport);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
-    <ResourceCompile>
-      <Culture>0x0804</Culture>
-      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </ResourceCompile>
-    <Bscmake>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <OutputFile>.\Release\lib_mm_snprintf.bsc</OutputFile>
-    </Bscmake>
     <Lib>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <OutputFile>$(TargetPath)</OutputFile>
     </Lib>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Unicode|Win32'">
+  <!-- Debug compile/link options -->
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
     <ClCompile>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
-      <FunctionLevelLinking>false</FunctionLevelLinking>
-      <Optimization>Disabled</Optimization>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <WarningLevel>Level3</WarningLevel>
-      <MinimalRebuild>true</MinimalRebuild>
-      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <AdditionalIncludeDirectories>../../libsrc/msvc;../../libsrc/include;../../libsrc;../../sdkin/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_DEBUG;WIN32;_LIB;DLLEXPORT_mmsnprintf=__declspec(dllexport);%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
-      <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
-      <ObjectFileName>$(IntDir)</ObjectFileName>
-      <ProgramDataBaseFileName>$(IntDir)vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
-      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-    </ClCompile>
-    <ResourceCompile>
-      <Culture>0x0804</Culture>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </ResourceCompile>
-    <Bscmake>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <OutputFile>.\Debug\lib_mm_snprintf.bsc</OutputFile>
-    </Bscmake>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
     <Lib>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <OutputFile>$(TargetPath)</OutputFile>
     </Lib>
   </ItemDefinitionGroup>
+  <!-- Release compile/link options -->
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
+    <ClCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <Optimization>MaxSpeed</Optimization>
+    </ClCompile>
+    <Lib>
+    </Lib>
+  </ItemDefinitionGroup>
+  <!--  -->
   <ItemGroup>
     <ClCompile Include="..\..\libsrc\internal.cpp" />
     <CustomBuild Include="..\..\libsrc\mm_snprintf.cpp">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Unicode|Win32'">attrib -R .\mm_snprintfA.cpp
+      <Command>@REM Copy mm_snprintf.cpp into mm_snprintfA.cpp and mm_snprintfW.cpp, and keeping the latter two readonly from incautious modification.
+attrib -R .\mm_snprintfA.cpp
 copy %(Identity) .\mm_snprintfA.cpp
 attrib +R .\mm_snprintfA.cpp
 attrib -R .\mm_snprintfW.cpp
 copy %(Identity) .\mm_snprintfW.cpp
 attrib +R .\mm_snprintfW.cpp
 </Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Unicode|Win32'">.\mm_snprintfA.cpp;.\mm_snprintfW.cpp;%(Outputs)</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='ANSI|Win32'">attrib -R .\mm_snprintfA.cpp
-copy %(Identity) .\mm_snprintfA.cpp
-attrib +R .\mm_snprintfA.cpp
-attrib -R .\mm_snprintfW.cpp
-copy %(Identity) .\mm_snprintfW.cpp
-attrib +R .\mm_snprintfW.cpp
-</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='ANSI|Win32'">Cloning %(Identity) to ANSI and Unicode variants</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='ANSI|Win32'">.\mm_snprintfA.cpp;.\mm_snprintfW.cpp;%(Outputs)</Outputs>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Unicode|Win32'">Cloning %(Identity) to ANSI and Unicode variants</Message>
+      <Message>Cloning %(Identity) to ANSI and Unicode variants</Message>
+      <Outputs>.\mm_snprintfA.cpp;.\mm_snprintfW.cpp;%(Outputs)</Outputs>
     </CustomBuild>
     <ClCompile Include="mm_snprintfA.cpp">
-      <Command Condition="'$(Configuration)|$(Platform)'=='ANSI|Win32'">
-      </Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='ANSI|Win32'">Performing Custom Build Tools</Message>
     </ClCompile>
     <ClCompile Include="mm_snprintfW.cpp">
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='ANSI|Win32'">_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Unicode|Win32'">_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <!-- Add UNICODE compile flags to mm_snprintfW.cpp -->
+      <PreprocessorDefinitions>_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="..\..\libsrc\oldname.cpp" />
     <ClCompile Include="..\..\libsrc\printf_wrapper.cpp" />
