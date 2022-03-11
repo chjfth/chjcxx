@@ -18,64 +18,6 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\libsrc\mswin\my_winapi.cpp">
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="stdafx.cpp">
-      <PrecompiledHeader>Create</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="..\..\libsrc\charenccvt-common.cpp" />
-    <ClCompile Include="..\..\libsrc\charenccvt-utf8.cpp" />
-    <ClCompile Include="..\..\libsrc\fstream-aux.cpp" />
-    <ClCompile Include="..\..\libsrc\gadgetlib_version.cpp" />
-    <ClCompile Include="..\..\libsrc\gsm0338cvt.cpp" />
-    <ClCompile Include="..\..\libsrc\mbcs-ops.cpp" />
-    <ClCompile Include="..\..\libsrc\mswin\charenccvt-win.cpp" />
-    <ClCompile Include="..\..\libsrc\mswin\clipboard.cpp" />
-    <ClCompile Include="..\..\libsrc\mswin\dirfuncs.cpp" />
-    <ClCompile Include="..\..\libsrc\mswin\FlexiInfobox.cpp" />
-    <ClCompile Include="..\..\libsrc\mswin\enum_monitors.cpp" />
-    <ClCompile Include="..\..\libsrc\mswin\fstream64.cpp" />
-    <ClCompile Include="..\..\libsrc\mswin\getch.cpp" />
-    <ClCompile Include="..\..\libsrc\mswin\MenuWithIcon.cpp" />
-    <ClCompile Include="..\..\libsrc\mswin\simple_thread.cpp" />
-    <ClCompile Include="..\..\libsrc\mswin\T_string-msvc.cpp" />
-    <ClCompile Include="..\..\libsrc\mswin\wintime.cpp" />
-    <ClCompile Include="..\..\libsrc\mswin\wintooltip.cpp" />
-    <ClCompile Include="..\..\libsrc\ReposNewbox.cpp" />
-    <ClCompile Include="..\..\libsrc\textcrlf.cpp" />
-    <ClCompile Include="..\..\libsrc\time-common.cpp" />
-    <ClCompile Include="..\..\libsrc\T_string.cpp" />
-    <ClCompile Include="..\..\libsrc\unstraddle_dlgbox.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\libsrc\include\gadgetlib\FlexiInfobox_ids.h" />
-    <ClInclude Include="..\..\libsrc\include\gadgetlib\charenccvt.h" />
-    <ClInclude Include="..\..\libsrc\include\gadgetlib\clipboard.h" />
-    <ClInclude Include="..\..\libsrc\include\gadgetlib\dirfuncs.h" />
-    <ClInclude Include="..\..\libsrc\include\gadgetlib\FlexiInfobox.h" />
-    <ClInclude Include="..\..\libsrc\include\gadgetlib\enum_monitors.h" />
-    <ClInclude Include="..\..\libsrc\include\gadgetlib\fstream-aux.h" />
-    <ClInclude Include="..\..\libsrc\include\gadgetlib\fstream64.h" />
-    <ClInclude Include="..\..\libsrc\include\gadgetlib\gadgetlib.h" />
-    <ClInclude Include="..\..\libsrc\include\gadgetlib\getch.h" />
-    <ClInclude Include="..\..\libsrc\include\gadgetlib\ggt-const.h" />
-    <ClInclude Include="..\..\libsrc\include\gadgetlib\ggt-mswin.h" />
-    <ClInclude Include="..\..\libsrc\include\gadgetlib\gsm0338cvt.h" />
-    <ClInclude Include="..\..\libsrc\include\gadgetlib\mbcs-ops.h" />
-    <ClInclude Include="..\..\libsrc\include\gadgetlib\MenuWithIcon.h" />
-    <ClInclude Include="..\..\libsrc\include\gadgetlib\ReposNewbox.h" />
-    <ClInclude Include="..\..\libsrc\include\gadgetlib\simple_thread.h" />
-    <ClInclude Include="..\..\libsrc\include\gadgetlib\textcrlf.h" />
-    <ClInclude Include="..\..\libsrc\include\gadgetlib\timefuncs.h" />
-    <ClInclude Include="..\..\libsrc\include\gadgetlib\T_string.h" />
-    <ClInclude Include="..\..\libsrc\include\gadgetlib\unstraddle_dlgbox.h" />
-    <ClInclude Include="..\..\libsrc\include\gadgetlib\wintooltip.h" />
-    <ClInclude Include="..\..\libsrc\include\iversion.h" />
-    <ClInclude Include="..\..\libsrc\include\my_winapi.h" />
-    <ClInclude Include="..\..\libsrc\include\stdafx.h" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C61AC906-75C9-4AE8-AB40-219ED1A25529}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -143,6 +85,68 @@
     </Link>
   </ItemDefinitionGroup>
 
+  <!-- 
+  	Source file list:
+   -->
+  <ItemGroup>
+    <ClCompile Include="..\..\libsrc\mswin\my_winapi.cpp">
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader>Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\charenccvt-common.cpp" />
+    <ClCompile Include="..\..\libsrc\charenccvt-utf8.cpp" />
+    <ClCompile Include="..\..\libsrc\fstream-aux.cpp" />
+    <ClCompile Include="..\..\libsrc\gadgetlib_version.cpp" />
+    <ClCompile Include="..\..\libsrc\gsm0338cvt.cpp" />
+    <ClCompile Include="..\..\libsrc\mbcs-ops.cpp" />
+    <ClCompile Include="..\..\libsrc\mswin\charenccvt-win.cpp" />
+    <ClCompile Include="..\..\libsrc\mswin\clipboard.cpp" />
+    <ClCompile Include="..\..\libsrc\mswin\dirfuncs.cpp" />
+    <ClCompile Include="..\..\libsrc\mswin\FlexiInfobox.cpp" />
+    <ClCompile Include="..\..\libsrc\mswin\enum_monitors.cpp" />
+    <ClCompile Include="..\..\libsrc\mswin\fstream64.cpp" />
+    <ClCompile Include="..\..\libsrc\mswin\getch.cpp" />
+    <ClCompile Include="..\..\libsrc\mswin\MenuWithIcon.cpp" />
+    <ClCompile Include="..\..\libsrc\mswin\simple_thread.cpp" />
+    <ClCompile Include="..\..\libsrc\mswin\T_string-msvc.cpp" />
+    <ClCompile Include="..\..\libsrc\mswin\wintime.cpp" />
+    <ClCompile Include="..\..\libsrc\mswin\wintooltip.cpp" />
+    <ClCompile Include="..\..\libsrc\ReposNewbox.cpp" />
+    <ClCompile Include="..\..\libsrc\textcrlf.cpp" />
+    <ClCompile Include="..\..\libsrc\time-common.cpp" />
+    <ClCompile Include="..\..\libsrc\T_string.cpp" />
+    <ClCompile Include="..\..\libsrc\unstraddle_dlgbox.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\FlexiInfobox_ids.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\charenccvt.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\clipboard.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\dirfuncs.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\FlexiInfobox.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\enum_monitors.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\fstream-aux.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\fstream64.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\gadgetlib.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\getch.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\ggt-const.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\ggt-mswin.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\gsm0338cvt.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\mbcs-ops.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\MenuWithIcon.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\ReposNewbox.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\simple_thread.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\textcrlf.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\timefuncs.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\T_string.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\unstraddle_dlgbox.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\wintooltip.h" />
+    <ClInclude Include="..\..\libsrc\include\iversion.h" />
+    <ClInclude Include="..\..\libsrc\include\my_winapi.h" />
+    <ClInclude Include="..\..\libsrc\include\stdafx.h" />
+  </ItemGroup>
+  <!--  -->
   <!-- import VSPG start -->
   <PropertyGroup>
     <VSPG_BootsDir_NoTBS>..\..\..\_VSPG\boots</VSPG_BootsDir_NoTBS>
