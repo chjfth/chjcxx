@@ -1,7 +1,0 @@
-gmu_PRJ_NAME = mm_ct_winfile$(if $(MAKE_LIB),-libdev)
-
-gmu_uf_LINK_OUTPUT = $(call gmpf_MakeExeName,mm_ct_winfile)
-
-gmu_up_list_SRC_FROM_ROOT += ct_winfile.cpp
-
-include ../share.mki
