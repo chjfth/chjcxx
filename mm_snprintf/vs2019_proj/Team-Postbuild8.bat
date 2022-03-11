@@ -38,8 +38,14 @@ REM WRITE YOUR CMD/BAT commands here.
 REM Remember to check for error exitcode for each command.
 REM
 
-call %batdir%\..\..\_VSPG\CopyLib-to-sdkout.bat
-if errorlevel 1 exit /b 4
+call "%bootsdir%\GetParentDir.bat" dirThisLib "%batdir%"
+
+REM -- example: dirThisLib=D:\gitw\chjcxx\mm_snprintf
+
+if "%TargetExt%" == ".lib" (
+	call %dirThisLib%\..\_VSPG\CopyLib-to-sdkout.bat "%dirThisLib%\libsrc\include" mm_snprintf.h
+	if errorlevel 1 exit /b 4
+)
 
 
 
