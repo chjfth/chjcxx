@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemDefinitionGroup>
+    <PreBuildEvent>
+      <Command>
+      set PlatformToolsetVersion=$(PlatformToolsetVersion)
+      "$(VSPG_BootsDir_NoTBS)\VSPG-Boots.bat" VSPG-PreBuild8.bat  "$(VSPG_FeedbackFile)" "$(SolutionDir)" "$(ProjectDir)" "$(Configuration)" "$(PlatformName)" "$(TargetDir)" "$(TargetFileName)" "$(TargetName)" "$(IntDir)"
+      </Command>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>
+      set PlatformToolsetVersion=$(PlatformToolsetVersion)
+      "$(VSPG_BootsDir_NoTBS)\VSPG-Boots.bat" VSPG-PostBuild8.bat "$(VSPG_FeedbackFile)" "$(SolutionDir)" "$(ProjectDir)" "$(Configuration)" "$(PlatformName)" "$(TargetDir)" "$(TargetFileName)" "$(TargetName)" "$(IntDir)"
+      </Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+</Project>
