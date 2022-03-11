@@ -1,0 +1,113 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{A33FD2BA-B4AE-4C44-A512-201802230000}</ProjectGuid>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+                  <IntDir>obj-vc$(PlatformToolsetVersion)\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)bin-vc$(PlatformToolsetVersion)\$(Platform)\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <TargetName>mm_snprintf_D</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <TargetName>mm_snprintf</TargetName>
+  </PropertyGroup>
+  <!-- Shared compile/link options -->
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <WarningLevel>Level3</WarningLevel>
+      <AdditionalIncludeDirectories>../../libsrc/msvc;../../libsrc/include;../../libsrc;../../../common-include/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_LIB;DLLEXPORT_mmsnprintf=__declspec(dllexport);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ProgramDataBaseFileName>$(TargetDir)$(TargetName).lib.pdb</ProgramDataBaseFileName>
+    </ClCompile>
+    <Lib>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+    </Lib>
+  </ItemDefinitionGroup>
+  <!-- Debug compile/link options -->
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
+    <ClCompile>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+    </ClCompile>
+    <Lib>
+    </Lib>
+  </ItemDefinitionGroup>
+  <!-- Release compile/link options -->
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
+    <ClCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <Optimization>MaxSpeed</Optimization>
+    </ClCompile>
+    <Lib>
+    </Lib>
+  </ItemDefinitionGroup>
+  <!--  -->
+  <ItemGroup>
+    <ClCompile Include="..\..\libsrc\internal.cpp" />
+    <CustomBuild Include="..\..\libsrc\mm_snprintf.cpp">
+      <Command>@REM Copy mm_snprintf.cpp into mm_snprintfA.cpp and mm_snprintfW.cpp, and keeping the latter two readonly from incautious modification.
+attrib -R .\mm_snprintfA.cpp
+copy %(Identity) .\mm_snprintfA.cpp
+attrib +R .\mm_snprintfA.cpp
+attrib -R .\mm_snprintfW.cpp
+copy %(Identity) .\mm_snprintfW.cpp
+attrib +R .\mm_snprintfW.cpp
+</Command>
+      <Message>Cloning %(Identity) to ANSI and Unicode variants</Message>
+      <Outputs>.\mm_snprintfA.cpp;.\mm_snprintfW.cpp;%(Outputs)</Outputs>
+    </CustomBuild>
+    <ClCompile Include="mm_snprintfA.cpp">
+    </ClCompile>
+    <ClCompile Include="mm_snprintfW.cpp">
+      <!-- Add UNICODE compile flags to mm_snprintfW.cpp -->
+      <PreprocessorDefinitions>_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\oldname.cpp" />
+    <ClCompile Include="..\..\libsrc\printf_wrapper.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\libsrc\libversion.h" />
+    <ClInclude Include="..\..\libsrc\internal.h" />
+    <ClInclude Include="..\..\libsrc\mm_psfunc.h" />
+    <ClInclude Include="..\..\libsrc\include\mm_snprintf.h" />
+    <ClInclude Include="..\..\libsrc\msvc\ps_Tstrdef.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
