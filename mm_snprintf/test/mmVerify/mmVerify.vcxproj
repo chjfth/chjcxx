@@ -42,7 +42,8 @@
   <!-- Project General Part 2 -->
   <PropertyGroup>
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)bin-$(PlatformToolsetVersion)\$(Platform)\$(Configuration)\</OutDir>
+                  <IntDir>obj-vc$(PlatformToolsetVersion)\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)bin-vc$(PlatformToolsetVersion)\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <!-- 
   	Compiler Behavior Settings : shared 
