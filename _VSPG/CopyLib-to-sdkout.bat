@@ -33,7 +33,7 @@ if "%PlatformName%" == "ARM64" set myPlatformSuffix=ARM64
 
 set dirSdkout=%dirRepoRoot%\sdkout
 set dirSdkoutHeader=%dirSdkout%\include
-set dirSdkoutLib=%dirSdkout%\cidvers\v%PlatformToolsetVersion%%myPlatformSuffix%\lib
+set dirSdkoutLib=%dirSdkout%\cidvers\vc%PlatformToolsetVersion%%myPlatformSuffix%\lib
 
 if not exist "%dirSdkoutHeader%" (
 	mkdir "%dirSdkoutHeader%"

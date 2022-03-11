@@ -58,7 +58,10 @@
                   <IntDir>obj-vc$(PlatformToolsetVersion)\$(Platform)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)bin-vc$(PlatformToolsetVersion)\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
-  <PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Unicode'">
+    <TargetName>$(ProjectName)_U_D</TargetName>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='ANSI'">
     <TargetName>$(ProjectName)_D</TargetName>
   </PropertyGroup>
   <!-- Shared compile/link options -->
