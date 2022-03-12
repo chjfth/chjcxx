@@ -1292,7 +1292,7 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				if(fmtcat==fmt_float)
 					double_arg = 0.0;
 				else 
-					; // avoid execting float-point instruction when not needed
+					; // avoid executing float-point instruction when not needed
 
 				if(fmtcat==fmt_ptr)  // %p, %P
 				{
