@@ -61,6 +61,8 @@
       <WarningLevel>Level3</WarningLevel>
       <AdditionalIncludeDirectories>../../libsrc/msvc;../../libsrc/include;../../libsrc;../../../common-include/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_LIB;DLLEXPORT_mmsnprintf=__declspec(dllexport);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <!-- Two special macro defines: -->
+      <PreprocessorDefinitions>USE_CPP_NEW;USE_ONLY_SBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ProgramDataBaseFileName>$(TargetDir)$(TargetName).lib.pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Lib>
@@ -72,6 +74,7 @@
     <ClCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <AdditionalOptions>/kernel %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Lib>
     </Lib>
@@ -117,7 +120,6 @@ attrib +R .\mm_snprintfW.cpp
     <ClInclude Include="..\..\libsrc\include\mm_snprintf.h" />
     <ClInclude Include="..\..\libsrc\msvc\ps_Tstrdef.h" />
   </ItemGroup>
-
   <!-- import VSPG start -->
   <PropertyGroup>
     <VSPG_BootsDir_NoTBS>..\..\..\_VSPG\boots</VSPG_BootsDir_NoTBS>
@@ -126,7 +128,6 @@ attrib +R .\mm_snprintfW.cpp
     <Import Project="$(VSPG_BootsDir_NoTBS)\_VSPG.props" />
   </ImportGroup>
   <!-- import VSPG end -->
-
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
