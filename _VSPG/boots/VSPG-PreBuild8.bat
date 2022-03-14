@@ -7,7 +7,7 @@ REM
 set batfilenam=%~n0%~x0
 set bootsdir=%~dp0
 set bootsdir=%bootsdir:~0,-1%
-call "%bootsdir%\PathSplit.bat" "%bootsdir%" userbatdir __temp
+call "%bootsdir%\GetParentDir.bat" userbatdir "%bootsdir%"
 set _vspgINDENTS=%_vspgINDENTS%.
 
 set SolutionDir=%~1
@@ -48,6 +48,7 @@ set SubbatSearchDirs=^
   "%ProjectDir%\_VSPG"^
   "%SolutionDir%"^
   "%SolutionDir%\_VSPG"^
+  "%SolutionDir%\.."^
   "%userbatdir%"
 
 call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 PreBuild-SubWCRev1.bat %SubbatSearchDirs%
@@ -73,9 +74,10 @@ REM %~n0%~x0 is batfilenam
   echo %_vspgINDENTS%[%batfilenam%] %*
 exit /b 0
 
-:EchoExec
+:EchoAndExec
   echo %_vspgINDENTS%[%batfilenam%] EXEC: %*
-exit /b 0
+  call %*
+exit /b %ERRORLEVEL%
 
 :EchoVar
   REM Env-var double expansion trick from: https://stackoverflow.com/a/1200871/151453

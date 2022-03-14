@@ -47,7 +47,7 @@ if errorlevel 1 exit /b 4
 
 
 
-goto :END
+exit /b 0
 
 REM =============================
 REM ====== Functions Below ======
@@ -58,9 +58,10 @@ REM %~n0%~x0 is batfilenam
   echo %_vspgINDENTS%[%~n0%~x0] %*
 exit /b
 
-:EchoExec
-  echo %_vspgINDENTS%[%~n0%~x0] EXEC: %*
-exit /b
+:EchoAndExec
+  echo %_vspgINDENTS%[%batfilenam%] EXEC: %*
+  %*
+exit /b %ERRORLEVEL%
 
 :EchoVar
   REM Env-var double expansion trick from: https://stackoverflow.com/a/1200871/151453
@@ -73,4 +74,3 @@ exit /b
   REM call :SetErrorlevel 4
 exit /b %1
 
-:END

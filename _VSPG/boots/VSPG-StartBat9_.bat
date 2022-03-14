@@ -11,7 +11,7 @@ set batfilenam=%~n0%~x0
 set bootsdir=%~dp0
 set bootsdir=%bootsdir:~0,-1%
 REM Use PathSplit to get parent directory of bootsdir.
-call "%bootsdir%\PathSplit.bat" "%bootsdir%" userbatdir __temp
+call "%bootsdir%\GetParentDir.bat" userbatdir "%bootsdir%"
 set _vspgINDENTS=%_vspgINDENTS%.
 REM
 set SubworkBatfile=%~1
@@ -65,11 +65,13 @@ if not exist "%SubworkBatpath%" (
 REM ======== Loading User Env-vars ======== 
 
 REM This is a greedy search, bcz user may want to accumulate env-vars from outer env.
-REM But if user does not like some env-var from outer env, he can clear it to empty explicitly.
-REM The search order is wide to narrow.
+REM But if user does not like some env-var from outer env, he can override it(or clear it) 
+REM from inner env explicitly.
+REM In one word, the search order is wide to narrow.
 
 call "%bootsdir%\SearchAndExecSubbat.bat" Greedy1 VSPG-StartEnv.bat %VSPG_VSIDE_ParamsPack%^
   "%userbatdir%"^
+  "%SolutionDir%\.."^
   "%SolutionDir%\_VSPG"^
   "%SolutionDir%"^
   "%ProjectDir%\_VSPG"^
@@ -112,9 +114,10 @@ REM =============================
   echo %_vspgINDENTS%[%batfilenam%] %*
 exit /b 0
 
-:EchoExec
+:EchoAndExec
   echo %_vspgINDENTS%[%batfilenam%] EXEC: %*
-exit /b 0
+  call %*
+exit /b %ERRORLEVEL%
 
 :EchoVar
   REM Env-var double expansion trick from: https://stackoverflow.com/a/1200871/151453

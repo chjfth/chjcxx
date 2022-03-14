@@ -73,5 +73,5 @@ exit /b
 
 :EchoAndExec
   echo %_vspgINDENTS%[%batfilenam%] EXEC: %*
-  %*
+  call %*
 exit /b %ERRORLEVEL%
