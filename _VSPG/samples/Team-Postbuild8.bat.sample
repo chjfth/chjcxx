@@ -53,10 +53,12 @@ REM =============================
 REM ====== Functions Below ======
 REM =============================
 
-REM %~n0%~x0 is batfilenam
 :Echos
-  echo %_vspgINDENTS%[%~n0%~x0] %*
-exit /b
+  REM This function preserves %ERRORLEVEL% for the caller,
+  REM and, LastError does NOT pollute the caller.
+  setlocal & set LastError=%ERRORLEVEL%
+  echo %_vspgINDENTS%[%batfilenam%] %*
+exit /b %LastError%
 
 :EchoAndExec
   echo %_vspgINDENTS%[%batfilenam%] EXEC: %*
@@ -64,10 +66,9 @@ exit /b
 exit /b %ERRORLEVEL%
 
 :EchoVar
-  REM Env-var double expansion trick from: https://stackoverflow.com/a/1200871/151453
-  set _Varname=%1
-  for /F %%i in ('echo %_Varname%') do echo %_vspgINDENTS%[%batfilenam%] %_Varname% = !%%i!
-exit /b
+  setlocal & set Varname=%~1
+  call echo %_vspgINDENTS%[%batfilenam%] %Varname% = %%%Varname%%%
+exit /b 0
 
 :SetErrorlevel
   REM Usage example:

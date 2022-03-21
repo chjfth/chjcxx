@@ -32,6 +32,8 @@ set TargetDir=%~5
 set TargetDir=%TargetDir:~0,-1%
 REM TargetFilenam is the EXE/DLL output name (varname chopping trailing 'e', means "no path prefix")
 set TargetFilenam=%~6
+REM And I set mundane TargetFilename as well:
+set TargetFilename=%TargetFilenam%
 set TargetName=%~7
 set IntrmDir=%~8
 set IntrmDir=%IntrmDir:~0,-1%
@@ -67,7 +69,7 @@ REM ======== Loading User Env-vars ========
 REM This is a greedy search, bcz user may want to accumulate env-vars from outer env.
 REM But if user does not like some env-var from outer env, he can override it(or clear it) 
 REM from inner env explicitly.
-REM In one word, the search order is wide to narrow.
+REM In one word, the search order is from wide to narrow.
 
 call "%bootsdir%\SearchAndExecSubbat.bat" Greedy1 VSPG-StartEnv.bat %VSPG_VSIDE_ParamsPack%^
   "%userbatdir%"^
@@ -85,13 +87,8 @@ if errorlevel 1 (
 )
 
 
-REM ======== Loading User VSPG-Prebuild8.bat or VSPG-Postbuild8.bat ======== 
-
-REM Note for VSPG-Prebuild8.bat and VSPG-Postbuild8.bat in advance:
-REM When VSPG-Prebuild8.bat and VSPG-Postbuild8.bat calls their own subbats. Those bats should do
-REM non-greedy search, bcz user (probably) wants to override outer env's sub-work with his own one.
-REM But if user wants outer sub-work as well, he should call the outer sub-work explicitly.
-REM The search order is narrow to wide.
+REM ======== call VSPG-Prebuild8.bat or VSPG-Postbuild8.bat ======== 
+REM ====== which one to call is determined by SubworkBatfile =======
 
 call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 "%SubworkBatfile%" %VSPG_VSIDE_ParamsPack% "%bootsdir%"
 
@@ -111,8 +108,11 @@ REM ====== Functions Below ======
 REM =============================
 
 :Echos
+  REM This function preserves %ERRORLEVEL% for the caller,
+  REM and, LastError does NOT pollute the caller.
+  setlocal & set LastError=%ERRORLEVEL%
   echo %_vspgINDENTS%[%batfilenam%] %*
-exit /b 0
+exit /b %LastError%
 
 :EchoAndExec
   echo %_vspgINDENTS%[%batfilenam%] EXEC: %*
@@ -120,9 +120,8 @@ exit /b 0
 exit /b %ERRORLEVEL%
 
 :EchoVar
-  REM Env-var double expansion trick from: https://stackoverflow.com/a/1200871/151453
-  set _Varname=%1
-  for /F %%i in ('echo %_Varname%') do echo %_vspgINDENTS%[%batfilenam%] %_Varname% = !%%i!
+  setlocal & set Varname=%~1
+  call echo %_vspgINDENTS%[%batfilenam%] %Varname% = %%%Varname%%%
 exit /b 0
 
 :SetErrorlevel
@@ -136,10 +135,4 @@ exit /b %1
 	REM you have decided to fail the whole bat.
 	
 	copy /b "%~1"+,, "%~1" >NUL 2>&1
-exit /b %ERRORLEVEL%
-
-goto :END
-
-
-:END
 exit /b %ERRORLEVEL%

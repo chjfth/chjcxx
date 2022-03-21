@@ -3,9 +3,10 @@ REM This bat is a function.
 REM setlocal EnableDelayedExpansion // Don't do this now, do it later! The Subbat may need to export arbitrary env-vars to outer env.
 REM Chj memo: It seems I will inevitably leaks some vars to the environment, _vspg_SubbatParams etc.
 
-set batfilenam=%~n0%~x0
-set batdir=%~dp0
-set batdir=%batdir:~0,-1%
+set _tmp_batfilenam=%~n0%~x0
+set _tmp_batdir=%~dp0
+set _tmp_batdir=%_tmp_batdir:~0,-1%
+set _tmp_outerbatnam=%batfilenam%
 
 REM Search for a series of dirs passed in as parameters, and call subbat(s) from them.
 REM Param1: "Greedy0" or "Greedy1". 
@@ -41,6 +42,10 @@ REM Params remain: Each param is a directory to search for subbat.
   
   setlocal EnableDelayedExpansion
 
+  set batfilenam=%_tmp_batfilenam%
+  set batdir=%_tmp_batdir%
+  set _vspgINDENTS=%_vspgINDENTS%.
+
   shift
   
   set trydir=%~1
@@ -48,8 +53,11 @@ REM Params remain: Each param is a directory to search for subbat.
   if "%trydir%" == "" exit /b 0
   
   set trydirdeco=[*%trydir%*]
-  call "%batdir%\IsSubStr.bat" isfound "%_vspg_SearchedDirs%" "%trydirdeco%"
-  if %isfound% == 1 goto :endlocal_GoNextLoop
+  
+  if defined _vspg_SearchedDirs (
+    call "%batdir%\IsSubStr.bat" isfound "%_vspg_SearchedDirs%" "%trydirdeco%"
+    if "%isfound%" == "1" goto :endlocal_GoNextLoop
+  )
 
   set _vspg_SearchedDirs=%_vspg_SearchedDirs%%trydirdeco%
 
@@ -60,9 +68,25 @@ REM Params remain: Each param is a directory to search for subbat.
   REM [Shortcut1] Just replace "" with " ; that is enough to pass VSproj's packed params to %trybat%.
   endlocal & ( call "%trybat%" %_vspg_SubbatParams:""="% )
 
-  if errorlevel 1 exit /b 4
+  set _vspg_LastError=%ERRORLEVEL%
+
+  REM Enter local context again (N2).
+  setlocal EnableDelayedExpansion
+
+  set batfilenam=%_tmp_batfilenam%
+  set batdir=%_tmp_batdir%
+  set _vspgINDENTS=%_vspgINDENTS%.
   
-  if "%_tmp_greedy%" == "1" goto :loop_SearchAndExecSubbat
+  if not "%_vspg_LastError%" == "0" (
+REM call :Echos [[[[%_tmp_outerbatnam%]]]] GOT [ERRORLEVEL=%_vspg_LastError%] from Subbat.
+    exit /b 4
+  )
+
+REM  call :Echos [[[[%_tmp_outerbatnam%]]]] Successfully called Subbat.
+
+  if "%_tmp_greedy%" == "1" (
+    goto :endlocal_GoNextLoop
+  )
   
   exit /b 0
 
@@ -75,10 +99,12 @@ REM =============================
 REM ====== Functions Below ======
 REM =============================
 
-REM %~n0%~x0 is batfilenam
 :Echos
-  echo [%~n0%~x0] %*
-exit /b 0
+  REM This function preserves %ERRORLEVEL% for the caller,
+  REM and, LastError does NOT pollute the caller.
+  setlocal & set LastError=%ERRORLEVEL%
+  echo %_vspgINDENTS%[%batfilenam%] %*
+exit /b %LastError%
 
 :EchoAndExec
   echo %_vspgINDENTS%[%batfilenam%] EXEC: %*
@@ -86,7 +112,6 @@ exit /b 0
 exit /b %ERRORLEVEL%
 
 :EchoVar
-  REM Env-var double expansion trick from: https://stackoverflow.com/a/1200871/151453
-  set _Varname=%1
-  for /F %%i in ('echo %_Varname%') do echo [%batfilenam%] %_Varname% = !%%i!
+  setlocal & set Varname=%~1
+  call echo %_vspgINDENTS%[%batfilenam%] %Varname% = %%%Varname%%%
 exit /b 0

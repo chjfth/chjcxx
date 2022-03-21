@@ -63,16 +63,18 @@ call "%bootsdir%\SearchAndExecSubbat.bat" Greedy0 Personal-PreBuild8.bat %VSPG_V
 if errorlevel 1 exit /b 4
 
 
-goto :END
+exit /b 0
 
 REM =============================
 REM ====== Functions Below ======
 REM =============================
 
-REM %~n0%~x0 is batfilenam
 :Echos
+  REM This function preserves %ERRORLEVEL% for the caller,
+  REM and, LastError does NOT pollute the caller.
+  setlocal & set LastError=%ERRORLEVEL%
   echo %_vspgINDENTS%[%batfilenam%] %*
-exit /b 0
+exit /b %LastError%
 
 :EchoAndExec
   echo %_vspgINDENTS%[%batfilenam%] EXEC: %*
@@ -80,9 +82,8 @@ exit /b 0
 exit /b %ERRORLEVEL%
 
 :EchoVar
-  REM Env-var double expansion trick from: https://stackoverflow.com/a/1200871/151453
-  set _Varname=%1
-  for /F %%i in ('echo %_Varname%') do echo %_vspgINDENTS%[%batfilenam%] %_Varname% = !%%i!
+  setlocal & set Varname=%~1
+  call echo %_vspgINDENTS%[%batfilenam%] %Varname% = %%%Varname%%%
 exit /b 0
 
 :SetErrorlevel
@@ -90,5 +91,3 @@ exit /b 0
   REM call :SetErrorlevel 4
 exit /b %1
 
-:END
-exit /b %ERRORLEVEL%
