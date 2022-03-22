@@ -109,6 +109,10 @@ attrib +R .\mm_snprintfW.cpp
     <ClInclude Include="..\..\libsrc\msvc\ps_Tstrdef.h" />
   </ItemGroup>
 
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+
   <!-- import VSPG start -->
   <PropertyGroup>
     <VSPG_BootsDir_NoTBS>..\..\..\_VSPG\boots</VSPG_BootsDir_NoTBS>
@@ -118,7 +122,4 @@ attrib +R .\mm_snprintfW.cpp
   </ImportGroup>
   <!-- import VSPG end -->
   
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-  </ImportGroup>
 </Project>

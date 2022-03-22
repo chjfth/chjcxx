@@ -1303,3 +1303,9 @@ int _tmain()
 	return 0;
 }
 
+void VS2019_workaround_link__snwprintf()
+{
+//	wprintf(NULL);
+	_snwprintf(NULL, 0, L"");
+	_snprintf(NULL, 0, "");
+}
