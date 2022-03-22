@@ -16,7 +16,7 @@ PATH=D:\Program Files\Git\usr\bin;C:\Program Files\Git\usr\bin;%PATH%
 
 for %%x in (cp.exe) do set cp_found=%%~$PATH:x
 if not defined cp_found (
-	call :Echos [ERROR] Unix cp.exe cannot be found in your PATH. I need this program to go.
+	call :Echos [ERROR] Unix cp.exe cannot be found in your PATH. I need this program to go. Unix cp.exe can be acquired by installing "Git for Windows", from https://gitforwindows.org/ .
 	exit /b 4
 )
 
@@ -27,13 +27,14 @@ REM -- now hlist content is space-separated
 
 call "%bootsdir%\GetParentDir.bat" dirRepoRoot "%batdir%"
 
-set myPlatformSuffix=
-if "%PlatformName%" == "x64" set myPlatformSuffix=x64
-if "%PlatformName%" == "ARM64" set myPlatformSuffix=ARM64
+set sdkoutPlatformSuffix=
+if "%PlatformName%" == "Win32" set sdkoutPlatformSuffix=
+if "%PlatformName%" == "x64" set sdkoutPlatformSuffix=x64
+if "%PlatformName%" == "ARM64" set sdkoutPlatformSuffix=ARM64
 
 set dirSdkout=%dirRepoRoot%\sdkout
 set dirSdkoutHeader=%dirSdkout%\include
-set dirSdkoutLib=%dirSdkout%\cidvers\vc%PlatformToolsetVersion%%myPlatformSuffix%\lib
+set dirSdkoutLib=%dirSdkout%\cidvers\vc%PlatformToolsetVersion%%sdkoutPlatformSuffix%\lib
 
 if not exist "%dirSdkoutHeader%" (
 	mkdir "%dirSdkoutHeader%"
@@ -64,12 +65,11 @@ REM ====== Functions Below ======
 REM =============================
 
 :Echos
+  REM This function preserves %ERRORLEVEL% for the caller,
+  REM and, LastError does NOT pollute the caller.
+  setlocal & set LastError=%ERRORLEVEL%
   echo %_vspgINDENTS%[%batfilenam%] %*
-exit /b
-
-:EchoExec
-  echo %_vspgINDENTS%[%batfilenam%] EXEC: %*
-exit /b
+exit /b %LastError%
 
 :EchoAndExec
   echo %_vspgINDENTS%[%batfilenam%] EXEC: %*

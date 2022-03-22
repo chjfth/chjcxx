@@ -1,52 +1,47 @@
 @echo off
 setlocal EnableDelayedExpansion
+REM Called as this:
+REM <this>.bat $(SolutionDir) $(ProjectDir) $(BuildConf) $(PlatformName) $(TargetDir) $(TargetFileNam) $(TargetName) $(IntrmDir)
+
 set batfilenam=%~n0%~x0
 set batdir=%~dp0
 set batdir=%batdir:~0,-1%
 set _vspgINDENTS=%_vspgINDENTS%.
 call :Echos START from %batdir%
 
-REM
-set BuildConf=%~1
-set _BuildConf_=%1
-set PlatformName=%~2
-set _ExeDllDir_=%3
-set ExeDllDir=%~3
-set TargetName=%~4
+
+REM _SolutionDir_ has double-quotes around, SolutionDir has no quotes.
+set _SolutionDir_=%1&set SolutionDir=%~1
+set _ProjectDir_=%2&set ProjectDir=%~2
+set _BuildConf_=%3&set BuildConf=%~3
+set _PlatformName_=%4&set PlatformName=%~4
+set _TargetDir_=%5&set TargetDir=%~5
+set _TargetFilenam_=%6&set TargetFilenam=%~6
+set _TargetName_=%7&set TargetName=%~7
+set _IntrmDir_=%8&set IntrmDir=%~8
+
+set ExeDllDir=%TargetDir%
 
 REM == debugging purpose ==
+REM call :EchoVar SolutionDir
+REM call :EchoVar ProjectDir
 REM call :EchoVar _BuildConf_
 REM call :EchoVar BuildConf
+REM call :EchoVar IntrmDir
+REM call :EchoVar TargetDir
 REM call :EchoVar PlatformName
-REM call :EchoVar _ExeDllDir_
-REM call :EchoVar ExeDllDir
 REM call :EchoVar TargetName
 
 REM ==== Prelude Above ====
 
-REM =========================================================================
-REM This bat copies(=sync) project output(EXE/DLL etc) to your desired target dirs.
-REM 
-REM After duplicating your own PostBuild-SyncOutput4.bat, you should 
-REM customize two things: 
-REM (1) Set POSTBUILD_COPY_TO_DIRS's value to be your copying target dirs.
-REM     You can list multiple target dirs, separated by spaces.
-REM     For example, assign two remote machine folders for remote debugging:
-REM 
-REM set POSTBUILD_COPY_TO_DIRS=z:\bin "y:\bin outputs"
-REM
-REM (2) Tell what file patterns to copy, separate each pattern by a space.
-REM     (But don't surround them with quotes.)
-REM
-REM set POSTBUILD_COPY_PATTERNS="%ExeDllDir%\%TargetFilenam%" "some other pattern with white-space chars"
-REM or
-REM set POSTBUILD_COPY_PATTERNS=*.exe *.dll
-REM 
-REM You can modify .bat files directly, or set them as env-vars.
-REM =========================================================================
+set POSTBUILD_COPY_TO_DIRS=d:\bin
+set POSTBUILD_COPY_TO_DIRS=d:\bin
+set POSTBUILD_COPY_PATTERNS="%ExeDllDir%\%TargetFilenam%"
+rem -- The above two should match those in PostBuild-CopyOutput4.bat
+rem    To ensure they always match, you can define them in VSPU-StartEnv.bat, once and for all.
 
 if not defined POSTBUILD_COPY_TO_DIRS (
-	call :Echos POSTBUILD_COPY_TO_DIRS is empty, nothing to copy.
+	call :Echos POSTBUILD_COPY_TO_DIRS is empty, nothing to clean.
 	exit /b 0
 )
 
@@ -55,25 +50,25 @@ if not defined POSTBUILD_COPY_PATTERNS (
 	exit /b 4
 )
 
+
 REM For the special two vars, escape double-quotes for wrapping into a single bat-parameter.
 call :PackDoubleQuotes %POSTBUILD_COPY_PATTERNS%
 set __SourcePatterns__=%_vspg_dqpacked%
 rem
 call :PackDoubleQuotes %POSTBUILD_COPY_TO_DIRS%
 set __DestDirs__=%_vspg_dqpacked%
+
 set DestSubdir=__%BuildConf%\%PlatformName%
 
-set VSPG_COPYFILE_DO_DELETE=
+set VSPG_COPYFILE_DO_DELETE=1
 call "%bootsdir%\AgileCopyOrDelete.bat"  "%ExeDllDir%"  "%__SourcePatterns__%"  "%__DestDirs__%"  "%DestSubdir%"
 
 exit /b %ERRORLEVEL%
 
 
-
 REM =============================
 REM ====== Functions Below ======
 REM =============================
-
 
 :Echos
   REM This function preserves %ERRORLEVEL% for the caller,
@@ -84,12 +79,12 @@ exit /b %LastError%
 
 :EchoAndExec
   echo %_vspgINDENTS%[%batfilenam%] EXEC: %*
-  call %*
+  %*
 exit /b %ERRORLEVEL%
 
 :EchoVar
   setlocal & set Varname=%~1
-  call echo %_vspgINDENTS%[%batfilenam%]%~2 %Varname% = %%%Varname%%%
+  call echo %_vspgINDENTS%[%batfilenam%] %Varname% = %%%Varname%%%
 exit /b 0
 
 :SetErrorlevel
