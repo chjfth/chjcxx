@@ -20,52 +20,53 @@ if not defined cp_found (
 	exit /b 4
 )
 
-set hdir=%~1
-set hlist=%~2
-set hlist=%hlist:;= %
-REM -- now hlist content is space-separated
-
-call "%bootsdir%\GetParentDir.bat" dirRepoRoot "%batdir%"
-
-REM If PlatformToolset is sth like "WindowsKernelModeDriver10.0",
-REM We know that it is building LIB for kernel mode, so we'll prepare extra suffix.
-set krnl_libdirsuffix=
-call "%bootsdir%\IsSubStr.bat" isKernelMode "%PlatformToolset%" "KernelMode"
-if "%isKernelMode%"=="1" (
-	call :Echos Seeing KernelMode bcz PlatformToolset="%PlatformToolset%"
-	set krnl_libdirsuffix=_krnl
+if not defined vspu_p_list_HEADERS (
+	call :Echos [ERROR] vspu_p_list_HEADERS is empty.
+	exit /b 4
+)
+if not defined vspu_d_HEADER_ROOT (
+	call :Echos [ERROR] vspu_d_HEADER_ROOT is empty.
+	exit /b 4
 )
 
-set sdkoutPlatformSuffix=
-if "%PlatformName%" == "Win32" set sdkoutPlatformSuffix=
-if "%PlatformName%" == "x64" set sdkoutPlatformSuffix=x64
-if "%PlatformName%" == "ARM64" set sdkoutPlatformSuffix=ARM64
+set hdir=%vspu_d_HEADER_ROOT%
+set hlist=%vspu_p_list_HEADERS%
 
-set dirSdkout=%dirRepoRoot%\sdkout
-set dirSdkoutHeader=%dirSdkout%\include
-set dirSdkoutLib=%dirSdkout%\cidvers\vc%PlatformToolsetVersion%%sdkoutPlatformSuffix%%krnl_libdirsuffix%\lib
+if not defined dirSdkoutHeader (
+	call :Echos [ERROR] dirSdkoutHeader should have been defined in Set-SharedEnv.bat .
+	exit /b 4
+)
+if not defined dirSdkoutLib (
+	call :Echos [ERROR] dirSdkoutLib should have been defined in Set-SharedEnv.bat .
+	exit /b 4
+)
 
 if not exist "%dirSdkoutHeader%" (
 	mkdir "%dirSdkoutHeader%"
 	if errorlevel 1 exit /b 4
 )
-
-for %%h in (%hlist%) do (
-	call :EchoAndExec cp -r "%hdir%\%%h" "%dirSdkoutHeader%"
-	if errorlevel 1 exit /b 4
-)
-
-
 if not exist "%dirSdkoutLib%" (
 	mkdir "%dirSdkoutLib%"
 )
 
-call :EchoAndExec copy "%TargetDir%\%TargetName%.lib" "%dirSdkoutLib%"
+REM ========= Start copying
+
+REM ==== copy .h
+
+for %%h in (%hlist%) do (
+	call :EchoAndExec cp -r "%hdir%\%%~h" "%dirSdkoutHeader%"
+	if errorlevel 1 exit /b 4
+)
+
+REM ==== copy .lib and .lib.pdb
+
+call :EchoAndExec copy "%TargetDir%\%vso_fStaticLib%" "%dirSdkoutLib%"
 
 if errorlevel 1 exit /b 4
 
-call :EchoAndExec copy "%TargetDir%\%TargetName%.lib.pdb" "%dirSdkoutLib%"
+call :EchoAndExec copy "%TargetDir%\%vso_fStaticLibPdb%" "%dirSdkoutLib%"
 if errorlevel 1 exit /b 4
+
 
 exit /b 0
 

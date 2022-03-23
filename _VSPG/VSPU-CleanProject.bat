@@ -34,35 +34,36 @@ REM call :EchoVar TargetName
 
 REM ==== Prelude Above ====
 
-set POSTBUILD_COPY_TO_DIRS=d:\bin
-set POSTBUILD_COPY_PATTERNS="%ExeDllDir%\%TargetFilenam%"
-rem -- The above two should match those in PostBuild-CopyOutput4.bat
-rem    To ensure they always match, you can define them in VSPU-StartEnv.bat, once and for all.
+REM I need Unix-behavior rm.exe in this bat. Git-Windows provides it.
+REM So prepend it to my PATH.
+PATH=D:\Program Files\Git\usr\bin;C:\Program Files\Git\usr\bin;%PATH%
 
-if not defined POSTBUILD_COPY_TO_DIRS (
-	call :Echos POSTBUILD_COPY_TO_DIRS is empty, nothing to clean.
-	exit /b 0
-)
-
-if not defined POSTBUILD_COPY_PATTERNS (
-	call :Echos [ERROR] POSTBUILD_COPY_PATTERNS is empty.
+for %%x in (rm.exe) do set rm_found=%%~$PATH:x
+if not defined rm_found (
+	call :Echos [ERROR] Unix rm.exe cannot be found in your PATH. I need this program to go. Unix rm.exe can be acquired by installing "Git for Windows", from https://gitforwindows.org/ .
 	exit /b 4
 )
 
+if defined dirSdkoutHeader if defined vspu_p_list_HEADERS (
+	for %%h in (%vspu_p_list_HEADERS%) do (
+		if exist "%dirSdkoutHeader%\%%~h" (
+			call :EchoAndExec rm -r "%dirSdkoutHeader%\%%~h"
+			if errorlevel 1 exit /b 4
+		)
+	)
+)
 
-REM For the special two vars, escape double-quotes for wrapping into a single bat-parameter.
-call :PackDoubleQuotes %POSTBUILD_COPY_PATTERNS%
-set __SourcePatterns__=%_vspg_dqpacked%
-rem
-call :PackDoubleQuotes %POSTBUILD_COPY_TO_DIRS%
-set __DestDirs__=%_vspg_dqpacked%
+if defined vso_fStaticLib if exist "%dirSdkoutLib%\%vso_fStaticLib%" (
+	call :EchoAndExec rm "%dirSdkoutLib%\%vso_fStaticLib%"
+	if errorlevel 1 exit /b 4
+)
 
-set DestSubdir=__%BuildConf%\%PlatformName%
+if defined vso_fStaticLibPdb if exist "%dirSdkoutLib%\%vso_fStaticLibPdb%" (
+	call :EchoAndExec rm "%dirSdkoutLib%\%vso_fStaticLibPdb%"
+	if errorlevel 1 exit /b 4
+)
 
-set VSPG_COPYFILE_DO_DELETE=1
-call "%bootsdir%\AgileCopyOrDelete.bat"  "%ExeDllDir%"  "%__SourcePatterns__%"  "%__DestDirs__%"  "%DestSubdir%"
-
-exit /b %ERRORLEVEL%
+exit /b 0
 
 
 REM =============================

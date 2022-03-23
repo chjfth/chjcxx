@@ -33,21 +33,27 @@ REM call :EchoVar TargetName
 REM ==== Prelude Above ====
 
 
-REM
-REM WRITE YOUR CMD/BAT commands here.
-REM Remember to check for error exitcode for each command.
-REM
 
-call "%bootsdir%\GetParentDir.bat" dirThisLib "%batdir%"
+if not defined vspu_p_list_HEADERS goto :DONE_COPY_SDKOUT
 
-REM -- example: dirThisLib=D:\gitw\chjcxx\mm_snprintf
+if not defined vspu_d_HEADER_ROOT (
+	call :Echos [ERROR] You defined 'vspu_p_list_HEADERS' but 'vspu_d_HEADER_ROOT' is empty.
+	exit /b 4
+)
+
+call :Echos From [vspu_d_HEADER_ROOT] %vspu_d_HEADER_ROOT%
+call :Echos Will copy these Filenodes to sdkout folder[vspu_p_list_HEADERS]: %vspu_p_list_HEADERS%
+
 
 if "%TargetExt%" == ".lib" (
-	call %dirThisLib%\..\_VSPG\CopyLib-to-sdkout.bat "%dirThisLib%\libsrc\include" mm_snprintf.h
+	call "%batdir%\CopyLib-to-sdkout.bat"
 	if errorlevel 1 exit /b 4
 )
 
+if errorlevel 1 exit /b 4
 
+
+:DONE_COPY_SDKOUT
 
 exit /b 0
 
@@ -55,20 +61,22 @@ REM =============================
 REM ====== Functions Below ======
 REM =============================
 
-REM %~n0%~x0 is batfilenam
 :Echos
-  echo %_vspgINDENTS%[%~n0%~x0] %*
-exit /b
+  REM This function preserves %ERRORLEVEL% for the caller,
+  REM and, LastError does NOT pollute the caller.
+  setlocal & set LastError=%ERRORLEVEL%
+  echo %_vspgINDENTS%[%batfilenam%] %*
+exit /b %LastError%
 
-:EchoExec
-  echo %_vspgINDENTS%[%~n0%~x0] EXEC: %*
-exit /b
+:EchoAndExec
+  echo %_vspgINDENTS%[%batfilenam%] EXEC: %*
+  %*
+exit /b %ERRORLEVEL%
 
 :EchoVar
-  REM Env-var double expansion trick from: https://stackoverflow.com/a/1200871/151453
-  set _Varname=%1
-  for /F %%i in ('echo %_Varname%') do echo %_vspgINDENTS%[%batfilenam%] %_Varname% = !%%i!
-exit /b
+  setlocal & set Varname=%~1
+  call echo %_vspgINDENTS%[%batfilenam%] %Varname% = %%%Varname%%%
+exit /b 0
 
 :SetErrorlevel
   REM Usage example:
