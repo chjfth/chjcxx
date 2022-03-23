@@ -1,253 +1,156 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="ANSI|ARM64">
-      <Configuration>ANSI</Configuration>
-      <Platform>ARM64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="ANSI|Win32">
-      <Configuration>ANSI</Configuration>
+    <!-- Win32(x86) -->
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="ANSI|x64">
-      <Configuration>ANSI</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Unicode|ARM64">
-      <Configuration>Unicode</Configuration>
-      <Platform>ARM64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Unicode|Win32">
-      <Configuration>Unicode</Configuration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Unicode|x64">
-      <Configuration>Unicode</Configuration>
+    <ProjectConfiguration Include="Debug ANSI|Win32">
+      <Configuration>Debug ANSI</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release ANSI|Win32">
+      <Configuration>Release ANSI</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <!-- x64 -->
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug ANSI|x64">
+      <Configuration>Debug ANSI</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release ANSI|x64">
+      <Configuration>Release ANSI</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <!-- ARM64 -->
+    <ProjectConfiguration Include="Debug|ARM64">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM64">
+      <Configuration>Release</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug ANSI|ARM64">
+      <Configuration>Debug ANSI</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release ANSI|ARM64">
+      <Configuration>Release ANSI</Configuration>
+      <Platform>ARM64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{A43F0756-FC9E-4DB8-8DE6-20170815CF7E}</ProjectGuid>
+    <ProjectGuid>{AD113882-C04D-4371-9E0A-CC4A6A5056DE}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>verify-gadgetlib</RootNamespace>
+    <ProjectName>verify-gadgetlib</ProjectName>
+    <TargetName>$(ProjectName)</TargetName>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Unicode|Win32'" Label="Configuration">
+  <!-- Project General Part 1 -->
+  <PropertyGroup Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
+    <ScalaconStaticLibSuffixD>
+    </ScalaconStaticLibSuffixD>
+    <ScalaconStaticLibSuffixUD>
+    </ScalaconStaticLibSuffixUD>
+  </PropertyGroup>
+  <!-- Unicode or ANSI(MBCS) -->
+  <PropertyGroup Condition="!$(Configuration.Contains('ANSI'))" Label="Configuration">
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v142</PlatformToolset>
+    <ScalaconStaticLibSuffixUD>$(ScalaconStaticLibSuffixUD)_U</ScalaconStaticLibSuffixUD>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Unicode|ARM64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v142</PlatformToolset>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Unicode|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v142</PlatformToolset>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ANSI|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
+  <PropertyGroup Condition=" $(Configuration.Contains('ANSI'))" Label="Configuration">
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ANSI|ARM64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+  <!-- Debug or Release -->
+  <PropertyGroup Condition="$(Configuration.StartsWith('Debug'))" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
-    <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v142</PlatformToolset>
+    <ScalaconStaticLibSuffixD>$(ScalaconStaticLibSuffixD)_D</ScalaconStaticLibSuffixD>
+    <ScalaconStaticLibSuffixUD>$(ScalaconStaticLibSuffixUD)_D</ScalaconStaticLibSuffixUD>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ANSI|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v142</PlatformToolset>
+  <PropertyGroup Condition="$(Configuration.StartsWith('Release'))" Label="Configuration">
+    <UseDebugLibraries>false</UseDebugLibraries>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <ImportGroup Label="ExtensionSettings">
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Unicode|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Unicode|ARM64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Unicode|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ANSI|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ANSI|ARM64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ANSI|x64'" Label="PropertySheets">
+  <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Unicode|Win32'">
-    <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)binstore\$(PlatformName)-$(PlatformToolset)\$(Configuration)\</OutDir>
-    <IntDir>$(PlatformName)-$(PlatformToolset)\$(Configuration)\</IntDir>
-    <TargetName>$(ProjectName)_U</TargetName>
+  <!-- Project General Part 2 -->
+  <PropertyGroup>
+    <LinkIncremental>false</LinkIncremental>
+    <IntDir>obj-vc$(PlatformToolsetVersion)\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)bin-vc$(PlatformToolsetVersion)\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Unicode|ARM64'">
-    <TargetName>$(ProjectName)_U</TargetName>
-    <LinkIncremental>true</LinkIncremental>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Unicode|x64'">
-    <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)binstore\$(PlatformName)-$(PlatformToolset)\$(Configuration)\</OutDir>
-    <IntDir>$(PlatformName)-$(PlatformToolset)\$(Configuration)\</IntDir>
-    <TargetName>$(ProjectName)_U</TargetName>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ANSI|Win32'">
-    <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)binstore\$(PlatformName)-$(PlatformToolset)\$(Configuration)\</OutDir>
-    <IntDir>$(PlatformName)-$(PlatformToolset)\$(Configuration)\</IntDir>
-    <TargetName>$(ProjectName)</TargetName>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ANSI|ARM64'">
-    <TargetName>$(ProjectName)</TargetName>
-    <LinkIncremental>true</LinkIncremental>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ANSI|x64'">
-    <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)binstore\$(PlatformName)-$(PlatformToolset)\$(Configuration)\</OutDir>
-    <IntDir>$(PlatformName)-$(PlatformToolset)\$(Configuration)\</IntDir>
-    <TargetName>$(ProjectName)</TargetName>
-  </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Unicode|Win32'">
+  <!-- 
+  	Compiler/Linker Behavior Settings : shared 
+  -->
+  <ItemDefinitionGroup>
     <ClCompile>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>DLLEXPORT_gadgetlib=__declspec(dllexport);WIN32;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+      <AdditionalIncludeDirectories>..\..\libsrc\include;..\..\..\sdkout\include;..\..\..\common-include\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalIncludeDirectories>../../libsrc/include;../../sdkin/include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
-      <ProgramDatabaseFile>%(OutputFile).pdb</ProgramDatabaseFile>
-      <AdditionalDependencies>mm_snprintf_D.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <AdditionalLibraryDirectories>..\..\sdkin\cidvers\vc100\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>mm_snprintf$(ScalaconStaticLibSuffixD).lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories Condition="'$(Platform)'=='Win32'">..\..\..\sdkout\cidvers\vc$(PlatformToolsetVersion)\lib;</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories Condition="'$(Platform)'!='Win32'">..\..\..\sdkout\cidvers\vc$(PlatformToolsetVersion)$(PlatformName)\lib;</AdditionalLibraryDirectories>
     </Link>
+    <BuildLog>
+      <Path>$(IntDir)__$(MSBuildProjectName).build.log</Path>
+    </BuildLog>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Unicode|ARM64'">
+  <!-- 
+  	Compiler Behavior Settings : Debug 
+  -->
+  <ItemDefinitionGroup Condition="$(Configuration.StartsWith('Debug'))">
     <ClCompile>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalIncludeDirectories>../../libsrc/include;../../sdkin/include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
-      <ProgramDatabaseFile>%(OutputFile).pdb</ProgramDatabaseFile>
-      <AdditionalDependencies>mm_snprintf_D.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <AdditionalLibraryDirectories>..\..\sdkin\cidvers\vc100\lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Unicode|x64'">
+  <!-- 
+  	Compiler Behavior Settings : Release 
+  -->
+  <ItemDefinitionGroup Condition="$(Configuration.StartsWith('Release'))">
     <ClCompile>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalIncludeDirectories>../../libsrc/include;../../sdkin/include</AdditionalIncludeDirectories>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
-      <ProgramDatabaseFile>%(OutputFile).pdb</ProgramDatabaseFile>
-      <AdditionalOptions>/implib:$(OutDir)..\lib\$(TargetName)--imp.lib %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>mm_snprintf_D.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <AdditionalLibraryDirectories>..\..\sdkin\cidvers\vc100x64\lib</AdditionalLibraryDirectories>
-    </Link>
-    <PostBuildEvent>
-      <Command>
-      </Command>
-    </PostBuildEvent>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ANSI|Win32'">
-    <ClCompile>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalIncludeDirectories>../../libsrc/include;../../sdkin/include</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
-      <ProgramDatabaseFile>%(OutputFile).pdb</ProgramDatabaseFile>
-      <AdditionalDependencies>mm_snprintf_D.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <AdditionalLibraryDirectories>..\..\sdkin\cidvers\vc100\lib</AdditionalLibraryDirectories>
+      <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ANSI|ARM64'">
-    <ClCompile>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalIncludeDirectories>../../libsrc/include;../../sdkin/include</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
-      <ProgramDatabaseFile>%(OutputFile).pdb</ProgramDatabaseFile>
-      <AdditionalDependencies>mm_snprintf_D.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <AdditionalLibraryDirectories>..\..\sdkin\cidvers\vc100\lib</AdditionalLibraryDirectories>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ANSI|x64'">
-    <ClCompile>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalIncludeDirectories>../../libsrc/include;../../sdkin/include</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <OutputFile>$(OutDir)$(TargetFileName)</OutputFile>
-      <ProgramDatabaseFile>%(OutputFile).pdb</ProgramDatabaseFile>
-      <AdditionalOptions>/implib:$(OutDir)..\lib\$(TargetName)--imp.lib %(AdditionalOptions)</AdditionalOptions>
-      <AdditionalDependencies>mm_snprintf_D.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <AdditionalLibraryDirectories>..\..\sdkin\cidvers\vc100x64\lib</AdditionalLibraryDirectories>
-    </Link>
-    <PostBuildEvent>
-      <Command>
-      </Command>
-    </PostBuildEvent>
-    <ProjectReference />
-  </ItemDefinitionGroup>
+  <!-- 
+    Source file list:
+   -->
   <ItemGroup>
     <None Include="mycui.ico" />
   </ItemGroup>
@@ -281,7 +184,6 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
-
   <!-- import VSPG start -->
   <PropertyGroup>
     <VSPG_BootsDir_NoTBS>..\..\..\_VSPG\boots</VSPG_BootsDir_NoTBS>
