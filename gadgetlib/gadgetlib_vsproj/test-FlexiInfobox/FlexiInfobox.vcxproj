@@ -65,10 +65,8 @@
   <!-- Project General Part 1 -->
   <PropertyGroup Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <ScalaconStaticLibSuffixD>
-    </ScalaconStaticLibSuffixD>
-    <ScalaconStaticLibSuffixUD>
-    </ScalaconStaticLibSuffixUD>
+    <ScalaconStaticLibSuffixD></ScalaconStaticLibSuffixD>
+    <ScalaconStaticLibSuffixUD></ScalaconStaticLibSuffixUD>
   </PropertyGroup>
   <!-- Unicode or ANSI(MBCS) -->
   <PropertyGroup Condition="!$(Configuration.Contains('ANSI'))" Label="Configuration">
@@ -95,7 +93,7 @@
   <!-- Project General Part 2 -->
   <PropertyGroup>
     <LinkIncremental>false</LinkIncremental>
-    <IntDir>obj-vc$(PlatformToolsetVersion)\$(Platform)\$(Configuration)\</IntDir>
+                  <IntDir>obj-vc$(PlatformToolsetVersion)\$(Platform)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)bin-vc$(PlatformToolsetVersion)\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <!-- 
