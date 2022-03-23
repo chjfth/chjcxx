@@ -27,6 +27,15 @@ REM -- now hlist content is space-separated
 
 call "%bootsdir%\GetParentDir.bat" dirRepoRoot "%batdir%"
 
+REM If PlatformToolset is sth like "WindowsKernelModeDriver10.0",
+REM We know that it is building LIB for kernel mode, so we'll prepare extra suffix.
+set krnl_libdirsuffix=
+call "%bootsdir%\IsSubStr.bat" isKernelMode "%PlatformToolset%" "KernelMode"
+if "%isKernelMode%"=="1" (
+	call :Echos Seeing KernelMode bcz PlatformToolset="%PlatformToolset%"
+	set krnl_libdirsuffix=_krnl
+)
+
 set sdkoutPlatformSuffix=
 if "%PlatformName%" == "Win32" set sdkoutPlatformSuffix=
 if "%PlatformName%" == "x64" set sdkoutPlatformSuffix=x64
@@ -34,7 +43,7 @@ if "%PlatformName%" == "ARM64" set sdkoutPlatformSuffix=ARM64
 
 set dirSdkout=%dirRepoRoot%\sdkout
 set dirSdkoutHeader=%dirSdkout%\include
-set dirSdkoutLib=%dirSdkout%\cidvers\vc%PlatformToolsetVersion%%sdkoutPlatformSuffix%\lib
+set dirSdkoutLib=%dirSdkout%\cidvers\vc%PlatformToolsetVersion%%sdkoutPlatformSuffix%%krnl_libdirsuffix%\lib
 
 if not exist "%dirSdkoutHeader%" (
 	mkdir "%dirSdkoutHeader%"
