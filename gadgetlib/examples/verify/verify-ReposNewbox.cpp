@@ -6,7 +6,7 @@
 // Memo: use enum_windows_monitors.py to get your monitor layout.
 // We prefer "work-area" over "monitor-area".
 
-#define COUNT(ar) (sizeof(ar)/sizeof(ar[0]))
+#define COUNT(ar) ((int)(sizeof(ar)/sizeof(ar[0])))
 
 Rect_st gar_RectMonset1[] = // my office GBChj 4 monitors
 {
