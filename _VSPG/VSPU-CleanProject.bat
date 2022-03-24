@@ -34,15 +34,6 @@ REM call :EchoVar TargetName
 
 REM ==== Prelude Above ====
 
-REM I need Unix-behavior rm.exe in this bat. Git-Windows provides it.
-REM So prepend it to my PATH.
-PATH=D:\Program Files\Git\usr\bin;C:\Program Files\Git\usr\bin;%PATH%
-
-for %%x in (rm.exe) do set rm_found=%%~$PATH:x
-if not defined rm_found (
-	call :Echos [ERROR] Unix rm.exe cannot be found in your PATH. I need this program to go. Unix rm.exe can be acquired by installing "Git for Windows", from https://gitforwindows.org/ .
-	exit /b 4
-)
 
 if defined dirSdkoutHeader if defined vspu_p_list_HEADERS (
 	for %%h in (%vspu_p_list_HEADERS%) do (

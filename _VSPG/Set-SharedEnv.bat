@@ -1,10 +1,35 @@
 @echo off
+
+REM PATH manipulation must be done BEFORE setlocal.
+REM
+PATH=D:\Program Files\Git\usr\bin;C:\Program Files\Git\usr\bin;%PATH%
+
 setlocal EnableDelayedExpansion
 
 set batfilenam=%~n0%~x0
 set batdir=%~dp0
 set batdir=%batdir:~0,-1%
 set _vspgINDENTS=%_vspgINDENTS%.
+
+
+REM ======== ENV checking for other/later bat execution ========
+
+REM I need Unix-behavior cp.exe to do file/folder copy. Check whether it has been in our PATH.
+for %%x in (cp.exe) do set cp_found=%%~$PATH:x
+if not defined cp_found (
+	call :Echos [ERROR] Unix cp.exe cannot be found in your PATH. I need this program to go. Unix cp.exe can be acquired by installing "Git for Windows", from https://gitforwindows.org/ .
+	exit /b 4
+)
+
+REM I need Unix-behavior rm.exe to do file/folder deletion.
+for %%x in (rm.exe) do set rm_found=%%~$PATH:x
+if not defined rm_found (
+	call :Echos [ERROR] Unix rm.exe cannot be found in your PATH. I need this program to go. Unix rm.exe can be acquired by installing "Git for Windows", from https://gitforwindows.org/ .
+	exit /b 4
+)
+
+REM ======== ENV checking done ========
+
 
 call "%bootsdir%\GetParentDir.bat" dirRepoRoot "%batdir%"
 
@@ -22,12 +47,24 @@ if "%PlatformName%" == "Win32" set sdkoutPlatformSuffix=
 if "%PlatformName%" == "x64" set sdkoutPlatformSuffix=x64
 if "%PlatformName%" == "ARM64" set sdkoutPlatformSuffix=ARM64
 
+REM :::::: Set our 'sdkout' folder ::::::
+REM
 set dirSdkout=%dirRepoRoot%\sdkout
 set dirSdkoutHeader=%dirSdkout%\include
 set dirSdkoutLib=%dirSdkout%\cidvers\vc%PlatformToolsetVersion%%sdkoutPlatformSuffix%%krnl_libdirsuffix%\lib
 
 set vso_fStaticLib=%TargetName%.lib
 set vso_fStaticLibPdb=%vso_fStaticLib%.pdb
+
+set vso_fDll=%TargetName%.dll
+set vso_fDllPdb=%vso_fDll%.pdb
+REM If TargetName ends with _D, then we drop that _D for import-lib filename, 
+REM bcz Debug and Release DLL can share the same import-lib.
+if "%TargetName:~-2%"=="_D" (
+	set vso_fDllImportlib=%TargetName:~0:-2%
+) else (
+	set vso_fDllImportlib=%TargetName%
+)
 
 endlocal & (
 	REM Now export these env-vars to parent env.
@@ -38,7 +75,11 @@ endlocal & (
 	set dirSdkoutLib=%dirSdkoutLib%
 	set vso_fStaticLib=%vso_fStaticLib%
 	set vso_fStaticLibPdb=%vso_fStaticLibPdb%
+	set vso_fDll=%vso_fDll%
+	set vso_fDllPdb=%vso_fDllPdb%
+	set vso_fDllImportlib=%vso_fDllImportlib%
 )
+
 
 exit /b 0
 

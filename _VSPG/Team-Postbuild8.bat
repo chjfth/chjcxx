@@ -32,9 +32,22 @@ REM call :EchoVar TargetName
 
 REM ==== Prelude Above ====
 
+REM This bat will copy .h/.lib/.dll and their corresponding pdb-s to 'sdkout' folder.
+REM Parameters influencing the copy operation is prepared in Set-SharedEnv.bat .
 
+set IsLib=
+if "%TargetExt%"==".lib" set IsLib=1
 
-if not defined vspu_p_list_HEADERS goto :DONE_COPY_SDKOUT
+set IsDll=
+if "%TargetExt%"==".dll" set IsDll=1
+
+REM ========================================================================
+REM                         Copy .h to sdkout
+REM ========================================================================
+
+if "%IsLib%%IsDll%"=="" goto :DONE_COPY_dotH
+
+if not defined vspu_p_list_HEADERS goto :DONE_COPY_dotH
 
 if not defined vspu_d_HEADER_ROOT (
 	call :Echos [ERROR] You defined 'vspu_p_list_HEADERS' but 'vspu_d_HEADER_ROOT' is empty.
@@ -42,18 +55,81 @@ if not defined vspu_d_HEADER_ROOT (
 )
 
 call :Echos From [vspu_d_HEADER_ROOT] %vspu_d_HEADER_ROOT%
-call :Echos Will copy these Filenodes to sdkout folder[vspu_p_list_HEADERS]: %vspu_p_list_HEADERS%
+call "%bootsdir%\EchoSublines.bat" "Will copy these Filenodes[vspu_p_list_HEADERS] to sdkout folder:" %vspu_p_list_HEADERS%
+
+if not defined dirSdkoutHeader (
+	call :Echos [ERROR] dirSdkoutHeader should have been defined in Set-SharedEnv.bat .
+	exit /b 4
+)
+
+REM ==== copy .h list (may be a folder, which contains lots of .h)
+
+for %%h in (%vspu_p_list_HEADERS%) do (
+	call :EchoAndExec cp -r "%vspu_d_HEADER_ROOT%\%%~h" "%dirSdkoutHeader%"
+	if errorlevel 1 exit /b 4
+	
+	REM if %h has subdir prefix, whether replicate that subdir inside %dirSdkoutHeader% ?
+	REM (TODO?)
+)
 
 
-if "%TargetExt%" == ".lib" (
-	call "%batdir%\CopyLib-to-sdkout.bat"
+:DONE_COPY_dotH
+
+REM ========================================================================
+REM                  Copy .lib(C++ static lib) to sdkout
+REM ========================================================================
+
+if "%IsLib%"=="" goto :DONE_COPY_dotLIB
+
+if not defined dirSdkoutLib (
+	call :Echos [ERROR] dirSdkoutLib should have been defined in Set-SharedEnv.bat .
+	exit /b 4
+)
+if not exist "%dirSdkoutLib%" (
+	mkdir "%dirSdkoutLib%"
 	if errorlevel 1 exit /b 4
 )
 
+REM ==== copy .lib and .lib.pdb
+
+call :EchoAndExec copy "%TargetDir%\%vso_fStaticLib%" "%dirSdkoutLib%"
+
+if errorlevel 1 exit /b 4
+
+call :EchoAndExec copy "%TargetDir%\%vso_fStaticLibPdb%" "%dirSdkoutLib%"
 if errorlevel 1 exit /b 4
 
 
-:DONE_COPY_SDKOUT
+:DONE_COPY_dotLIB
+
+REM ========================================================================
+REM                  Copy .dll to sdkout
+REM ========================================================================
+
+if "%IsDll%"=="" goto :DONE_COPY_dotDLL
+
+if not defined dirSdkoutLib (
+	call :Echos [ERROR] dirSdkoutLib should have been defined in Set-SharedEnv.bat .
+	exit /b 4
+)
+if not exist "%dirSdkoutLib%" (
+	mkdir "%dirSdkoutLib%"
+	if errorlevel 1 exit /b 4
+)
+
+call :EchoAndExec copy "%TargetDir%\%vso_fDll%" "%dirSdkoutLib%"
+
+if errorlevel 1 exit /b 4
+
+call :EchoAndExec copy "%TargetDir%\%vso_fDllPdb%" "%dirSdkoutLib%"
+
+if errorlevel 1 exit /b 4
+
+call :EchoAndExec copy "%TargetDir%\%vso_fDllImportlib%" "%dirSdkoutLib%"
+if errorlevel 1 exit /b 4
+
+
+:DONE_COPY_dotDLL
 
 exit /b 0
 
