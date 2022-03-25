@@ -114,6 +114,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateMapFile>true</GenerateMapFile>
       <AdditionalDependencies>mm_snprintf$(ScalaconStaticLibSuffixD).lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories Condition="'$(Platform)'=='Win32'">..\..\..\sdkout\cidvers\vc$(PlatformToolsetVersion)\lib;</AdditionalLibraryDirectories>
       <AdditionalLibraryDirectories Condition="'$(Platform)'!='Win32'">..\..\..\sdkout\cidvers\vc$(PlatformToolsetVersion)$(PlatformName)\lib;</AdditionalLibraryDirectories>
@@ -168,7 +169,7 @@
     <ResourceCompile Include="mycui.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\libprj\libprj.vcxproj">
+    <ProjectReference Include="..\lib_gadgetlib\lib_gadgetlib.vcxproj">
       <Project>{20220325-0000-0000-0000-10302000BB01}</Project>
     </ProjectReference>
   </ItemGroup>
