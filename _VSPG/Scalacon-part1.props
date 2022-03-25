@@ -52,17 +52,4 @@
     <TargetName>$(TargetNameStem)$(TargetNameSuffixUD)</TargetName>
   </PropertyGroup>
 
-
-  <!-- ====================================================================== -->
-  <!-- A MSBuild Target to diagnose variables.                                -->
-  <!-- User should have set these vars before importing this Scalacon.props . -->
-  <!-- ====================================================================== -->
-
-  <Target Name="ScalaconDebugInfo">
-    <Message Text="[[ScalaconDebugInfo]]" />
-    <Message Text="TargetNameStem=$(TargetNameStem)" />
-    <Message Text="sc_deco_DLLEXPORT=$(sc_deco_DLLEXPORT)" />
-    <Message Text="sc_ProgramDataBaseFileName=$(sc_ProgramDataBaseFileName)" />
-  </Target>
-
 </Project>
