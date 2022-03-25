@@ -51,7 +51,8 @@ REM :::::: Set our 'sdkout' folder ::::::
 REM
 set dirSdkout=%dirRepoRoot%\sdkout
 set dirSdkoutHeader=%dirSdkout%\include
-set dirSdkoutLib=%dirSdkout%\cidvers\vc%PlatformToolsetVersion%%sdkoutPlatformSuffix%%krnl_libdirsuffix%\lib
+set dirSdkoutCidverVCxxx=%dirSdkout%\cidvers\vc%PlatformToolsetVersion%%sdkoutPlatformSuffix%%krnl_libdirsuffix%
+set dirSdkoutLib=%dirSdkoutCidverVCxxx%\lib
 
 set vso_fStaticLib=%TargetName%.lib
 set vso_fStaticLibPdb=%vso_fStaticLib%.pdb
@@ -73,6 +74,7 @@ endlocal & (
 	
 	set dirSdkout=%dirSdkout%
 	set dirSdkoutHeader=%dirSdkoutHeader%
+	set dirSdkoutCidverVCxxx=%dirSdkoutCidverVCxxx%
 	set dirSdkoutLib=%dirSdkoutLib%
 	set vso_fStaticLib=%vso_fStaticLib%
 	set vso_fStaticLibPdb=%vso_fStaticLibPdb%

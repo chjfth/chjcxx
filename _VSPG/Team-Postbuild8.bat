@@ -41,6 +41,14 @@ if "%TargetExt%"==".lib" set IsLib=1
 set IsDll=
 if "%TargetExt%"==".dll" set IsDll=1
 
+set IsDebugBuildConf=
+call "%bootsdir%\IsSubStr.bat" IsDebugBuildConf "%BuildConf%" "Debug"
+if "%IsDebugBuildConf%"=="1" (
+	set sdkout_binDirname=bin-debug
+) else (
+	set sdkout_binDirname=bin-release
+)
+
 REM ========================================================================
 REM                         Copy .h to sdkout
 REM ========================================================================
@@ -117,11 +125,18 @@ if not exist "%dirSdkoutLib%" (
 	if errorlevel 1 exit /b 4
 )
 
-call :EchoAndExec copy "%TargetDir%\%vso_fDll%" "%dirSdkoutLib%"
+set dirSdkBinNow=%dirSdkoutCidverVCxxx%\%sdkout_binDirname%
+
+if not exist "%dirSdkBinNow%" (
+	mkdir "%dirSdkBinNow%"
+	if errorlevel 1 exit /b 4
+)
+
+call :EchoAndExec copy "%TargetDir%\%vso_fDll%" "%dirSdkBinNow%"
 
 if errorlevel 1 exit /b 4
 
-call :EchoAndExec copy "%TargetDir%\%vso_fDllPdb%" "%dirSdkoutLib%"
+call :EchoAndExec copy "%TargetDir%\%vso_fDllPdb%" "%dirSdkBinNow%"
 
 if errorlevel 1 exit /b 4
 
