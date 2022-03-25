@@ -133,13 +133,14 @@
   <ItemGroup>
     <ResourceCompile Include="..\..\libsrc\msvc\mm_snprintf.rc" />
   </ItemGroup>
-
+  <!-- Refer to StaticLib subprj -->
   <ItemGroup>
     <ProjectReference Include="..\lib_mm_snprintf\lib_mm_snprintf.vcxproj">
       <Project>{a33fd2ba-b4ae-4c44-a512-201802230000}</Project>
     </ProjectReference>
   </ItemGroup>
 
+  <!-- Stock Microsoft.Cpp.targets -->
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
