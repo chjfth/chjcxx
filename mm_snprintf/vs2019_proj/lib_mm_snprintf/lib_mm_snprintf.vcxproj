@@ -105,7 +105,7 @@
       <PreprocessorDefinitions>WIN32;_LIB;DLLEXPORT_mmsnprintf=__declspec(dllexport);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <!-- Two special macro defines: -->
       <PreprocessorDefinitions>USE_CPP_NEW;USE_ONLY_SBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ProgramDataBaseFileName>$(TargetDir)$(TargetName).lib.pdb</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName>$(TargetPath).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Lib>
       <SuppressStartupBanner>true</SuppressStartupBanner>
