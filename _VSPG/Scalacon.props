@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
+  <!-- =================================================================== -->
+  <!-- Compiler Linker related settings -->
+  <!-- =================================================================== -->
+
   <!-- Some initial values -->
   <PropertyGroup>
     <TargetNameSuffixUD></TargetNameSuffixUD>
@@ -38,13 +42,57 @@
                   <IntDir>obj-vc$(PlatformToolsetVersion)\$(Platform)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)bin-vc$(PlatformToolsetVersion)\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
+  
+  <ItemDefinitionGroup Condition="$(Configuration.StartsWith('Debug'))">
+    <BuildLog>
+      <Path>$(IntDir)__$(MSBuildProjectName).build.log</Path>
+    </BuildLog>
+  </ItemDefinitionGroup>
+  
 
-  <Target Name="CheckScalaconInputVars" BeforeTargets="ClCompile">
+  <!-- ====================================================================== -->
+  <!-- Output vars that should/can be expanded in remaining vcxproj settings. -->
+  <!-- These vars starts with sc_ .                                           -->
+  <!-- ====================================================================== -->
+
+  <PropertyGroup>
+    
+    <!-- Function body should be decorated with DLLEXPORT_fooapi=__declspec(dllexport) ,
+    	so that the function is exported from the DLL.
+    	User should then write in .vcxproj like this:
+	      <PreprocessorDefinitions>$(sc_deco_DLLEXPORT);WIN32;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+     -->
+    <sc_deco_DLLEXPORT>DLLEXPORT_$(TargetNameStem)=__declspec(dllexport)</sc_deco_DLLEXPORT>
+    
+  </PropertyGroup>
+
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <!-- PDB should be named like this. Yes, we want to see whole original exe/dll/lib name in PDB filename. -->
+      <!-- [2022-03-25] note: $(TargetPath) cannot receive a value in <PropertyGroup>, so it has to be in ItemDefinitionGroup. -->
+      <sc_ProgramDataBaseFileName>$(TargetPath).pdb</sc_ProgramDataBaseFileName>
+    </ClCompile>
+  </ItemDefinitionGroup>
+
+
+  <!-- ====================================================================== -->
+  <!-- A MSBuild Target to check for Scalacon related input vars.             -->
+  <!-- User should have set these vars before importing this Scalacon.props . -->
+  <!-- ====================================================================== -->
+
+  <Target Name="ScalaconCheckInputVars" BeforeTargets="ClCompile">
     <Message Text="[Scalacon] TargetNameStem=$(TargetNameStem)"/>
     <Error
     	Condition=" '$(TargetNameStem)'=='' "
     	Text="MSBuild variable 'TargetNameStem' must be defined in your .vcxproj"
     	/>
+  </Target>
+
+  <Target Name="ScalaconDebugInfo">
+    <Message Text="[[ScalaconDebugInfo]]" />
+    <Message Text="TargetNameStem=$(TargetNameStem)" />
+    <Message Text="sc_deco_DLLEXPORT=$(sc_deco_DLLEXPORT)" />
+    <Message Text="sc_ProgramDataBaseFileName=$(sc_ProgramDataBaseFileName)" />
   </Target>
 
 </Project>
