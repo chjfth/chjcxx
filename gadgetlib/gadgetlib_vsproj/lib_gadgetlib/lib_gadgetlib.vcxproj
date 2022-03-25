@@ -90,7 +90,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>$(sc_deco_DLLEXPORT);WIN32;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ProgramDataBaseFileName>%(sc_ProgramDataBaseFileName)</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName>$(TargetPath).pdb</ProgramDataBaseFileName>
       <AdditionalIncludeDirectories>.;..\..\libsrc\include;..\..\..\sdkout\include;..\..\..\common-include\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
