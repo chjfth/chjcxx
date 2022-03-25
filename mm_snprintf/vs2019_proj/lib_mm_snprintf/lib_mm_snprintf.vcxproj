@@ -52,7 +52,10 @@
   </ItemGroup>
   
   <PropertyGroup Label="Globals">
+    <ProjectName>lib_mm_snprintf</ProjectName>
     <ProjectGuid>{A33FD2BA-B4AE-4C44-A512-201802230000}</ProjectGuid>
+    <TargetNameStem>mm_snprintf</TargetNameStem>
+    <TargetName>$(TargetNameStem)</TargetName>
   </PropertyGroup>
 
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -89,10 +92,7 @@
   </PropertyGroup>
   
   <PropertyGroup Condition="$(Configuration.StartsWith('Debug'))">
-    <TargetName>mm_snprintf_D</TargetName>
-  </PropertyGroup>
-  <PropertyGroup Condition="$(Configuration.StartsWith('Release'))">
-    <TargetName>mm_snprintf</TargetName>
+    <TargetName>$(TargetNameStem)_D</TargetName>
   </PropertyGroup>
   
   <!-- Shared compile/link options -->
@@ -119,7 +119,6 @@
     <ClCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalOptions>/kernel %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Lib>
     </Lib>
@@ -139,15 +138,17 @@
     <ClCompile Include="..\..\libsrc\internal.cpp" />
     <CustomBuild Include="..\..\libsrc\mm_snprintf.cpp">
       <Command>@REM Copy mm_snprintf.cpp into mm_snprintfA.cpp and mm_snprintfW.cpp, and keeping the latter two readonly from incautious modification.
+set drDoNotEditTitle=..\..\libsrc\_do_not_edit
+set fpDoNotEditTitle=%drDoNotEditTitle%\do-not-edit-title.txt
 attrib -R .\mm_snprintfA.cpp
-copy %(Identity) .\mm_snprintfA.cpp
+copy "%fpDoNotEditTitle%" + "%(Identity)" %drDoNotEditTitle%\mm_snprintfA.cpp
 attrib +R .\mm_snprintfA.cpp
 attrib -R .\mm_snprintfW.cpp
-copy %(Identity) .\mm_snprintfW.cpp
+copy "%fpDoNotEditTitle%" + "%(Identity)" %drDoNotEditTitle%\mm_snprintfW.cpp
 attrib +R .\mm_snprintfW.cpp
 </Command>
-      <Message>Cloning %(Identity) to ANSI and Unicode variants</Message>
-      <Outputs>.\mm_snprintfA.cpp;.\mm_snprintfW.cpp;%(Outputs)</Outputs>
+      <Message>Cloning "%(Identity)" to ANSI and Unicode variants</Message>
+      <Outputs>..\..\libsrc\_do_not_edit\mm_snprintfA.cpp;..\..\libsrc\_do_not_edit\mm_snprintfW.cpp;%(Outputs)</Outputs>
     </CustomBuild>
     <ClCompile Include="mm_snprintfA.cpp">
     </ClCompile>

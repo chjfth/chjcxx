@@ -50,18 +50,22 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{FE8FDB42-BFD5-499A-920E-56ED8D9129D8}</ProjectGuid>
     <ProjectName>dll_mm_snprintf</ProjectName>
+    <ProjectGuid>{20220325-0000-0000-0000-00392900AA77}</ProjectGuid>
     <TargetNameStem>mm_snprintf</TargetNameStem>
     <TargetName>$(TargetNameStem)</TargetName>
   </PropertyGroup>
+
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  
   <PropertyGroup Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
+
   <!-- For user-mode and kernel-mode, different PlatformToolset is used. -->
   <PropertyGroup Condition="!$(Configuration.EndsWith('Krnl'))" Label="Globals">
     <PlatformToolset>v142</PlatformToolset>
@@ -73,20 +77,25 @@
     <TargetVersion>Windows10</TargetVersion>
     <DriverTargetPlatform>Universal</DriverTargetPlatform>
   </PropertyGroup>
+  
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+  
   <PropertyGroup Label="UserMacros" />
+  
   <PropertyGroup>
-    <IntDir>obj-vc$(PlatformToolsetVersion)\$(Platform)\$(Configuration)\</IntDir>
+                  <IntDir>obj-vc$(PlatformToolsetVersion)\$(Platform)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)bin-vc$(PlatformToolsetVersion)\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
+
   <PropertyGroup Condition="$(Configuration.StartsWith('Debug'))">
-    <TargetName>$(TargetName)_D</TargetName>
+    <TargetName>$(TargetNameStem)_D</TargetName>
   </PropertyGroup>
+  
   <!-- Shared compile/link options -->
   <ItemDefinitionGroup>
     <ClCompile>
@@ -124,14 +133,17 @@
   <ItemGroup>
     <ResourceCompile Include="..\..\libsrc\msvc\mm_snprintf.rc" />
   </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\lib_mm_snprintf\lib_mm_snprintf.vcxproj">
       <Project>{a33fd2ba-b4ae-4c44-a512-201802230000}</Project>
     </ProjectReference>
   </ItemGroup>
+
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+
   <!-- import VSPG start -->
   <PropertyGroup>
     <VSPG_BootsDir_NoTBS>..\..\..\_VSPG\boots</VSPG_BootsDir_NoTBS>

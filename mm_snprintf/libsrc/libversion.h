@@ -3,7 +3,7 @@
 
 #define LIB_VMAJOR 7
 #define LIB_VMINOR 1
-#define LIB_VBUILD 1
+#define LIB_VBUILD 2
 
 #define CONST_NUM_TO_STR__(n) #n
 #define CONST_NUM_TO_STR(n) CONST_NUM_TO_STR__(n)
