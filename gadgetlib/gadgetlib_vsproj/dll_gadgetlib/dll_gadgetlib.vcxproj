@@ -27,7 +27,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{E41E83AF-C1E9-4589-A53F-A554B4948570}</ProjectGuid>
+    <ProjectGuid>{20220325-0000-0000-0000-10302000BB02}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>mydll</RootNamespace>
     <ProjectName>gadgetlib-dll</ProjectName>
@@ -255,7 +255,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ProjectReference Include="..\libprj\libprj.vcxproj">
+    <ProjectReference Include="..\lib_gadgetlib\lib_gadgetlib.vcxproj">
       <Project>{c61ac906-75c9-4ae8-ab40-219ed1a25529}</Project>
       <Private>true</Private>
       <ReferenceOutputAssembly>true</ReferenceOutputAssembly>

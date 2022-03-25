@@ -169,7 +169,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\libprj\libprj.vcxproj">
-      <Project>{c61ac906-75c9-4ae8-ab40-219ed1a25529}</Project>
+      <Project>{20220325-0000-0000-0000-10302000BB01}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -56,7 +56,7 @@
   
   <PropertyGroup Label="Globals">
     <ProjectName>lib_gadgetlib</ProjectName>
-    <ProjectGuid>{C61AC906-75C9-4AE8-AB40-219ED1A25529}</ProjectGuid>
+    <ProjectGuid>{20220325-0000-0000-0000-10302000BB01}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <TargetNameStem>gadgetlib</TargetNameStem>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
