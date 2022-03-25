@@ -64,8 +64,6 @@
   
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   
-  <!-- Project General Part 1 -->
-  
   <PropertyGroup Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
@@ -77,9 +75,11 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
 
-  <!-- Project General Part 2 -->
-
-  <Import Project="..\..\..\_VSPG\Scalacon.props" />
+  <!-- import Scalacon start -->
+  <ImportGroup Label="PropertySheets">
+    <Import Project="..\..\..\_VSPG\Scalacon.props" />
+  </ImportGroup>
+  <!-- import Scalacon end -->
 
   <!-- 
   	Compiler/Linker Behavior Settings : shared 

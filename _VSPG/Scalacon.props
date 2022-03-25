@@ -43,7 +43,7 @@
     <OutDir>$(SolutionDir)bin-vc$(PlatformToolsetVersion)\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   
-  <ItemDefinitionGroup Condition="$(Configuration.StartsWith('Debug'))">
+  <ItemDefinitionGroup>
     <BuildLog>
       <Path>$(IntDir)__$(MSBuildProjectName).build.log</Path>
     </BuildLog>
@@ -72,6 +72,12 @@
       <!-- [2022-03-25] note: $(TargetPath) cannot receive a value in <PropertyGroup>, so it has to be in ItemDefinitionGroup. -->
       <sc_ProgramDataBaseFileName>$(TargetPath).pdb</sc_ProgramDataBaseFileName>
     </ClCompile>
+
+    <Link>
+      <!-- DLL project should generate import-lib filename like this: "foo- -imp.lib" (Debug/Release share same name) -->
+      <sc_ImportLibrary>$(OutDir)$(TargetNameStem)$(TargetNameSuffixU)--imp.lib</sc_ImportLibrary>
+    </Link>
+
   </ItemDefinitionGroup>
 
 

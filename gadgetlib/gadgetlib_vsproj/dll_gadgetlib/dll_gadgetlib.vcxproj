@@ -57,47 +57,20 @@
   <PropertyGroup Label="Globals">
     <ProjectName>dll_gadgetlib</ProjectName>
     <ProjectGuid>{20220325-0000-0000-0000-10302000BB02}</ProjectGuid>
-    <Keyword>Win32Proj</Keyword>
     <TargetNameStem>gadgetlib</TargetNameStem>
     <TargetName>$(TargetNameStem)</TargetName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   
-  <!-- Project General Part 1 -->
-  
   <PropertyGroup Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <LinkIncremental>false</LinkIncremental>
-    <TargetNameSuffixUD></TargetNameSuffixUD>
-    <TargetNameSuffixU></TargetNameSuffixU>
   </PropertyGroup>
   
   <PropertyGroup Label="Configuration">
     <PlatformToolset>v142</PlatformToolset>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-  </PropertyGroup>
-  
-  <!-- Unicode or ANSI(MBCS) -->
-  <PropertyGroup Condition="!$(Configuration.Contains('ANSI'))" Label="Configuration">
-    <CharacterSet>Unicode</CharacterSet>
-    <TargetNameSuffixUD>$(TargetNameSuffixUD)_U</TargetNameSuffixUD>
-    <TargetNameSuffixU>$(TargetNameSuffixU)_U</TargetNameSuffixU>
-  </PropertyGroup>
-  <PropertyGroup Condition=" $(Configuration.Contains('ANSI'))" Label="Configuration">
-    <CharacterSet>MultiByte</CharacterSet>
-  </PropertyGroup>
-  <!-- Debug or Release -->
-  <PropertyGroup Condition="$(Configuration.StartsWith('Debug'))" Label="Configuration">
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <TargetNameSuffixUD>$(TargetNameSuffixUD)_D</TargetNameSuffixUD>
-  </PropertyGroup>
-  <PropertyGroup Condition="$(Configuration.StartsWith('Release'))" Label="Configuration">
-    <UseDebugLibraries>false</UseDebugLibraries>
-  </PropertyGroup>
-  <!-- == Determine final <TargetName> == -->
-  <PropertyGroup Label="Configuration">
-    <TargetName>$(TargetNameStem)$(TargetNameSuffixUD)</TargetName>
   </PropertyGroup>
   
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -108,12 +81,11 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   
-  <!-- Project General Part 2 -->
-  
-  <PropertyGroup>
-                  <IntDir>obj-vc$(PlatformToolsetVersion)\$(Platform)\$(Configuration)\</IntDir>
-    <OutDir>$(SolutionDir)bin-vc$(PlatformToolsetVersion)\$(Platform)\$(Configuration)\</OutDir>
-  </PropertyGroup>
+  <!-- import Scalacon start -->
+  <ImportGroup Label="PropertySheets">
+    <Import Project="..\..\..\_VSPG\Scalacon.props" />
+  </ImportGroup>
+  <!-- import Scalacon end -->
   
   <!-- Shared compile/link options -->
   <ItemDefinitionGroup>
@@ -123,12 +95,9 @@
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <ImportLibrary>$(OutDir)$(TargetNameStem)$(TargetNameSuffixU)--imp.lib</ImportLibrary>
       <ProgramDatabaseFile>$(TargetPath).pdb</ProgramDatabaseFile>
+      <ImportLibrary>%(sc_ImportLibrary)</ImportLibrary>
     </Link>
-    <BuildLog>
-      <Path>$(IntDir)__$(MSBuildProjectName).build.log</Path>
-    </BuildLog>
     <ProjectReference>
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
     </ProjectReference>
