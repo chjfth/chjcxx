@@ -27,10 +27,10 @@ call :Echos0 Loading Env-vars (affecting parent env).
 REM ################ KEY CONTENT HERE ################ 
 
 call :SetEnvVar vspu_d_HEADER_ROOT=%_tmp_%\libsrc\include
-REM -- example: D:\gitw\chjcxx\gadgetlib\libsrc\include
+REM -- example: D:\gitw\chjcxx\getopt\libsrc\include
 
-call :SetEnvVar vspu_p_list_HEADERS=gadgetlib
-REM -- This refers to the subdirectory: D:\gitw\chjcxx\gadgetlib\libsrc\include\gadgetlib
+call :SetEnvVar vspu_p_list_HEADERS=getopt
+REM -- This refers to the subdirectory: D:\gitw\chjcxx\getopt\libsrc\include\getopt
 
 call "%userbatdir%\Set-SharedEnv.bat"
 
