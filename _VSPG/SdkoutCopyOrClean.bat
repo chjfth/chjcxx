@@ -1,7 +1,6 @@
 @echo off
 setlocal EnableDelayedExpansion
 REM Called as this:
-REM <this>.bat $(SolutionDir) $(ProjectDir) $(BuildConf) $(PlatformName) $(TargetDir) $(TargetFileNam) $(TargetName) $(IntrmDir)
 
 set batfilenam=%~n0%~x0
 set batdir=%~dp0
@@ -10,30 +9,20 @@ set _vspgINDENTS=%_vspgINDENTS%.
 call :Echos START from %batdir%
 
 
-REM _SolutionDir_ has double-quotes around, SolutionDir has no quotes.
-set _SolutionDir_=%1&set SolutionDir=%~1
-set _ProjectDir_=%2&set ProjectDir=%~2
-set _BuildConf_=%3&set BuildConf=%~3
-set _PlatformName_=%4&set PlatformName=%~4
-set _TargetDir_=%5&set TargetDir=%~5
-set _TargetFilenam_=%6&set TargetFilenam=%~6
-set _TargetName_=%7&set TargetName=%~7
-set _IntrmDir_=%8&set IntrmDir=%~8
-
-REM == debugging purpose ==
-REM call :EchoVar SolutionDir
-REM call :EchoVar ProjectDir
-REM call :EchoVar _BuildConf_
-REM call :EchoVar BuildConf
-REM call :EchoVar IntrmDir
-REM call :EchoVar TargetDir
-REM call :EchoVar PlatformName
-REM call :EchoVar TargetName
-
 REM ==== Prelude Above ====
 
+REM If env-var SDKOUT_DO_CLEAN is empty:
 REM This bat will copy .h/.lib/.dll and their corresponding pdb-s to 'sdkout' folder.
 REM Parameters influencing the copy operation is prepared in Set-SharedEnv.bat .
+REM
+REM If env-var SDKOUT_DO_CLEAN is non-empty:
+REM This bat will delete ./h/.lib/.dll in 'sdkout' folder accordingly.
+
+if defined SDKOUT_DO_CLEAN (
+	set IsCopy=
+) else (
+	set IsCopy=1
+)
 
 set IsLib=
 if "%TargetExt%"==".lib" set IsLib=1
@@ -62,8 +51,12 @@ if not defined vspu_d_HEADER_ROOT (
 	exit /b 4
 )
 
-call :Echos From [vspu_d_HEADER_ROOT] %vspu_d_HEADER_ROOT%
-call "%bootsdir%\EchoSublines.bat" "Will copy these Filenodes[vspu_p_list_HEADERS] to sdkout folder:" %vspu_p_list_HEADERS%
+if defined IsCopy (
+	call :Echos From [vspu_d_HEADER_ROOT] %vspu_d_HEADER_ROOT%
+	call "%bootsdir%\EchoSublines.bat" "Will copy these Filenodes[vspu_p_list_HEADERS] to sdkout folder:" %vspu_p_list_HEADERS%
+) else (
+	call "%bootsdir%\EchoSublines.bat" "From sdkout folder, will delete header files:" %vspu_p_list_HEADERS%
+)
 
 if not defined dirSdkoutHeader (
 	call :Echos [ERROR] dirSdkoutHeader should have been defined in Set-SharedEnv.bat .
@@ -73,7 +66,14 @@ if not defined dirSdkoutHeader (
 REM ==== copy .h list (may be a folder, which contains lots of .h)
 
 for %%h in (%vspu_p_list_HEADERS%) do (
-	call :EchoAndExec cp -r "%vspu_d_HEADER_ROOT%\%%~h" "%dirSdkoutHeader%"
+	
+	if defined IsCopy (
+		call :EchoAndExec cp -r "%vspu_d_HEADER_ROOT%\%%~h" "%dirSdkoutHeader%"
+	) else (
+		if exist "%dirSdkoutHeader%\%%~h" (
+			call :EchoAndExec rm -r "%dirSdkoutHeader%\%%~h"
+		)
+	)
 	if errorlevel 1 exit /b 4
 	
 	REM if %h has subdir prefix, whether replicate that subdir inside %dirSdkoutHeader% ?
@@ -100,12 +100,19 @@ if not exist "%dirSdkoutLib%" (
 
 REM ==== copy .lib and .lib.pdb
 
-call :EchoAndExec copy "%TargetDir%\%vso_fStaticLib%" "%dirSdkoutLib%"
+if defined IsCopy (
+	call :EchoAndExec copy "%TargetDir%\%vso_fStaticLib%" "%dirSdkoutLib%"
+	if errorlevel 1 exit /b 4
 
-if errorlevel 1 exit /b 4
+	call :EchoAndExec copy "%TargetDir%\%vso_fStaticLibPdb%" "%dirSdkoutLib%"
+	if errorlevel 1 exit /b 4
+) else (
+	call "%bootsdir%\DelOneFile.bat" "%dirSdkoutLib%\%vso_fStaticLib%"
+	if errorlevel 1 exit /b 4
 
-call :EchoAndExec copy "%TargetDir%\%vso_fStaticLibPdb%" "%dirSdkoutLib%"
-if errorlevel 1 exit /b 4
+	call "%bootsdir%\DelOneFile.bat" "%dirSdkoutLib%\%vso_fStaticLibPdb%"
+	if errorlevel 1 exit /b 4
+)
 
 
 :DONE_COPY_dotLIB
@@ -132,17 +139,25 @@ if not exist "%dirSdkBinNow%" (
 	if errorlevel 1 exit /b 4
 )
 
-call :EchoAndExec copy "%TargetDir%\%vso_fDll%" "%dirSdkBinNow%"
+if defined IsCopy (
+	call :EchoAndExec copy "%TargetDir%\%vso_fDll%" "%dirSdkBinNow%"
+	if errorlevel 1 exit /b 4
 
-if errorlevel 1 exit /b 4
+	call :EchoAndExec copy "%TargetDir%\%vso_fDllPdb%" "%dirSdkBinNow%"
+	if errorlevel 1 exit /b 4
 
-call :EchoAndExec copy "%TargetDir%\%vso_fDllPdb%" "%dirSdkBinNow%"
+	call :EchoAndExec copy "%TargetDir%\%vso_fDllImportlib%" "%dirSdkoutLib%"
+	if errorlevel 1 exit /b 4
+) else (
+	call "%bootsdir%\DelOneFile.bat" "%dirSdkBinNow%\%vso_fDll%"
+	if errorlevel 1 exit /b 4
 
-if errorlevel 1 exit /b 4
+	call "%bootsdir%\DelOneFile.bat" "%dirSdkBinNow%\%vso_fDllPdb%"
+	if errorlevel 1 exit /b 4
 
-call :EchoAndExec copy "%TargetDir%\%vso_fDllImportlib%" "%dirSdkoutLib%"
-if errorlevel 1 exit /b 4
-
+	call "%bootsdir%\DelOneFile.bat" "%dirSdkoutLib%\%vso_fDllImportlib%"
+	if errorlevel 1 exit /b 4
+)
 
 :DONE_COPY_dotDLL
 

@@ -10,7 +10,7 @@ set _vspgINDENTS=%_vspgINDENTS%.
 call :Echos START from %batdir%
 
 
-set SDKOUT_DO_CLEAN=1
+set SDKOUT_DO_CLEAN=
 call "%batdir%\SdkoutCopyOrClean.bat"
 
 exit /b %ERRORLEVEL%
