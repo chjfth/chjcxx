@@ -55,10 +55,10 @@
   </ItemGroup>
   
   <PropertyGroup Label="Globals">
+    <ProjectName>lib_gadgetlib</ProjectName>
     <ProjectGuid>{C61AC906-75C9-4AE8-AB40-219ED1A25529}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <ProjectName>gadgetlib</ProjectName>
-    <TargetName>$(ProjectName)</TargetName>
+    <TargetNameStem>gadgetlib</TargetNameStem>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
@@ -69,12 +69,13 @@
   
   <PropertyGroup Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
+    <TargetNameSuffixUD></TargetNameSuffixUD>
   </PropertyGroup>
 
   <!-- Unicode or ANSI(MBCS) -->
   <PropertyGroup Condition="!$(Configuration.Contains('ANSI'))" Label="Configuration">
     <CharacterSet>Unicode</CharacterSet>
-    <TargetName>$(TargetName)_U</TargetName>
+    <TargetNameSuffixUD>$(TargetNameSuffixUD)_U</TargetNameSuffixUD>
   </PropertyGroup>
   <PropertyGroup Condition=" $(Configuration.Contains('ANSI'))" Label="Configuration">
     <CharacterSet>MultiByte</CharacterSet>
@@ -83,10 +84,14 @@
   <!-- Debug or Release -->
   <PropertyGroup Condition="$(Configuration.StartsWith('Debug'))" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
-    <TargetName>$(TargetName)_D</TargetName>
+    <TargetNameSuffixUD>$(TargetNameSuffixUD)_D</TargetNameSuffixUD>
   </PropertyGroup>
   <PropertyGroup Condition="$(Configuration.StartsWith('Release'))" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Configuration">
+    <TargetName>$(TargetNameStem)$(TargetNameSuffixUD)</TargetName>
   </PropertyGroup>
 
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -114,8 +119,8 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>DLLEXPORT_gadgetlib=__declspec(dllexport);WIN32;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ProgramDataBaseFileName>$(TargetDir)$(TargetName).lib.pdb</ProgramDataBaseFileName>
-      <AdditionalIncludeDirectories>../../libsrc/include;../../../sdkout/include;../../../common-include/include</AdditionalIncludeDirectories>
+      <ProgramDataBaseFileName>$(TargetPath).pdb</ProgramDataBaseFileName>
+      <AdditionalIncludeDirectories>.;../../libsrc/include;../../../sdkout/include;../../../common-include/include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -160,7 +165,7 @@
     <ClCompile Include="..\..\libsrc\mswin\my_winapi.cpp">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="stdafx.cpp">
+    <ClCompile Include="..\..\libsrc\stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\..\libsrc\charenccvt-common.cpp" />
@@ -212,7 +217,7 @@
     <ClInclude Include="..\..\libsrc\include\gadgetlib\wintooltip.h" />
     <ClInclude Include="..\..\libsrc\include\iversion.h" />
     <ClInclude Include="..\..\libsrc\include\my_winapi.h" />
-    <ClInclude Include="..\..\libsrc\include\stdafx.h" />
+    <ClInclude Include="..\..\libsrc\stdafx.h" />
   </ItemGroup>
 
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
