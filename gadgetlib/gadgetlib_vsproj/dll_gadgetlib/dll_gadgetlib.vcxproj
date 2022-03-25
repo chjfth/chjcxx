@@ -72,11 +72,17 @@
     <TargetNameSuffixUD></TargetNameSuffixUD>
     <TargetNameSuffixU></TargetNameSuffixU>
   </PropertyGroup>
+  
+  <PropertyGroup Label="Configuration">
+    <PlatformToolset>v142</PlatformToolset>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  
   <!-- Unicode or ANSI(MBCS) -->
   <PropertyGroup Condition="!$(Configuration.Contains('ANSI'))" Label="Configuration">
     <CharacterSet>Unicode</CharacterSet>
     <TargetNameSuffixUD>$(TargetNameSuffixUD)_U</TargetNameSuffixUD>
-    <TargetNameSuffixU>$(TargetNameSuffixU)</TargetNameSuffixU>
+    <TargetNameSuffixU>$(TargetNameSuffixU)_U</TargetNameSuffixU>
   </PropertyGroup>
   <PropertyGroup Condition=" $(Configuration.Contains('ANSI'))" Label="Configuration">
     <CharacterSet>MultiByte</CharacterSet>
