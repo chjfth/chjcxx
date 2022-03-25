@@ -69,6 +69,7 @@
   
   <PropertyGroup Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
     <TargetNameSuffixUD></TargetNameSuffixUD>
   </PropertyGroup>
 
@@ -90,16 +91,15 @@
     <UseDebugLibraries>false</UseDebugLibraries>
   </PropertyGroup>
 
+  <!-- == Determine final <TargetName> == -->
   <PropertyGroup Label="Configuration">
     <TargetName>$(TargetNameStem)$(TargetNameSuffixUD)</TargetName>
   </PropertyGroup>
 
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-
   <PropertyGroup Label="UserMacros" />
 
   <!-- Project General Part 2 -->
