@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 16.0.32002.261
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lib_gadgetlib", "lib_gadgetlib\lib_gadgetlib.vcxproj", "{20220325-0000-0000-0000-10302000BB01}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A33FD2BA-B4AE-4C44-A512-201802230000} = {A33FD2BA-B4AE-4C44-A512-201802230000}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "verify-gadgetlib", "verify-gadgetlib\verify-gadgetlib.vcxproj", "{AD113882-C04D-4371-9E0A-CC4A6A5056DE}"
 EndProject

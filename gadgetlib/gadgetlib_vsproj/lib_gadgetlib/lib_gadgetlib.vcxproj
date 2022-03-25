@@ -57,7 +57,6 @@
   <PropertyGroup Label="Globals">
     <ProjectName>lib_gadgetlib</ProjectName>
     <ProjectGuid>{20220325-0000-0000-0000-10302000BB01}</ProjectGuid>
-    <Keyword>Win32Proj</Keyword>
     <TargetNameStem>gadgetlib</TargetNameStem>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <PlatformToolset>v142</PlatformToolset>
@@ -70,30 +69,6 @@
   <PropertyGroup Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
-    <TargetNameSuffixUD></TargetNameSuffixUD>
-  </PropertyGroup>
-
-  <!-- Unicode or ANSI(MBCS) -->
-  <PropertyGroup Condition="!$(Configuration.Contains('ANSI'))" Label="Configuration">
-    <CharacterSet>Unicode</CharacterSet>
-    <TargetNameSuffixUD>$(TargetNameSuffixUD)_U</TargetNameSuffixUD>
-  </PropertyGroup>
-  <PropertyGroup Condition=" $(Configuration.Contains('ANSI'))" Label="Configuration">
-    <CharacterSet>MultiByte</CharacterSet>
-  </PropertyGroup>
-  
-  <!-- Debug or Release -->
-  <PropertyGroup Condition="$(Configuration.StartsWith('Debug'))" Label="Configuration">
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <TargetNameSuffixUD>$(TargetNameSuffixUD)_D</TargetNameSuffixUD>
-  </PropertyGroup>
-  <PropertyGroup Condition="$(Configuration.StartsWith('Release'))" Label="Configuration">
-    <UseDebugLibraries>false</UseDebugLibraries>
-  </PropertyGroup>
-
-  <!-- == Determine final <TargetName> == -->
-  <PropertyGroup Label="Configuration">
-    <TargetName>$(TargetNameStem)$(TargetNameSuffixUD)</TargetName>
   </PropertyGroup>
 
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -104,11 +79,7 @@
 
   <!-- Project General Part 2 -->
 
-  <PropertyGroup>
-    <LinkIncremental>false</LinkIncremental>
-                  <IntDir>obj-vc$(PlatformToolsetVersion)\$(Platform)\$(Configuration)\</IntDir>
-    <OutDir>$(SolutionDir)bin-vc$(PlatformToolsetVersion)\$(Platform)\$(Configuration)\</OutDir>
-  </PropertyGroup>
+  <Import Project="..\..\..\_VSPG\Scalacon.props" />
 
   <!-- 
   	Compiler/Linker Behavior Settings : shared 
@@ -120,7 +91,7 @@
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>DLLEXPORT_gadgetlib=__declspec(dllexport);WIN32;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ProgramDataBaseFileName>$(TargetPath).pdb</ProgramDataBaseFileName>
-      <AdditionalIncludeDirectories>.;../../libsrc/include;../../../sdkout/include;../../../common-include/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;..\..\libsrc\include;..\..\..\sdkout\include;..\..\..\common-include\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>

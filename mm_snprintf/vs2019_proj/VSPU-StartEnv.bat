@@ -5,9 +5,9 @@ set batfilenam=%~n0%~x0
 set batdir=%~dp0
 set batdir=%batdir:~0,-1%
 set _vspgINDENTS=%_vspgINDENTS%.
+call :Echos START from %batdir%
 
-call "%bootsdir%\GetParentDir.bat" parentdir "%batdir%"
-call "%bootsdir%\GetParentDir.bat" dirThisLib "%SolutionDir%"
+call "%bootsdir%\GetParentDir.bat" dirThisLib "%batdir%"
 
 
 
@@ -39,6 +39,13 @@ exit /b 0
 REM =============================
 REM ====== Functions Below ======
 REM =============================
+
+:Echos
+  REM This function preserves %ERRORLEVEL% for the caller,
+  REM and, LastError does NOT pollute the caller.
+  setlocal & set LastError=%ERRORLEVEL%
+  echo %_vspgINDENTS%[%batfilenam%] %*
+exit /b %LastError%
 
 :Echos0
   REM This function preserves %ERRORLEVEL% for the caller,

@@ -10,6 +10,7 @@ set batfilenam=%~n0%~x0
 set batdir=%~dp0
 set batdir=%batdir:~0,-1%
 set _vspgINDENTS=%_vspgINDENTS%.
+call :Echos START from %batdir%
 
 
 REM ======== ENV checking for other/later bat execution ========
@@ -83,6 +84,7 @@ endlocal & (
 	set vso_fDllImportlib=%vso_fDllImportlib%
 )
 
+REM set vspgdebug_SearchAndExecSubbat=1
 
 exit /b 0
 
