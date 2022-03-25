@@ -1,3 +1,4 @@
+#include <stdarg.h>
 #include <string.h>
 #include <wchar.h> // Linux requires this for wcslen() etc
 
@@ -44,5 +45,20 @@ t_strncmp(const TCHAR *str1, const TCHAR *str2, size_t count)
 #else
 	int ret = strncmp(str1, str2, count);
 #endif
+	return ret;
+}
+
+int t_fprintf(FILE *stream, const TCHAR *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	
+#ifdef UNICODE
+	int ret = vfwprintf(stream, fmt, args);
+#else
+	int ret = vfprintf(stream, fmt, args);
+#endif
+
+	va_end(args);
 	return ret;
 }

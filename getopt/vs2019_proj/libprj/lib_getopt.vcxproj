@@ -69,17 +69,21 @@
     <UseOfMfc>false</UseOfMfc>
   </PropertyGroup>
 
+  <!-- import Scalacon part1 -->
+  <ImportGroup Label="PropertySheets">
+    <Import Project="..\..\..\_VSPG\Scalacon-part1.props" />
+  </ImportGroup>
+
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
 
-  <!-- import Scalacon start -->
+  <!-- import Scalacon part2 -->
   <ImportGroup Label="PropertySheets">
-    <Import Project="..\..\..\_VSPG\Scalacon.props" />
+    <Import Project="..\..\..\_VSPG\Scalacon-part2.props" />
   </ImportGroup>
-  <!-- import Scalacon end -->
 
   <!-- 
   	Compiler/Linker Behavior Settings : shared 

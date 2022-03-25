@@ -1,40 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
+  <!-- Part2 is to be imported AFTER "$(VCTargetsPath)\Microsoft.Cpp.props" -->
+
   <!-- =================================================================== -->
   <!-- Compiler Linker related settings -->
   <!-- =================================================================== -->
-
-  <!-- Some initial values -->
-  <PropertyGroup>
-    <TargetNameSuffixUD></TargetNameSuffixUD>
-    <TargetNameSuffixU></TargetNameSuffixU>
-  </PropertyGroup>
-  
-  <!-- Unicode or ANSI(MBCS) -->
-  <PropertyGroup Condition="!$(Configuration.Contains('ANSI'))" Label="Configuration">
-    <CharacterSet>Unicode</CharacterSet>
-    <TargetNameSuffixUD>$(TargetNameSuffixUD)_U</TargetNameSuffixUD>
-    <TargetNameSuffixU>$(TargetNameSuffixU)_U</TargetNameSuffixU>
-  </PropertyGroup>
-  <PropertyGroup Condition=" $(Configuration.Contains('ANSI'))" Label="Configuration">
-    <CharacterSet>MultiByte</CharacterSet>
-  </PropertyGroup>
-  
-  <!-- Debug or Release -->
-  <PropertyGroup Condition="$(Configuration.StartsWith('Debug'))" Label="Configuration">
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <TargetNameSuffixUD>$(TargetNameSuffixUD)_D</TargetNameSuffixUD>
-  </PropertyGroup>
-  <PropertyGroup Condition="$(Configuration.StartsWith('Release'))" Label="Configuration">
-    <UseDebugLibraries>false</UseDebugLibraries>
-  </PropertyGroup>
-  
-
-  <!-- == Determine final <TargetName> == -->
-  <PropertyGroup>
-    <TargetName>$(TargetNameStem)$(TargetNameSuffixUD)</TargetName>
-  </PropertyGroup>
 
   <!-- Better .obj/.exe/.pdb output folder structure -->
   <PropertyGroup>

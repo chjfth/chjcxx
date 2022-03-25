@@ -383,7 +383,7 @@ _sgetopt_internal (
 			if (ambig && !exact)
 			{
 				if (si->opterr)
-					fprintf (stderr, "%s: option `%s' is ambiguous\n",
+					t_fprintf (stderr, _T("%s: option `%s' is ambiguous\n"),
 					argv[0], argv[si->optind]);
 				si->nextchar += t_strlen (si->nextchar);
 				si->optind++;
