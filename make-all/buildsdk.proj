@@ -2,7 +2,7 @@
          ToolsVersion="4.0"
          DefaultTargets="BuildAll">
 
-	<Target Name="BuildAll" DependsOnTargets="FirstRound;UmSdk">
+	<Target Name="BuildAll" DependsOnTargets="FirstRound;AllSdk">
 		<Message Text="[[[ All projects build success. ]]]" />
 	</Target>
 
@@ -11,31 +11,14 @@
 	</PropertyGroup>
 	
 	<ItemGroup>
-		<sdknames Include="mm_snprintf">
-			<vcxproj>..\mm_snprintf\vs2019_proj\lib_mm_snprintf\lib_mm_snprintf.vcxproj</vcxproj>
-		</sdknames>
-		<sdknames Include="gadgetlib">
-			<vcxproj>..\gadgetlib\gadgetlib_vsproj\lib_gadgetlib\lib_gadgetlib.vcxproj</vcxproj>
-		</sdknames>
-		<sdknames Include="getopt">
-			<vcxproj>..\getopt\vs2019_proj\libprj\lib_getopt.vcxproj</vcxproj>
-		</sdknames>
-	</ItemGroup>
-	
-	<ItemGroup>
-		<umbuildconf Include="Debug" />
-		<umbuildconf Include="Release" />
-		<umbuildconf Include="Debug ANSI" />
-		<umbuildconf Include="Release ANSI" />
+		<buildconf Include="Debug" />
+		<buildconf Include="Release" />
+		<buildconf Include="Debug ANSI" />
+		<buildconf Include="Release ANSI" />
+		<buildconf Include="Debug Krnl" />
+		<buildconf Include="Release Krnl" />
 	</ItemGroup>
 
-	<ItemGroup>
-		<kmbuildconf Include="Debug" />
-		<kmbuildconf Include="Release" />
-		<kmbuildconf Include="Debug Kernel" />
-		<kmbuildconf Include="Release Kernel" />
-	</ItemGroup>
-	
 	<ItemGroup>
 		<platform Include="x64" />
 		<platform Include="x86" />
@@ -49,9 +32,9 @@
 		</MSBuild>
 	</Target>
 
-	<Target Name="UmSdk" Outputs="%(umbuildconf.Identity)">
+	<Target Name="AllSdk" Outputs="%(buildconf.Identity)">
 		<PropertyGroup>
-			<buildconf>%(umbuildconf.Identity)</buildconf>
+			<buildconf>%(buildconf.Identity)</buildconf>
 		</PropertyGroup>
 		<MSBuild Projects="$(start_sln)"
 			Properties="Configuration=$(buildconf);Platform=%(platform.Identity)"

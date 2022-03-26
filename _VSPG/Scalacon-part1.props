@@ -49,8 +49,9 @@
 
   <!-- == Determine final <TargetName> == -->
   <PropertyGroup>
+    <vspg_BinDecoSuffix>$(vspg_BinDecoSuffix)$(TargetNameSuffixUD)</vspg_BinDecoSuffix>
     <vspg_PrjDecoSuffix>$(vspg_PrjDecoSuffix)$(TargetNameSuffixUD)</vspg_PrjDecoSuffix>
-    <TargetName>$(TargetNameStem)$(vspg_PrjDecoSuffix)</TargetName>
+    <TargetName>$(TargetNameStem)$(vspg_BinDecoSuffix)</TargetName>
   </PropertyGroup>
 
 </Project>

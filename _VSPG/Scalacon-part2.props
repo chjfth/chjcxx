@@ -16,7 +16,7 @@
     <vspg_slnOutputRoot Condition=" '$(vspg_OutputRoot)'=='' ">$(SolutionDir.TrimEnd('\'))</vspg_slnOutputRoot>
     <vspg_slnOutputRoot Condition=" '$(vspg_OutputRoot)'!='' ">$(vspg_OutputRoot)</vspg_slnOutputRoot>
 
-    <_vspg_PrjDecoName>$(ProjectName)$(TargetNameSuffixUD)$(TargetExt)</_vspg_PrjDecoName>
+    <_vspg_PrjDecoName>$(ProjectName)$(vspg_PrjDecoSuffix)$(TargetExt)</_vspg_PrjDecoName>
 
     <vspg_prjOutputRoot Condition=" '$(vspg_OutputRoot)'=='' ">.</vspg_prjOutputRoot>
     <vspg_prjOutputRoot Condition=" '$(vspg_OutputRoot)'!='' ">$(vspg_OutputRoot)\$(_vspg_PrjDecoName)</vspg_prjOutputRoot>

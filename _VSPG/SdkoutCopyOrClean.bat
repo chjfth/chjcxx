@@ -73,7 +73,7 @@ for %%h in (%vspu_p_list_HEADERS%) do (
 			if errorlevel 1 exit /b 4
 		)
 		REM For `cp -r`, do NOT duplicate final nodename on destation-param.
-		call :EchoAndExec cp -r "%vspu_d_HEADER_ROOT%\%%~h" "%dirSdkoutHeader%"
+		call :EchoAndExec cp -r -p "%vspu_d_HEADER_ROOT%\%%~h" "%dirSdkoutHeader%"
 	) else (
 		if exist "%dirSdkoutHeader%\%%~h" (
 			call :EchoAndExec rm -r "%dirSdkoutHeader%\%%~h"
