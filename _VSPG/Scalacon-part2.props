@@ -47,8 +47,7 @@
     <Link>
       <GenerateMapFile>true</GenerateMapFile>
 
-      <!-- DLL project should generate import-lib filename like this: "foo- -imp.lib" (Debug/Release share same name) -->
-      <sc_ImportLibrary>$(OutDir)$(TargetNameStem)$(TargetNameSuffixU)--imp.lib</sc_ImportLibrary>
+      <sc_ImportLibrary>$(OutDir)$(TargetNameStem)$(TargetNameSuffixUD)--imp.lib</sc_ImportLibrary>
     </Link>
 
   </ItemDefinitionGroup>
