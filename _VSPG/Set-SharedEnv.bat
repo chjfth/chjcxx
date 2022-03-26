@@ -60,14 +60,7 @@ set vso_fStaticLibPdb=%vso_fStaticLib%.pdb
 
 set vso_fDll=%TargetName%.dll
 set vso_fDllPdb=%vso_fDll%.pdb
-REM If TargetName ends with _D, then we drop that _D for import-lib filename, 
-REM bcz Debug and Release DLL can share the same import-lib.
-if "%TargetName:~-2%"=="_D" (
-	set implibstem=%TargetName:~0,-2%
-) else (
-	set implibstem=%TargetName%
-)
-set vso_fDllImportlib=%implibstem%--imp.lib
+set vso_fDllImportlib=%TargetName%--imp.lib
 
 endlocal & (
 	REM Now export these env-vars to parent env.
