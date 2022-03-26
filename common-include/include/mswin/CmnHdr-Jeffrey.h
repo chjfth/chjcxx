@@ -241,22 +241,30 @@ inline void chSETDLGICONS(HWND hwnd, UINT idi, HINSTANCE hExeDll=NULL, bool useS
 
 
 inline void chWindows9xNotAllowed() {
-   OSVERSIONINFO vi = { sizeof(vi) };
-   GetVersionEx(&vi);
-   if (vi.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS) {
-      chMB("This application requires features not present in Windows 9x.");
-      ExitProcess(0);
-   }
+#if 0
+	//[2022-03-26 VS2019: warning C4996 : 'GetVersionExW' : was declared deprecated
+	
+	OSVERSIONINFO vi = { sizeof(vi) };
+	GetVersionEx(&vi);
+	if (vi.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS) {
+	  chMB("This application requires features not present in Windows 9x.");
+	  ExitProcess(0);
+	}
+#endif
 }
 
 
 inline void chWindows2000Required() {
-   OSVERSIONINFO vi = { sizeof(vi) };
-   GetVersionEx(&vi);
-   if ((vi.dwPlatformId != VER_PLATFORM_WIN32_NT) && (vi.dwMajorVersion < 5)) {
-      chMB("This application requires features present in Windows 2000.");
-      ExitProcess(0);
-   }
+#if 0
+	//[2022-03-26 VS2019: warning C4996 : 'GetVersionExW' : was declared deprecated
+
+	OSVERSIONINFO vi = { sizeof(vi) };
+	GetVersionEx(&vi);
+	if ((vi.dwPlatformId != VER_PLATFORM_WIN32_NT) && (vi.dwMajorVersion < 5)) {
+	  chMB("This application requires features present in Windows 2000.");
+	  ExitProcess(0);
+	}
+#endif
 }
 
 
