@@ -3,6 +3,24 @@
 
   <!-- Part2 is to be imported AFTER "$(VCTargetsPath)\Microsoft.Cpp.props" -->
 
+  <!-- VSPG working variables -->
+  <PropertyGroup>
+
+    <vspg_OutputRoot>$(vspg_OUTPUT_ROOT)</vspg_OutputRoot>
+    
+    <!-- vspg_OutputRoot: Strip trailing backslash, and convert it to abs-path first -->
+    <vspg_OutputRoot>$(vspg_OutputRoot.TrimEnd('\ '))</vspg_OutputRoot>
+    <vspg_OutputRoot Condition=" '$(vspg_OutputRoot.indexOf(%3a))'=='1' " >$(vspg_OutputRoot)</vspg_OutputRoot>
+    <vspg_OutputRoot Condition=" '$(vspg_OutputRoot.indexOf(%3a))'!='1' and '$(vspg_OutputRoot)'!='' " >$(MSBuildStartupDirectory)\$(vspg_OutputRoot)</vspg_OutputRoot>
+    
+    <vspg_sln_OUTPUT_ROOT Condition=" '$(vspg_OutputRoot)'=='' ">$(SolutionDir.TrimEnd('\'))</vspg_sln_OUTPUT_ROOT>
+    <vspg_sln_OUTPUT_ROOT Condition=" '$(vspg_OutputRoot)'!='' ">$(vspg_OutputRoot)</vspg_sln_OUTPUT_ROOT>
+
+    <vspg_prj_OUTPUT_ROOT Condition=" '$(vspg_OutputRoot)'=='' ">.</vspg_prj_OUTPUT_ROOT>
+    <vspg_prj_OUTPUT_ROOT Condition=" '$(vspg_OutputRoot)'!='' ">$(vspg_OutputRoot)\gf\$(vspg_PrjNameDeco)</vspg_prj_OUTPUT_ROOT>
+  
+  </PropertyGroup>
+
   <!-- =================================================================== -->
   <!-- Compiler Linker related settings -->
   <!-- =================================================================== -->
@@ -10,8 +28,8 @@
   <!-- Better .obj/.exe/.pdb output folder structure -->
   <PropertyGroup>
     <LinkIncremental>false</LinkIncremental>
-                  <IntDir>obj-vc$(PlatformToolsetVersion)\$(Platform)\$(Configuration)\</IntDir>
-    <OutDir>$(SolutionDir)bin-vc$(PlatformToolsetVersion)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(vspg_prj_OUTPUT_ROOT)\obj-vc$(PlatformToolsetVersion)\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(vspg_sln_OUTPUT_ROOT)\bin-vc$(PlatformToolsetVersion)\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   
   <ItemDefinitionGroup>

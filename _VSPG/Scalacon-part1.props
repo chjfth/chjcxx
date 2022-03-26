@@ -19,6 +19,13 @@
     	Condition=" '$(TargetNameStem)'=='' "
     	Text="MSBuild variable 'TargetNameStem' must be defined in your .vcxproj"
     	/>
+    
+    <Message Text="[Scalacon] vspg_PrjNameDeco=$(vspg_PrjNameDeco)"/>
+    <Error
+    	Condition=" '$(vspg_PrjNameDeco)'=='' "
+    	Text="[ERROR] Your .vcxproj should have defined vspg_PrjNameDeco, at least, define it to be your $(TargetName) ."
+    	/>
+    
   </Target>
 
   <!-- Some initial values -->
@@ -50,6 +57,7 @@
   <!-- == Determine final <TargetName> == -->
   <PropertyGroup>
     <TargetName>$(TargetNameStem)$(TargetNameSuffixUD)</TargetName>
+    <vspg_PrjNameDeco>$(vspg_PrjNameDeco)$(TargetNameSuffixUD)</vspg_PrjNameDeco>
   </PropertyGroup>
 
 </Project>
