@@ -56,12 +56,14 @@
   
   <PropertyGroup Label="Globals">
     <ProjectName>lib_getopt</ProjectName>
+    <TargetName>sgetopt</TargetName>
     <ProjectGuid>{20220325-0000-0000-0000-19395400CC01}</ProjectGuid>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
 
-    <TargetNameStem>sgetopt</TargetNameStem>
-    <vspg_PrjNameDeco>$(TargetNameStem)</vspg_PrjNameDeco>
+  <PropertyGroup Label="Scalacon">
+    <TargetNameStem>$(TargetName)</TargetNameStem>
   </PropertyGroup>
   
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

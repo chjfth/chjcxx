@@ -53,10 +53,13 @@
   
   <PropertyGroup Label="Globals">
     <ProjectName>lib_mm_snprintf</ProjectName>
+    <TargetName>mm_snprintf</TargetName>
     <ProjectGuid>{A33FD2BA-B4AE-4C44-A512-201802230000}</ProjectGuid>
-    <TargetNameStem>mm_snprintf</TargetNameStem>
-    <TargetName>$(TargetNameStem)</TargetName>
-    <vspg_PrjNameDeco>$(TargetNameStem)</vspg_PrjNameDeco>
+  </PropertyGroup>
+  
+  <PropertyGroup Label="Scalacon">
+    <TargetNameStem>$(TargetName)</TargetNameStem>
+    <vspg_NO_UNICODE_MACRO>1</vspg_NO_UNICODE_MACRO>
   </PropertyGroup>
 
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -76,28 +79,29 @@
     <DriverType>KMDF</DriverType>
     <TargetVersion>Windows10</TargetVersion>
     <DriverTargetPlatform>Universal</DriverTargetPlatform>
-    
-    <vspg_PrjNameDeco>$(vspg_PrjNameDeco)_Krnl</vspg_PrjNameDeco>
   </PropertyGroup>
-  
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <ImportGroup Label="ExtensionSettings">
+
+  <PropertyGroup Condition=" $(Configuration.EndsWith('Krnl'))" Label="Scalacon">
+    <vspg_PrjDecoSuffix>$(vspg_PrjDecoSuffix)_Krnl</vspg_PrjDecoSuffix>
+  </PropertyGroup>
+
+  <!-- import Scalacon part1 -->
+  <ImportGroup Label="PropertySheets">
+    <Import Project="..\..\..\_VSPG\Scalacon-part1.props" />
   </ImportGroup>
+
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  
   <PropertyGroup Label="UserMacros" />
-  
-  <PropertyGroup>
-                  <IntDir>obj-vc$(PlatformToolsetVersion)\$(Platform)\$(Configuration)\</IntDir>
-    <OutDir>$(SolutionDir)bin-vc$(PlatformToolsetVersion)\$(Platform)\$(Configuration)\</OutDir>
-  </PropertyGroup>
-  
-  <PropertyGroup Condition="$(Configuration.StartsWith('Debug'))">
-    <TargetName>$(TargetNameStem)_D</TargetName>
-  </PropertyGroup>
-  
+
+  <!-- import Scalacon part2 -->
+  <ImportGroup Label="PropertySheets">
+    <Import Project="..\..\..\_VSPG\Scalacon-part2.props" />
+  </ImportGroup>
+
+
   <!-- Shared compile/link options -->
   <ItemDefinitionGroup>
     <ClCompile>

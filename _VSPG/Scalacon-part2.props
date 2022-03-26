@@ -13,11 +13,13 @@
     <vspg_OutputRoot Condition=" '$(vspg_OutputRoot.indexOf(%3a))'=='1' " >$(vspg_OutputRoot)</vspg_OutputRoot>
     <vspg_OutputRoot Condition=" '$(vspg_OutputRoot.indexOf(%3a))'!='1' and '$(vspg_OutputRoot)'!='' " >$(MSBuildStartupDirectory)\$(vspg_OutputRoot)</vspg_OutputRoot>
     
-    <vspg_sln_OUTPUT_ROOT Condition=" '$(vspg_OutputRoot)'=='' ">$(SolutionDir.TrimEnd('\'))</vspg_sln_OUTPUT_ROOT>
-    <vspg_sln_OUTPUT_ROOT Condition=" '$(vspg_OutputRoot)'!='' ">$(vspg_OutputRoot)</vspg_sln_OUTPUT_ROOT>
+    <vspg_slnOutputRoot Condition=" '$(vspg_OutputRoot)'=='' ">$(SolutionDir.TrimEnd('\'))</vspg_slnOutputRoot>
+    <vspg_slnOutputRoot Condition=" '$(vspg_OutputRoot)'!='' ">$(vspg_OutputRoot)</vspg_slnOutputRoot>
 
-    <vspg_prj_OUTPUT_ROOT Condition=" '$(vspg_OutputRoot)'=='' ">.</vspg_prj_OUTPUT_ROOT>
-    <vspg_prj_OUTPUT_ROOT Condition=" '$(vspg_OutputRoot)'!='' ">$(vspg_OutputRoot)\gf\$(vspg_PrjNameDeco)</vspg_prj_OUTPUT_ROOT>
+    <_vspg_PrjDecoName>$(ProjectName)$(TargetNameSuffixUD)$(TargetExt)</_vspg_PrjDecoName>
+
+    <vspg_prjOutputRoot Condition=" '$(vspg_OutputRoot)'=='' ">.</vspg_prjOutputRoot>
+    <vspg_prjOutputRoot Condition=" '$(vspg_OutputRoot)'!='' ">$(vspg_OutputRoot)\$(_vspg_PrjDecoName)</vspg_prjOutputRoot>
   
   </PropertyGroup>
 
@@ -28,8 +30,8 @@
   <!-- Better .obj/.exe/.pdb output folder structure -->
   <PropertyGroup>
     <LinkIncremental>false</LinkIncremental>
-    <IntDir>$(vspg_prj_OUTPUT_ROOT)\obj-vc$(PlatformToolsetVersion)\$(Platform)\$(Configuration)\</IntDir>
-    <OutDir>$(vspg_sln_OUTPUT_ROOT)\bin-vc$(PlatformToolsetVersion)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(vspg_prjOutputRoot)\obj-vc$(PlatformToolsetVersion)\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(vspg_slnOutputRoot)\bin-vc$(PlatformToolsetVersion)\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   
   <ItemDefinitionGroup>
@@ -65,7 +67,7 @@
     <Link>
       <GenerateMapFile>true</GenerateMapFile>
 
-      <sc_ImportLibrary>$(OutDir)$(TargetNameStem)$(TargetNameSuffixUD)--imp.lib</sc_ImportLibrary>
+      <sc_ImportLibrary>$(OutDir)$(TargetName)--imp.lib</sc_ImportLibrary>
     </Link>
 
   </ItemDefinitionGroup>
@@ -75,14 +77,6 @@
   <!-- A MSBuild Target to check for Scalacon related input vars.             -->
   <!-- User should have set these vars before importing this Scalacon.props . -->
   <!-- ====================================================================== -->
-
-  <Target Name="ScalaconCheckInputVars" BeforeTargets="ClCompile">
-    <Message Text="[Scalacon] TargetNameStem=$(TargetNameStem)"/>
-    <Error
-    	Condition=" '$(TargetNameStem)'=='' "
-    	Text="MSBuild variable 'TargetNameStem' must be defined in your .vcxproj"
-    	/>
-  </Target>
 
   <Target Name="ScalaconDebugInfo">
     <Message Text="[[ScalaconDebugInfo]]" />

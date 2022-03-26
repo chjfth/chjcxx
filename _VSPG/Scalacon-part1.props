@@ -13,34 +13,27 @@
   <!-- User should have set these vars before importing this Scalacon.props . -->
   <!-- ====================================================================== -->
 
-  <Target Name="ScalaconCheckInputVars" BeforeTargets="ClCompile">
+  <Target Name="ScalaconCheckInputVars" BeforeTargets="PrepareForBuild">
+    <Message Text="[Scalacon] $(Configuration)|$(Platform)"/>
+    <Message Text="[Scalacon] TargetName=$(TargetName)"/>
     <Message Text="[Scalacon] TargetNameStem=$(TargetNameStem)"/>
     <Error
     	Condition=" '$(TargetNameStem)'=='' "
-    	Text="MSBuild variable 'TargetNameStem' must be defined in your .vcxproj"
+    	Text="MSBuild variable 'TargetNameStem' must be defined in your .vcxproj, at least, define it to be your $(TargetName) ."
     	/>
-    
-    <Message Text="[Scalacon] vspg_PrjNameDeco=$(vspg_PrjNameDeco)"/>
-    <Error
-    	Condition=" '$(vspg_PrjNameDeco)'=='' "
-    	Text="[ERROR] Your .vcxproj should have defined vspg_PrjNameDeco, at least, define it to be your $(TargetName) ."
-    	/>
-    
   </Target>
 
   <!-- Some initial values -->
   <PropertyGroup>
     <TargetNameSuffixUD></TargetNameSuffixUD>
-    <TargetNameSuffixU></TargetNameSuffixU>
   </PropertyGroup>
   
-  <!-- Unicode or ANSI(MBCS) -->
-  <PropertyGroup Condition="!$(Configuration.Contains('ANSI'))" Label="Configuration">
+  <!-- Unicode(default) or ANSI(MBCS) -->
+  <PropertyGroup Condition="!$(Configuration.Contains('ANSI')) and '$(vspg_NO_UNICODE_MACRO)'=='' " Label="Configuration">
     <CharacterSet>Unicode</CharacterSet>
     <TargetNameSuffixUD>$(TargetNameSuffixUD)_U</TargetNameSuffixUD>
-    <TargetNameSuffixU>$(TargetNameSuffixU)_U</TargetNameSuffixU>
   </PropertyGroup>
-  <PropertyGroup Condition=" $(Configuration.Contains('ANSI'))" Label="Configuration">
+  <PropertyGroup Condition=" $(Configuration.Contains('ANSI')) or  '$(vspg_NO_UNICODE_MACRO)'=='' " Label="Configuration">
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   
@@ -52,12 +45,12 @@
   <PropertyGroup Condition="$(Configuration.StartsWith('Release'))" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
   </PropertyGroup>
-  
+
 
   <!-- == Determine final <TargetName> == -->
   <PropertyGroup>
-    <TargetName>$(TargetNameStem)$(TargetNameSuffixUD)</TargetName>
-    <vspg_PrjNameDeco>$(vspg_PrjNameDeco)$(TargetNameSuffixUD)</vspg_PrjNameDeco>
+    <vspg_PrjDecoSuffix>$(vspg_PrjDecoSuffix)$(TargetNameSuffixUD)</vspg_PrjDecoSuffix>
+    <TargetName>$(TargetNameStem)$(vspg_PrjDecoSuffix)</TargetName>
   </PropertyGroup>
 
 </Project>

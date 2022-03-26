@@ -1,13 +1,14 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003"
          ToolsVersion="4.0"
          DefaultTargets="BuildAll">
-	<PropertyGroup>
-    	<UnitTestSrcRoot>unittest\</UnitTestSrcRoot>
-	</PropertyGroup>
 
 	<Target Name="BuildAll" DependsOnTargets="FirstRound;UmSdk">
 		<Message Text="[[[ All projects build success. ]]]" />
 	</Target>
+
+	<PropertyGroup>
+		<start_sln>.\vsproj\chjcxx-sdkall-vs2019.sln</start_sln>
+	</PropertyGroup>
 	
 	<ItemGroup>
 		<sdknames Include="mm_snprintf">
@@ -42,7 +43,7 @@
 	</ItemGroup>
 
 	<Target Name="FirstRound">
-		<MSBuild Projects="@(listvcxproj)"
+		<MSBuild Projects="$(start_sln)"
 			Properties="Configuration=Release;Platform=x64"
 			>
 		</MSBuild>
@@ -52,8 +53,9 @@
 		<PropertyGroup>
 			<buildconf>%(umbuildconf.Identity)</buildconf>
 		</PropertyGroup>
-		<MSBuild Projects="@(sdknames->'%(vcxproj)')"
+		<MSBuild Projects="$(start_sln)"
 			Properties="Configuration=$(buildconf);Platform=%(platform.Identity)"
+			BuildInParallel="true"
 			>
 		</MSBuild>
 	</Target>

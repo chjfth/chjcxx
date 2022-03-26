@@ -56,10 +56,14 @@
 
   <PropertyGroup Label="Globals">
     <ProjectName>dll_gadgetlib</ProjectName>
+    <TargetName>gadgetlib</TargetName>
     <ProjectGuid>{20220325-0000-0000-0000-10302000BB02}</ProjectGuid>
-    <TargetNameStem>gadgetlib</TargetNameStem>
-    <TargetName>$(TargetNameStem)</TargetName>
   </PropertyGroup>
+
+  <PropertyGroup Label="Scalacon">
+    <TargetNameStem>$(TargetName)</TargetNameStem>
+  </PropertyGroup>
+
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   
   <PropertyGroup Label="Configuration">
@@ -79,8 +83,6 @@
   </ImportGroup>
   
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <ImportGroup Label="ExtensionSettings">
-  </ImportGroup>
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
