@@ -104,7 +104,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <ImportLibrary>$(OutDir)$(TargetNameStem)--imp.lib</ImportLibrary>
+      <ImportLibrary>$(OutDir)$(TargetName)--imp.lib</ImportLibrary>
       <ProgramDatabaseFile>$(TargetPath).pdb</ProgramDatabaseFile>
     </Link>
     <BuildLog>
