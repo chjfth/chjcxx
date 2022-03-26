@@ -68,10 +68,17 @@ REM ==== copy .h list (may be a folder, which contains lots of .h)
 for %%h in (%vspu_p_list_HEADERS%) do (
 	
 	if defined IsCopy (
+		if not exist "%dirSdkoutHeader%" (
+			mkdir "%dirSdkoutHeader%"
+			if errorlevel 1 exit /b 4
+		)
+		REM For `cp -r`, do NOT duplicate final nodename on destation-param.
 		call :EchoAndExec cp -r "%vspu_d_HEADER_ROOT%\%%~h" "%dirSdkoutHeader%"
 	) else (
 		if exist "%dirSdkoutHeader%\%%~h" (
 			call :EchoAndExec rm -r "%dirSdkoutHeader%\%%~h"
+		) else (
+			call :Echos Already deleted: "%dirSdkoutHeader%\%%~h"
 		)
 	)
 	if errorlevel 1 exit /b 4
@@ -101,10 +108,10 @@ if not exist "%dirSdkoutLib%" (
 REM ==== copy .lib and .lib.pdb
 
 if defined IsCopy (
-	call :EchoAndExec copy "%TargetDir%\%vso_fStaticLib%" "%dirSdkoutLib%"
+	call :EchoAndExec copy "%TargetDir%\%vso_fStaticLib%" "%dirSdkoutLib%\%vso_fStaticLib%"
 	if errorlevel 1 exit /b 4
 
-	call :EchoAndExec copy "%TargetDir%\%vso_fStaticLibPdb%" "%dirSdkoutLib%"
+	call :EchoAndExec copy "%TargetDir%\%vso_fStaticLibPdb%" "%dirSdkoutLib%\%vso_fStaticLibPdb%"
 	if errorlevel 1 exit /b 4
 ) else (
 	call "%bootsdir%\DelOneFile.bat" "%dirSdkoutLib%\%vso_fStaticLib%"
@@ -140,13 +147,13 @@ if not exist "%dirSdkBinNow%" (
 )
 
 if defined IsCopy (
-	call :EchoAndExec copy "%TargetDir%\%vso_fDll%" "%dirSdkBinNow%"
+	call :EchoAndExec copy "%TargetDir%\%vso_fDll%" "%dirSdkBinNow%\%vso_fDll%"
 	if errorlevel 1 exit /b 4
 
-	call :EchoAndExec copy "%TargetDir%\%vso_fDllPdb%" "%dirSdkBinNow%"
+	call :EchoAndExec copy "%TargetDir%\%vso_fDllPdb%" "%dirSdkBinNow%\%vso_fDllPdb%"
 	if errorlevel 1 exit /b 4
 
-	call :EchoAndExec copy "%TargetDir%\%vso_fDllImportlib%" "%dirSdkoutLib%"
+	call :EchoAndExec copy "%TargetDir%\%vso_fDllImportlib%" "%dirSdkoutLib%\%vso_fDllImportlib%"
 	if errorlevel 1 exit /b 4
 ) else (
 	call "%bootsdir%\DelOneFile.bat" "%dirSdkBinNow%\%vso_fDll%"
