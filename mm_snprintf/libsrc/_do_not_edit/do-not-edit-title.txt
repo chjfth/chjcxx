@@ -3,3 +3,10 @@
 //
 // The above line will be placed at start of mm_snprintfA.cpp and mm_snprintfW.cpp .
 //
+
+
+~!@#$%^&* [2022-03-25] I give up the action of prepending this file content to 
+mm_snprintfA.cpp and mm_snprintfW.cpp, because, it will cause Line-number mismatch.
+That is, when compiler reports an error line for mm_snprintfA.cpp, that line number
+would NOT match that in mm_snprintf.cpp .
+
