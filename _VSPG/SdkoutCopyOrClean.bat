@@ -1,6 +1,5 @@
 @echo off
 setlocal EnableDelayedExpansion
-REM Called as this:
 
 set batfilenam=%~n0%~x0
 set batdir=%~dp0

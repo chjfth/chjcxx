@@ -265,7 +265,7 @@ int mm_free_buf(void *ptr);
 
 // The struct used for %w, since v4.4
 //
-enum { mm_wpair_magic = 0xEF160913 };
+enum : unsigned int { mm_wpair_magic = 0xEF160913 };
 //
 struct mm_wpair_stA
 {
@@ -298,7 +298,7 @@ struct mm_wpair_stW
 
 // The struct used for %F (function call injection), since v6.0
 //
-enum { mm_fpair_magic = 0xEF170321 };
+enum : unsigned int { mm_fpair_magic = 0xEF170321 };
 //
 typedef int (FUNC_mmF_FormatterA)(void *ctx_formatter, mmv7_stA &mmi);
 // -- Return value tells output characters count, assuming buffer is enough (not counting ending NUL).

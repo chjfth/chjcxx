@@ -10,13 +10,12 @@ call :Echos START from %batdir%
 call "%bootsdir%\GetParentDir.bat" dirThisLib "%batdir%"
 
 
-
 REM We have to endlocal here, bcz the following :SetEnvVar need to change parent bat's env.
 endlocal & (
 	REM Every batch var definition from now on will affect the parent env.
 	REM So be conservative, define as little env-var as possible.
 	REM I suggest to prefix them with _tmp_ if you don't use them after this bat exits.
-	set _tmp_=%dirThisLib%
+	set _tmp_=%batdir%
 )
 
 REM If you have special environment variable(env-var) to set for you own .bat files,
