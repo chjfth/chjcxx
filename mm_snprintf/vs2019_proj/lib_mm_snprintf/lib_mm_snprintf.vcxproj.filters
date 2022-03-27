@@ -14,16 +14,16 @@
     <ClCompile Include="..\..\libsrc\internal.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mm_snprintfW.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\libsrc\oldname.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libsrc\printf_wrapper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="mm_snprintfA.cpp">
+    <ClCompile Include="..\..\libsrc\_do_not_edit\mm_snprintfA.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\_do_not_edit\mm_snprintfW.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

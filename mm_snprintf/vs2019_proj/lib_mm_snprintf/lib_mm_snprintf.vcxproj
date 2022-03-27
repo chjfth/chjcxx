@@ -139,6 +139,7 @@
   <ItemDefinitionGroup Condition="$(Configuration.EndsWith('Krnl'))">
     <ClCompile>
       <WarningLevel>Level4</WarningLevel>
+      <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
   </ItemDefinitionGroup>
   <!-- User-mode options -->
