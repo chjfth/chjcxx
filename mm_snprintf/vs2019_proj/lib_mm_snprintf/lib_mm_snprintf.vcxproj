@@ -107,7 +107,6 @@
     <ClCompile>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <WarningLevel>Level3</WarningLevel>
       <AdditionalIncludeDirectories>../../libsrc/msvc;../../libsrc/include;../../libsrc;../../../common-include/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_LIB;DLLEXPORT_mmsnprintf=__declspec(dllexport);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <!-- Two special macro defines: -->
@@ -127,8 +126,6 @@
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
-    <Lib>
-    </Lib>
   </ItemDefinitionGroup>
   <!-- Release compile/link options -->
   <ItemDefinitionGroup Condition="$(Configuration.StartsWith('Release'))">
@@ -137,10 +134,23 @@
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <Optimization>MaxSpeed</Optimization>
     </ClCompile>
-    <Lib>
-    </Lib>
   </ItemDefinitionGroup>
-  <!--  -->
+  <!-- Kernel-mode options -->
+  <ItemDefinitionGroup Condition="$(Configuration.EndsWith('Krnl'))">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <!-- User-mode options -->
+  <ItemDefinitionGroup Condition="!$(Configuration.EndsWith('Krnl'))">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  
+  <!--
+  	Source file list: 
+   -->
   <ItemGroup>
     <ClCompile Include="..\..\libsrc\internal.cpp" />
     <CustomBuild Include="..\..\libsrc\mm_snprintf.cpp">
