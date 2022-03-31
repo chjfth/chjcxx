@@ -10,7 +10,17 @@ call :Echos START from %batdir%
 
 REM ==== Prelude Above ====
 
-REM If env-var SDKOUT_DO_CLEAN is empty:
+REM Check param1 validity, must be 1 or 0
+if "%~1"=="1" (
+	set SDKOUT_DO_CLEAN=
+) else if "%~1"=="0" (
+	set SDKOUT_DO_CLEAN=1
+) else (
+	call :Echos [ERROR] First parameter must be 1 or 0. 1=docopy, 0=doclean.
+	exit /b 4
+)
+
+REM If env-var SDKOUT_DO_CLEAN is empty(=null):
 REM This bat will copy .h/.lib/.dll and their corresponding pdb-s to 'sdkout' folder.
 REM Parameters influencing the copy operation is prepared in Set-SharedEnv.bat .
 REM
