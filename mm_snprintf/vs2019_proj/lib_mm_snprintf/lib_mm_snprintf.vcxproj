@@ -59,7 +59,7 @@
   
   <PropertyGroup Label="Scalacon">
     <TargetNameStem>$(TargetName)</TargetNameStem>
-    <vspg_NO_UNICODE_MACRO>1</vspg_NO_UNICODE_MACRO>
+    <vsps_NO_UNICODE_MACRO>1</vsps_NO_UNICODE_MACRO>
   </PropertyGroup>
 
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
