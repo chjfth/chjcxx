@@ -30,10 +30,10 @@ call :Echos0 Loading Env-vars (affecting parent env).
 
 REM ################ KEY CONTENT HERE ################ 
 
-call :SetEnvVar vspu_d_HEADER_ROOT=%_tmp_%\libsrc\include
+call :SetEnvVar vsps_d_CHEADER_ROOT=%_tmp_%\libsrc\include
 REM -- example: D:\gitw\chjcxx\mm_snprintf\libsrc\include
 
-call :SetEnvVar vspu_p_list_HEADERS=mm_snprintf.h
+call :SetEnvVar vsps_p_list_CHEADERS=mm_snprintf.h
 
 call "%userbatdir%\Set-SharedEnv.bat"
 

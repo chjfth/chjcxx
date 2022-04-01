@@ -51,20 +51,20 @@ REM ========================================================================
 REM                         Copy .h to sdkout
 REM ========================================================================
 
-if "%IsLib%%IsDll%"=="" goto :DONE_COPY_dotH
+if "%IsLib%%IsDll%"=="" goto :DONE_COPY_CHEADERS
 
-if not defined vspu_p_list_HEADERS goto :DONE_COPY_dotH
+if not defined vsps_p_list_CHEADERS goto :DONE_COPY_CHEADERS
 
-if not defined vspu_d_HEADER_ROOT (
-	call :Echos [ERROR] You defined 'vspu_p_list_HEADERS' but 'vspu_d_HEADER_ROOT' is empty.
+if not defined vsps_d_CHEADER_ROOT (
+	call :Echos [ERROR] You defined 'vsps_p_list_CHEADERS' but 'vsps_d_CHEADER_ROOT' is empty.
 	exit /b 4
 )
 
 if defined IsCopy (
-	call :Echos From [vspu_d_HEADER_ROOT] %vspu_d_HEADER_ROOT%
-	call "%bootsdir%\EchoSublines.bat" "Will copy these Filenodes[vspu_p_list_HEADERS] to sdkout folder:" %vspu_p_list_HEADERS%
+	call :Echos From [vsps_d_CHEADER_ROOT] %vsps_d_CHEADER_ROOT%
+	call "%bootsdir%\EchoSublines.bat" "Sdkout folder Will receive copy of these Filenodes[vsps_p_list_CHEADERS]:" %vsps_p_list_CHEADERS%
 ) else (
-	call "%bootsdir%\EchoSublines.bat" "From sdkout folder, will delete header files:" %vspu_p_list_HEADERS%
+	call "%bootsdir%\EchoSublines.bat" "From sdkout folder, will delete header files[vsps_p_list_CHEADERS]:" %vsps_p_list_CHEADERS%
 )
 
 if not defined dirSdkoutHeader (
@@ -74,7 +74,7 @@ if not defined dirSdkoutHeader (
 
 REM ==== copy .h list (may be a folder, which contains lots of .h)
 
-for %%h in (%vspu_p_list_HEADERS%) do (
+for %%h in (%vsps_p_list_CHEADERS%) do (
 	
 	if defined IsCopy (
 		if not exist "%dirSdkoutHeader%" (
@@ -82,7 +82,7 @@ for %%h in (%vspu_p_list_HEADERS%) do (
 			if errorlevel 1 exit /b 4
 		)
 		REM For `cp -r`, do NOT duplicate final nodename on destation-param.
-		call :EchoAndExec cp -r -p "%vspu_d_HEADER_ROOT%\%%~h" "%dirSdkoutHeader%"
+		call :EchoAndExec cp -r -p "%vsps_d_CHEADER_ROOT%\%%~h" "%dirSdkoutHeader%"
 	) else (
 		if exist "%dirSdkoutHeader%\%%~h" (
 			call :EchoAndExec rm -r "%dirSdkoutHeader%\%%~h"
@@ -97,7 +97,7 @@ for %%h in (%vspu_p_list_HEADERS%) do (
 )
 
 
-:DONE_COPY_dotH
+:DONE_COPY_CHEADERS
 
 REM ========================================================================
 REM                  Copy .lib(C++ static lib) to sdkout
