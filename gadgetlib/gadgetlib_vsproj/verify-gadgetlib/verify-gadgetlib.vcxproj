@@ -101,7 +101,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <GenerateMapFile>true</GenerateMapFile>
-      <AdditionalDependencies>mm_snprintf$(ScalaconStaticLibSuffixD).lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>mm_snprintf$(TargetNameSuffixD).lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories Condition="'$(Platform)'=='Win32'">..\..\..\sdkout\cidvers\vc$(PlatformToolsetVersion)\lib;</AdditionalLibraryDirectories>
       <AdditionalLibraryDirectories Condition="'$(Platform)'!='Win32'">..\..\..\sdkout\cidvers\vc$(PlatformToolsetVersion)$(PlatformName)\lib;</AdditionalLibraryDirectories>
     </Link>

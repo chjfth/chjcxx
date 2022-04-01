@@ -24,13 +24,26 @@ void test_printf()
 }
 
 
+void PrintEnv()
+{
+#ifdef _MSC_VER
+#ifdef _WIN32_WINNT
+	T_printf(_T("[User defined _WIN32_WINNT=%04X]\n"), _WIN32_WINNT);
+#else
+	T_printf(_T("[User does not define _WIN32_WINNT on compiling this program.]\n"));
+#endif
+#endif
+}
+
 #ifdef _MSC_VER
 int _tmain()
 #else
 int main()
 #endif
 {
-	bool succ;
+	PrintEnv();
+	
+	bool succ = false;
 
 	casual_test();
 

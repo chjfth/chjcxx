@@ -26,6 +26,7 @@
   <!-- Some initial values -->
   <PropertyGroup>
     <TargetNameSuffixUD></TargetNameSuffixUD>
+    <TargetNameSuffixD></TargetNameSuffixD>
   </PropertyGroup>
   
   <!-- Unicode(default) or ANSI(MBCS) -->
@@ -41,6 +42,7 @@
   <PropertyGroup Condition="$(Configuration.StartsWith('Debug'))" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
     <TargetNameSuffixUD>$(TargetNameSuffixUD)_D</TargetNameSuffixUD>
+    <TargetNameSuffixD>$(TargetNameSuffixD)_D</TargetNameSuffixD>
   </PropertyGroup>
   <PropertyGroup Condition="$(Configuration.StartsWith('Release'))" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>

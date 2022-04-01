@@ -54,8 +54,10 @@
   <PropertyGroup Label="Globals">
     <ProjectName>dll_mm_snprintf</ProjectName>
     <ProjectGuid>{20220325-0000-0000-0000-00392900AA77}</ProjectGuid>
-
     <TargetName>mm_snprintf</TargetName>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Scalacon">
     <TargetNameStem>$(TargetName)</TargetNameStem>
   </PropertyGroup>
 
