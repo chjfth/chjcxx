@@ -61,12 +61,13 @@ ifeq ($(call gmuf_IsWordInSet,$(gmp_COMPILER_ID),msvc wince),1)
 	mswin/enum_monitors.cpp   \
 	mswin/clipboard.cpp     \
 	mswin/wintooltip.cpp    \
+	mswin/oldfuncs_wrapper.cpp \
 	# WinCE 5.0 still don't provide fopen etc, so don't add fstream-aux.cpp .
 
   gmu_ud_list_PRJ_HEADER += # $(gmu_ud_SRC_ROOT)/mswin 
 
   gmp_u_list_PLUGIN_TO_LOAD += PI_use_pch_msvc      # use precompile header
-    gmi_PCHVC_up_HEADER_FOR_PCH_FROM_ROOT = include/stdafx.h
+    gmi_PCHVC_up_HEADER_FOR_PCH_FROM_ROOT = stdafx.h
     gmi_PCHVC_up_list_SRC_DONT_DEPPCH_FROM_ROOT = mswin/my_winapi.cpp
 
   # gmp_u_list_PLUGIN_TO_LOAD += PI_winres_msvc       # compile Windows resource(.rc)
@@ -126,8 +127,11 @@ gmp_DECO_DEBUG_FOR_LINK_OUTPUT = 1
 # You can use a relative dir here, but note, it is relative to make-var $(CURDIR),
 # not to this mki file. Normally, $(CURDIR) is your start-up makefile directory.
 gmu_ud_SRC_ROOT = ..
-dirThisRepo = ../..
-dirSdkInclude = $(dirThisRepo)/$(gmb_dirname_sdkin)/include
+dirThisLib = ../..
+dirThisRepo = ../../..
+dirSdkInclude = $(dirThisRepo)/common-include/include \
+	$(dirThisRepo)/mm_snprintf/libsrc/include \
+	$(dirThisRepo)/$(gmb_dirname_sdkin)/include
 
 # GMU-var: gmu_up_list_SRC_FROM_ROOT
 #	Define your source files to compile, source files(dir prefix allowed) separated by spaces or tabs.
@@ -200,9 +204,9 @@ gmu_up_list_EXTRA_OBJ_TO_LINK +=
 # ( note: If you don't use gmu_uv_list_SUBPRJ_LINK_FOR_PARENT at first,
 # and later enable gmu_uv_list_SUBPRJ_LINK_FOR_PARENT, then you must clean 
 # the old project output-dir first in order for that change to work. )
-gmu_uv_list_SUBPRJ_LINK_FOR_PARENT += # <subprj-ref> ...
+gmu_uv_list_SUBPRJ_LINK_FOR_PARENT += mm_snprintf
 
-<subprj-ref>_Makefile = # where the sub-project's makefile resides
+mm_snprintf_Makefile = $(dirThisRepo)/mm_snprintf/libsrc/makelib/Makefile.umk
 # If the sub-project's makefiles are to be checked-out from some repository, assign it here.
 # >>>> For SVN checkout
 <subprj-ref>_svnUrl_forMakefiles = # SVN Url for the checkout

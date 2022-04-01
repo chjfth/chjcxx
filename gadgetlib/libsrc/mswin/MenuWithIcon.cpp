@@ -1,5 +1,6 @@
 #include "stdafx.h"
 
+#include <gadgetlib/mswin/oldfuncs_wrapper.h>
 #include <gadgetlib/MenuWithIcon.h>
 
 #define DLL_AUTO_EXPORT_STUB
@@ -502,17 +503,16 @@ UINT ggt_TrackPopupMenuWithIcon(
 bool 
 ggt_TrackPopupMenuIsVistaStyle()
 {
-	OSVERSIONINFO osver = {sizeof(OSVERSIONINFO)};
-	GetVersionEx(&osver);
-
-	if(osver.dwMajorVersion==5)
-		return false; // WinXP
-	else 
+	if (ggt_IsWinverOrAbove(ggt_WINVISTA))
 	{
-		if(IsAppThemed())
+		if (IsAppThemed())
 			return true;
 		else
 			return false;
+	}
+	else 
+	{
+		return false;
 	}
 }
 

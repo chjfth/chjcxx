@@ -7,6 +7,9 @@
     <Filter Include="include">
       <UniqueIdentifier>{cbc526de-60e2-40b3-beed-dc96975f5731}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\mswin">
+      <UniqueIdentifier>{d4f3eeef-c882-44df-896a-0b5efaa1cb14}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\libsrc\mswin\charenccvt-win.cpp">
@@ -22,9 +25,6 @@
       <Filter>mswin</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libsrc\mswin\simple_thread.cpp">
-      <Filter>mswin</Filter>
-    </ClCompile>
-    <ClCompile Include="stdafx.cpp">
       <Filter>mswin</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libsrc\mswin\T_string-msvc.cpp">
@@ -60,11 +60,12 @@
       <Filter>mswin</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libsrc\textcrlf.cpp" />
+    <ClCompile Include="..\..\libsrc\stdafx.cpp" />
+    <ClCompile Include="..\..\libsrc\mswin\oldfuncs_wrapper.cpp">
+      <Filter>mswin</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\libsrc\include\stdafx.h">
-      <Filter>mswin</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\libsrc\include\gadgetlib\charenccvt.h">
       <Filter>include</Filter>
     </ClInclude>
@@ -136,6 +137,10 @@
     </ClInclude>
     <ClInclude Include="..\..\libsrc\include\gadgetlib\textcrlf.h">
       <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\stdafx.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\mswin\oldfuncs_wrapper.h">
+      <Filter>include\mswin</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -158,7 +158,7 @@ gmp_LINKFLAGS += $(gmp_LINKFLAGS_preset)
 gmu_up_list_EXTRA_OBJ_TO_LINK +=
 	# Extra object files to link
 
-gmp_bc_EXTRALIBS += $(call UserLibNameForLink_D,mm_snprintf)
+gmp_bc_EXTRALIBS += # $(call UserLibNameForLink_D,mm_snprintf)
 	# Extra libs to link
 	# The reason for using gmpf_MakeUpSysLibsToLink: 
 	# $(call gmpf_MakeUpSysLibsToLink,comfun) will become(for example):

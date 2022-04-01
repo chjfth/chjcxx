@@ -53,7 +53,6 @@
       <Platform>ARM64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  
   <PropertyGroup Label="Globals">
     <ProjectName>lib_gadgetlib</ProjectName>
     <TargetName>gadgetlib</TargetName>
@@ -61,34 +60,27 @@
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
-  
   <PropertyGroup Label="Scalacon">
     <TargetNameStem>$(TargetName)</TargetNameStem>
   </PropertyGroup>
-  
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  
   <PropertyGroup Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
   </PropertyGroup>
-
   <!-- import Scalacon part1 -->
   <ImportGroup Label="PropertySheets">
     <Import Project="..\..\..\_VSPG\Scalacon-part1.props" />
   </ImportGroup>
-
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-
   <!-- import Scalacon part2 -->
   <ImportGroup Label="PropertySheets">
     <Import Project="..\..\..\_VSPG\Scalacon-part2.props" />
   </ImportGroup>
-
   <!-- 
   	Compiler/Linker Behavior Settings : shared 
   -->
@@ -136,7 +128,6 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-
   <!-- 
     Source file list:
    -->
@@ -144,6 +135,7 @@
     <ClCompile Include="..\..\libsrc\mswin\my_winapi.cpp">
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\..\libsrc\mswin\oldfuncs_wrapper.cpp" />
     <ClCompile Include="..\..\libsrc\stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
@@ -187,6 +179,7 @@
     <ClInclude Include="..\..\libsrc\include\gadgetlib\gsm0338cvt.h" />
     <ClInclude Include="..\..\libsrc\include\gadgetlib\mbcs-ops.h" />
     <ClInclude Include="..\..\libsrc\include\gadgetlib\MenuWithIcon.h" />
+    <ClInclude Include="..\..\libsrc\include\gadgetlib\mswin\oldfuncs_wrapper.h" />
     <ClInclude Include="..\..\libsrc\include\gadgetlib\ReposNewbox.h" />
     <ClInclude Include="..\..\libsrc\include\gadgetlib\simple_thread.h" />
     <ClInclude Include="..\..\libsrc\include\gadgetlib\textcrlf.h" />
@@ -198,11 +191,9 @@
     <ClInclude Include="..\..\libsrc\include\my_winapi.h" />
     <ClInclude Include="..\..\libsrc\stdafx.h" />
   </ItemGroup>
-
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
-
   <!-- import VSPG start -->
   <PropertyGroup>
     <VSPG_BootsDir_NoTBS>..\..\..\_VSPG\boots</VSPG_BootsDir_NoTBS>
