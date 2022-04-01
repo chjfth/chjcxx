@@ -2138,7 +2138,7 @@ int mm_vasprintf(TCHAR **ptr, const TCHAR *fmt, va_list ap)
 	}
 	else {
 		int str_l2 = mm_vsnprintf(*ptr, str_m, fmt, ap);
-		assert(str_l2 == str_l);
+		assert(str_l2 == str_l); (void)str_l2;
 	}
 	return str_l;
 }
@@ -2218,7 +2218,7 @@ int mm_vasnprintf (TCHAR **ptr, mmbufsize_t str_m, const TCHAR *fmt, va_list ap)
 		}
 		else {
 			int str_l2 = mm_vsnprintf(*ptr, str_m, fmt, ap);
-			assert(str_l2 == str_l);
+			assert(str_l2 == str_l); (void)str_l2;
 		}
 	}
 	return str_l;
