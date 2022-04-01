@@ -19,7 +19,7 @@
     <Message Text="[Scalacon] TargetNameStem=$(TargetNameStem)"/>
     <Error
     	Condition=" '$(TargetNameStem)'=='' "
-    	Text="MSBuild variable 'TargetNameStem' must be defined in your .vcxproj, at least, define it to be your $(TargetName) ."
+    	Text="MSBuild variable 'TargetNameStem' must be defined in your .vcxproj, at least, define it to be your $$(TargetName) ."
     	/>
   </Target>
 
@@ -33,7 +33,7 @@
     <CharacterSet>Unicode</CharacterSet>
     <TargetNameSuffixUD>$(TargetNameSuffixUD)_U</TargetNameSuffixUD>
   </PropertyGroup>
-  <PropertyGroup Condition=" $(Configuration.Contains('ANSI')) or  '$(vsps_NO_UNICODE_MACRO)'=='' " Label="Configuration">
+  <PropertyGroup Condition=" $(Configuration.Contains('ANSI')) or  '$(vsps_NO_UNICODE_MACRO)'!='' " Label="Configuration">
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   
