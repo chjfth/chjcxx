@@ -6,20 +6,20 @@
   <!-- VSPG working variables -->
   <PropertyGroup>
 
-    <vspg_OutputRoot>$(vspg_OUTPUT_ROOT)</vspg_OutputRoot>
+    <vsps_OutputRoot>$(vsps_OUTPUT_ROOT)</vsps_OutputRoot>
     
-    <!-- vspg_OutputRoot: Strip trailing backslash, and convert it to abs-path first -->
-    <vspg_OutputRoot>$(vspg_OutputRoot.TrimEnd('\ '))</vspg_OutputRoot>
-    <vspg_OutputRoot Condition=" '$(vspg_OutputRoot.indexOf(%3a))'=='1' " >$(vspg_OutputRoot)</vspg_OutputRoot>
-    <vspg_OutputRoot Condition=" '$(vspg_OutputRoot.indexOf(%3a))'!='1' and '$(vspg_OutputRoot)'!='' " >$(MSBuildStartupDirectory)\$(vspg_OutputRoot)</vspg_OutputRoot>
+    <!-- vsps_OutputRoot: Strip trailing backslash, and convert it to abs-path first -->
+    <vsps_OutputRoot>$(vsps_OutputRoot.TrimEnd('\ '))</vsps_OutputRoot>
+    <vsps_OutputRoot Condition=" '$(vsps_OutputRoot.indexOf(%3a))'=='1' " >$(vsps_OutputRoot)</vsps_OutputRoot>
+    <vsps_OutputRoot Condition=" '$(vsps_OutputRoot.indexOf(%3a))'!='1' and '$(vsps_OutputRoot)'!='' " >$(MSBuildStartupDirectory)\$(vsps_OutputRoot)</vsps_OutputRoot>
     
-    <vspg_slnOutputRoot Condition=" '$(vspg_OutputRoot)'=='' ">$(SolutionDir.TrimEnd('\'))</vspg_slnOutputRoot>
-    <vspg_slnOutputRoot Condition=" '$(vspg_OutputRoot)'!='' ">$(vspg_OutputRoot)</vspg_slnOutputRoot>
+    <vsps_slnOutputRoot Condition=" '$(vsps_OutputRoot)'=='' ">$(SolutionDir.TrimEnd('\'))</vsps_slnOutputRoot>
+    <vsps_slnOutputRoot Condition=" '$(vsps_OutputRoot)'!='' ">$(vsps_OutputRoot)</vsps_slnOutputRoot>
 
-    <_vspg_PrjDecoName>$(ProjectName)$(vspg_PrjDecoSuffix)$(TargetExt)</_vspg_PrjDecoName>
+    <_vsps_PrjDecoName>$(ProjectName)$(vsps_PrjDecoSuffix)$(TargetExt)</_vsps_PrjDecoName>
 
-    <vspg_prjOutputRoot Condition=" '$(vspg_OutputRoot)'=='' ">.</vspg_prjOutputRoot>
-    <vspg_prjOutputRoot Condition=" '$(vspg_OutputRoot)'!='' ">$(vspg_OutputRoot)\$(_vspg_PrjDecoName)</vspg_prjOutputRoot>
+    <vsps_prjOutputRoot Condition=" '$(vsps_OutputRoot)'=='' ">.</vsps_prjOutputRoot>
+    <vsps_prjOutputRoot Condition=" '$(vsps_OutputRoot)'!='' ">$(vsps_OutputRoot)\$(_vsps_PrjDecoName)</vsps_prjOutputRoot>
   
   </PropertyGroup>
 
@@ -30,8 +30,8 @@
   <!-- Better .obj/.exe/.pdb output folder structure -->
   <PropertyGroup>
     <LinkIncremental>false</LinkIncremental>
-    <IntDir>$(vspg_prjOutputRoot)\obj-vc$(PlatformToolsetVersion)\$(Platform)\$(Configuration)\</IntDir>
-    <OutDir>$(vspg_slnOutputRoot)\bin-vc$(PlatformToolsetVersion)\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(vsps_prjOutputRoot)\obj-vc$(PlatformToolsetVersion)\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(vsps_slnOutputRoot)\bin-vc$(PlatformToolsetVersion)\$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   
   <ItemDefinitionGroup>

@@ -29,11 +29,11 @@
   </PropertyGroup>
   
   <!-- Unicode(default) or ANSI(MBCS) -->
-  <PropertyGroup Condition="!$(Configuration.Contains('ANSI')) and '$(vspg_NO_UNICODE_MACRO)'=='' " Label="Configuration">
+  <PropertyGroup Condition="!$(Configuration.Contains('ANSI')) and '$(vsps_NO_UNICODE_MACRO)'=='' " Label="Configuration">
     <CharacterSet>Unicode</CharacterSet>
     <TargetNameSuffixUD>$(TargetNameSuffixUD)_U</TargetNameSuffixUD>
   </PropertyGroup>
-  <PropertyGroup Condition=" $(Configuration.Contains('ANSI')) or  '$(vspg_NO_UNICODE_MACRO)'=='' " Label="Configuration">
+  <PropertyGroup Condition=" $(Configuration.Contains('ANSI')) or  '$(vsps_NO_UNICODE_MACRO)'=='' " Label="Configuration">
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   
@@ -49,9 +49,9 @@
 
   <!-- == Determine final <TargetName> == -->
   <PropertyGroup>
-    <vspg_BinDecoSuffix>$(vspg_BinDecoSuffix)$(TargetNameSuffixUD)</vspg_BinDecoSuffix>
-    <vspg_PrjDecoSuffix>$(vspg_PrjDecoSuffix)$(TargetNameSuffixUD)</vspg_PrjDecoSuffix>
-    <TargetName>$(TargetNameStem)$(vspg_BinDecoSuffix)</TargetName>
+    <vsps_BinDecoSuffix>$(vsps_BinDecoSuffix)$(TargetNameSuffixUD)</vsps_BinDecoSuffix>
+    <vsps_PrjDecoSuffix>$(vsps_PrjDecoSuffix)$(TargetNameSuffixUD)</vsps_PrjDecoSuffix>
+    <TargetName>$(TargetNameStem)$(vsps_BinDecoSuffix)</TargetName>
   </PropertyGroup>
 
 </Project>
