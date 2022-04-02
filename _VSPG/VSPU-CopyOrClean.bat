@@ -51,6 +51,9 @@ REM ========================================================================
 REM                         Copy .h to sdkout
 REM ========================================================================
 
+rem call :echos ====================vsps_NO_COPY_CHEADERS=%vsps_NO_COPY_CHEADERS%
+if defined vsps_NO_COPY_CHEADERS goto :DONE_COPY_CHEADERS
+
 if "%IsLib%%IsDll%"=="" goto :DONE_COPY_CHEADERS
 
 if not defined vsps_p_list_CHEADERS goto :DONE_COPY_CHEADERS

@@ -1,10 +1,6 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003"
          ToolsVersion="4.0"
-         DefaultTargets="BuildAll">
-
-	<Target Name="BuildAll" DependsOnTargets="AllSdk">
-		<Message Text="[[[ All projects build success. ]]]" />
-	</Target>
+         DefaultTargets="SingleVariant">
 
 	<PropertyGroup>
 		<start_sln>.\vsproj\chjcxx-sdkall-vs2019.sln</start_sln>
@@ -25,25 +21,25 @@
 		<platform Include="ARM64" />
 	</ItemGroup>
 
-	<Target Name="FirstRound">
+	<Target Name="SingleVariant">
 		<MSBuild Projects="$(start_sln)"
 			Properties="Configuration=Release;Platform=x64"
 			>
 		</MSBuild>
-		<Exec command='winver'/>
 	</Target>
 
-	<Target Name="AllSdk" 
-		DependsOnTargets="FirstRound"
+	<!-- Target-batching + Task-batching to achieve Buildconf*Platform matrix .
+	
+		In this Target, we pass vsps_NO_COPY_CHEADERS=1, to ensure NO copy file conflicts with parallel build. 
+		The C header files copying is achieve by "SingleVariant" Task.
+	-->
+	<Target Name="AllVariant" 
 		Outputs="%(buildconf.Identity)"
 		>
 		<PropertyGroup>
 			<buildconf>%(buildconf.Identity)</buildconf>
 		</PropertyGroup>
 		
-		<SetEnvironmentVariableTask Name="vsps_NO_COPY_CHEADERS" Value="1" />
-		 
-		<!-- Pass vsps_NO_COPY_CHEADERS=1 in remaining rounds, to ensure no copy file conflicts with parallel build. -->
 		<MSBuild Projects="$(start_sln)"
 			Properties="Configuration=$(buildconf);Platform=%(platform.Identity)"
 			BuildInParallel="true"
@@ -52,25 +48,4 @@
 		</MSBuild>
 	</Target>
 
-
-	<UsingTask
-	  TaskName="SetEnvironmentVariableTask"
-	  TaskFactory="CodeTaskFactory"
-	  AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
-
-	  <ParameterGroup>
-	    <Name ParameterType="System.String" Required="true" />
-	    <Value ParameterType="System.String" Required="true" />
-	  </ParameterGroup>
-
-	  <Task>
-	    <Using Namespace="System" />
-	    <Code Type="Fragment" Language="cs">
-	      <![CDATA[
-	        Environment.SetEnvironmentVariable(Name, Value);
-	      ]]>
-	    </Code>
-	  </Task>
-
-	</UsingTask>
 </Project>
