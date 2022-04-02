@@ -14,7 +14,16 @@ if not defined vsps_OUTPUT_ROOT (
 
 call :Echos Using vsps_OUTPUT_ROOT=%vsps_OUTPUT_ROOT%
 
-msbuild "%batdir%\buildsdk.proj" /fl  /flp:Verbosity=normal
+
+
+
+REM ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+msbuild "%batdir%\buildsdk.proj" /fl /flp:Verbosity=normal %*
+REM ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
+
 
 
 exit /b 0
