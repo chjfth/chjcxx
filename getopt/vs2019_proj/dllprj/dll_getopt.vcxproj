@@ -103,7 +103,6 @@
       <SubSystem>Windows</SubSystem>
       <GenerateMapFile>true</GenerateMapFile>
       <ProgramDatabaseFile>$(TargetPath).pdb</ProgramDatabaseFile>
-      <ImportLibrary>%(sc_ImportLibrary)</ImportLibrary>
     </Link>
     <ProjectReference>
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>

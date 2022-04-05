@@ -108,7 +108,6 @@
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <ImportLibrary>$(OutDir)$(TargetName)--imp.lib</ImportLibrary>
       <ProgramDatabaseFile>$(TargetPath).pdb</ProgramDatabaseFile>
     </Link>
     <BuildLog>
