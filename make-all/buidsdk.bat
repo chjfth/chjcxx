@@ -37,7 +37,7 @@ call :EchoAndExec msbuild "%batdir%\buildsdk.proj" /t:SingleVariant ^
 	/fl /flp:Verbosity=normal;logfile=%singlevariant_log%  %*
 if errorlevel 1 exit /b 4
 
-pause
+rem pause
 
 set vsps_NO_COPY_CHEADERS=1
 REM
