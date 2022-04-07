@@ -19,7 +19,7 @@
     <Message Text="[Scalacon] TargetNameStem=$(TargetNameStem)"/>
     <Error
     	Condition=" '$(TargetNameStem)'=='' "
-    	Text="MSBuild variable 'TargetNameStem' must be defined in your .vcxproj, at least, define it to be your $$(TargetName) ."
+    	Text="MSBuild variable 'TargetNameStem' must be defined in your .vcxproj, at least, define it to be your %24(TargetName) ."
     	/>
   </Target>
 
