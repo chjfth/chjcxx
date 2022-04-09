@@ -113,7 +113,7 @@ private:
 
 	int m_peakuse; // queue buffer peak usage
 
-#ifdef DBG
+#if defined(_DEBUG) || DBG
 	int m_cureles; // current elements
 #endif
 };
@@ -212,7 +212,7 @@ CCircBufws::_MovePtrForward(Uchar *pstart, int eles)
 	if(pstart>=qboundary_())
 		pstart -= (m_qsize+1);
 	
-#if DBG
+#if defined(_DEBUG) || DBG
 	m_cureles -= eles;
 #endif
 	return pstart;
@@ -265,7 +265,7 @@ CCircBufws::Put(const void *pdata_, int eles)
 		m_pTail_ = m_qbuf + part2;
 	}
 
-#ifdef DBG
+#if defined(_DEBUG) || DBG
 	m_cureles += eles;
 #endif
 
@@ -308,7 +308,7 @@ CCircBufws::PutOverwrite(const void *pdata_, int eles)
 		_ResetPtr();
 		memcpy(m_qbuf, userdata+eles-m_qsize ,m_qsize);
 
-#if DBG
+#if defined(_DEBUG) || DBG
 		m_cureles = m_qsize;
 #endif
 		m_peakuse = QSize();
@@ -355,7 +355,7 @@ CCircBufws::OverwriteHead(const void *pdata_, int eles)
 		memcpy(m_pHead, userdata, eles);
 		m_pTail_ = m_pHead+eles;
 
-#ifdef DBG
+#if defined(_DEBUG) || DBG
 		m_cureles = eles;
 #endif
 	}
@@ -400,7 +400,7 @@ CCircBufws::Get(void *pdata_, int eles)
 		m_pHead = m_qbuf + part2;
 	}
 
-#ifdef DBG
+#if defined(_DEBUG) || DBG
 	m_cureles -= eles_to_copy;
 #endif
 	return eles_to_copy;
@@ -422,7 +422,7 @@ CCircBufws::Clear(int eles, ResetPtr_et reset)
 			m_pHead = m_pTail_;
 		}
 
-#ifdef DBG
+#if defined(_DEBUG) || DBG
 		m_cureles = 0;
 #endif
 		return orig;
@@ -444,7 +444,7 @@ CCircBufws::StockEles() const
 	if(n<0)
 		n += QSize() + Gap1Ele;
 
-#ifdef DBG
+#if defined(_DEBUG) || DBG
 	assert(n==m_cureles);
 #endif
 	return n;
@@ -552,7 +552,7 @@ CCircBufws::ShadowRetrieveEnd(int eles_to_retrieve, void **pTailWas, int *pOverW
 	if(pOverWrittenBytes)
 		*pOverWrittenBytes = overflow_bytes>0 ? overflow_bytes : 0;
 
-#ifdef DBG
+#if defined(_DEBUG) || DBG
 	m_cureles += eles_to_retrieve;
 	if(overflow_bytes>0)
 	{
