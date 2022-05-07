@@ -30,8 +30,11 @@
 
 	<!-- Target-batching + Task-batching to achieve Buildconf*Platform matrix .
 	
-		In this Target, we pass vsps_NO_COPY_CHEADERS=1, to ensure NO copy file conflicts with parallel build. 
-		The C header files copying is achieve by "SingleVariant" Task.
+		For this Target, the caller should have set env-var vsps_NO_COPY_CHEADERS=1, 
+		to ensure NO .h files are copied, which would otherwise cause .h file copy 
+		conflicts during parallel build. 
+		
+		The C header files(.h) copying is achieved by separately running the "SingleVariant" Task.
 	-->
 	<Target Name="AllVariant" 
 		Outputs="%(buildconf.Identity)"

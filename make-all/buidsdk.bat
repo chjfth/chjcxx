@@ -30,7 +30,7 @@ if exist "%allvariant_log%"    ren "%allvariant_log%" "%allvariant_old%"
 
 REM ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 REM We execute buildsdk.proj twice, first with no vsps_NO_COPY_CHEADERS,
-REM second, with vsps_NO_COPY_CHEADERS=1 and /m for parallel build.
+REM second, with { vsps_NO_COPY_CHEADERS=1 and /m } for parallel build.
 REM ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 call :EchoAndExec msbuild "%batdir%\buildsdk.proj" /t:SingleVariant ^
