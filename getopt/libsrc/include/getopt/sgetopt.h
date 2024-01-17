@@ -5,7 +5,22 @@
 extern"C" {
 #endif
 
-#include "need_TCHAR.h"
+#ifdef LINUX_NO_TCHAR
+
+// [2024-01-18] on a pristine Linux
+// This is the SDK user header, so we need to *explicitly*
+// define _T() and TCHAR here, bcz user does not have "need_TCHAR.h".
+
+#define __T(x) x
+#define  _T(x) __T(x)
+
+typedef char TCHAR;
+
+#else
+
+#include <ps_TCHAR.h>
+
+#endif
 
 
 // Portable getopt and getopt_long, getopt_long_only .
