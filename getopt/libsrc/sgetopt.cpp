@@ -2,12 +2,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <ps_TCHAR.h>
-//#include <gadgetlib/T_string.h>
 #include <getopt/sgetopt.h>
-#include <mm_snprintf.h>
-
 #include "t_string.h"
+
+#ifdef LINUX_NO_TCHAR
+  #define mm_snprintf snprintf
+#else
+  #include <mm_snprintf.h>
+#endif
+
 
 #define DLL_AUTO_EXPORT_STUB
 extern"C" void sgetopt_lib__sgetopt__DLL_AUTO_EXPORT_STUB(void){}

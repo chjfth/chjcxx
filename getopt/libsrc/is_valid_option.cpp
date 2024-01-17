@@ -3,8 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <ps_TCHAR.h>
-//#include <gadgetlib/T_string.h>
 #include <getopt/sgetopt.h>
 
 #include "t_string.h"

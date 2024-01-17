@@ -5,6 +5,9 @@
 extern"C" {
 #endif
 
+#include "need_TCHAR.h"
+
+
 // Portable getopt and getopt_long, getopt_long_only .
 // Doc at http://linux.die.net/man/3/getopt_long
 

@@ -2,7 +2,8 @@
 #define __string_op_h_
 
 #include <stdio.h>
-#include <ps_TCHAR.h>
+
+#include "need_TCHAR.h"
 
 int t_strlen(const TCHAR *str);
 
