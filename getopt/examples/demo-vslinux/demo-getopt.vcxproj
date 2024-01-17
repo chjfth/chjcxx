@@ -10,6 +10,10 @@
       <Configuration>Debug-remote-gcc</Configuration>
       <Platform>x86</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="Release-remote-gcc|x86">
+      <Configuration>Release-remote-gcc</Configuration>
+      <Platform>x86</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Release|x86">
       <Configuration>Release</Configuration>
       <Platform>x86</Platform>
@@ -21,6 +25,10 @@
     </ProjectConfiguration>
     <ProjectConfiguration Include="Debug-remote-gcc|x64">
       <Configuration>Debug-remote-gcc</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release-remote-gcc|x64">
+      <Configuration>Release-remote-gcc</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|x64">
@@ -241,6 +249,8 @@
   -->
   <ItemDefinitionGroup Condition="$(Configuration.StartsWith('Release'))">
     <ClCompile>
+      <!-- For easy testing purpose, we disable optimization event for Release build. -->
+      <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>

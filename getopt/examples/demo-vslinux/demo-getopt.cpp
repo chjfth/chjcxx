@@ -51,14 +51,15 @@ static sgetopt_option app_long_options[] =
 
 int main(int argc, char *argv[])
 {
+	sgetopt_ctx* si = sgetopt_ctx_create(); // important 
+	si->opterr = 1; // (optional)
+
 	if(argc==1)
 	{
-		printf(_T("No options given.\n"));
-		return 0;
+		printf(_T("This program needs some options, for example: -c 'shortc' --verbose\n"));
+		sgetopt_ctx_delete(si);
+		return 4;
 	}
-
-	sgetopt_ctx *si = sgetopt_ctx_create(); // important 
-	si->opterr = 1; // (optional)
 
 	while (1)
 	{
@@ -141,10 +142,6 @@ int main(int argc, char *argv[])
 	}
 
 	sgetopt_ctx_delete(si);
-
-#if (defined UNICODE || defined _UNICODE) && (!defined _MSC_VER) // the linux case
-	ggt_argvs_free_wchars(argv);
-#endif
 
 	return (0);
 }

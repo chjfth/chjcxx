@@ -1,5 +1,5 @@
-To compile a Linux .so with debug info
-======================================
+To compile a Linux .so with debug info (-g)
+===========================================
 
 g++ -shared -o libsgetoptD.so   -g -O0 -fpic -I ./libsrc -I ./libsrc/include -D__int64="long long" -DLINUX_NO_TCHAR libsrc/sgetopt.cpp libsrc/t_string.cpp libsrc/is_valid_option.cpp
 
