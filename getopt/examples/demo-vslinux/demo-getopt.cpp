@@ -1,6 +1,33 @@
 #include <stdio.h>
 #include <ctype.h>
 
+/*
+[2024-01-18] Memo on building this demo project in VSLinux:
+
+You should manually compile libsgetoptD.so and libsgetopt.so so that this project
+can link and run successfully. Three steps are needed.
+
+(1) ~/gitw/chjcxx/getopt/linux-simple-compile.txt
+    tells the g++ command to produce the .so files.
+
+	On remote Linux, manually execute the compile commands on to produce those .so files.
+
+(2) On remote Linux, copy the output .so files to a directory that VSLinux can find.
+
+	[chj @Ub20cppdev ~/gitw/chjcxx/getopt]
+	$ cp libsgetoptD.so  ~/projects/demo-getopt/demo-getopt
+	$ cp libsgetopt.so   ~/projects/demo-getopt/demo-getopt
+
+(3) Point LD_LIBRARY_PATH to where libsgetoptD.so resides.
+	Edit ~/.bashrc, add at its tail:
+
+	export LD_LIBRARY_PATH=~/gitw/chjcxx/getopt
+
+	Pointing to the original location of libsgetoptD.so is a better choice,
+	bcz when libsgetoptD.so is later rebuilt, the running .out links
+	to the new libsgetoptD.so, instead of the copy in ~/projects dir.
+*/
+
 #define __T(x) x
 #define  _T(x) __T(x)
 typedef char TCHAR;
