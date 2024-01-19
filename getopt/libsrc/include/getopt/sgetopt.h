@@ -113,7 +113,8 @@ DLLEXPORT_sgetopt
 sgetopt_err_et sgetopt_ctx_delete(sgetopt_ctx *si);
 
 DLLEXPORT_sgetopt
-int	sgetopt(sgetopt_ctx *si, int argc, TCHAR *const argv[], const TCHAR *optstring);
+int	sgetopt(sgetopt_ctx *si, 
+	int argc, TCHAR *const argv[], const TCHAR *optstring);
 
 DLLEXPORT_sgetopt
 int sgetopt_long(sgetopt_ctx *si, 
