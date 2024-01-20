@@ -106,11 +106,11 @@ exchange(sgetopt_ctx *si, TCHAR **argv)
 
 	while (top > middle && middle > bottom)
 	{
+		int i;
 		if (top - middle > middle - bottom)
 		{
 			/* Bottom segment is the short one.  */
 			int len = middle - bottom;
-			register int i;
 
 			/* Swap it with the top part of the top segment.  */
 			for (i = 0; i < len; i++)
@@ -126,7 +126,6 @@ exchange(sgetopt_ctx *si, TCHAR **argv)
 		{
 			/* Top segment is the short one.  */
 			int len = top - middle;
-			register int i;
 
 			/* Swap it with the bottom part of the bottom segment.  */
 			for (i = 0; i < len; i++)
