@@ -10,3 +10,16 @@ To compile a Linux .so without debug info
 gcc -shared -o libsgetopt.so       -O0 -fpic -I ./libsrc -I ./libsrc/include -D__int64="long long" -DLINUX_NO_TCHAR libsrc/sgetopt.cpp libsrc/t_string.cpp libsrc/is_valid_option.cpp
 
 
+To compile a Linux exe linking with the .so
+===========================================
+
+gcc -g -o demo-getoptD.out ./examples/demo-vslinux/demo-getopt.cpp -I libsrc/include -DLINUX_NO_TCHAR -L . -l sgetoptD
+
+	or
+
+gcc -g -o demo-getopt.out  ./examples/demo-vslinux/demo-getopt.cpp -I libsrc/include -DLINUX_NO_TCHAR -L . -l sgetopt
+
+
+To run the exe
+==============
+LD_LIBRARY_PATH=.   ./demo-getopt.out -c shortc --verbose
