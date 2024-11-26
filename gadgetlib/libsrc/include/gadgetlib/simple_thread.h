@@ -79,7 +79,8 @@ struct A {
 	void thread_start() { printf("A::thread_start. x=%u\n", x); }
 };
 
-ggt_hsimplethread ht = ggt_cxx_thread_create(a1, &A::thread_start);
+A a1;
+GGT_HSimpleThread ht = ggt_cxx_thread_create(a1, &A::thread_start);
 
 ggt_simple_thread_waitend(ht);
 
