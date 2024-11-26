@@ -5,6 +5,24 @@
 extern"C" {
 #endif
 
+#ifdef LINUX_NO_TCHAR
+
+// [2024-01-18] on a pristine Linux
+// This is the SDK user header, so we need to *explicitly*
+// define _T() and TCHAR here, bcz user does not have "need_TCHAR.h".
+
+#define __T(x) x
+#define  _T(x) __T(x)
+
+typedef char TCHAR;
+
+#else
+
+#include <ps_TCHAR.h>
+
+#endif
+
+
 // Portable getopt and getopt_long, getopt_long_only .
 // Doc at http://linux.die.net/man/3/getopt_long
 
@@ -95,7 +113,8 @@ DLLEXPORT_sgetopt
 sgetopt_err_et sgetopt_ctx_delete(sgetopt_ctx *si);
 
 DLLEXPORT_sgetopt
-int	sgetopt(sgetopt_ctx *si, int argc, TCHAR *const argv[], const TCHAR *optstring);
+int	sgetopt(sgetopt_ctx *si, 
+	int argc, TCHAR *const argv[], const TCHAR *optstring);
 
 DLLEXPORT_sgetopt
 int sgetopt_long(sgetopt_ctx *si, 

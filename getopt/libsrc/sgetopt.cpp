@@ -2,12 +2,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <ps_TCHAR.h>
-//#include <gadgetlib/T_string.h>
 #include <getopt/sgetopt.h>
-#include <mm_snprintf.h>
-
 #include "t_string.h"
+
+#ifdef LINUX_NO_TCHAR
+  #define mm_snprintf snprintf
+#else
+  #include <mm_snprintf.h>
+#endif
+
 
 #define DLL_AUTO_EXPORT_STUB
 extern"C" void sgetopt_lib__sgetopt__DLL_AUTO_EXPORT_STUB(void){}
@@ -103,11 +106,11 @@ exchange(sgetopt_ctx *si, TCHAR **argv)
 
 	while (top > middle && middle > bottom)
 	{
+		int i;
 		if (top - middle > middle - bottom)
 		{
 			/* Bottom segment is the short one.  */
 			int len = middle - bottom;
-			register int i;
 
 			/* Swap it with the top part of the top segment.  */
 			for (i = 0; i < len; i++)
@@ -123,7 +126,6 @@ exchange(sgetopt_ctx *si, TCHAR **argv)
 		{
 			/* Top segment is the short one.  */
 			int len = top - middle;
-			register int i;
 
 			/* Swap it with the bottom part of the bottom segment.  */
 			for (i = 0; i < len; i++)
