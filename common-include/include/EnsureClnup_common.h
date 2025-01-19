@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <EnsureClnup.h>
+#include "EnsureClnup.h"
 
 inline void free_void_ptr(void * p){ free(p); }
 MakeCleanupPtrClass(Cec_free_pVoid, void, free_void_ptr, void*)
