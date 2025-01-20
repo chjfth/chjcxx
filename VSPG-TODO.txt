@@ -1,0 +1,8 @@
+[2025-01-20] 
+
+`_VSPG` should not contain a VSPG copy here. (That was old 2022.04 version)
+
+chjcxx should refer to VSPG as a Git Submodule in __VSPG subdir.
+
+But before removing `_VSPG` subdir, I should first settle `_VSPG\Scalacon-part1.props` etc, moving them out of VSPG's repo, but into chjcxx's own source directory.
+
