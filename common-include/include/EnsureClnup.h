@@ -258,30 +258,33 @@ public:
 
 /////////////////////////////////// C++ ///////////////////////////////////////
 
-
-template<typename PTR_TYPE> // 2017-10-20: deprecated?
+/*
+template<typename PTR_TYPE> // 2017-10-20: deprecated. Use MakeCleanupCxxClass() instead.
 inline void _EnsureClnup_cpp_delete(PTR_TYPE p){ delete p; }
 //
 #define MakeCleanupPtrClass_delete(CecClassName, PTR_TYPE) \
 	MakeCleanupPtrClass(CecClassName, void, _EnsureClnup_cpp_delete<PTR_TYPE>, PTR_TYPE)
 
 
-template<typename PTR_TYPE> // 2017-10-20: deprecated?
+template<typename PTR_TYPE> // 2017-10-20: deprecated. Use MakeCleanupCxxClass() instead.
 inline void _EnsureClnup_cpp_delete_array(PTR_TYPE p){ delete[] p; }
 //
 #define MakeCleanupPtrClass_delete_array(CecClassName, PTR_TYPE) \
 	MakeCleanupPtrClass(CecClassName, void, _EnsureClnup_cpp_delete_array<PTR_TYPE>, PTR_TYPE)
+*/
 
 // Now define a class named Cec_NewMemory representing a void*-pointed memory block,
 // that would be de-allocated by C++-delete.
 inline void _EnsureClnup_cpp_delete_pvoid(void *p){ delete (char*)p; }
-MakeCleanupPtrClass(Cec_NewMemory, void, _EnsureClnup_cpp_delete_pvoid, void*)
+MakeCleanupPtrClass(Cec_NewMemory,  void, _EnsureClnup_cpp_delete_pvoid, void*)
+MakeCleanupPtrClass(Cec_cxx_delete, void, _EnsureClnup_cpp_delete_pvoid, void*)
 	// 
 	// Usage example:
 	//
 	//	Cec_NewMemory cec_memblock = new unsigned char[1000];
 	//	memcpy(cec_memblock, src, 1000);
-
+	//
+	// [2025-01-23] Cec_cxx_delete is a better naming.
 
 
 // [2017-10-20]
