@@ -288,11 +288,14 @@ MakeCleanupPtrClass(Cec_cxx_delete, void, _EnsureClnup_cpp_delete_pvoid, void*)
 
 
 // [2017-10-20]
-#define MakeCleanupCxxClass(CMyClass) \
+#define MakeCleanupCxxClass_en(CMyClass, Classname_delete1, Classname_deleteN) \
 	inline void _cxx_delete_1_ ## CMyClass(CMyClass *pobj) { delete pobj; } \
 	inline void _cxx_delete_n_ ## CMyClass(CMyClass *arobj) { delete []arobj; } \
-	MakeCleanupPtrClass(Cec_ ## CMyClass,      void, _cxx_delete_1_ ## CMyClass, CMyClass*) \
-	MakeCleanupPtrClass(CecArray_ ## CMyClass, void, _cxx_delete_n_ ## CMyClass, CMyClass*) \
+	MakeCleanupPtrClass(Classname_delete1, void, _cxx_delete_1_ ## CMyClass, CMyClass*) \
+	MakeCleanupPtrClass(Classname_deleteN, void, _cxx_delete_n_ ## CMyClass, CMyClass*) \
+	// -- en: Explicit Naming of the two Cec class names
+//
+#define MakeCleanupCxxClass(CMyClass) MakeCleanupCxxClass_en(CMyClass, Cec_ ## CMyClass, CecArray_ ## CMyClass)
 // So, a statement on global statement
 //
 //	MakeCleanupCxxClass(Cfoobar)
