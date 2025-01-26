@@ -1,25 +1,31 @@
-#ifndef __ENSURECLNUP_H
-#define __ENSURECLNUP_H
+#ifndef __ENSURECLNUP_H_20250126
+#define __ENSURECLNUP_H_20250126
 
-/* The idea comes from Jeffrey Richter's CEnsureCleanup template class, 
+/* Jimm Chen from around 2010:
+ The idea comes from Jeffrey Richter's CEnsureCleanup template class, 
  which is presented in his book 
    << Programming Server-Side Applications for Microsoft Windows 2000 >>
 
 	But I found that his original CEnsureCleanup is not acceptable when
  compiling with GCC 3.2, and with the compiler from Borland C++ 5.5 .
 
-	So I did the improvement.
+	So I did the improvement, many many improvements.
 */
 
 #define ENSURECLNUP_PRESENT
-	// So that outter headers knows this header has been included.
-	// Outter headers check this macro and offer to define MakeCleanupPtrClass(...) for user.
+	// So that outer headers knows this header has been included.
+	// Outer headers check this macro and offer to define MakeCleanupPtrClass(...) for user.
 
 
 template<typename PTR_TYPE, typename RET_TYPE, RET_TYPE (*pfn)(PTR_TYPE)> 
 class CEnsureCleanupPtr
 {
-	PTR_TYPE m_t;           // The member representing the object
+	// The data member representing the object:
+	// Design requirement: The class can contain ONLY one single data member,
+	// that holds user's resource pointer/handle, so that, the memory layout
+	// of a CEnsureCleanupPtr object is exactly the SAME as user's raw data.
+
+	PTR_TYPE m_t;           
 
 public:
 	// Default constructor assumes an invalid value (nothing to cleanup)
@@ -96,7 +102,7 @@ public:
 
 // CHJ MEMO: CEnsureCleanupData's DATA_TYPE can be specialized to any type, 
 // including any pointer-type like void*, char*, MyClass* etc.
-// In other word, it can supercede CEnsureCleanupPtr, and it is really so for Visual C++ 98 and above.
+// In other word, it can supersede CEnsureCleanupPtr, and it is really so for Visual C++ 98 and above.
 // However, CEnsureCleanupPtr exists to cope with GCC(3.4~4.8~...)'s long existing stubborn stupid behavior of 
 //
 //		error: could not convert template argument '0' to 'void*'
@@ -150,7 +156,7 @@ public:
 
 
 
-//////// Now, CEnsureCleanupPtrArray and CEnsureCleanupIntArray
+//////// CEnsureCleanupPtrArray and CEnsureCleanupIntArray
 // If you have an array, in which every element should receive a cleanup operation, then use these two.
 
 template<typename USER_TYPE, typename RET_TYPE, RET_TYPE (*pfn)(USER_TYPE)> 
