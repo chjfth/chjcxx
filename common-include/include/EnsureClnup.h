@@ -279,18 +279,17 @@ inline void _EnsureClnup_cpp_delete_array(PTR_TYPE p){ delete[] p; }
 	MakeCleanupPtrClass(CecClassName, void, _EnsureClnup_cpp_delete_array<PTR_TYPE>, PTR_TYPE)
 */
 
-// Now define a class named Cec_NewMemory representing a void*-pointed memory block,
+// Now define a class named Cec_cxx_delete_pvoid representing a void*-pointed memory block,
 // that would be de-allocated by C++-delete.
 inline void _EnsureClnup_cpp_delete_pvoid(void *p){ delete (char*)p; }
-MakeCleanupPtrClass(Cec_NewMemory,  void, _EnsureClnup_cpp_delete_pvoid, void*)
-MakeCleanupPtrClass(Cec_cxx_delete, void, _EnsureClnup_cpp_delete_pvoid, void*)
+MakeCleanupPtrClass(Cec_cxx_delete_pvoid,  void, _EnsureClnup_cpp_delete_pvoid, void*)
+#define Cec_NewMemory Cec_cxx_delete_pvoid // preserve old name `Cec_NewMemory`
 	// 
 	// Usage example:
 	//
-	//	Cec_NewMemory cec_memblock = new unsigned char[1000];
-	//	memcpy(cec_memblock, src, 1000);
-	//
-	// [2025-01-23] Cec_cxx_delete is a better naming.
+	//	Cec_cxx_delete_pvoid cec_delete_mypod = new unsigned char[1000]; // or any POD object
+	//	memcpy(cec_delete_mypod, src, 1000);
+	//  ...
 
 
 // [2017-10-20]
