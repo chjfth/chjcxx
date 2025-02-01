@@ -157,7 +157,11 @@ public:
 
 
 //////// CEnsureCleanupPtrArray and CEnsureCleanupIntArray
+//
 // If you have an array, in which every element should receive a cleanup operation, then use these two.
+// For example, you have `HANDLE *arHandles = new HANDLE[n];` and each `arHandles[i]` stores
+// a HANDLE returned from CreateThread(), then you can have CEnsureCleanupPtrArray manage `arHandles`,
+// so that each `arHandles[i]` gets CloseHandle().
 
 template<typename USER_TYPE, typename RET_TYPE, RET_TYPE (*pfn)(USER_TYPE)> 
 class CEnsureCleanupPtrArray
@@ -169,11 +173,14 @@ public:
 	// Default constructor clears all pointer elements to invalid-value
 	CEnsureCleanupPtrArray(int ArraySize) : m_ArraySize(ArraySize) {
 		m_ar = new USER_TYPE[m_ArraySize];
-		for(int i=0; i<m_ArraySize; i++) m_ar[i] = NULL; 
+		for(int i=0; i<m_ArraySize; i++) 
+			m_ar[i] = NULL; 
 	}
 	
 	// The destructor performs the cleanup.
-	~CEnsureCleanupPtrArray() { Cleanup(); }
+	~CEnsureCleanupPtrArray() { 
+		Cleanup(); 
+	}
 	
 	// Helper methods to tell if the value represents a valid object or not..
 	bool IsValid(int idx) { return(m_ar[idx] != NULL); }
@@ -188,10 +195,11 @@ public:
 	}
 
 	void Cleanup() { 
-		for(int i=0; i<m_ArraySize; i++)
+		for(int i=0; i<m_ArraySize; i++) {
 			if (IsValid(i)) {
 				pfn(m_ar[i]);         // Cleanup the object.
 			}
+		}
 		delete m_ar;
 	}
 };
@@ -210,7 +218,9 @@ public:
 	}
 	
 	// The destructor performs the cleanup.
-	~CEnsureCleanupIntArray() { Cleanup(); }
+	~CEnsureCleanupIntArray() { 
+		Cleanup(); 
+	}
 	
 	// Helper methods to tell if the value represents a valid object or not..
 	int IsValid(int idx) { return(m_ar[idx] != valInvalid); }
@@ -225,30 +235,31 @@ public:
 	}
 
 	void Cleanup() { 
-		for(int i=0; i<m_ArraySize; i++)
+		for(int i=0; i<m_ArraySize; i++) {
 			if (IsValid(i)) {
 				pfn(m_ar[i]);         // Cleanup the object.
 			}
+		}
 		delete m_ar;
 	}
 };
 
 
 
-#define MakeCleanupPtrClass(CecClassName, RET_TYPE_of_CleanupFunction, pCleanupFunction, PTR_TYPE) \
+#define MakeDelega_CleanupPtr(CecClassName, RET_TYPE_of_CleanupFunction, pCleanupFunction, PTR_TYPE) \
 	typedef CEnsureCleanupPtr< PTR_TYPE, RET_TYPE_of_CleanupFunction, pCleanupFunction > CecClassName;
 	// Note: There should be a space between pCleanupfunction and the right angle bracket, because
 	// pCleanupFunction will later be replaced by _EnsureClnup_cpp_delete<PTR_TYPE> which would 
 	// otherwise result in a bogus >> operator .
 
-#define MakeCleanupClass(CecClassName, RET_TYPE_of_CleanupFunction, pCleanupFunction, DATA_TYPE, ValueInvalid) \
+#define MakeDelega_CleanupAny(CecClassName, RET_TYPE_of_CleanupFunction, pCleanupFunction, DATA_TYPE, ValueInvalid) \
 	typedef CEnsureCleanupData<DATA_TYPE, RET_TYPE_of_CleanupFunction, pCleanupFunction, ValueInvalid> CecClassName;
 
-#define MakeCleanupPtrClass_winapi(CecClassName, RetType, pCleanupFunction, PTR_TYPE) \
+#define MakeDelega_CleanupPtr_winapi(CecClassName, RetType, pCleanupFunction, PTR_TYPE) \
 	inline RetType pCleanupFunction ## _Ptr__plain(PTR_TYPE ptr){ return pCleanupFunction(ptr); } \
 	typedef CEnsureCleanupPtr< PTR_TYPE, RetType, pCleanupFunction ## _Ptr__plain > CecClassName;
 
-#define MakeCleanupClass_winapi(CecClassName, RetType, pCleanupFunction, DATA_TYPE, ValueInvalid) \
+#define MakeDelega_CleanupAny_winapi(CecClassName, RetType, pCleanupFunction, DATA_TYPE, ValueInvalid) \
 	inline RetType pCleanupFunction ## __plain(DATA_TYPE h){ return pCleanupFunction(h); } \
 	typedef CEnsureCleanupData<DATA_TYPE, RetType, pCleanupFunction ## __plain, ValueInvalid> CecClassName;
 	// MakeCleanupClass_winapi provide a non-__stdcall wrapper so that CEnsureCleanupData can be used smoothly.
@@ -279,23 +290,24 @@ inline void _EnsureClnup_cpp_delete_array(PTR_TYPE p){ delete[] p; }
 	MakeCleanupPtrClass(CecClassName, void, _EnsureClnup_cpp_delete_array<PTR_TYPE>, PTR_TYPE)
 */
 
-// Now define a class named Cec_cxx_delete_pvoid representing a void*-pointed memory block,
+// Now define a class named Cec_NewMemory representing a void*-pointed memory block,
 // that would be de-allocated by C++-delete.
 inline void _EnsureClnup_cpp_delete_pvoid(void *p){ delete (char*)p; }
-MakeCleanupPtrClass(Cec_cxx_delete_pvoid,  void, _EnsureClnup_cpp_delete_pvoid, void*)
-#define Cec_NewMemory Cec_cxx_delete_pvoid // preserve old name `Cec_NewMemory`
+MakeDelega_CleanupPtr(Cec_NewMemory,  void, _EnsureClnup_cpp_delete_pvoid, void*)
+MakeDelega_CleanupPtr(Cec_cxx_delete, void, _EnsureClnup_cpp_delete_pvoid, void*)
 	// 
 	// Usage example:
 	//
-	//	Cec_cxx_delete_pvoid cec_delete_mypod = new unsigned char[1000]; // or any POD object
-	//	memcpy(cec_delete_mypod, src, 1000);
-	//  ...
+	//	Cec_NewMemory cec_memblock = new unsigned char[1000];
+	//	memcpy(cec_memblock, src, 1000);
+	//
+	// [2025-01-23] Cec_cxx_delete is a better naming.
 
 
 // [2017-10-20]
 #define MakeDelega_CleanupCxxPtr_en(CMyClass, Classname_delete1, Classname_deleteN) \
 	inline void _cxx_delete_1_ ## CMyClass(CMyClass *pobj) { delete pobj; } \
-	inline void _cxx_delete_n_ ## CMyClass(CMyClass *arobj) { delete []arobj; } \
+	inline void _cxx_delete_n_ ## CMyClass(CMyClass *arobj) { delete[] arobj; } \
 	MakeCleanupPtrClass(Classname_delete1, void, _cxx_delete_1_ ## CMyClass, CMyClass*) \
 	MakeCleanupPtrClass(Classname_deleteN, void, _cxx_delete_n_ ## CMyClass, CMyClass*) \
 	// -- en: Explicit Naming of the two Cec class names
@@ -318,6 +330,15 @@ MakeCleanupPtrClass(Cec_cxx_delete_pvoid,  void, _EnsureClnup_cpp_delete_pvoid, 
 
 //// oldnames section >>>
 ////    =========== old names ===========  =========== new names ===========
+
+#define MakeCleanupPtrClass                MakeDelega_CleanupPtr
+
+#ifndef MakeCleanupClass // #if-check to avoid conflict with Jeffrey's old MakeCleanupClass
+#define MakeCleanupClass                   MakeDelega_CleanupAny
+#endif
+
+#define MakeCleanupPtrClass_winapi         MakeDelega_CleanupPtr_winapi
+#define MakeCleanupClass_winapi            MakeDelega_CleanupAny_winapi
 
 #define MakeCleanupCxxClass_en             MakeDelega_CleanupCxxPtr_en
 #define MakeCleanupCxxClass                MakeDelega_CleanupCxxPtr
