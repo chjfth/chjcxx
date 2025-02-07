@@ -35,7 +35,7 @@ Examples of use:
    // the buffer grows in increments of sizeof(TCHAR)
    CAutoBuf<TCHAR, sizeof(TCHAR)> buf; 
 
-   // Force the buffer to be 10 bytes big
+   // Force the buffer to be 10 TCHARs big
    buf = 10;
 */
 
@@ -105,7 +105,7 @@ protected:
 		Reconstruct(true);
 	}
 
-	// virtual // Chj: I don't think it needs virtual
+	// virtual? // Chj: I don't think it needs virtual
 	~CAutoBufBase() { 
 		Free();
 	}
@@ -154,7 +154,7 @@ public:
 public:
 	operator Type*()  { return Buffer(); }
 
-	unsigned int operator=(unsigned int uSize) { return CAutoBufBase::Size(uSize); }
+unsigned int operator=(unsigned int eleCount) { return CAutoBufBase::Size(eleCount); }
 
 	// unsigned short/int/long returns the m_CurEle value
 	operator unsigned short() { return Size(); }
@@ -224,13 +224,13 @@ void CAutoBufBase::Reconstruct(bool fFirstTime)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-CAutoBufBase::BufLen_t CAutoBufBase::Size(BufLen_t uSize) 
+CAutoBufBase::BufLen_t CAutoBufBase::Size(BufLen_t eleCount) 
 {
 	// Set buffer to desired number of m_nMult bytes.
-	if (uSize == 0) {
+	if (eleCount == 0) {
 		Reconstruct();
 	} else {
-		m_ReqEle = uSize;
+		m_ReqEle = eleCount;
 		AdjustBuffer();
 	}
 	return SizeMin();
@@ -276,7 +276,7 @@ void CAutoBufBase::AdjustBuffer()
 		else
 		{
 			// We nullify first bytes of the new space, so that, when this space is 
-			// used to store C string, user will see a NUL string.
+			// used to store C string, user will see a NUL-terminated string.
 			memset(newbuf, 0, (newsize<4 ? newsize : 4));
 		}
 
