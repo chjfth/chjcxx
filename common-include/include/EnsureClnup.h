@@ -351,23 +351,22 @@ using CleanupDelega = CEnsureCleanupPtr< T*, void, _cxx_delete_1<T> >;
 template<typename T>
 using CleanupArrayDelega = CEnsureCleanupPtr< T*, void, _cxx_delete_N<T> >;
 
-#else
+#endif
 
-// Old C++98 and prior, or VS2010
+// Workaround for old-date C++98 and prior, including VS2010
 
 template<typename T>
-struct CleanupDelega
+struct cleanupDelega // Staring 'c' letter in lowercase
 {
 	typedef CEnsureCleanupPtr< T*, void, _cxx_delete_1<T> > type;
 };
 
 template<typename T>
-struct CleanupArrayDelega
+struct cleanupArrayDelega  // Staring 'c' letter in lowercase
 {
 	typedef CEnsureCleanupPtr< T*, void, _cxx_delete_N<T> > type;
 };
 
-#endif
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -419,8 +418,8 @@ int main()
 	CleanupArrayDelega<CFoo>::type objs = new CFoo[2];
 
 	// Prior to C++11 (including VS2010):
-	CleanupDelega<CFoo>::type      obj1 = new CFoo;
-	CleanupArrayDelega<CFoo>::type objs = new CFoo[2];
+	cleanupDelega<CFoo>::type      obj1 = new CFoo;
+	cleanupArrayDelega<CFoo>::type objs = new CFoo[2];
 
 	return 0;
 }
