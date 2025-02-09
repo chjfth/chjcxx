@@ -1,10 +1,13 @@
-#ifndef __ENSURECLNUP_MSWIN_H
-#define __ENSURECLNUP_MSWIN_H
+#ifndef __EnsureClnup_mswin_h_20250209_
+#define __EnsureClnup_mswin_h_20250209_
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
 #include "EnsureClnup.h"
+
+
+MakeDelega_CleanupCxxPtrN(TCHAR, Cec_deleteTCHAR)
 
 
 MakeCleanupPtrClass_winapi(Cec_PTRHANDLE, BOOL, CloseHandle, HANDLE)

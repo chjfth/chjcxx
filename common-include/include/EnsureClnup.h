@@ -308,6 +308,12 @@ inline void _cxx_delete_N(T *arobj)
 //
 #define MakeDelega_CleanupCxxPtr(UserClass) MakeDelega_CleanupCxxPtr_en(UserClass, Cec_ ## UserClass, CecArray_ ## UserClass)
 //
+// If you want only one of `delete p` or `delete[] p`, then choose one of the two below:
+#define MakeDelega_CleanupCxxPtr1(UserClass, Classname_delete1) \
+	typedef CEnsureCleanupPtr< UserClass*, void, _cxx_delete_1<UserClass> > Classname_delete1;
+#define MakeDelega_CleanupCxxPtrN(UserClass, Classname_deleteN) \
+	typedef CEnsureCleanupPtr< UserClass*, void, _cxx_delete_N<UserClass> > Classname_deleteN;
+//
 // So, a statement on global statement
 //
 //	MakeDelega_CleanupCxxPtr(CFoo)
