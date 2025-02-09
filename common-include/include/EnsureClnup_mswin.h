@@ -7,7 +7,7 @@
 #include "EnsureClnup.h"
 
 
-MakeDelega_CleanupCxxPtrN(TCHAR, Cec_deleteTCHAR)
+MakeDelega_CleanupCxxPtrN(TCHAR, Cec_delete_TCHAR)
 
 
 MakeCleanupPtrClass_winapi(Cec_PTRHANDLE, BOOL, CloseHandle, HANDLE)
