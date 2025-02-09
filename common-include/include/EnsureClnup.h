@@ -1,5 +1,5 @@
-#ifndef __ENSURECLNUP_H_20250126
-#define __ENSURECLNUP_H_20250126
+#ifndef __EnsureClnup_h_20250209_
+#define __EnsureClnup_h_20250209_
 
 /* Jimm Chen from around 2010:
  The idea comes from Jeffrey Richter's CEnsureCleanup template class, 
@@ -275,54 +275,48 @@ public:
 
 /////////////////////////////////// C++ ///////////////////////////////////////
 
-/*
-template<typename PTR_TYPE> // 2017-10-20: deprecated. Use MakeCleanupCxxClass() instead.
-inline void _EnsureClnup_cpp_delete(PTR_TYPE p){ delete p; }
-//
-#define MakeCleanupPtrClass_delete(CecClassName, PTR_TYPE) \
-	MakeCleanupPtrClass(CecClassName, void, _EnsureClnup_cpp_delete<PTR_TYPE>, PTR_TYPE)
 
-
-template<typename PTR_TYPE> // 2017-10-20: deprecated. Use MakeCleanupCxxClass() instead.
-inline void _EnsureClnup_cpp_delete_array(PTR_TYPE p){ delete[] p; }
-//
-#define MakeCleanupPtrClass_delete_array(CecClassName, PTR_TYPE) \
-	MakeCleanupPtrClass(CecClassName, void, _EnsureClnup_cpp_delete_array<PTR_TYPE>, PTR_TYPE)
-*/
-
-// Now define a class named Cec_NewMemory representing a void*-pointed memory block,
+// Define a class named Cec_cxx_delete representing a void*-pointed memory block,
 // that would be de-allocated by C++-delete.
 inline void _EnsureClnup_cpp_delete_pvoid(void *p){ delete (char*)p; }
-MakeDelega_CleanupPtr(Cec_NewMemory,  void, _EnsureClnup_cpp_delete_pvoid, void*)
 MakeDelega_CleanupPtr(Cec_cxx_delete, void, _EnsureClnup_cpp_delete_pvoid, void*)
 	// 
 	// Usage example:
 	//
-	//	Cec_NewMemory cec_memblock = new unsigned char[1000];
+	//	Cec_cxx_delete cec_memblock = new unsigned char[1000];
 	//	memcpy(cec_memblock, src, 1000);
-	//
-	// [2025-01-23] Cec_cxx_delete is a better naming.
+
+
+template<typename T>
+inline void _cxx_delete_1(T *pobj)
+{
+	delete pobj;
+}
+
+template<typename T>
+inline void _cxx_delete_N(T *arobj)
+{
+	delete[] arobj;
+}
 
 
 // [2017-10-20]
-#define MakeDelega_CleanupCxxPtr_en(CMyClass, Classname_delete1, Classname_deleteN) \
-	inline void _cxx_delete_1_ ## CMyClass(CMyClass *pobj) { delete pobj; } \
-	inline void _cxx_delete_n_ ## CMyClass(CMyClass *arobj) { delete[] arobj; } \
-	MakeCleanupPtrClass(Classname_delete1, void, _cxx_delete_1_ ## CMyClass, CMyClass*) \
-	MakeCleanupPtrClass(Classname_deleteN, void, _cxx_delete_n_ ## CMyClass, CMyClass*) \
+#define MakeDelega_CleanupCxxPtr_en(UserClass, Classname_delete1, Classname_deleteN) \
+	typedef CEnsureCleanupPtr< UserClass*, void, _cxx_delete_1<UserClass> > Classname_delete1; \
+	typedef CEnsureCleanupPtr< UserClass*, void, _cxx_delete_N<UserClass> > Classname_deleteN; \
 	// -- en: Explicit Naming of the two Cec class names
 //
-#define MakeDelega_CleanupCxxPtr(CMyClass) MakeCleanupCxxClass_en(CMyClass, Cec_ ## CMyClass, CecArray_ ## CMyClass)
+#define MakeDelega_CleanupCxxPtr(UserClass) MakeDelega_CleanupCxxPtr_en(UserClass, Cec_ ## UserClass, CecArray_ ## UserClass)
 //
 // So, a statement on global statement
 //
-//	MakeCleanupCxxClass(Cfoobar)
+//	MakeDelega_CleanupCxxPtr(CFoo)
 //
 // enables these features in function scope:
 //
 // Writing:
-//		Cec_Cfoobar       pfoobar = new Cfoobar;
-//		CecArray_Cfoobar arfoobar = new Cfoobar[3];
+//		Cec_CFoo        pfoobar = new CFoo;
+//		CecArray_CFoo  arfoobar = new CFoo[3];
 // will automatically execute these destructions on leaving function scope:
 //		delete   pfoobar;
 //		delete[] arfoobar;
@@ -340,13 +334,40 @@ MakeDelega_CleanupPtr(Cec_cxx_delete, void, _EnsureClnup_cpp_delete_pvoid, void*
 #define MakeCleanupPtrClass_winapi         MakeDelega_CleanupPtr_winapi
 #define MakeCleanupClass_winapi            MakeDelega_CleanupAny_winapi
 
-#define MakeCleanupCxxClass_en             MakeDelega_CleanupCxxPtr_en
-#define MakeCleanupCxxClass                MakeDelega_CleanupCxxPtr
+#define Cec_NewMemory                      Cec_cxx_delete
 
 //// oldnames section <<<
 
 
+// [2025-02-09] Modern C++ style to apply `delete` 
 
+#if __cplusplus >= 201103L || _MSC_VER >= 1800 // 1800 is VS2013
+
+// C++11 or later, we have `using` keyword
+
+template<typename T>
+using CleanupDelega = CEnsureCleanupPtr< T*, void, _cxx_delete_1<T> >;
+
+template<typename T>
+using CleanupArrayDelega = CEnsureCleanupPtr< T*, void, _cxx_delete_N<T> >;
+
+#else
+
+// Old C++98 and prior, or VS2010
+
+template<typename T>
+struct CleanupDelega
+{
+	typedef CEnsureCleanupPtr< T*, void, _cxx_delete_1<T> > type;
+};
+
+template<typename T>
+struct CleanupArrayDelega
+{
+	typedef CEnsureCleanupPtr< T*, void, _cxx_delete_N<T> > type;
+};
+
+#endif
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -376,8 +397,9 @@ MakeCleanupPtrClass(Cec_pUchar, void, free_unsigned_char_ptr, unsigned char *)
 	// allocated by ` void* malloc(size_t); ' . For the sake of function pointer
 	// type matching, you have to define a wrapper function for free() .
 
-class MyClass { ... };
-MakeCleanupPtrClass_delete(Cec_MyClass, MyClass*)
+class CFoo { ... };
+MakeDelega_CleanupCxxPtr(CFoo) // equivalent to:
+MakeDelega_CleanupCxxPtr_en(CMyClass, Cec_MyFoo, CecArray_MyFoo)
 
 
 int main()
@@ -387,6 +409,18 @@ int main()
 	Cec_pVoid pv = malloc(100);
 
 	Cec_pUchar puc = (unsigned char*)malloc(200);
+
+	// [2025-02-09]
+	// For C++11 or newer:
+	CleanupDelega<CFoo> obj1 = new CFoo;
+	CleanupArrayDelega<CFoo> objs = new CFoo[2];
+
+	CleanupDelega<CFoo>::type      obj1 = new CFoo;
+	CleanupArrayDelega<CFoo>::type objs = new CFoo[2];
+
+	// Prior to C++11 (including VS2010):
+	CleanupDelega<CFoo>::type      obj1 = new CFoo;
+	CleanupArrayDelega<CFoo>::type objs = new CFoo[2];
 
 	return 0;
 }
