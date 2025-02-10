@@ -12,8 +12,10 @@ Updates by Jimm Chen:
 [2017-06-18] Now we can anchor a control with any proportion(pct 0~100).
 [2022-11-07] Add JULayout::PropSheetProc() to support dialog-box inside property-sheet.
 [2024-12-07] Cope with Groupbox background painting issue. Works OK now.
+	Note: To have groupbox painted correctly, you must add groupbox to AnchorControl(),
+	      even if the groupbox does not need to change size.
 
-Chj Note: To use this lib, pick one and only one of your xxx.cpp, write at its start:
+[Usage] To use this lib, pick one and only one of your xxx.cpp, write at its start:
 	
 	#define JULAYOUT_IMPL
 	#include "JULayout2.h"
