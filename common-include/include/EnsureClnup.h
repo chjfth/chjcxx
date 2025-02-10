@@ -14,7 +14,7 @@
 
 #define ENSURECLNUP_PRESENT
 	// So that outer headers knows this header has been included.
-	// Outer headers check this macro and offer to define MakeCleanupPtrClass(...) for user.
+	// Outer headers check this macro and offer to define MakeCleanupPtrClass(...) etc for user.
 
 
 template<typename PTR_TYPE, typename RET_TYPE, RET_TYPE (*pfn)(PTR_TYPE)> 
@@ -332,6 +332,7 @@ inline void _cxx_delete_N(T *arobj)
 ////    =========== old names ===========  =========== new names ===========
 
 #define MakeCleanupPtrClass                MakeDelega_CleanupPtr
+#define MakeCleanupCxxClass                MakeDelega_CleanupCxxPtr
 
 #ifndef MakeCleanupClass // #if-check to avoid conflict with Jeffrey's old MakeCleanupClass
 #define MakeCleanupClass                   MakeDelega_CleanupAny
@@ -341,6 +342,7 @@ inline void _cxx_delete_N(T *arobj)
 #define MakeCleanupClass_winapi            MakeDelega_CleanupAny_winapi
 
 #define Cec_NewMemory                      Cec_cxx_delete
+
 
 //// oldnames section <<<
 
