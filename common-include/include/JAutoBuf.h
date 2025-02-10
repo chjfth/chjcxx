@@ -1,56 +1,59 @@
-#ifndef __AutoBuf_h_20160910_
-#define __AutoBuf_h_20160910_
+#ifndef __JAutoBuf_h_20160910_
+#define __JAutoBuf_h_20160910_
 /******************************************************************************
-Module:  AutoBuf.h
+Module:  JAutoBuf.h
 Notices: Copyright (c) 2000 Jeffrey Richter
 Purpose: This class manages an auto-sizing data buffer.
-         See Appendix B.
-Update:
+Origin:  [PSSA2000] book Appendix B.
+
+Updates:
 	* Chj uses new/delete to allocate/free memory-buffer.
 
 Chj Note:
 	* (TO DEL)This code cannot work on systems that sizeof(int)!=sizeof(long), 64-bit Linux for example.
 
-	
 ******************************************************************************/
 
-//#include "..\CmnHdr.h"              // See Appendix A.
+/////////////////// JAutoBuf Template C++ Class Description ///////////////////
 
+/*  ==== Usage ====
 
-/////////////////// CAutoBuf Template C++ Class Description ///////////////////
-
-/*
-The CAutoBuf template C++ class implements type safe buffers that
+The JAutoBuf template C++ class implements type safe buffers that
 automatically grow to meet the needs of your code.  Memory is also
 automatically freed when the object is destroyed (typically when your
-code goes out of frame and it is popped off of the stack).
+code goes out of scope and it is popped off of the stack).
 
 Examples of use:
 
    // Create a buffer with no explicit data type, 
    // the buffer grown in increments of a byte
-   CAutoBuf<void> buf;
+   JAutoBuf<void> buf;
 
    // Create a buffer of TCHARs, 
    // the buffer grows in increments of sizeof(TCHAR)
-   CAutoBuf<TCHAR, sizeof(TCHAR)> buf; 
+   JAutoBuf<TCHAR, sizeof(TCHAR)> buf; 
 
    // Force the buffer to be 10 TCHARs big
    buf = 10;
+
+Note: To use this lib, pick one and only one of your xxx.cpp, write at its start:
+
+#define AUTOBUF_IMPL
+#include "JAutoBuf.h"
+
 */
 
 
 ///////////////////////////////////////////////////////////////////////////////
 
 
-// This class is only ever used as a base class of the CAutoBuf template class.
+// This class is only ever used as a base class of the JAutoBuf template class.
 // The base class exists so that all instances of the template class share
 // a single instance of the common code.
-class CAutoBufBase 
+class JAutoBufBase 
 {
 public:
 	typedef unsigned long BufLen_t; // in eles. 
-		// I choose the widest among short, int, long, considering 64-bit long is 8 bytes.
 
 	BufLen_t SizeMin()
 	{
@@ -62,8 +65,9 @@ public:
 
 	BufLen_t Size() 
 	{ 
-		// AutoBuf user calls Size() to get a value to tell WinAPI his "current" buffer size
-		// (in eles). 
+		// AutoBuf user calls Size() to get a value to tell WinAPI his 
+		// "current" buffer size (in eles). 
+		//
 		// If current m_ReqEle>m_CurEle, Size() will try to increase buffer to m_ReqEle.
 		// * If increase success, m_CurEle gets updated to be equal to m_ReqEle.
 		// * If increase fail, m_CurEle remains intact.
@@ -95,7 +99,7 @@ public:
 	typedef unsigned char *PBYTE_t;
 
 protected:
-	CAutoBufBase(PBYTE_t *ppbData, int nMult, int ExtraEle)
+	JAutoBufBase(PBYTE_t *ppbData, int nMult, int ExtraEle)
 	{
 		m_nMult = nMult;
 		m_ppbBuffer = ppbData; 
@@ -106,7 +110,7 @@ protected:
 	}
 
 	// virtual? // Chj: I don't think it needs virtual
-	~CAutoBufBase() { 
+	~JAutoBufBase() { 
 		Free();
 	}
 
@@ -137,24 +141,24 @@ private:
 
 
 template <class Type, int Mult=1, int Extra=0> 
-class CAutoBuf : public CAutoBufBase 
+class JAutoBuf : public JAutoBufBase 
 {
 public:
-	CAutoBuf() : CAutoBufBase((PBYTE_t*) &m_pData, Mult, Extra) {}
+	JAutoBuf() : JAutoBufBase((PBYTE_t*) &m_pData, Mult, Extra) {}
 
-	CAutoBuf(int init_size) : CAutoBufBase((PBYTE_t*) &m_pData, Mult, Extra) 
+	JAutoBuf(int init_size) : JAutoBufBase((PBYTE_t*) &m_pData, Mult, Extra) 
 	{
 		Size(init_size);
 	}
 	
-	//	void Free() { CAutoBufBase::Free(); } // Chj comments it.
+	//	void Free() { JAutoBufBase::Free(); } // Chj comments it.
 
 	void *Bufptr() { return m_pData; }
 
 public:
 	operator Type*()  { return Buffer(); }
 
-unsigned int operator=(unsigned int eleCount) { return CAutoBufBase::Size(eleCount); }
+unsigned int operator=(unsigned int eleCount) { return JAutoBufBase::Size(eleCount); }
 
 	// unsigned short/int/long returns the m_CurEle value
 	operator unsigned short() { return Size(); }
@@ -179,7 +183,7 @@ unsigned int operator=(unsigned int eleCount) { return CAutoBufBase::Size(eleCou
 
 	Type* Buffer() 
 	{ 
-		return (Type*)CAutoBufBase::Buffer(); // buffer size adjusted(verified).
+		return (Type*)JAutoBufBase::Buffer(); // buffer size adjusted(verified).
 	}
 
 private:
@@ -207,7 +211,7 @@ private:
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void CAutoBufBase::Reconstruct(bool fFirstTime) 
+void JAutoBufBase::Reconstruct(bool fFirstTime) 
 {
 	if (!fFirstTime) 
 	{
@@ -224,7 +228,7 @@ void CAutoBufBase::Reconstruct(bool fFirstTime)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-CAutoBufBase::BufLen_t CAutoBufBase::Size(BufLen_t eleCount) 
+JAutoBufBase::BufLen_t JAutoBufBase::Size(BufLen_t eleCount) 
 {
 	// Set buffer to desired number of m_nMult bytes.
 	if (eleCount == 0) {
@@ -238,7 +242,7 @@ CAutoBufBase::BufLen_t CAutoBufBase::Size(BufLen_t eleCount)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void CAutoBufBase::AdjustBuffer()
+void JAutoBufBase::AdjustBuffer()
 {
 	if (m_CurEle < m_ReqEle) 
 	{
@@ -293,10 +297,16 @@ void CAutoBufBase::AdjustBuffer()
 
 
 
-typedef CAutoBuf<wchar_t, sizeof(wchar_t), 1> CWstring_autobuf;
-typedef CAutoBuf<char, sizeof(char), 1> CAstring_autobuf;
-typedef CAutoBuf<unsigned char> Cautobuf; // to store byte stream
-//typedef CAutoBuf<void> CBuf_autobuf
+typedef JAutoBuf<wchar_t, sizeof(wchar_t), 1> CWstring_autobuf;
+typedef JAutoBuf<char, sizeof(char), 1> CAstring_autobuf;
+typedef JAutoBuf<unsigned char> Jautobuf; // to store byte stream
+
+typedef JAutoBuf<void> CBuf_autobuf; // compiles OK on VC2010, but shall we use it?
+
+// Suggestion on Windows for TCHAR buffer:
+// typedef JAutoBuf<TCHAR, sizeof(TCHAR), 1> AutoTCHARs;
+
+
 
 template<typename TAutobuf>
 bool abIsEmptyString(TAutobuf &ab)
