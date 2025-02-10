@@ -26,6 +26,11 @@ MakeCleanupPtrClass_winapi(Cec_DestroyMenu, BOOL, DestroyMenu, HMENU)
 MakeCleanupPtrClass_winapi(Cec_DestroyIcon, BOOL, DestroyIcon, HICON)
 	// for CreateIconIndirect, CopyIcon, SHGetStockIconInfo 
 
+MakeCleanupPtrClass_winapi(Cec_LocalFree, HLOCAL, LocalFree, HLOCAL)
+	// for ConvertSidToStringSid
+
+MakeCleanupPtrClass_winapi(Cec_FreeSid, PVOID, FreeSid, PSID)
+	// for AllocateAndInitializeSid
 
 // SetupDi... functions:
 
