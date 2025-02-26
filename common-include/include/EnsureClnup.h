@@ -89,11 +89,14 @@ public:
 		// automatically returning `m_t' so that `m_t[idx]' comes to the scene.
 
 	// Cleanup the object if the value represents a valid object
-	void Cleanup() 
+	// [2025-02-26] User can pass 'false' to abandon the resource.
+	void Cleanup(bool is_close_resource=true) 
 	{ 
 		if (IsValid()) 
 		{
-			pfn(m_t);         // Cleanup the object.
+			if(is_close_resource)
+				pfn(m_t); // Cleanup the object.
+			
 			m_t = NULL;   // We no longer represent a valid object.
 		}
 	}
@@ -143,11 +146,14 @@ public:
 	}
 
 	// Cleanup the object if the value represents a valid object
-	void Cleanup() 
+	// [2025-02-26] User can pass 'false' to abandon the resource.
+	void Cleanup(bool is_close_resource=true) 
 	{ 
 		if (IsValid()) 
 		{
-			pfn(m_t);         // Cleanup the object.
+			if(is_close_resource)
+				pfn(m_t);     // Cleanup the object.
+
 			m_t = tInvalid;   // We no longer represent a valid object.
 		}
 	}
