@@ -1,5 +1,5 @@
-#ifndef __EnsureClnup_h_20250209_
-#define __EnsureClnup_h_20250209_
+#ifndef __EnsureClnup_h_20250227_
+#define __EnsureClnup_h_20250227_
 
 /* Jimm Chen from around 2010:
  The idea comes from Jeffrey Richter's CEnsureCleanup template class, 
@@ -262,12 +262,12 @@ public:
 	typedef CEnsureCleanupData<DATA_TYPE, RET_TYPE_of_CleanupFunction, pCleanupFunction, ValueInvalid> CecClassName;
 
 #define MakeDelega_CleanupPtr_winapi(CecClassName, RetType, pCleanupFunction, PTR_TYPE) \
-	inline RetType pCleanupFunction ## _Ptr__plain(PTR_TYPE ptr){ return pCleanupFunction(ptr); } \
-	typedef CEnsureCleanupPtr< PTR_TYPE, RetType, pCleanupFunction ## _Ptr__plain > CecClassName;
+	inline RetType CecClassName ## pCleanupFunction ## _Ptr__plain(PTR_TYPE ptr){ return pCleanupFunction(ptr); } \
+	typedef CEnsureCleanupPtr< PTR_TYPE, RetType, CecClassName ## pCleanupFunction ## _Ptr__plain > CecClassName;
 
 #define MakeDelega_CleanupAny_winapi(CecClassName, RetType, pCleanupFunction, DATA_TYPE, ValueInvalid) \
-	inline RetType pCleanupFunction ## __plain(DATA_TYPE h){ return pCleanupFunction(h); } \
-	typedef CEnsureCleanupData<DATA_TYPE, RetType, pCleanupFunction ## __plain, ValueInvalid> CecClassName;
+	inline RetType CecClassName ## pCleanupFunction ## __plain(DATA_TYPE h){ return pCleanupFunction(h); } \
+	typedef CEnsureCleanupData<DATA_TYPE, RetType, CecClassName ## pCleanupFunction ## __plain, ValueInvalid> CecClassName;
 	// MakeCleanupClass_winapi provide a non-__stdcall wrapper so that CEnsureCleanupData can be used smoothly.
 
 
