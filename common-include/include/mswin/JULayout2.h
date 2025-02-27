@@ -575,18 +575,18 @@ bool JULayout::AnchorControl(int x1Anco, int y1Anco, int x2Anco, int y2Anco, int
 
 bool JULayout::AnchorControls(int x1Anco, int y1Anco, int x2Anco, int y2Anco, ...) 
 {
-	bool fOk = true;
+	bool AllOk = true;
 
 	va_list arglist;
 	va_start(arglist, y2Anco);
 	int nID = va_arg(arglist, int);
-	while (fOk && (nID != -1)) 
+	while (nID != -1)
 	{
-		fOk = fOk && AnchorControl(x1Anco, y1Anco, x2Anco, y2Anco, nID);
+		AllOk = AnchorControl(x1Anco, y1Anco, x2Anco, y2Anco, nID) && AllOk;
 		nID = va_arg(arglist, int);
 	}           
 	va_end(arglist);
-	return(fOk);
+	return(AllOk);
 }
 
 bool JULayout::AdjustControls(int cx, int cy) 
