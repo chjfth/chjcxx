@@ -1,5 +1,5 @@
-#ifndef __JAutoBuf_h_20160910_
-#define __JAutoBuf_h_20160910_
+#ifndef __JAutoBuf_h_20250227_
+#define __JAutoBuf_h_20250227_
 /******************************************************************************
 Module:  JAutoBuf.h
 Notices: Copyright (c) 2000 Jeffrey Richter
@@ -205,7 +205,7 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 
 
-#ifdef AUTOBUF_IMPL // only one .cpp should define this (defined in khelper.h)
+#ifdef JAUTOBUF_IMPL // only one .cpp should define this to get the implementation code
 
 #include <assert.h>
 
@@ -293,7 +293,7 @@ void JAutoBufBase::AdjustBuffer()
 ///////////////////////////////////////////////////////////////////////////////
 
 
-#endif   // AUTOBUF_IMPL
+#endif   // JAUTOBUF_IMPL
 
 
 
@@ -318,5 +318,4 @@ bool abIsEmptyString(TAutobuf &ab)
 }
 
 
-#endif // __AutoBuf_h_20160910_
-///////////////////////////////// End of File /////////////////////////////////
+#endif // include once guard
