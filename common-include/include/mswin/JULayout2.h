@@ -1,5 +1,5 @@
-#ifndef __JULayout2_h_20241207_
-#define __JULayout2_h_20241207_
+#ifndef __JULayout2_h_20250228_
+#define __JULayout2_h_20250228_
 
 /******************************************************************************
 Original: UILayout.h
@@ -14,6 +14,8 @@ Updates by Jimm Chen:
 [2024-12-07] Cope with Groupbox background painting issue. Works OK now.
 	Note: To have groupbox painted correctly, you must add groupbox to AnchorControl(),
 	      even if the groupbox does not need to change size.
+[2025-02-28] An important fix: If groupbox1 has a nested groupbox2, now groupbox2's
+    background is painted correctly.
 
 [Usage] To use this lib, pick one and only one of your xxx.cpp, write at its start:
 	
@@ -703,7 +705,7 @@ JULayout::GroupboxWndProc(HWND hwndGroupbox, UINT msg, WPARAM wParam, LPARAM lPa
 		if(!hwndSib)
 			break;
 		
-		if(hwndSib!=hwndGroupbox) // only if not groupbox itself
+		if(!IsGroupBox(hwndSib)) // only if not a groupbox(hwndGroupbox itself or another sibling groupbox)
 		{
 			RECT rcScrn = {};
 			GetWindowRect(hwndSib, &rcScrn); // we need its width & height
