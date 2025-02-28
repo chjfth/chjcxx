@@ -527,18 +527,18 @@ JULayout::PrshtWndProc(HWND hwndPrsht, UINT msg, WPARAM wParam, LPARAM lParam)
 ///////////////////////////////////////////////////////////////////////////////
 
 
-bool JULayout::AnchorControl(int x1Anco, int y1Anco, int x2Anco, int y2Anco, int nID) 
+bool JULayout::AnchorControl(int x1Anco, int y1Anco, int x2Anco, int y2Anco, int nCtrlID) 
 {
 	if(m_nNumControls>=JULAYOUT_MAX_CONTROLS)
 		return false;
 
-	HWND hwndControl = GetDlgItem(m_hwndParent, nID);
+	HWND hwndControl = GetDlgItem(m_hwndParent, nCtrlID);
 	if(hwndControl == NULL) 
 		return false;
 	
 	CtrlInfo_st &cinfo = m_CtrlInfo[m_nNumControls];
 
-	cinfo.m_nID = nID;
+	cinfo.m_nID = nCtrlID;
 
 	cinfo.pt1x.Anco = x1Anco; cinfo.pt1y.Anco = y1Anco;
 	cinfo.pt2x.Anco = x2Anco; cinfo.pt2y.Anco = y2Anco; 
