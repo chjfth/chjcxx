@@ -1,5 +1,5 @@
-#ifndef __JULayout2_h_20250228_
-#define __JULayout2_h_20250228_
+#ifndef __JULayout2_h_20250301_
+#define __JULayout2_h_20250301_
 
 /******************************************************************************
 Original: UILayout.h
@@ -8,15 +8,17 @@ Purpose: This class manages child window positioning and sizing when a parent
          window is resized.
          See Appendix B of his book PSSA2000.
 
-Updates by Jimm Chen:
-[2017-06-18] Now we can anchor a control with any proportion(pct 0~100).
-[2022-xx-xx] For AnchorControl() function, remove the puzzling fRedraw parameter.
-[2022-11-07] Add JULayout::PropSheetProc() to support dialog-box inside property-sheet.
-[2024-12-07] Cope with Groupbox background painting issue. Works OK now.
-	Note: To have groupbox painted correctly, you must add groupbox to AnchorControl(),
-	      even if the groupbox does not need to change size.
-[2025-02-28] An important fix: If groupbox1 has a nested groupbox2, now groupbox2's
-    background is painted correctly.
+Updates by Jimm Chen (as of 2025-03-01):
+1. Simplified user API:
+ * User no longer need to define a global CUILayout object. 
+   User just creates a dynamic JULayout object by calling EnableJULayout(some_hdlg) 
+   and its lifetime is managed with some_hdlg automatically.
+ * User no longer need to supply callback function for WM_SIZE and WM_GETMINMAXINFO.
+ * For AnchorControl(), user no longer need to pass a fRedraw parameter, bcz
+   fRedraw=TRUE is solely used on groupbox(due to its hollow trait). JULayout internally
+   consider groupbox fRedraw=TRUE.
+2. New feature: AnchorControl() support any [anchor-proportion, offset] paring value.
+3. New feature: Add JULayout::PropSheetProc() to support dialog-box inside property-sheet.
 
 [Usage] To use this lib, pick one and only one of your xxx.cpp, write at its start:
 	
@@ -134,8 +136,6 @@ private:
 	static LRESULT CALLBACK PrshtWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 	static bool IsGroupBox(HWND hwnd);
-	static void SubClassTheGroupbox(HWND hwndGroupbox);
-	static LRESULT CALLBACK GroupboxWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 private:    
 	CtrlInfo_st m_CtrlInfo[JULAYOUT_MAX_CONTROLS]; // Max controls allowed in a dialog template
@@ -165,7 +165,6 @@ private:
 #define JULAYOUT_STR          _T("JULayout")
 #define JULAYOUT_PRSHT_STR    _T("JULayout.Prsht")
 #define JULAYOUT_PRSHT2_STR   _T("JULayout.Prsht2")
-#define JULAYOUT_GROUPBOX_STR _T("JULayout.GroupBox")
 // -- Will use these strings to call SetProp()/GetProp(),
 //    to associate JULayout object with an HWND.
 
@@ -217,10 +216,6 @@ bool JULayout::Initialize(HWND hwndParent,
 	else
 		m_ptMaxParentDims.y = nMaxHeight;
 	
-	// Force WS_CLIPCHILDEN on hwndParent(the dlgbox) to reduce repaint flickering.
-	UINT ostyle = GetWindowStyle(hwndParent);
-	SetWindowLong(hwndParent, GWL_STYLE, ostyle | WS_CLIPCHILDREN);
-
 	return true;
 }
 
@@ -565,14 +560,6 @@ bool JULayout::AnchorControl(int x1Anco, int y1Anco, int x2Anco, int y2Anco, int
 
 	m_nNumControls++;
 
-	// Need special processing for GroupBox
-
-	bool isGroupbox = IsGroupBox(hwndControl);
-	if(isGroupbox)
-	{
-		SubClassTheGroupbox(hwndControl);
-	}
-
 	return true;
 }
 
@@ -594,46 +581,88 @@ bool JULayout::AnchorControls(int x1Anco, int y1Anco, int x2Anco, int y2Anco, ..
 
 bool JULayout::AdjustControls(int cx, int cy) 
 {
-	int i;
-	HDWP hdwp = ::BeginDeferWindowPos(m_nNumControls);
+	//// Applying Jeffrey's original logic, that is great. ////
 
-	for(i=0; i<m_nNumControls; i++) 
+	// Create region consisting of all (old)areas occupied by controls.
+
+	HRGN hrgnPaintBg = CreateRectRgn(0, 0, 0, 0); // Bg: background
+	int i;
+	for(i=0; i<m_nNumControls; i++)
+	{
+		HWND hwndUic = GetDlgItem(m_hwndParent, m_CtrlInfo[i].m_nID);
+		RECT rcUic = {};
+		GetWindowRect(hwndUic, &rcUic); // screen-coord of Uic
+
+		// Convert screen-coord to parent-relative-coord (note: both input/output are client-area-coord)
+		MapWindowPoints(HWND_DESKTOP, m_hwndParent, (POINT*)&rcUic, 2);
+
+		HRGN hrgnUic = CreateRectRgnIndirect(&rcUic);
+		CombineRgn(hrgnPaintBg, hrgnPaintBg, hrgnUic, RGN_OR);
+		DeleteObject(hrgnUic);
+	}
+
+	// Iterate through each Uic's new position ...
+
+	for(i=0; i<m_nNumControls; i++)
 	{
 		CtrlInfo_st &cinfo = m_CtrlInfo[i];
 
 		// Get control's upper/left position w/respect to parent's width/height
-		RECT rcControl = {};
-		PixelFromAnchorPoint(cx, cy, cinfo.pt1x.Anco, cinfo.pt1y.Anco, (PPOINT)&rcControl);
-		rcControl.left += cinfo.pt1x.Offset; 
-		rcControl.top  += cinfo.pt1y.Offset; 
+		RECT rcUic = {};
+		PixelFromAnchorPoint(cx, cy, cinfo.pt1x.Anco, cinfo.pt1y.Anco, (PPOINT)&rcUic);
+		rcUic.left += cinfo.pt1x.Offset; 
+		rcUic.top  += cinfo.pt1y.Offset; 
 
 		// Get control's lower/right position w/respect to parent's width/height
-		PixelFromAnchorPoint(cx, cy, cinfo.pt2x.Anco, cinfo.pt2y.Anco, (PPOINT)&rcControl.right);
-		rcControl.right  += cinfo.pt2x.Offset;
-		rcControl.bottom += cinfo.pt2y.Offset;
+		PixelFromAnchorPoint(cx, cy, cinfo.pt2x.Anco, cinfo.pt2y.Anco, (PPOINT)&rcUic.right);
+		rcUic.right  += cinfo.pt2x.Offset;
+		rcUic.bottom += cinfo.pt2y.Offset;
 
 		// Position/size the control
-		HWND hwndControl = GetDlgItem(m_hwndParent, cinfo.m_nID);
+		HWND hwndUic = GetDlgItem(m_hwndParent, cinfo.m_nID);
 
-		DeferWindowPos(hdwp, hwndControl,
-			NULL, // no use bcz of SWP_NOZORDER
-			rcControl.left, 
-			rcControl.top, 
-			rcControl.right - rcControl.left, 
-			rcControl.bottom - rcControl.top, 
-			SWP_NOZORDER);		
-
-#ifdef JULAYOUT_DEBUG_INFO
-		vaDbgTs(_T("JUL: HWND 0x%08X LT[%d,%d],RB[%d,%d] => LT[%d,%d],RB[%d,%d]"),
-			hwndControl,
-			cinfo.rectnow.left, cinfo.rectnow.top, cinfo.rectnow.right, cinfo.rectnow.bottom,
-			rcControl.left, rcControl.top, rcControl.right, rcControl.bottom
+		MoveWindow(hwndUic, rcUic.left, rcUic.top, 
+			rcUic.right - rcUic.left, rcUic.bottom - rcUic.top,
+			FALSE // FALSE: Don't repaint immediately
 			);
-#endif
-		cinfo.rectnow = rcControl;
+
+		if(IsGroupBox(hwndUic))
+		{
+			// Special processing for groupbox, bcz it is a *hollow* Uic.
+
+			InvalidateRect(hwndUic, NULL, 
+				FALSE // no need to erase bkgnd, bcz hrgnPaintBg will do it right now.
+				);
+			
+			// Do not call UpdateWindow(hwndUic) here, so its WM_PAINT persists until 
+			// after AdjustControls() calls FillRgn(hdc, hrgnPaintBg, hbrBg).
+		}
+		else
+		{
+			// Exclude Uic's new position from hrgnPaintBg
+			HRGN hrgnUicNew = CreateRectRgnIndirect(&rcUic);
+			CombineRgn(hrgnPaintBg, hrgnPaintBg, hrgnUicNew, RGN_DIFF);
+			DeleteObject(hrgnUicNew);
+
+			// Make the Uic repaint itself.
+			InvalidateRect(hwndUic, NULL, 
+				TRUE // this Uic should repaint bkgnd by himself
+				); 
+			SendMessage(hwndUic, WM_NCPAINT, 1, 0); // 1: entire window frame needs to be updated.
+			UpdateWindow(hwndUic); // tell this Uic repaint immediately
+		}
 	}
+
+	// Paint the newly exposed portion of the dialog box's client area
+	HDC hdc = GetDC(m_hwndParent);
+	HBRUSH hbrBg = CreateSolidBrush(GetSysColor(COLOR_3DFACE)); // =COLOR_BTNFACE
+	FillRgn(hdc, hrgnPaintBg, hbrBg); 
+	// -- Uic's new positions by passed, so no flickering for most Uics.
+	// The exception is groupbox, whose bkgnd is totally repainted so flickering exists.
 	
-	::EndDeferWindowPos(hdwp);
+	DeleteObject(hbrBg);
+	ReleaseDC(m_hwndParent, hdc);
+	DeleteObject(hrgnPaintBg);
 
 	return true;
 }
@@ -652,24 +681,11 @@ bool JULayout::IsGroupBox(HWND hwnd)
 	return false;
 }
 
-void JULayout::SubClassTheGroupbox(HWND hwndGroupbox)
+
+inline POINT GetOffset_from_child1_to_child2(HWND hwnd1, HWND hwnd2)
 {
-	WNDPROC prevWndproc = SubclassWindow(hwndGroupbox, GroupboxWndProc);
-	assert(prevWndproc);
+	// Was used by JULayout::GroupboxWndProc(), not used since 20250301.
 
-	if(prevWndproc==GroupboxWndProc)
-	{
-		// BAD: should not anchor twice on the same Uic
-		assert(prevWndproc != GroupboxWndProc);
-		return;
-	}
-
-	BOOL succ = SetProp(hwndGroupbox, JULAYOUT_GROUPBOX_STR, (HANDLE)prevWndproc);
-	assert(succ);
-}
-
-static POINT GetOffset_from_child1_to_child2(HWND hwnd1, HWND hwnd2)
-{
 	RECT rc1 = {}, rc2 = {};
 	GetWindowRect(hwnd1, &rc1);
 	GetWindowRect(hwnd2, &rc2);
@@ -678,74 +694,6 @@ static POINT GetOffset_from_child1_to_child2(HWND hwnd1, HWND hwnd2)
 	return ofs;
 }
 
-LRESULT CALLBACK 
-JULayout::GroupboxWndProc(HWND hwndGroupbox, UINT msg, WPARAM wParam, LPARAM lParam)
-{
-	WNDPROC prevWndproc = (WNDPROC)GetProp(hwndGroupbox, JULAYOUT_GROUPBOX_STR);
-
-	if(msg!=WM_ERASEBKGND)
-	{
-		return CallWindowProc(prevWndproc, hwndGroupbox, msg, wParam, lParam);
-	}
-
-	// We only care for WM_ERASEBKGND. We paint the background for the groupbox.
-	// To avoid/minimize flickering other Uic's face, we need to exclude
-	// all sibling Uic from painting.
-
-	HDC hdc = (HDC)wParam;
-
-	RECT rccligb = {};
-	GetClientRect(hwndGroupbox, &rccligb);
-
-	int excludes = 0;
-	HRGN hrgnClip = CreateRectRgn(0, 0, rccligb.right, rccligb.bottom) ; // init the whole groupbox
-
-	HWND hwndSib = GetFirstSibling(hwndGroupbox);
-	for(;;)
-	{
-		if(!hwndSib)
-			break;
-		
-		if(!IsGroupBox(hwndSib)) // only if not a groupbox(hwndGroupbox itself or another sibling groupbox)
-		{
-			RECT rcScrn = {};
-			GetWindowRect(hwndSib, &rcScrn); // we need its width & height
-
-			POINT ofs = GetOffset_from_child1_to_child2(hwndGroupbox, hwndSib);
-			RECT rcSib = {}; // will be relative to hwndGroupbox
-			rcSib.left = ofs.x;
-			rcSib.top = ofs.y;
-			rcSib.right = rcSib.left + (rcScrn.right-rcScrn.left);
-			rcSib.bottom = rcSib.top + (rcScrn.bottom-rcScrn.top);
-
-			HRGN hrgnSib = CreateRectRgn(rcSib.left, rcSib.top, rcSib.right, rcSib.bottom);
-		
-			int rgntype = CombineRgn(hrgnClip, hrgnClip, hrgnSib, RGN_DIFF);
-			(void)rgntype;
-
-			DeleteObject(hrgnSib);
-
-			excludes++;
-
-#ifdef JULAYOUT_DEBUG_INFO
-			vaDbgS(_T("JUL: Exclude sibling from groupbox bg-painting #%d, hwnd=0x%08X, LT[%d,%d],RB[%d,%d]."),
-				excludes, hwndSib, rcSib.left, rcSib.top, rcSib.right, rcSib.bottom);
-#endif
-		}
-
-		hwndSib = GetNextSibling(hwndSib);
-	}
-
-	SelectClipRgn(hdc, hrgnClip); // set new clip region
-
-	FillRect(hdc, &rccligb, GetSysColorBrush(COLOR_BTNFACE));
-
-	SelectClipRgn(hdc, NULL);     // restore orig
-
-	DeleteObject(hrgnClip);
-
-	return TRUE;
-}
 
 
 #endif   // JULAYOUT_IMPL
