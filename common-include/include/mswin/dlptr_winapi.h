@@ -64,8 +64,9 @@ namespace {
 DEFINE_DLPTR_WINAPI("kernel32.dll", GetWindowsDirectoryW)
 DEFINE_DLPTR_WINAPI("kernel32.dll", GetSystemDirectoryW)
 
-// [Stramphibian ready] This will auto select MessageBoxA or MessageBoxW
+// [Stramphibian ready] This will auto select MessageBoxA or MessageBoxW:
 DEFINE_DLPTR_WINAPI("user32.dll", MessageBox) 
+// -- note: The resulting dlptr var is dlptr_MessageBox, no A or W suffix.
 
 //
 // You may "instantiate" a callable future-WINAPI as a function-pointer.
@@ -104,4 +105,4 @@ int main()
 */
 
 
-#endif
+#endif __dlptr_winapi_h_
