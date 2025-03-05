@@ -1,5 +1,5 @@
-#ifndef __EnsureClnup_h_20250227_
-#define __EnsureClnup_h_20250227_
+#ifndef __EnsureClnup_h_20250305_
+#define __EnsureClnup_h_20250305_
 
 /* Jimm Chen from around 2010:
  The idea comes from Jeffrey Richter's CEnsureCleanup template class, 
@@ -282,14 +282,14 @@ public:
 /////////////////////////////////// C++ ///////////////////////////////////////
 
 
-// Define a class named Cec_cxx_delete representing a void*-pointed memory block,
-// that would be de-allocated by C++-delete.
+// Define a class named CEC_raw_delete representing a void*-pointed memory block,
+// that would be de-allocated by C++-delete. // Old & misleading name was Cec_cxx_delete.
 inline void _EnsureClnup_cpp_delete_pvoid(void *p){ delete (char*)p; }
-MakeDelega_CleanupPtr(Cec_cxx_delete, void, _EnsureClnup_cpp_delete_pvoid, void*)
+MakeDelega_CleanupPtr(CEC_raw_delete, void, _EnsureClnup_cpp_delete_pvoid, void*)
 	// 
 	// Usage example:
 	//
-	//	Cec_cxx_delete cec_memblock = new unsigned char[1000];
+	//	CEC_raw_delete cec_memblock = new unsigned char[1000];
 	//	memcpy(cec_memblock, src, 1000);
 
 
@@ -347,7 +347,7 @@ inline void _cxx_delete_N(T *arobj)
 #define MakeCleanupPtrClass_winapi         MakeDelega_CleanupPtr_winapi
 #define MakeCleanupClass_winapi            MakeDelega_CleanupAny_winapi
 
-#define Cec_NewMemory                      Cec_cxx_delete
+#define Cec_NewMemory                      CEC_raw_delete
 
 
 //// oldnames section <<<
@@ -439,4 +439,4 @@ int main()
 }
 */
 
-#endif
+#endif // __EnsureClnup_h_
