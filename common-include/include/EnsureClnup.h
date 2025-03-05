@@ -310,7 +310,7 @@ inline void _cxx_delete_N(T *arobj)
 #define MakeDelega_CleanupCxxPtr_en(UserClass, Classname_delete1, Classname_deleteN) \
 	typedef CEnsureCleanupPtr< UserClass*, void, _cxx_delete_1<UserClass> > Classname_delete1; \
 	typedef CEnsureCleanupPtr< UserClass*, void, _cxx_delete_N<UserClass> > Classname_deleteN; \
-	// -- en: Explicit Naming of the two Cec class names
+	// -- en: Explicit Naming of the two Cec_xxx class names
 //
 #define MakeDelega_CleanupCxxPtr(UserClass) MakeDelega_CleanupCxxPtr_en(UserClass, Cec_ ## UserClass, CecArray_ ## UserClass)
 //
@@ -372,13 +372,13 @@ using CleanupArrayDelega = CEnsureCleanupPtr< T*, void, _cxx_delete_N<T> >;
 // Workaround for old-date C++98 and prior, including VC2010
 
 template<typename T>
-struct cleanupDelega // Staring 'c' letter in lowercase
+struct cleanupDelega // Starting 'c' letter in lowercase
 {
 	typedef CEnsureCleanupPtr< T*, void, _cxx_delete_1<T> > type;
 };
 
 template<typename T>
-struct cleanupArrayDelega  // Staring 'c' letter in lowercase
+struct cleanupArrayDelega  // Starting 'c' letter in lowercase
 {
 	typedef CEnsureCleanupPtr< T*, void, _cxx_delete_N<T> > type;
 };
@@ -389,25 +389,24 @@ struct cleanupArrayDelega  // Staring 'c' letter in lowercase
 
 /* Some usage examples:
 
-MakeCleanupClass(Cec_LibcFh, int, close, int, -1)
+MakeDelega_CleanupAny(Cec_LibcFh, int, close, int, -1)
 	// Use ` int close(int); ' to cleanup a file handle opened by 
 	// ` int open (const char *, int, ...); ' , and the invalid(default) value is -1 .
 
-MakeCleanupPtrClass(Cec_pVoid, void, free, void*)
+MakeDelega_CleanupPtr(Cec_pVoid, void, free, void*)
 	// Use ` void free(void*); ' to cleanup a buffer allocated by 
 	// ` void* malloc(size_t); ' .
 
 // Windows API examples:
-MakeCleanupPtrClass_winapi(Cec_PTRHANDLE, BOOL, CloseHandle, HANDLE);
-	// This is for OpenProcess, who returns NULL as fail.
+MakeDelega_CleanupPtr_winapi(Cec_PTRHANDLE, BOOL, CloseHandle, HANDLE);
+	// This is for OpenProcess etc, who returns NULL as fail.
 MakeCleanupClass_winapi(Cec_FILEHANDLE, BOOL, CloseHandle, HANDLE, INVALID_HANDLE_VALUE); 
-	// This is for CreateFile, who returns INVALID_HANDLE_VALUE as fail. Damn M$.
+	// This is for CreateFile, who returns INVALID_HANDLE_VALUE as fail.
 
 
 
 inline void free_unsigned_char_ptr(unsigned char * p){ free(p); }
-
-MakeCleanupPtrClass(Cec_pUchar, void, free_unsigned_char_ptr, unsigned char *)
+MakeDelega_CleanupPtr(Cec_pUchar, void, free_unsigned_char_ptr, unsigned char *)
 	// Use ` void free_unsigned_char_ptr(unsigned char * p); ' to cleanup a buffer 
 	// allocated by ` void* malloc(size_t); ' . For the sake of function pointer
 	// type matching, you have to define a wrapper function for free() .

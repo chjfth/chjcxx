@@ -8,7 +8,7 @@
 // [2025-03-05] Delega class naming convention: 
 // For this global header file, class name should start with CEC_ (3 capital letters).
 //
-// BTW: For a delega class defined in local project headers, it should start with Cec_ .
+// BTW: For a Delega class defined in local project header, it should start with Cec_ .
 
 MakeDelega_CleanupCxxPtrN(TCHAR, CEC_delete_TCHAR)
 
@@ -17,6 +17,7 @@ MakeDelega_CleanupPtr_winapi(CEC_PTRHANDLE, BOOL, CloseHandle, HANDLE)
 	// This is for CreateEvent,OpenProcess, who return NULL as fail.
 MakeDelega_CleanupAny_winapi(CEC_FILEHANDLE, BOOL, CloseHandle, HANDLE, INVALID_HANDLE_VALUE)
 	// This is for CreateFile, who returns INVALID_HANDLE_VALUE as fail. Damn M$.
+	// More of this: CreateToolhelp32Snapshot
 
 MakeDelega_CleanupPtr_winapi(CEC_RegCloseKey, LONG, RegCloseKey, HKEY)
 	// for RegOpenKeyEx 
