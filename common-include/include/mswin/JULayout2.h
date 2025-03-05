@@ -4,8 +4,8 @@
 /******************************************************************************
 Original: UILayout.h
 Notices: Copyright (c) 2000 Jeffrey Richter
-Purpose: This class manages child window positioning and sizing when a parent 
-         window is resized.
+Purpose: This class manages child window positioning and sizing when a parent window
+         (normally a dialogbox) is resized.
          See Appendix B of his book PSSA2000.
 
 Updates by Jimm Chen (as of 2025-03-01):
@@ -19,6 +19,7 @@ Updates by Jimm Chen (as of 2025-03-01):
    consider groupbox fRedraw=TRUE.
 2. New feature: AnchorControl() support any [anchor-proportion, offset] paring value.
 3. New feature: Add JULayout::PropSheetProc() to support dialog-box inside property-sheet.
+4. New feature: User can assign dialogbox's minsize and maxsize; 0 means initial size.
 
 [Usage] To use this lib, pick one and only one of your xxx.cpp, write at its start:
 	
