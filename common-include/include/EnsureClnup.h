@@ -359,6 +359,8 @@ inline void _cxx_delete_N(T *arobj)
 
 // C++11 or later, we have `using` keyword
 
+#define _CEC_using_cxx11 // for user facility
+
 template<typename T>
 using CleanupDelega = CEnsureCleanupPtr< T*, void, _cxx_delete_1<T> >;
 
@@ -367,7 +369,7 @@ using CleanupArrayDelega = CEnsureCleanupPtr< T*, void, _cxx_delete_N<T> >;
 
 #endif
 
-// Workaround for old-date C++98 and prior, including VS2010
+// Workaround for old-date C++98 and prior, including VC2010
 
 template<typename T>
 struct cleanupDelega // Staring 'c' letter in lowercase
