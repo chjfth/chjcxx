@@ -38,7 +38,7 @@ Examples of use:
 
 Note: To use this lib, pick one and only one of your xxx.cpp, write at its start:
 
-#define AUTOBUF_IMPL
+#define JAUTOBUF_IMPL
 #include "JAutoBuf.h"
 
 */
@@ -297,9 +297,9 @@ void JAutoBufBase::AdjustBuffer()
 
 
 
-typedef JAutoBuf<wchar_t, sizeof(wchar_t), 1> CWstring_autobuf;
-typedef JAutoBuf<char, sizeof(char), 1> CAstring_autobuf;
-typedef JAutoBuf<unsigned char> Jautobuf; // to store byte stream
+typedef JAutoBuf<wchar_t, sizeof(wchar_t), 1>  CWstring_autobuf;
+typedef JAutoBuf<char, sizeof(char), 1>        CAstring_autobuf;
+typedef JAutoBuf<unsigned char>                Jautobuf; // to store byte stream
 
 typedef JAutoBuf<void> CBuf_autobuf; // compiles OK on VC2010, but shall we use it?
 
