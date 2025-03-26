@@ -41,8 +41,12 @@ DlgboxCbw_err Dlgbox_DisableComboboxWideDrop(HWND hdlg);
 #include <mswin/winuser.itc.h>
 */
 #else
-#define vaDBG(...)
-#define ITCSv(...) 0
+#ifndef vaDBG
+# define vaDBG(...)
+#endif
+#ifndef ITCSv
+# define ITCSv(...) 0
+#endif
 #endif // not Combobox_EnableWideDrop_DEBUG
 
 
@@ -112,7 +116,7 @@ static BOOL CALLBACK EnumChildProc(HWND hwnd, LPARAM ctx)
 			hwnd,
 			rc.left, rc.top, rc.right-rc.left, rc.bottom-rc.top,
 			hwnd_pid, (my_pid==hwnd_pid ? _T("(self)") : _T(""))
-			);
+			); (void)my_pid;
 
 		ecw.idx++;
 
@@ -248,7 +252,7 @@ MsgRelay_et Dlg_OnCommand(HWND hdlg, int id, HWND hwndCtl, UINT codeNotify)
 		HWND hcbx = hwndCtl;
 		vaDBG(_T("Combobox 0x%X (id=%d) codeNotify=%s"), 
 			hcbx, id, ITCSv(codeNotify, itc::CBN_xxx_ComboBox)
-			);
+			); (void)hcbx;
 	}
 
 	if(codeNotify==CBN_DROPDOWN)
@@ -288,7 +292,6 @@ Dlg_WndProc_EnableCbxWideDrop(HWND hdlg, UINT uMsg, WPARAM wParam, LPARAM lParam
 
 DlgboxCbw_err _Dlgbox_EnableComboboxWideDrop(HWND hdlg)
 {
-	WNDPROC currentWndProc = (WNDPROC)GetWindowLongPtr(hdlg, GWLP_WNDPROC);
 	CbxWideDrop_st *myprop = (CbxWideDrop_st*)GetProp(hdlg, CbxEnableWideDrop_PROP_STR);
 	if(myprop)
 		return DlgboxCbw_AlreadyEnabled;
