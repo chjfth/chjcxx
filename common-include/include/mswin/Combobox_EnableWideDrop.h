@@ -6,9 +6,9 @@
 enum DlgboxCbw_err 
 {
 	DlgboxCbw_Succ = 0,
+	DlgboxCbw_Unknown = 1,
 
 	// Error on enable
-	DlgboxCbw_Unknown = 1,
 	DlgboxCbw_NoMem = 2,
 	DlgboxCbw_AlreadyEnabled = 3,
 	DlgboxCbw_SetProp = 4, // WinAPI SetProp() error
@@ -32,12 +32,12 @@ DlgboxCbw_err Dlgbox_DisableComboboxWideDrop(HWND hdlg);
 #include <stdarg.h>
 #include <tchar.h>
 #include <WindowsX.h>
-#include <mswin/WindowsX2.h> // chj: for SUBCLASS_FILTER_MSG()
+#include <mswin/WindowsX2.h> // chj: for SUBCLASS_FILTER_MSG0()
 #include <_MINMAX_.h>
 
 #ifdef Combobox_EnableWideDrop_DEBUG
 /*
-#define vaLOGMSG vaDbgTs
+#define vaDBG vaDbgTs
 #include <mswin/winuser.itc.h>
 */
 #else
