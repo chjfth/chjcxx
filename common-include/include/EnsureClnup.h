@@ -164,10 +164,14 @@ public:
 
 //////// CEnsureCleanupPtrArray and CEnsureCleanupIntArray
 //
-// If you have an array, in which every element should receive a cleanup operation, then use these two.
+// If you have an array, in which EVERY element should receive its OWN cleanup operation, 
+// then use these two.
 // For example, you have `HANDLE *arHandles = new HANDLE[n];` and each `arHandles[i]` stores
 // a HANDLE returned from CreateThread(), then you can have CEnsureCleanupPtrArray manage `arHandles`,
 // so that each `arHandles[i]` gets CloseHandle().
+
+// Hint: For CEnsureCleanupPtrArray, each element in the internal array is a C++-object pointer.
+//       For an internal array that holds C++-objects, use MakeDelega_CleanupCxxPtr_en().
 
 template<typename USER_TYPE, typename RET_TYPE, RET_TYPE (*pfn)(USER_TYPE)> 
 class CEnsureCleanupPtrArray
