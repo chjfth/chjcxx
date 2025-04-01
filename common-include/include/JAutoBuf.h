@@ -1,5 +1,5 @@
-#ifndef __JAutoBuf_h_20250227_
-#define __JAutoBuf_h_20250227_
+#ifndef __JAutoBuf_h_20250329_
+#define __JAutoBuf_h_20250329_
 /******************************************************************************
 Module:  JAutoBuf.h
 Notices: Copyright (c) 2000 Jeffrey Richter
@@ -90,6 +90,12 @@ public:
 	
 	void Free() { 
 		Reconstruct(); 
+	}
+
+	void Discard() {
+		// [2025-03-29] User should have grabbed the buffer ptr(via JAutoBuf.BufPtr())
+		// and user should C++-delete the buffer later.
+		Reconstruct(true);
 	}
 
 	bool IsOK(){
@@ -299,9 +305,8 @@ void JAutoBufBase::AdjustBuffer()
 
 typedef JAutoBuf<wchar_t, sizeof(wchar_t), 1>  CWstring_autobuf;
 typedef JAutoBuf<char, sizeof(char), 1>        CAstring_autobuf;
-typedef JAutoBuf<unsigned char>                Jautobuf; // to store byte stream
 
-typedef JAutoBuf<void> CBuf_autobuf; // compiles OK on VC2010, but shall we use it?
+typedef JAutoBuf<unsigned char>   Jautobuf; // to store byte stream (void* buffer)
 
 // Suggestion on Windows for TCHAR buffer:
 // typedef JAutoBuf<TCHAR, sizeof(TCHAR), 1> AutoTCHARs;
