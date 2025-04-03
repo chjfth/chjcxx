@@ -36,8 +36,10 @@ MakeDelega_CleanupPtr_winapi(CEC_LocalFree, HLOCAL, LocalFree, HLOCAL)
 MakeDelega_CleanupPtr_winapi(CEC_FreeSid, PVOID, FreeSid, PSID)
 	// for AllocateAndInitializeSid
 
+#ifdef _NTSECAPI_ // if NTSecAPI.h is included
 MakeDelega_CleanupPtr_winapi(CEC_LsaFreeReturnBuffer, NTSTATUS, LsaFreeReturnBuffer, PVOID)
 	// for LsaEnumerateLogonSessions, LsaGetLogonSessionData (NTSecAPI.h)
+#endif
 
 // SetupDi... functions:
 
