@@ -1,5 +1,5 @@
-#ifndef __JAutoBuf_h_20250329_
-#define __JAutoBuf_h_20250329_
+#ifndef __JAutoBuf_h_20250403_
+#define __JAutoBuf_h_20250403_
 /******************************************************************************
 Module:  JAutoBuf.h
 Notices: Copyright (c) 2000 Jeffrey Richter
@@ -159,7 +159,7 @@ public:
 	
 	//	void Free() { JAutoBufBase::Free(); } // Chj comments it.
 
-	void *Bufptr() { return m_pData; }
+	Type *Bufptr() { return m_pData; }
 
 public:
 	operator Type*()  { return Buffer(); }
