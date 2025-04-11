@@ -49,4 +49,11 @@ private:
 };
 
 
+// Helper function to deduce template parameters
+template<typename T>
+TChunkHelper<T> makeChunkHelper(T totalsize, T chunksize)
+{
+	return TChunkHelper<T>(totalsize, chunksize);
+}
+
 #endif
