@@ -44,14 +44,15 @@ MakeDelega_CleanupPtr_winapi(CEC_LsaFreeReturnBuffer, NTSTATUS, LsaFreeReturnBuf
 // SetupDi... functions:
 
 #ifdef _INC_SETUPAPI // #include <setupapi.h>
-
 MakeDelega_CleanupAny_winapi(CEC_HDEVINFO, BOOL, SetupDiDestroyDeviceInfoList, HDEVINFO, INVALID_HANDLE_VALUE)
-
 MakeDelega_CleanupAny_winapi(CEC_SetupDiHKEY, LONG, RegCloseKey, HKEY, (HKEY)INVALID_HANDLE_VALUE)
 	// for SetupDiOpenDevRegKey
 	// Note: We need to write '(HKEY)INVALID_HANDLE_VALUE', otherwise we get VS2010 cl.exe error:
 	// error C2440: 'specialization' : cannot convert from 'HANDLE' to 'HKEY'
+#endif
 
+#ifdef _LMAPIBUF_ // LMAPIBuf.h
+MakeCleanupPtrClass_winapi(CEC_NetApiBufferFree, NET_API_STATUS, NetApiBufferFree, void*)
 #endif
 
 //MakeDelega_CleanupPtr_winapi(CEC_HDC_Release, int, ReleaseDC, ); // Bad! ReleaseDC needs 2 params.
