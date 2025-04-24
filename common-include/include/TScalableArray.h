@@ -32,7 +32,7 @@ public:
 		E_Success = 0,
 		E_Unknown = -1,
 		E_NoMem = -2,
-		// E_InvalidParam = -3,
+//		E_InvalidParam = -3,
 		E_Full = -4,
 
 		// All below means invalid-params
@@ -52,11 +52,16 @@ private:
 	};
 
 public:
-	TScalableArray(){ _init0(); }
+	TScalableArray() {
+		_init0(); 
+	}
+	
 	TScalableArray(int MaxEle, int IncSize=DEF_INCSIZE, int DecSize=DEF_DECSIZE,
 		int DecThres=DEF_DECTHRES);
 	
-	~TScalableArray(){ DeleteAllStorage(); }
+	~TScalableArray() { 
+		DeleteAllStorage(); 
+	}
 
 	ReCode_t SetTrait(int MaxEle, int IncSize=DEF_INCSIZE, int DecSize=DEF_DECSIZE,
 		int DecThres=DEF_DECTHRES);
@@ -87,7 +92,7 @@ public:
 	// operator bool() { return (T*)(*this) ? true : false; }
 	// -- Don't define this `bool operator` bcz sth like
 	//	char *pc = sa+1;
-	// will cause compliation error. E.g. on VS2010 x86 compiler:
+	// will cause compilation error. E.g. on VS2010 x86 compiler:
 #if 0
 d:\ws\common-include\autotest\mytest-ci\test_tscalablearray.cpp(408): error C2593: 'operator +' is ambiguous
 	  could be 'built-in C++ operator+(bool, int)'
