@@ -1,5 +1,5 @@
-#ifndef __EnsureClnup_h_20250305_
-#define __EnsureClnup_h_20250305_
+#ifndef __EnsureClnup_h_20250425_
+#define __EnsureClnup_h_20250425_
 
 /* Jimm Chen from around 2010:
  The idea comes from Jeffrey Richter's CEnsureCleanup template class, 
@@ -35,7 +35,28 @@ public:
 	CEnsureCleanupPtr(PTR_TYPE t) : m_t(t) { }
 	
 	// The destructor performs the cleanup.
-	~CEnsureCleanupPtr() { Cleanup(); }
+	~CEnsureCleanupPtr() { 
+		Cleanup(); 
+	}
+
+	// Move-constructor (OK with VC2010 SP1)
+	CEnsureCleanupPtr(CEnsureCleanupPtr&& old) 
+	{
+		this->m_t = old.m_t;
+		old.m_t = nullptr;
+	}
+
+	// Move-assignment (OK with VC2010 SP1)
+	CEnsureCleanupPtr& operator=(CEnsureCleanupPtr&& old) 
+	{
+		if(&(this->m_t) != &(old.m_t)) 
+		{
+			this->Cleanup();
+			this->m_t = old.m_t;
+			old.m_t = nullptr;
+		}
+		return *this;
+	}
 	
 	// Helper methods to tell if the value represents a valid object or not..
 	bool IsValid() { return(m_t != NULL); }
@@ -100,6 +121,11 @@ public:
 			m_t = NULL;   // We no longer represent a valid object.
 		}
 	}
+
+private:
+	// Disable copy-ctor, assignment-ctor (use pre-C++11 syntax so to use in VC2010)
+	CEnsureCleanupPtr(const CEnsureCleanupPtr&);
+	CEnsureCleanupPtr& operator=(const CEnsureCleanupPtr&);
 };
 
 
@@ -117,14 +143,37 @@ class CEnsureCleanupData
 
 public:
 	// Default constructor assumes an invalid value (nothing to cleanup)
-	CEnsureCleanupData() { m_t = tInvalid; }
+	CEnsureCleanupData() { 
+		m_t = tInvalid; 
+	}
 	
 	// This constructor sets the value to the specified value
 	CEnsureCleanupData(DATA_TYPE t) : m_t(t) { }
 	
 	// The destructor performs the cleanup.
-	~CEnsureCleanupData() { Cleanup(); }
+	~CEnsureCleanupData() { 
+		Cleanup(); 
+	}
 	
+	// Move-constructor (OK with VC2010 SP1)
+	CEnsureCleanupData(CEnsureCleanupData&& old)
+	{
+		this->m_t = old.m_t;
+		old.m_t = tInvalid;
+	}
+
+	// Move-assignment (OK with VC2010 SP1)
+	CEnsureCleanupData& operator=(CEnsureCleanupData&& old)
+	{
+		if(&(this->m_t) != &(old.m_t))
+		{
+			this->Cleanup();
+			this->m_t = old.m_t;
+			old.m_t = tInvalid;
+		}
+		return *this;
+	}
+
 	// Helper methods to tell if the value represents a valid object or not..
 	bool IsValid() { return(m_t != tInvalid); }
 	bool IsInvalid() { return(!IsValid()); }
@@ -158,6 +207,10 @@ public:
 		}
 	}
 	
+private:
+	// Disable copy-ctor, assignment-ctor (use pre-C++11 syntax so to use in VC2010)
+	CEnsureCleanupData(const CEnsureCleanupData&);
+	CEnsureCleanupData& operator=(const CEnsureCleanupData&);
 };
 
 
