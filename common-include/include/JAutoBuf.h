@@ -1,5 +1,5 @@
-#ifndef __JAutoBuf_h_20250403_
-#define __JAutoBuf_h_20250403_
+#ifndef __JAutoBuf_h_20250425_
+#define __JAutoBuf_h_20250425_
 /******************************************************************************
 Module:  JAutoBuf.h
 Notices: Copyright (c) 2000 Jeffrey Richter
@@ -7,7 +7,8 @@ Purpose: This class manages an auto-sizing data buffer.
 Origin:  [PSSA2000] book Appendix B.
 
 Updates:
-	* Chj uses new/delete to allocate/free memory-buffer.
+* Chj uses new/delete to allocate/free memory-buffer.
+* Add move-constructors for C++11.
 
 Chj Note:
 	* (TO DEL)This code cannot work on systems that sizeof(int)!=sizeof(long), 64-bit Linux for example.
@@ -105,20 +106,10 @@ public:
 	typedef unsigned char *PBYTE_t;
 
 protected:
-	JAutoBufBase(PBYTE_t *ppbData, int nMult, int ExtraEle)
-	{
-		m_nMult = nMult;
-		m_ppbBuffer = ppbData; 
-			// Derived class holds address of buffer to allow
-			// debugger's Quick Watch to work with typed data.
-		m_ExtraEle = ExtraEle;
-		Reconstruct(true);
-	}
+	JAutoBufBase(PBYTE_t *ppbData, int nMult, int ExtraEle);
 
 	// virtual? // Chj: I don't think it needs virtual
-	~JAutoBufBase() { 
-		Free();
-	}
+	~JAutoBufBase();
 
 	void Reconstruct(bool fFirstTime = false);
 
@@ -146,7 +137,7 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 
 
-template <class Type, int Mult=1, int Extra=0> 
+template <class Type, int Mult=sizeof(Type), int Extra=0> 
 class JAutoBuf : public JAutoBufBase 
 {
 public:
@@ -157,14 +148,14 @@ public:
 		Size(init_size);
 	}
 	
-	//	void Free() { JAutoBufBase::Free(); } // Chj comments it.
+//	void Free() { JAutoBufBase::Free(); } // Chj comments it.
 
 	Type *Bufptr() { return m_pData; }
 
 public:
 	operator Type*()  { return Buffer(); }
 
-unsigned int operator=(unsigned int eleCount) { return JAutoBufBase::Size(eleCount); }
+	unsigned int operator=(unsigned int eleCount) { return JAutoBufBase::Size(eleCount); }
 
 	// unsigned short/int/long returns the m_CurEle value
 	operator unsigned short() { return Size(); }
@@ -193,7 +184,15 @@ unsigned int operator=(unsigned int eleCount) { return JAutoBufBase::Size(eleCou
 	}
 
 private:
+	// Chj: Bcz we want the `Type` to be a template-type param, we have to define 
+	// `m_pData` in derived class, a template-class.
 	Type* m_pData;
+
+#if (__cplusplus>=201402L) || (_MSC_VER>=1900) 	// C++14 or VC2015+
+	// Disable copy-ctor and copy-assignment.
+	JAutoBuf(const JAutoBuf&) = delete;
+	JAutoBuf& operator=(const JAutoBuf&) = delete;
+#endif
 };
 
 
@@ -211,17 +210,53 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 
 
+
+
+
+
 #ifdef JAUTOBUF_IMPL // only one .cpp should define this to get the implementation code
 
 #include <assert.h>
 
+#ifdef JAUTOBUF_DEBUG
+
+#else
+#ifndef vaDBG
+# define vaDBG(...)
+#endif
+#endif
+
 ///////////////////////////////////////////////////////////////////////////////
+
+JAutoBufBase::JAutoBufBase(PBYTE_t *ppbData, int nMult, int ExtraEle)
+{
+	vaDBG(_T("[JAutoBuf@%p] ctor (+%d *%d)."), this, ExtraEle, nMult);
+
+	m_nMult = nMult;
+	m_ppbBuffer = ppbData;
+	// -- Jeffrey: Derived class holds address of buffer to allow
+	//    debugger's Quick Watch to work with typed data.
+	
+	m_ExtraEle = ExtraEle;
+	Reconstruct(true);
+
+}
+
+JAutoBufBase::~JAutoBufBase() 
+{
+	vaDBG(_T("[JAutoBuf@%p] dtor."), this);
+
+	Free();
+}
 
 void JAutoBufBase::Reconstruct(bool fFirstTime) 
 {
 	if (!fFirstTime) 
 	{
-		if (*m_ppbBuffer != NULL) {
+		if (*m_ppbBuffer != NULL) 
+		{
+			vaDBG(_T("[JAutoBuf@%p] delete memblock @%p."), this, *m_ppbBuffer);
+
 			//HeapFree(GetProcessHeap(), 0, *m_ppbBuffer);
 			delete *m_ppbBuffer;
 		}
@@ -276,6 +311,9 @@ void JAutoBufBase::AdjustBuffer()
 		PBYTE_t newbuf = new unsigned char[newsize];
 		if(!newbuf)
 			return; 
+
+		vaDBG(_T("[JAutoBuf@%p] size inc %u -> %u (%d bytes) ; moving memblock @%p -> @%p."), this, 
+			m_CurEle, m_ReqEle,  newsize,  *m_ppbBuffer, newbuf);
 
 		// For best compatibility to various Windows API, we'd better copy 
 		// old content to new buffer. E.g. SetupDiGetDeviceInterfaceDetail() needs this.
