@@ -8,7 +8,7 @@ Origin:  [PSSA2000] book Appendix B.
 
 Updates:
 * Chj uses new/delete to allocate/free memory-buffer.
-* Add move-constructors, move-assigment for C++11.
+* Add move-constructors, move-assignment for C++11.
 
 Chj Note:
 	* (TO DEL)This code cannot work on systems that sizeof(int)!=sizeof(long), 64-bit Linux for example.
@@ -115,6 +115,9 @@ protected:
 		m_ExtraEle = old.m_ExtraEle;
 	}
 
+	void _base_move_ctor(JAutoBufBase&& old) noexcept;
+	void _base_move_assignment(JAutoBufBase&& old) noexcept;
+
 protected:
 	JAutoBufBase(PBYTE_t *ppbData, int nMult, int ExtraEle);
 
@@ -152,14 +155,26 @@ class JAutoBuf : public JAutoBufBase
 public:
 	JAutoBuf() : JAutoBufBase((PBYTE_t*)&m_pData, Mult, Extra) {}
 
-	JAutoBuf(int init_size) : JAutoBufBase((PBYTE_t*) &m_pData, Mult, Extra) 
+	JAutoBuf(int init_size) : JAutoBufBase((PBYTE_t*)&m_pData, Mult, Extra) 
 	{
 		Size(init_size);
 	}
 	
-	JAutoBuf(JAutoBuf&& old) noexcept; // Move-constructor (defined later)
+	JAutoBuf(JAutoBuf&& old) noexcept // Move-constructor
+		: JAutoBufBase((PBYTE_t*)&m_pData, Mult, Extra)
+	{
+		// Note: avoid using `std::move(old)` in public "user" header,
+		// bcz that would introduce extra <xutility> .
+		_base_move_ctor(static_cast<decltype(old)&&>(old)); 
+	}
 
-	JAutoBuf& operator=(JAutoBuf&&) noexcept; // Move-assignment (define later)
+	JAutoBuf& operator=(JAutoBuf&& old) noexcept // Move-assignment
+	{
+		// Note: avoid using `std::move(old)` in public "user" header
+		// bcz that would introduce extra <xutility> .
+		_base_move_assignment(static_cast<decltype(old)&&>(old));
+		return *this;
+	}
 
 
 //	void Free() { JAutoBufBase::Free(); } // Chj comments it.
@@ -349,37 +364,30 @@ void JAutoBufBase::AdjustBuffer()
 	}
 }
 
-///////////////////////////////////////////////////////////////////////////////
-
-template <class Type, int Mult, int Extra>
-JAutoBuf<Type,Mult,Extra>::JAutoBuf(JAutoBuf&& old) noexcept
-	: JAutoBufBase((PBYTE_t*)&m_pData, Mult, Extra)
+void JAutoBufBase::_base_move_ctor(JAutoBufBase&& old) noexcept
 {
 	vaDBG(_T("[JAutoBuf@%p] move-ctor from old @%p"), this, &old);
 
 	_copy_from_old(std::move(old));
-	
+
 	old.Discard();
 }
 
-template <class Type, int Mult, int Extra>
-JAutoBuf<Type,Mult,Extra>& 
-JAutoBuf<Type,Mult,Extra>::operator=(JAutoBuf&& old) noexcept
+void JAutoBufBase::_base_move_assignment(JAutoBufBase&& old) noexcept
 {
 	if (this != &old)
 	{
 		vaDBG(_T("[JAutoBuf@%p] move-assignment from old @%p"), this, &old);
-		
+
 		this->Free();
 
 		_copy_from_old(old);
 
 		old.Discard();
 	}
-	return *this;
-
 }
 
+///////////////////////////////////////////////////////////////////////////////
 
 #endif   // JAUTOBUF_IMPL
 
