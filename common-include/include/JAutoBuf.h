@@ -115,8 +115,8 @@ protected:
 		m_ExtraEle = old.m_ExtraEle;
 	}
 
-	void _base_move_ctor(JAutoBufBase&& old) noexcept;
-	void _base_move_assignment(JAutoBufBase&& old) noexcept;
+	void _base_move_ctor(JAutoBufBase& old) noexcept;
+	void _base_move_assignment(JAutoBufBase& old) noexcept;
 
 protected:
 	JAutoBufBase(PBYTE_t *ppbData, int nMult, int ExtraEle);
@@ -165,14 +165,14 @@ public:
 	{
 		// Note: avoid using `std::move(old)` in public "user" header,
 		// bcz that would introduce extra <xutility> .
-		_base_move_ctor(static_cast<decltype(old)&&>(old)); 
+		_base_move_ctor(old); 
 	}
 
 	JAutoBuf& operator=(JAutoBuf&& old) noexcept // Move-assignment
 	{
 		// Note: avoid using `std::move(old)` in public "user" header
 		// bcz that would introduce extra <xutility> .
-		_base_move_assignment(static_cast<decltype(old)&&>(old));
+		_base_move_assignment(old);
 		return *this;
 	}
 
@@ -249,6 +249,7 @@ private:
 #ifdef JAUTOBUF_IMPL // only one .cpp should define this to get the implementation code
 
 #include <assert.h>
+#include <xutility>
 
 #ifdef JAUTOBUF_DEBUG
 
@@ -364,7 +365,7 @@ void JAutoBufBase::AdjustBuffer()
 	}
 }
 
-void JAutoBufBase::_base_move_ctor(JAutoBufBase&& old) noexcept
+void JAutoBufBase::_base_move_ctor(JAutoBufBase& old) noexcept
 {
 	vaDBG(_T("[JAutoBuf@%p] move-ctor from old @%p"), this, &old);
 
@@ -373,7 +374,7 @@ void JAutoBufBase::_base_move_ctor(JAutoBufBase&& old) noexcept
 	old.Discard();
 }
 
-void JAutoBufBase::_base_move_assignment(JAutoBufBase&& old) noexcept
+void JAutoBufBase::_base_move_assignment(JAutoBufBase& old) noexcept
 {
 	if (this != &old)
 	{
