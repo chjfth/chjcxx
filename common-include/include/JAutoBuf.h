@@ -1,5 +1,5 @@
-#ifndef __JAutoBuf_h_20250425_
-#define __JAutoBuf_h_20250425_
+#ifndef __JAutoBuf_h_20250426_
+#define __JAutoBuf_h_20250426_
 /******************************************************************************
 Module:  JAutoBuf.h
 Notices: Copyright (c) 2000 Jeffrey Richter
@@ -8,7 +8,7 @@ Origin:  [PSSA2000] book Appendix B.
 
 Updates:
 * Chj uses new/delete to allocate/free memory-buffer.
-* Add move-constructors for C++11.
+* Add move-constructors, move-assigment for C++11.
 
 Chj Note:
 	* (TO DEL)This code cannot work on systems that sizeof(int)!=sizeof(long), 64-bit Linux for example.
@@ -106,6 +106,16 @@ public:
 	typedef unsigned char *PBYTE_t;
 
 protected:
+	void _copy_from_old(JAutoBufBase &old)
+	{
+		*m_ppbBuffer = *(old.m_ppbBuffer);
+		m_nMult = old.m_nMult;
+		m_ReqEle = old.m_ReqEle;
+		m_CurEle = old.m_CurEle;
+		m_ExtraEle = old.m_ExtraEle;
+	}
+
+protected:
 	JAutoBufBase(PBYTE_t *ppbData, int nMult, int ExtraEle);
 
 	// virtual? // Chj: I don't think it needs virtual
@@ -120,7 +130,7 @@ protected:
 
 private:
 	void AdjustBuffer();  
-	// Chj: Try to increase class internal buffer to m_ReqEle, but can possibly fail.
+	// -- Chj: Try to increase class internal buffer to m_ReqEle, but can possibly fail.
 	// If fail, the original buffer content remains intact, and m_ReqEle is reset to m_CurEle.
 
 private:
@@ -129,8 +139,7 @@ private:
 	BufLen_t m_ReqEle; // Requested buffer size (in m_nMult units)
 	BufLen_t m_CurEle; // Actual size (in m_nMult units)
 
-	int m_ExtraEle;  
-		// User can request extra bytes, for example, for possible NUL to append.
+	int m_ExtraEle;  // User can request extra bytes, for example, for possible NUL to append.
 };
 
 
@@ -141,13 +150,18 @@ template <class Type, int Mult=sizeof(Type), int Extra=0>
 class JAutoBuf : public JAutoBufBase 
 {
 public:
-	JAutoBuf() : JAutoBufBase((PBYTE_t*) &m_pData, Mult, Extra) {}
+	JAutoBuf() : JAutoBufBase((PBYTE_t*)&m_pData, Mult, Extra) {}
 
 	JAutoBuf(int init_size) : JAutoBufBase((PBYTE_t*) &m_pData, Mult, Extra) 
 	{
 		Size(init_size);
 	}
 	
+	JAutoBuf(JAutoBuf&& old) noexcept; // Move-constructor (defined later)
+
+	JAutoBuf& operator=(JAutoBuf&&) noexcept; // Move-assignment (define later)
+
+
 //	void Free() { JAutoBufBase::Free(); } // Chj comments it.
 
 	Type *Bufptr() { return m_pData; }
@@ -186,12 +200,15 @@ public:
 private:
 	// Chj: Bcz we want the `Type` to be a template-type param, we have to define 
 	// `m_pData` in derived class, a template-class.
+	//
 	Type* m_pData;
 
 #if (__cplusplus>=201402L) || (_MSC_VER>=1900) 	// C++14 or VC2015+
+
 	// Disable copy-ctor and copy-assignment.
 	JAutoBuf(const JAutoBuf&) = delete;
 	JAutoBuf& operator=(const JAutoBuf&) = delete;
+
 #endif
 };
 
@@ -224,7 +241,7 @@ private:
 #ifndef vaDBG
 # define vaDBG(...)
 #endif
-#endif
+#endif // JAUTOBUF_DEBUG
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -267,7 +284,6 @@ void JAutoBufBase::Reconstruct(bool fFirstTime)
 	m_CurEle = 0;  // Initially, buffer has no bytes in it
 }
 
-///////////////////////////////////////////////////////////////////////////////
 
 JAutoBufBase::BufLen_t JAutoBufBase::Size(BufLen_t eleCount) 
 {
@@ -281,7 +297,6 @@ JAutoBufBase::BufLen_t JAutoBufBase::Size(BufLen_t eleCount)
 	return SizeMin();
 }
 
-///////////////////////////////////////////////////////////////////////////////
 
 void JAutoBufBase::AdjustBuffer()
 {
@@ -336,6 +351,35 @@ void JAutoBufBase::AdjustBuffer()
 
 ///////////////////////////////////////////////////////////////////////////////
 
+template <class Type, int Mult, int Extra>
+JAutoBuf<Type,Mult,Extra>::JAutoBuf(JAutoBuf&& old) noexcept
+	: JAutoBufBase((PBYTE_t*)&m_pData, Mult, Extra)
+{
+	vaDBG(_T("[JAutoBuf@%p] move-ctor from old @%p"), this, &old);
+
+	_copy_from_old(std::move(old));
+	
+	old.Discard();
+}
+
+template <class Type, int Mult, int Extra>
+JAutoBuf<Type,Mult,Extra>& 
+JAutoBuf<Type,Mult,Extra>::operator=(JAutoBuf&& old) noexcept
+{
+	if (this != &old)
+	{
+		vaDBG(_T("[JAutoBuf@%p] move-assignment from old @%p"), this, &old);
+		
+		this->Free();
+
+		_copy_from_old(old);
+
+		old.Discard();
+	}
+	return *this;
+
+}
+
 
 #endif   // JAUTOBUF_IMPL
 
@@ -352,7 +396,7 @@ typedef JAutoBuf<unsigned char>   Jautobuf; // to store byte stream (void* buffe
 
 
 template<typename TAutobuf>
-bool abIsEmptyString(TAutobuf &ab)
+bool abIsEmptyString(const TAutobuf &ab)
 {
 	if( (void*)ab==NULL || ab[0]==0 )
 		return true;
