@@ -1,15 +1,32 @@
-#ifndef __StringHelper_h_20250424_
-#define __StringHelper_h_20250424_
+#ifndef __StringHelper_h_20250426_
+#define __StringHelper_h_20250426_
 
-template<typename TString, bool IsSplitterChar(int charval)>
+inline bool StringSplitter_IsCrlf(int charval)
+{
+	return (charval == '\r' || charval == '\n') ? true : false;
+}
+
+inline bool StringSplitter_TrimSpacechar(int charval)
+{
+	return (charval == ' ') ? true : false;
+}
+
+inline bool StringSplitter_TrimNone(int)
+{
+	return false;
+}
+
+template<typename TString, 
+	bool IsSplitterChar(int charval) = StringSplitter_IsCrlf,
+	bool IsTrimChar(int charval) = StringSplitter_TrimNone>
 class StringSplitter
 {
 public:
-	StringSplitter(TString &s, int startpos=0, int scanlen=-1)
-		: m_str(s)
+	StringSplitter(const TString &s, int startpos=0, int scanlen=-1)
+		: m_str(s), m_startpos(startpos)
 	{
-		m_nowpos = startpos;
-		
+		m_nowpos = m_startpos;
+
 		if(scanlen>=0)
 		{
 			m_endpos_ = m_nowpos + scanlen;
@@ -19,12 +36,17 @@ public:
 			m_endpos_ = m_nowpos;
 			while( m_str[m_endpos_] )
 				m_endpos_++;
-		}
+		}		
 	}
 
-	int next(int *p_nowlen)
+	void reset()
 	{
-		// Skip consecutive splitter chars
+		m_nowpos = m_startpos;
+	}
+
+	int next(int *p_nowlen=nullptr)
+	{
+		// Skip consecutive splitter-chars and trim-chars.
 
 		for(;;)
 		{
@@ -36,21 +58,38 @@ public:
 				return -1; // scan ended
 			}
 
-			if( IsSplitterChar(m_str[m_nowpos]) )
+			if( IsSplitterChar(m_str[m_nowpos]) || IsTrimChar(m_str[m_nowpos]))
 				m_nowpos++;
 			else
 				break;
 		}
 
-		// Seen a word start; Scan for word length
+		// Check if scan end.
+
+		if (m_nowpos == m_endpos_)
+		{
+			if (*p_nowlen)
+				*p_nowlen = 0;
+
+			return -1;
+		}
+
+		// Seen a word start, Scan for word length.
+
 		int word_at_pos = m_nowpos;
 
 		for(;;)
 		{
 			if( m_nowpos==m_endpos_ || IsSplitterChar(m_str[m_nowpos]) )
 			{
+				// Scan backward and drop those consecutive trim-chars.
+
+				int tailpos = m_nowpos;
+				while (IsTrimChar(m_str[tailpos - 1]))
+					tailpos--;
+
 				if(p_nowlen)
-					*p_nowlen = m_nowpos - word_at_pos;
+					*p_nowlen = tailpos - word_at_pos;
 				
 				return word_at_pos;
 			}
@@ -59,6 +98,7 @@ public:
 				m_nowpos++;
 			}
 		}
+
 	}
 
 #if (__cplusplus>=201402L) || (_MSC_VER>=1900) 	// C++14 or VC2015+
@@ -71,8 +111,9 @@ public:
 #endif
 
 private:
-	TString &m_str;
+	const TString &m_str;
 
+	int m_startpos;
 	int m_nowpos;
 	int m_endpos_;
 };
