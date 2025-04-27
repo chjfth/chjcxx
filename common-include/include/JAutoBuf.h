@@ -249,7 +249,7 @@ private:
 #ifdef JAUTOBUF_IMPL // only one .cpp should define this to get the implementation code
 
 #include <assert.h>
-#include <xutility>
+#include <utility>
 
 #ifdef JAUTOBUF_DEBUG
 
