@@ -1,5 +1,5 @@
-#ifndef __JAutoBuf_h_20250426_
-#define __JAutoBuf_h_20250426_
+#ifndef __JAutoBuf_h_20250427_
+#define __JAutoBuf_h_20250427_
 /******************************************************************************
 Module:  JAutoBuf.h
 Notices: Copyright (c) 2000 Jeffrey Richter
@@ -54,10 +54,10 @@ Note: To use this lib, pick one and only one of your xxx.cpp, write at its start
 class JAutoBufBase 
 {
 public:
-	typedef unsigned long BufLen_t; // in eles. 
+	typedef unsigned long BufEles_t; // in eles. 
 	typedef unsigned long BufBytes_t;
 
-	BufLen_t SizeMin()
+	BufEles_t SizeMin()
 	{
 		if(m_ReqEle<=m_CurEle)
 			return m_ReqEle;
@@ -70,7 +70,7 @@ public:
 		return Size() * m_nMult;
 	}
 
-	BufLen_t Size() const
+	BufEles_t Size() const
 	{
 		return m_ReqEle * m_nMult;
 	}
@@ -80,7 +80,7 @@ public:
 		return Size() * m_nMult;
 	}
 
-	BufLen_t Size()
+	BufEles_t Size()
 	{ 
 		// AutoBuf user calls Size() to get a value to tell WinAPI his 
 		// "current" buffer size (in eles). 
@@ -92,9 +92,9 @@ public:
 		return SizeMin(); 
 	}
 
-	BufLen_t Size(BufLen_t uSize);
+	BufEles_t Size(BufEles_t uSize);
 
-	BufLen_t* PSize() 
+	BufEles_t* PSize() 
 	{ 
 		// AutoBuf user calls PSize() to get a value-ptr so that WinAPI will fill this value
 		// with required buffer size(in eles). 
@@ -153,10 +153,10 @@ private:
 	// If fail, the original buffer content remains intact, and m_ReqEle is reset to m_CurEle.
 
 private:
-	PBYTE_t *m_ppbBuffer;    // Address of address of data buffer
-	int      m_nMult;        // Multiplier (in bytes) used for buffer growth
-	BufLen_t m_ReqEle; // Requested buffer size (in m_nMult units)
-	BufLen_t m_CurEle; // Actual storage size (in m_nMult units)
+	PBYTE_t  *m_ppbBuffer;    // Address of address of data buffer
+	int       m_nMult;        // Multiplier (in bytes) used for buffer growth
+	BufEles_t m_ReqEle; // Requested buffer size (in m_nMult units)
+	BufEles_t m_CurEle; // Actual storage size (in m_nMult units)
 
 	int m_ExtraEle;  // User can request extra bytes, for example, for possible NUL to append.
 };
@@ -196,6 +196,7 @@ public:
 //	void Free() { JAutoBufBase::Free(); } // Chj comments it.
 
 	Type *Bufptr() { return m_pData; }
+	const Type *Bufptr() const { return m_pData; }
 
 public:
 	operator Type*()  { return Buffer(); }
@@ -317,7 +318,7 @@ void JAutoBufBase::Reconstruct(bool fFirstTime)
 }
 
 
-JAutoBufBase::BufLen_t JAutoBufBase::Size(BufLen_t eleCount) 
+JAutoBufBase::BufEles_t JAutoBufBase::Size(BufEles_t eleCount) 
 {
 	// Set buffer to desired number of m_nMult bytes.
 	if (eleCount == 0) {
