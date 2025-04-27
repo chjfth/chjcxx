@@ -1,5 +1,5 @@
-#ifndef __EnsureClnup_h_20250425_
-#define __EnsureClnup_h_20250425_
+#ifndef __EnsureClnup_h_20250427_
+#define __EnsureClnup_h_20250427_
 
 /* Jimm Chen from around 2010:
  The idea comes from Jeffrey Richter's CEnsureCleanup template class, 
@@ -85,23 +85,29 @@ public:
 	}
 	
 	// Returns the value (supports both 32-bit and 64-bit Windows).
-	operator PTR_TYPE() 
-	{ 
+	operator PTR_TYPE()  { 
 		return m_t;
 	}
-	
-	PTR_TYPE Ptr()
-	{
+	operator const PTR_TYPE() const {
 		return m_t;
 	}
-	
+
+	PTR_TYPE Ptr() {
+		return m_t;
+	}
+	const PTR_TYPE Ptr() const {
+		return m_t;
+	}
+
 	PTR_TYPE operator->()
 	{
 		return m_t;
 	}
 
-	PTR_TYPE* operator&()
-	{
+	PTR_TYPE* operator&() {
+		return &m_t;
+	}
+	const PTR_TYPE* operator&() const {
 		return &m_t;
 	}
 

@@ -55,6 +55,7 @@ class JAutoBufBase
 {
 public:
 	typedef unsigned long BufLen_t; // in eles. 
+	typedef unsigned long BufBytes_t;
 
 	BufLen_t SizeMin()
 	{
@@ -64,12 +65,22 @@ public:
 			return m_CurEle;
 	}
 
-	unsigned long Bytes()
+	BufBytes_t Bytes() const
 	{
 		return Size() * m_nMult;
 	}
 
-	BufLen_t Size() 
+	BufLen_t Size() const
+	{
+		return m_ReqEle * m_nMult;
+	}
+
+	BufBytes_t Bytes()
+	{
+		return Size() * m_nMult;
+	}
+
+	BufLen_t Size()
 	{ 
 		// AutoBuf user calls Size() to get a value to tell WinAPI his 
 		// "current" buffer size (in eles). 
