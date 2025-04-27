@@ -64,6 +64,11 @@ public:
 			return m_CurEle;
 	}
 
+	unsigned long Bytes()
+	{
+		return Size() * m_nMult;
+	}
+
 	BufLen_t Size() 
 	{ 
 		// AutoBuf user calls Size() to get a value to tell WinAPI his 
@@ -115,8 +120,8 @@ protected:
 		m_ExtraEle = old.m_ExtraEle;
 	}
 
-	void _base_move_ctor(JAutoBufBase& old) noexcept;
-	void _base_move_assignment(JAutoBufBase& old) noexcept;
+	void _base_move_ctor(JAutoBufBase& old);
+	void _base_move_assignment(JAutoBufBase& old);
 
 protected:
 	JAutoBufBase(PBYTE_t *ppbData, int nMult, int ExtraEle);
@@ -140,7 +145,7 @@ private:
 	PBYTE_t *m_ppbBuffer;    // Address of address of data buffer
 	int      m_nMult;        // Multiplier (in bytes) used for buffer growth
 	BufLen_t m_ReqEle; // Requested buffer size (in m_nMult units)
-	BufLen_t m_CurEle; // Actual size (in m_nMult units)
+	BufLen_t m_CurEle; // Actual storage size (in m_nMult units)
 
 	int m_ExtraEle;  // User can request extra bytes, for example, for possible NUL to append.
 };
@@ -160,7 +165,7 @@ public:
 		Size(init_size);
 	}
 	
-	JAutoBuf(JAutoBuf&& old) noexcept // Move-constructor
+	JAutoBuf(JAutoBuf&& old) // Move-constructor
 		: JAutoBufBase((PBYTE_t*)&m_pData, Mult, Extra)
 	{
 		// Note: avoid using `std::move(old)` in public "user" header,
@@ -168,7 +173,7 @@ public:
 		_base_move_ctor(old); 
 	}
 
-	JAutoBuf& operator=(JAutoBuf&& old) noexcept // Move-assignment
+	JAutoBuf& operator=(JAutoBuf&& old) // Move-assignment
 	{
 		// Note: avoid using `std::move(old)` in public "user" header
 		// bcz that would introduce extra <xutility> .
@@ -296,7 +301,7 @@ void JAutoBufBase::Reconstruct(bool fFirstTime)
 	}
 
 	*m_ppbBuffer = NULL; // Derived class doesn't point to a data buffer
-	m_ReqEle = 0;      // Initially, buffer has no bytes in it
+	m_ReqEle = 0;  // Initially, buffer has no bytes in it
 	m_CurEle = 0;  // Initially, buffer has no bytes in it
 }
 
@@ -365,7 +370,7 @@ void JAutoBufBase::AdjustBuffer()
 	}
 }
 
-void JAutoBufBase::_base_move_ctor(JAutoBufBase& old) noexcept
+void JAutoBufBase::_base_move_ctor(JAutoBufBase& old)
 {
 	vaDBG(_T("[JAutoBuf@%p] move-ctor from old @%p"), this, &old);
 
@@ -374,7 +379,7 @@ void JAutoBufBase::_base_move_ctor(JAutoBufBase& old) noexcept
 	old.Discard();
 }
 
-void JAutoBufBase::_base_move_assignment(JAutoBufBase& old) noexcept
+void JAutoBufBase::_base_move_assignment(JAutoBufBase& old)
 {
 	if (this != &old)
 	{
