@@ -192,11 +192,11 @@ public:
 		return *this;
 	}
 
-
-//	void Free() { JAutoBufBase::Free(); } // Chj comments it.
-
 	Type *Bufptr() { return m_pData; }
 	const Type *Bufptr() const { return m_pData; }
+
+	Type *Ptr() { return m_pData; }
+	const Type *Ptr() const { return m_pData; }
 
 public:
 	operator Type*()  { return Buffer(); }
