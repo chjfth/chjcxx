@@ -101,6 +101,17 @@ public:
 
 	}
 
+	int count()
+	{
+		reset();
+		int n = 0;
+		while (next() != -1)
+			n++;
+
+		reset();
+		return n;
+	}
+
 #if (__cplusplus>=201402L) || (_MSC_VER>=1900) 	// C++14 or VC2015+
 	decltype(auto) operator[](size_t index) {
 		return m_str[index];
