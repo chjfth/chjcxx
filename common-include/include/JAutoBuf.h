@@ -1,5 +1,5 @@
-#ifndef __JAutoBuf_h_20250427_
-#define __JAutoBuf_h_20250427_
+#ifndef __JAutoBuf_h_20250429_
+#define __JAutoBuf_h_20250429_
 /******************************************************************************
 Module:  JAutoBuf.h
 Notices: Copyright (c) 2000 Jeffrey Richter
@@ -122,13 +122,15 @@ public:
 	typedef unsigned char *PBYTE_t;
 
 protected:
-	void _copy_from_old(JAutoBufBase &old)
+	void _steal_from_old(JAutoBufBase &old)
 	{
 		*m_ppbBuffer = *(old.m_ppbBuffer);
 		m_nMult = old.m_nMult;
 		m_ReqEle = old.m_ReqEle;
 		m_CurEle = old.m_CurEle;
 		m_ExtraEle = old.m_ExtraEle;
+
+		old.Discard();
 	}
 
 	void _base_move_ctor(JAutoBufBase& old);
@@ -386,9 +388,7 @@ void JAutoBufBase::_base_move_ctor(JAutoBufBase& old)
 {
 	vaDBG(_T("[JAutoBuf@%p] move-ctor from old @%p"), this, &old);
 
-	_copy_from_old(std::move(old));
-
-	old.Discard();
+	_steal_from_old(std::move(old));
 }
 
 void JAutoBufBase::_base_move_assignment(JAutoBufBase& old)
@@ -399,9 +399,7 @@ void JAutoBufBase::_base_move_assignment(JAutoBufBase& old)
 
 		this->Free();
 
-		_copy_from_old(old);
-
-		old.Discard();
+		_steal_from_old(old);
 	}
 }
 
