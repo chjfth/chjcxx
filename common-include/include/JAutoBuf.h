@@ -271,12 +271,10 @@ private:
 #include <utility>
 
 #ifdef JAUTOBUF_DEBUG
-
+#undef  vaDBG      // revoke empty effect 
 #else
-#ifndef vaDBG
-# define vaDBG(...)
+#define vaDBG(...) // make vaDBG empty, no debugging message
 #endif
-#endif // JAUTOBUF_DEBUG
 
 ///////////////////////////////////////////////////////////////////////////////
 
