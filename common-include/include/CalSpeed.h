@@ -1,5 +1,5 @@
-#ifndef __CalSpeed_h_20171231_
-#define __CalSpeed_h_20171231_
+#ifndef __CalSpeed_h_20250429_
+#define __CalSpeed_h_20250429_
 
 #include <assert.h>
 #include <stdio.h>
@@ -22,16 +22,9 @@ public:
 		Reset();
 	};
 	
-	void Reset()
-	{
-		m_nowTotal = m_prevTotal = 0;
-		m_msecPrev = m_procGetmsec();
-	}
+	void Reset();
 	
-	void Accum(Uint bytes)
-	{
-		m_nowTotal += bytes;
-	}
+	void Accum(Uint bytes);
 	
 	Uint64 GetTotal()
 	{
@@ -81,7 +74,12 @@ private:
 
 #ifdef CalSpeed_IMPL
 
-#include <mm_snprintf.h>
+#ifdef CalSpeed_DEBUG
+#undef vaDBG
+#else
+#define vaDBG(...) // make vaDBG empty, no debugging message
+#endif
+
 
 static TCHAR s_thousepc = _T('.');
 
@@ -94,6 +92,26 @@ TCHAR CCalSpeed::GetThousepChar()
 {
 	return s_thousepc;
 }
+
+void CCalSpeed::Reset()
+{
+	m_nowTotal = m_prevTotal = 0;
+	m_msecPrev = m_procGetmsec();
+
+	vaDBG(_T("[CalSpeed] @%p Reset() millisec *%u"), this, m_msecPrev);
+}
+
+void CCalSpeed::Accum(Uint bytes)
+{
+	Uint64 oldtotal = m_nowTotal;
+
+	m_nowTotal += bytes;
+
+	vaDBG(_T("[CalSpeed] @%p *%u: Accum(low-32bit) %u -> %u"), 
+		this, m_procGetmsec(), 
+		(Uint)oldtotal, (Uint)m_nowTotal);
+}
+
 
 TCHAR *CCalSpeed::sprint(Uint diffmsec, Uint64 diffbytes64, TCHAR *buf, int bufsize)
 {
@@ -116,7 +134,7 @@ TCHAR *CCalSpeed::sprint(Uint diffmsec, Uint64 diffbytes64, TCHAR *buf, int bufs
 	if (KBps == 0) // XXX Bps
 	{
 		Uint64 Bps = diffbytes64 * 1000 / diffmsec;
-		mm_snprintf(buf, bufsize, _T("%u B/s"), (Uint)Bps);
+		_sntprintf_s(buf, bufsize, _TRUNCATE, _T("%u B/s"), (Uint)Bps);
 		return buf;
 	}
 	else if (KBps < 1000) // XXX KBps
@@ -124,16 +142,16 @@ TCHAR *CCalSpeed::sprint(Uint diffmsec, Uint64 diffbytes64, TCHAR *buf, int bufs
 		if (KBps < 10)
 		{
 			r = (diffbytes64*_100) / diffmsec % _100;
-			mm_snprintf(buf, bufsize, _T("%u%c%02u KB/s"), (Uint)KBps, s_thousepc, r);
+			_sntprintf_s(buf, bufsize, _TRUNCATE, _T("%u%c%02u KB/s"), (Uint)KBps, s_thousepc, r);
 		}
 		else if (KBps < 100)
 		{
 			r = (diffbytes64*_10) / diffmsec % _10;
-			mm_snprintf(buf, bufsize, _T("%u%c%01u KB/s"), (Uint)KBps, s_thousepc, r);
+			_sntprintf_s(buf, bufsize, _TRUNCATE, _T("%u%c%01u KB/s"), (Uint)KBps, s_thousepc, r);
 		}
 		else 
 		{
-			mm_snprintf(buf, bufsize, _T("%u KB/s"), (Uint)KBps);
+			_sntprintf_s(buf, bufsize, _TRUNCATE, _T("%u KB/s"), (Uint)KBps);
 		}
 		return buf;
 	}
@@ -144,16 +162,16 @@ TCHAR *CCalSpeed::sprint(Uint diffmsec, Uint64 diffbytes64, TCHAR *buf, int bufs
 		if (MBps < 10)
 		{
 			r = (diffKB*_100) / diffmsec % _100;
-			mm_snprintf(buf, bufsize, _T("%u%c%02u MB/s"), (Uint)MBps, s_thousepc, r);
+			_sntprintf_s(buf, bufsize, _TRUNCATE, _T("%u%c%02u MB/s"), (Uint)MBps, s_thousepc, r);
 		}
 		else if (MBps < 100)
 		{
 			r = (diffKB*_10) / diffmsec % _10;
-			mm_snprintf(buf, bufsize, _T("%u%c%01u MB/s"), (Uint)MBps, s_thousepc, r);
+			_sntprintf_s(buf, bufsize, _TRUNCATE, _T("%u%c%01u MB/s"), (Uint)MBps, s_thousepc, r);
 		}
 		else 
 		{
-			mm_snprintf(buf, bufsize, _T("%u MB/s"), (Uint)MBps);
+			_sntprintf_s(buf, bufsize, _TRUNCATE, _T("%u MB/s"), (Uint)MBps);
 		}
 		return buf;
 	}
@@ -164,7 +182,18 @@ TCHAR *CCalSpeed::sprint(Uint diffmsec, Uint64 diffbytes64, TCHAR *buf, int bufs
 		if(GBps<10)
 		{
 			r = (diffMB*_100) / diffmsec % _100;
+			_sntprintf_s(buf, bufsize, _TRUNCATE, _T("%u%c%02u GB/s"), (Uint)GBps, s_thousepc, r);
 		}
+		else if (GBps < 100)
+		{
+			r = (diffMB*_10) / diffMB % _10;
+			_sntprintf_s(buf, bufsize, _TRUNCATE, _T("%u%c%01u GB/s"), (Uint)GBps, s_thousepc, r);
+		}
+		else
+		{
+			_sntprintf_s(buf, bufsize, _TRUNCATE, _T("%u GB/s"), (Uint)GBps);
+		}
+
 		return buf;
 	}
 	
