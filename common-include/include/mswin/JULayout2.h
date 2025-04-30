@@ -36,8 +36,8 @@ Updates by Jimm Chen (as of 2025-03-01):
 ******************************************************************************/
 
 #include <assert.h>
+#include <windows.h> // HWND, POINT, LRESULT etc
 
-// #define JULAYOUT_DEBUG_INFO
 
 #define JULAYOUT_MAX_CONTROLS 200 
 
