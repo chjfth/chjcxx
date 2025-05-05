@@ -1,5 +1,5 @@
-#ifndef __JAutoBuf_h_20250429_
-#define __JAutoBuf_h_20250429_
+#ifndef __JAutoBuf_h_20250505_
+#define __JAutoBuf_h_20250505_
 /******************************************************************************
 Module:  JAutoBuf.h
 Notices: Copyright (c) 2000 Jeffrey Richter
@@ -11,7 +11,8 @@ Updates:
 * Add move-constructors, move-assignment for C++11.
 
 Chj Note:
-	* (TO DEL)This code cannot work on systems that sizeof(int)!=sizeof(long), 64-bit Linux for example.
+* (TO DEL)This code cannot work on systems that sizeof(int)!=sizeof(long), 64-bit Linux for example.
+* Need `union` update before porting to big-endian CPU.
 
 ******************************************************************************/
 
@@ -54,8 +55,8 @@ Note: To use this lib, pick one and only one of your xxx.cpp, write at its start
 class JAutoBufBase 
 {
 public:
-	typedef unsigned long BufEles_t; // in eles. 
-	typedef unsigned long BufBytes_t;
+	typedef __int64 BufEles_t; // in eles. 
+	typedef __int64 BufBytes_t;
 
 	BufEles_t SizeMin()
 	{
@@ -211,6 +212,8 @@ public:
 	operator unsigned int()   { return Size(); }
 	operator long()           { return Size(); }
 	operator unsigned long()  { return Size(); }
+	operator __int64()        { return Size(); }
+	operator unsigned __int64() { return Size(); }
 
 	// unsigned short*/int*/long* returns the m_ReqEle's address
 	operator unsigned short*(){ return (unsigned short*)PSize(); }
@@ -218,6 +221,8 @@ public:
 	operator unsigned int*()  { return (unsigned int*)PSize(); }
 	operator long*()          { return (long*)PSize(); }
 	operator unsigned long*() { return (unsigned long*)PSize(); }
+	operator __int64*()       { return (__int64*)PSize(); }
+	operator unsigned __int64*() { return (unsigned __int64*)PSize(); }
 
 	/// unsigned char*/void* returns the buffer address.
 //	operator PBYTE_t()  { return (PBYTE_t)Buffer(); }
