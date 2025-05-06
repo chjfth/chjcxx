@@ -36,18 +36,10 @@ DlgboxCbw_err Dlgbox_DisableComboboxWideDrop(HWND hdlg);
 #include <_MINMAX_.h>
 
 #ifdef Combobox_EnableWideDrop_DEBUG
-/*
-#define vaDBG vaDbgTs
-#include <mswin/winuser.itc.h>
-*/
+#undef  vaDBG      // revoke empty effect
 #else
-#ifndef vaDBG
-# define vaDBG(...)
+#define vaDBG(...) // make vaDBG empty, no debugging message
 #endif
-#ifndef ITCSv
-# define ITCSv(...) 0
-#endif
-#endif // not Combobox_EnableWideDrop_DEBUG
 
 
 namespace CbxEWD
