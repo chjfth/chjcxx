@@ -46,8 +46,11 @@ public:
 
 	int next(int *p_nowlen=nullptr)
 	{
-		// Skip consecutive splitter-chars and trim-chars.
+		// Returns an offset value that points to the next sub-string.
+		// *p_nowlen tells the length of the sub-string.
 
+		// Skip consecutive splitter-chars and trim-chars.
+		//
 		for(;;)
 		{
 			if(m_nowpos == m_endpos_)
@@ -65,7 +68,7 @@ public:
 		}
 
 		// Check if scan end.
-
+		//
 		if (m_nowpos == m_endpos_)
 		{
 			if (*p_nowlen)
