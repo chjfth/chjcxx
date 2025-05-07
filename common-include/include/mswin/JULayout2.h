@@ -17,11 +17,12 @@ Updates by Jimm Chen (as of 2025-03-01):
  * For AnchorControl(), user no longer need to pass a fRedraw parameter, bcz
    fRedraw=TRUE is solely used on groupbox(due to its hollow trait). JULayout internally
    consider groupbox fRedraw=TRUE.
-2. New feature: AnchorControl() support any [anchor-proportion, offset] paring value.
+2. New feature: AnchorControl() support any [anchor-proportion, offset] pairing value.
 3. New feature: Add JULayout::PropSheetProc() to support dialog-box inside property-sheet.
 4. New feature: User can assign dialogbox's minsize and maxsize; 0 means initial size.
 
-[Usage] To use this lib, pick one and only one of your xxx.cpp, write at its start:
+[Usage] To use this lib, pick one and only one of your xxx.cpp(CHIMPL.cpp for example), 
+write at its start:
 	
 	#define JULAYOUT_IMPL
 	#include "JULayout2.h"
