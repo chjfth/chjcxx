@@ -4,7 +4,10 @@
 //#include <WindowsX.h>
 
 
-enum MsgRelay_et { Relay_no=0, Relay_yes=1 };
+enum MsgRelay_et { 
+	MsgRelay_no=0, MsgRelay_yes=1, 
+	Relay_no=0, Relay_yes=1 // old-names
+};
 
 #define SUBCLASS_FILTER_MSG0(hwnd, message, fn)    \
     case (message): \
@@ -14,7 +17,7 @@ enum MsgRelay_et { Relay_no=0, Relay_yes=1 };
 		break; \
 	else \
 		return 0; \
-} // the "0" in macro name "_MSG0" implies 'return 0 if Relay_no'.
+} // the "0" in macro name "_MSG0" implies 'return 0 if MsgRelay_no'.
 
 /*
 Note: Most code below, is defining various FILTER_WM_xxx macros, which are very similar
@@ -30,6 +33,14 @@ a MsgRelay_et value.
 // MsgRelay_et Cls_OnKey(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT flags)
 #define FILTER_WM_KEYDOWN(hwnd, wParam, lParam, fn) \
 	(fn)((hwnd), (UINT)(wParam), TRUE, (int)(short)LOWORD(lParam), (UINT)HIWORD(lParam))
+
+// MsgRelay Cls_OnKey(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT flags)
+#define FILTER_WM_KEYUP(hwnd, wParam, lParam, fn) \
+	(fn)((hwnd), (UINT)(wParam), FALSE, (int)(short)LOWORD(lParam), (UINT)HIWORD(lParam))
+
+// MsgRelay_et Cls_OnChar(HWND hwnd, TCHAR ch, int cRepeat)
+#define FILTER_WM_CHAR(hwnd, wParam, lParam, fn) \
+	(fn)((hwnd), (TCHAR)(wParam), (int)(short)LOWORD(lParam))
 
 // MsgRelay_et Cls_OnMouseMove(HWND hEdit, int x, int y, UINT keyFlags)
 #define FILTER_WM_MOUSEMOVE(hwnd, wParam, lParam, fn) \
