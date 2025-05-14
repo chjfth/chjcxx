@@ -45,14 +45,18 @@
 		Usage: Rectangle(hdc, PARAM_RECT(r));
 	*/
 
-// SetDlgItemInt()
-#define YES_SIGNED TRUE
-#define NOT_SIGNED FALSE
-	/* For the final param "BOOL bSigned" */
+// SetDlgItemInt()'s bSigned param
+enum { 
+	bSigned_FALSE = FALSE,
+	bSigned_TRUE  = TRUE,
+};
+	
 
 // WM_INITDIALOG's return value:
-#define ACCEPT_DEFAULT_FOCUS	TRUE
-#define SET_NEW_FOCUS			FALSE
+enum { 
+	AcceptDefaultFocus_FALSE = FALSE,
+	AcceptDefaultFocus_TRUE  = TRUE
+};
 
 
 #define EnableDlgItem(hWnd, ChildWndId) EnableWindow(GetDlgItem((hWnd),(ChildWndId)),TRUE)
