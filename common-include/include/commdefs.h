@@ -5,10 +5,9 @@
 	Created by Chj on 2002.11.28
 
 **************************************************************************/
-// chjtest-for-cvsmailer1
 
-#ifndef __CHJ_COMMDEFS_H
-#define __CHJ_COMMDEFS_H
+#ifndef __commdefs_h_20250514_
+#define __commdefs_h_20250514_
 
 // #include <stddef.h>
 
@@ -66,7 +65,7 @@ typedef int RE_CODE;
 
 # define SUCCESS_0 0 //for some lib-function return 0 on success
 # define NOERROR_0 0
-# define FAIL__1 -1
+# define FAIL__1 (-1)
 
 typedef int SorF;	// SorF means Success or Fail.
 # define SUCCESS_1 1
@@ -85,12 +84,6 @@ typedef int YorN;
 # define YES 1
 # define NO 0
 #endif
-
-#define DELETE_P(p) do{ if(p){delete p; p=0;} } while(0)
-#define DELETE_ARRAY(array) \
-	do{ if(array){ delete []array; array=0;} }while(0)
-#define DELETE_ARRAY_E DELETE_ARRAY
-	// the trailing "_E" means "if Exists".
 
 #define FREE_MALLOCED(p) \
 	do{ if(p){free(p); p=0;} }while(0)
@@ -145,34 +138,25 @@ inline enum_type operator & (enum_type a, enum_type b)
 }
 #endif // #ifdef __cplusplus
 
+// [2025-02-xx]
+
+#define cox_MAKE_STRING(s) #s
+#define coy_MAKE_STRING(s) cox_MAKE_STRING(s)
+
+#define cox_MAKE_LSTRING(s) L ## #s
+#define coy_MAKE_LSTRING(s) cox_MAKE_LSTRING(s)
 
 
+// [2025-05-14]
 
-#define MAKE_LSTRING_FROM_STRING_pass2(s) L ## s
-#define MAKE_LSTRING_FROM_STRING(s) MAKE_LSTRING_FROM_STRING_pass2(s)
-
-#define MAKE_STRING_FROM_SYMBOL_pass2(s) #s
-#define MAKE_STRING_FROM_SYMBOL(s) MAKE_STRING_FROM_SYMBOL_pass2(s)
-
-#define MAKE_LSTRING_FROM_SYMBOL_pass2(s) L ## #s
-#define MAKE_LSTRING_FROM_SYMBOL(s) MAKE_LSTRING_FROM_SYMBOL_pass2(s)
-
-//Usage example:
-//
-//#define MY_STRA "jimm"
-//#define MY_STRW      MAKE_LSTRING_FROM_STRING(MY_STRA)
-//const wchar_t ws[] = MY_STRW; // const wchar_t ws[] = L"jimm"; 
-//
-//#define NAME_SYMBOL jimm chen    // value may be passed in from cmdline argument
-//#define MY_NAMEA  MAKE_STRING_FROM_SYMBOL(NAME_SYMBOL)
-//#define MY_NAMEW  MAKE_LSTRING_FROM_SYMBOL(NAME_SYMBOL)
-//
-//const char    namea[] = MY_NAMEA;
-//const wchar_t namew[] = MY_NAMEW; // const wchar_t namew[] = L"jimm chen"; 
+#define SETTLE_OUTPUT_PTR(Datatype, outptr, default_val) \
+	Datatype outptr##_to_localvar; \
+	if(!outptr) \
+		outptr = &outptr##_to_localvar; \
+	*outptr = default_val; 
 
 
 
 
-#endif // #ifndef __CHJ_COMMDEFS_H
 
-
+#endif

@@ -50,9 +50,7 @@
 #define NOT_SIGNED FALSE
 	/* For the final param "BOOL bSigned" */
 
-// WM_INITDIALOG
-
-// return value:
+// WM_INITDIALOG's return value:
 #define ACCEPT_DEFAULT_FOCUS	TRUE
 #define SET_NEW_FOCUS			FALSE
 
@@ -66,6 +64,7 @@
 // [2025-05-14] 
 
 typedef INT_PTR DLGPROC_ret; // DialogProc's return value
+enum { DLGPROC_ActionedNo = FALSE, DLGPROC_ActionedYes = TRUE };
 
 inline bool IsDLGR12(int msg)
 {
