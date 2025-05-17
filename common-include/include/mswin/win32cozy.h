@@ -36,7 +36,7 @@ void CMyClass::FlushBuffer()
 inline TCHAR* RECTtext(const RECT &r, TCHAR textbuf[], int buflen)
 {
 	// buflen suggestion: 60
-	_sntprintf_s(textbuf, buflen, _TRUNCATE, _T("LT(%d,%d)RB(%d,%d)WH(%d*%d)"),
+	_sntprintf_s(textbuf, buflen, _TRUNCATE, _T("LT(%d,%d)RB(%d,%d)[%d*%d]"),
 		r.left, r.top, r.right, r.bottom, (r.right-r.left), (r.bottom-r.top));
 	return textbuf;
 }
