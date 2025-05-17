@@ -1,7 +1,9 @@
 #ifndef __win32cozy_h_20171114_
 #define __win32cozy_h_20171114_
 
-// User should include <windows.h> himself.
+#include <tchar.h>
+#include <stdio.h>
+#include <windows.h>
 
 ///////////// Win32Mutex ///////////////
 
@@ -28,6 +30,17 @@ void CMyClass::FlushBuffer()
 {
 
 */
+
+// [2025-05-17] 
+
+inline TCHAR* RECTtext(const RECT &r, TCHAR textbuf[], int buflen)
+{
+	// buflen suggestion: 60
+	_sntprintf_s(textbuf, buflen, _TRUNCATE, _T("LT(%d,%d)RB(%d,%d)WH(%d*%d)"),
+		r.left, r.top, r.right, r.bottom, (r.right-r.left), (r.bottom-r.top));
+	return textbuf;
+}
+
 
 
 #endif
