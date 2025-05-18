@@ -16,14 +16,14 @@ inline bool VSeq_IsAfterChild(VSeq_t s) { return s >= 0; }
 // Helper: invoke member function with tuple unpacking (C++14 ok)
 template <typename T, typename MemFn, typename Tuple, size_t... Indices>
 void CVR_call_member_with_tuple(
-	T* obj, MemFn memfn, VSeq_t vseq, Tuple&& t, std::index_sequence<Indices...>) 
+	T* obj, MemFn memfn, VSeq_t vseq, Tuple&& t, std::index_sequence<Indices...>)
 {
 	(obj->*memfn)(vseq, std::get<Indices>(std::forward<Tuple>(t))...);
 }
 
 template <typename T, typename MemFn, typename Tuple>
 void CVR_call_member_with_tuple(
-	T* obj, MemFn memfn, VSeq_t vseq, Tuple&& t) 
+	T* obj, MemFn memfn, VSeq_t vseq, Tuple&& t)
 {
 	constexpr size_t N = std::tuple_size<typename std::decay<Tuple>::type>::value;
 	CVR_call_member_with_tuple(
@@ -33,19 +33,19 @@ void CVR_call_member_with_tuple(
 
 // Main class
 template <typename T, typename MemFn, typename... Args>
-class VierachyCall {
+class VierarchyCall {
 public:
-	VierachyCall(T* obj, MemFn memfn, VSeq_t vseq, Args&&... args)
+	VierarchyCall(T* obj, MemFn memfn, VSeq_t vseq, Args&&... args)
 		: object(obj), func(memfn), m_vseq(vseq), arguments(std::forward<Args>(args)...)
 	{
-		if(VSeq_IsBeforeChild(m_vseq))
-			CVR_call_member_with_tuple(object, func, m_vseq-1, arguments);
+		if (VSeq_IsBeforeChild(m_vseq))
+			CVR_call_member_with_tuple(object, func, m_vseq - 1, arguments);
 	}
 
-	~VierachyCall() 
+	~VierarchyCall()
 	{
-		if(VSeq_IsAfterChild(m_vseq))
-			CVR_call_member_with_tuple(object, func, m_vseq+1, arguments);
+		if (VSeq_IsAfterChild(m_vseq))
+			CVR_call_member_with_tuple(object, func, m_vseq + 1, arguments);
 	}
 
 private:
@@ -58,8 +58,8 @@ private:
 
 
 template <typename T, typename MemFn, typename... Args>
-auto MakeVierachyCall(T* obj, MemFn memfn, VSeq_t vseq, Args&&... args) {
-	return VierachyCall<T, MemFn, Args...>(obj, memfn, vseq, std::forward<Args>(args)...);
+auto MakeVierarchyCall(T* obj, MemFn memfn, VSeq_t vseq, Args&&... args) {
+	return VierarchyCall<T, MemFn, Args...>(obj, memfn, vseq, std::forward<Args>(args)...);
 }
 
 
