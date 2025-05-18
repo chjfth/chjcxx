@@ -1,5 +1,5 @@
-#ifndef __mswinClarify_h_20250514_
-#define __mswinClarify_h_20250514_
+#ifndef __win32clarify_h_20250518_
+#define __win32clarify_h_20250518_
 
 #include <stdio.h>
 #include <stdarg.h>
