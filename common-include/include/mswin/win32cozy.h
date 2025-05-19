@@ -3,6 +3,7 @@
 
 #include <tchar.h>
 #include <stdio.h>
+#include <assert.h>
 #include <windows.h>
 
 ///////////// Win32Mutex ///////////////
@@ -39,6 +40,19 @@ inline TCHAR* RECTtext(const RECT &r, TCHAR textbuf[], int buflen)
 	_sntprintf_s(textbuf, buflen, _TRUNCATE, _T("LT(%d,%d)RB(%d,%d)[%d*%d]"),
 		r.left, r.top, r.right, r.bottom, (r.right-r.left), (r.bottom-r.top));
 	return textbuf;
+}
+
+
+template<typename T_int, size_t eles>
+void Enable_Uics(BOOL isEnable, HWND hParent, const T_int (&ar)[eles])
+{
+	for (int i = 0; i < eles; i++)
+	{
+		HWND hUic = GetDlgItem(hParent, ar[i]);
+		assert(IsWindow(hUic));
+
+		EnableWindow(hUic, isEnable);
+	}
 }
 
 
