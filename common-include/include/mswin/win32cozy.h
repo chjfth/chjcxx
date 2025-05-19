@@ -42,6 +42,13 @@ inline TCHAR* RECTtext(const RECT &r, TCHAR textbuf[], int buflen)
 	return textbuf;
 }
 
+template<size_t eles>
+inline TCHAR* RECTtext(const RECT &r, TCHAR (&textbuf)[eles])
+{
+	return RECTtext(r, textbuf, eles);
+}
+
+
 
 template<typename T_int, size_t eles>
 void Enable_Uics(BOOL isEnable, HWND hParent, const T_int (&ar)[eles])
