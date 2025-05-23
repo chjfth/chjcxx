@@ -48,6 +48,15 @@ inline TCHAR* RECTtext(const RECT &r, TCHAR (&textbuf)[eles])
 	return RECTtext(r, textbuf, eles);
 }
 
+inline LONG RECTwidth(const RECT& rc)
+{
+	return rc.right - rc.left;
+}
+
+inline LONG RECTheight(const RECT& rc)
+{
+	return rc.bottom - rc.top;
+}
 
 
 template<typename T_int, size_t eles>
@@ -61,6 +70,7 @@ void Enable_Uics(BOOL isEnable, HWND hParent, const T_int (&ar)[eles])
 		EnableWindow(hUic, isEnable);
 	}
 }
+
 
 
 
