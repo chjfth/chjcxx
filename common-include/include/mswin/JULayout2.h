@@ -34,6 +34,10 @@ write at its start:
 	jul->AnchorControl(0,0, 100,100, IDC_EDIT_WHOLE_AREA);
 	jul->AnchorControl(...);
 
+[Note] If a Uic stay in a groupbox, and the groupbox goes through JULayout, then,
+the Uic must go through JULayout as well, even if the Uic keep stationary.
+If not doing so for the Uic, the Uic will be erased when the groupbox is resizing.
+
 ******************************************************************************/
 
 #include <assert.h>
@@ -659,8 +663,10 @@ bool JULayout::AdjustControls(int cx, int cy)
 	HDC hdc = GetDC(m_hwndParent);
 	HBRUSH hbrBg = CreateSolidBrush(GetSysColor(COLOR_3DFACE)); // =COLOR_BTNFACE
 	FillRgn(hdc, hrgnPaintBg, hbrBg); 
-	// -- Uic's new positions by passed, so no flickering for most Uics.
+	// -- Uic's new positions bypassed, so no flickering for most Uics.
 	// The exception is groupbox, whose bkgnd is totally repainted so flickering exists.
+	//
+	// -- [2025-05-26] Shall we send m_hwndParent WM_ERASEBKGND in favor of wiping bkgnd directly?
 	
 	DeleteObject(hbrBg);
 	ReleaseDC(m_hwndParent, hdc);
