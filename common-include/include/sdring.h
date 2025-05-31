@@ -111,7 +111,7 @@ private:
 
 private:
 	int m_nchars;
-	T_CHAR* m_buf; // buffer size if m_nchars+1
+	T_CHAR* m_buf; // buffer size is m_nchars+1
 };
 
 
