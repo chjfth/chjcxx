@@ -16,6 +16,7 @@ public:
 		E_Success = 0,
 		E_Fail = -1,
 
+		E_NotExist = -2,
 		E_Existed = -3,
 		E_BadParam = -4,
 		E_BadHwnd = -5,
@@ -35,6 +36,16 @@ public:
 		return m_hwnd ? true : false;
 	}
 
+	template<typename TChild>
+	static TChild* FetchCxxobjFromHwnd(HWND hwnd, const TCHAR *signature, BOOL is_create,
+		ReCode_et *pErr=nullptr);
+
+protected:
+	virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+	{
+		return DefSubclassProc(hwnd, uMsg, wParam, lParam);
+	}
+
 private:
 	// This identifies an CxxWindowSubclass object, must be the first member.
 	UINT m_magic; 
@@ -48,8 +59,7 @@ private:
 
 	LRESULT StockWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-protected:
-	virtual LRESULT WndProc(HWND hwnd,UINT uMsg, WPARAM wParam, LPARAM lParam) = 0;
+	static ReCode_et CheckHwnd(HWND hwnd, const TCHAR *signature);
 
 protected:
 
@@ -72,6 +82,13 @@ private:
 #ifndef CxxWindowSubclass_DEBUG
 #define vaDBG(...)
 #endif
+
+// [2025-06-06] Note: We use SetWindowSubclass to store CxxWindowSubclass pointer as 
+// user context. And we use SetProp/GetProp to associate the very CxxWindowSubclass pointer 
+// with the HWND, so that user can fetch the CxxWindowSubclass pointer from HWND.
+
+#include <commdefs.h>
+#include <mswin/win32cozy.h>
 
 CxxWindowSubclass::CxxWindowSubclass()
 {
@@ -102,28 +119,38 @@ CxxWindowSubclass::~CxxWindowSubclass()
 }
 
 CxxWindowSubclass::ReCode_et 
-CxxWindowSubclass::AttachHwnd(HWND hwnd, const TCHAR *signature, bool isAutoCxxDelete)
+CxxWindowSubclass::CheckHwnd(HWND hwnd, const TCHAR *signature)
 {
-	if(!IsWindow(hwnd))
+	if (!IsWindow(hwnd))
 		return E_BadHwnd;
 
-	if(!signature || !signature[0])
+	if (!signature || !signature[0])
 		return E_BadParam;
 
 	CxxWindowSubclass *pOld = (CxxWindowSubclass*)GetProp(hwnd, signature);
-	if(pOld)
+	if (pOld)
 	{
-		if(pOld->m_magic != const_magic)
+		if (pOld->m_magic != const_magic)
 			return E_HwndPropConflict;
 
-		if( (UINT_PTR)pOld->m_signature < 0x10000 )
+		if ((UINT_PTR)pOld->m_signature < 0x10000)
 			return E_HwndPropConflict;
 
-		if(_tcscmp(pOld->m_signature, signature) !=0 )
+		if (_tcscmp(pOld->m_signature, signature) != 0)
 			return E_HwndPropConflict;
 
 		return E_Existed;
 	}
+	else
+		return E_NotExist;
+}
+
+CxxWindowSubclass::ReCode_et 
+CxxWindowSubclass::AttachHwnd(HWND hwnd, const TCHAR *signature, bool isAutoCxxDelete)
+{
+	ReCode_et err = CheckHwnd(hwnd, signature);
+	if (err != E_NotExist)
+		return err;
 
 	m_hwnd = hwnd;
 	m_isAutoDelete = isAutoCxxDelete;
@@ -239,6 +266,40 @@ CxxWindowSubclass::StockWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 
 	return lre;
 }
+
+
+template<typename TChild> // TChild should be child class of CxxWindowSubclass
+TChild* 
+CxxWindowSubclass::FetchCxxobjFromHwnd(HWND hwnd, const TCHAR *signature, BOOL is_create,
+	ReCode_et *pErr)
+{
+	SETTLE_OUTPUT_PTR(ReCode_et, pErr, E_Fail);
+
+	*pErr = CheckHwnd(hwnd, signature);
+
+	if(*pErr == E_Existed)
+	{
+		*pErr = E_Success;
+		return (TChild*)GetProp(hwnd, signature);
+	}
+	
+	if (*pErr == E_NotExist && is_create)
+	{
+		CxxWindowSubclass *pobj = new TChild;
+		*pErr = pobj->AttachHwnd(hwnd, signature);
+
+		if (*pErr == E_Success)
+			return reinterpret_cast<TChild*>(pobj);
+		else {
+			delete pobj;
+			return nullptr;
+		}
+	}
+
+	return nullptr;
+}
+
+
 
 
 #ifndef CxxWindowSubclass_DEBUG
