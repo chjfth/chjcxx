@@ -20,6 +20,8 @@ public:
 		E_BadParam = -4,
 		E_BadHwnd = -5,
 		E_HwndPropConflict = -6,
+
+		E_WinapiSubclass = -10,
 	};
 
 public:
@@ -136,6 +138,8 @@ CxxWindowSubclass::AttachHwnd(HWND hwnd, const TCHAR *signature, bool isAutoCxxD
 		return E_Fail;
 	}
 
+	ReCode_et err_ret = E_Fail;
+
 	m_atom = AddAtom(m_signature);
 	if(!m_atom)
 		goto FAIL_END;
@@ -143,8 +147,17 @@ CxxWindowSubclass::AttachHwnd(HWND hwnd, const TCHAR *signature, bool isAutoCxxD
 	// Subclass the hwnd.
 
 	succ = SetWindowSubclass(m_hwnd, SubclassProc, m_atom, (DWORD_PTR)this);
-	if(!succ)
+	if (!succ)
+	{
+		// If user pass in a HWND from another process, it fails with WinErr=2(ERROR_FILE_NOT_FOUND).
+
+		vaDBG(_T("SetWindowSubclass(hwnd=0x%X) fails with winerr=%d."), m_hwnd, GetLastError());
+
+		err_ret = E_WinapiSubclass;
 		goto FAIL_END;
+	}
+
+	vaDBG(_T("SetWindowSubclass(hwnd=0x%X, , atom=0x%X) success."), m_hwnd, m_atom);
 
 	return E_Success;
 
@@ -159,7 +172,7 @@ FAIL_END:
 
 	m_hwnd = NULL;
 
-	return E_Fail;
+	return err_ret;
 }
 
 CxxWindowSubclass::ReCode_et 
