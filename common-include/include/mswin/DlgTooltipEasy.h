@@ -100,10 +100,25 @@ public:
 			return nullptr;
 	}
 
+	const TCHAR *Call_getContentText()
+	{
+		if (m_getContentText)
+		{
+			return m_getContentText(m_uctxContent);
+		}
+		else
+			return nullptr;
+	}
+
+	void SetHwndttContent(HWND httContent)
+	{
+		m_hwndttContent = httContent;
+	}
+
 //	friend class CTooltipMan;
 
 private:
-	HWND m_hwndTooltip;
+	HWND m_hwndttContent;
 
 	PROC_DlgtteGetText *m_getUsageText;
 	void *m_uctxUsage;
@@ -114,7 +129,7 @@ private:
 
 CxxSubclassHottool::CxxSubclassHottool()
 {
-	m_hwndTooltip = NULL;
+	m_hwndttContent = NULL;
 
 	m_getUsageText = m_getContentText = nullptr;
 	m_uctxUsage = m_uctxContent = nullptr;
@@ -131,7 +146,39 @@ CxxSubclassHottool::xxxAttachHwnd(HWND hwnd)
 LRESULT 
 CxxSubclassHottool::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	if(m_hwndttContent)
+	{
+		HWND hUic = hwnd;
+		HWND hdlg = GetParent(hwnd);
 
+		TOOLINFO ti = { sizeof(TOOLINFO) };
+		ti.hwnd = hdlg;
+		ti.uId = (UINT_PTR)hUic;
+
+		if (uMsg == WM_SETFOCUS)
+		{
+			vaDBG(_T("Hottool(0x%X) Will show Content tooltip."), hUic);
+
+			// We select top-middle or bottom-middle to display the tooltip.
+			RECT rc = {};
+			GetWindowRect(hUic, &rc);
+			POINT midpoint = { (rc.left + rc.right) / 2, (rc.top + rc.bottom) / 2 };
+
+			int screen_height = GetSystemMetrics(SM_CYSCREEN);
+			int usey = midpoint.y<screen_height/2 ? rc.bottom : rc.top;
+
+			SendMessage(m_hwndttContent, TTM_TRACKPOSITION, 0, 
+				(LPARAM)MAKELONG(midpoint.x, usey));
+
+			SendMessage(m_hwndttContent, TTM_TRACKACTIVATE, TRUE, (LPARAM)&ti);
+		}
+		else if (uMsg == WM_KILLFOCUS)
+		{
+			vaDBG(_T("Hottool(0x%X) Will hide Content tooltip."), hUic);
+
+			SendMessage(m_hwndttContent, TTM_TRACKACTIVATE, FALSE, (LPARAM)&ti);
+		}
+	}
 
 	return DefSubclassProc(hwnd, uMsg, wParam, lParam);
 }
@@ -173,6 +220,12 @@ CTooltipMan::AddUic(HWND hwndUic, const GetTextCallbacks_st &gtcb)
 	if (gtcb.getUsageText == nullptr && gtcb.getContentText == nullptr)
 		return E_BadParam;
 
+	CxxWindowSubclass::ReCode_et err = CxxWindowSubclass::E_Fail;
+	CxxSubclassHottool *psub =
+		CxxWindowSubclass::FetchCxxobjFromHwnd<CxxSubclassHottool>(
+			hwndUic, sig_EasyHottool, true, &err);
+	assert(psub);
+
 	if (gtcb.getUsageText)
 	{
 		if (!m_httUsage)
@@ -181,9 +234,8 @@ CTooltipMan::AddUic(HWND hwndUic, const GetTextCallbacks_st &gtcb)
 				WS_EX_TOPMOST | WS_EX_TRANSPARENT,
 				TOOLTIPS_CLASS,
 				NULL, // window title
-				TTS_NOPREFIX | TTS_ALWAYSTIP, // not TTS_BALLOON()
-				CW_USEDEFAULT, CW_USEDEFAULT,
-				CW_USEDEFAULT, CW_USEDEFAULT,
+				TTS_NOPREFIX | TTS_ALWAYSTIP, // not TTS_BALLOON
+				0, 0, 0, 0,
 				hdlg, // tooltip-window's owner
 				NULL, NULL, NULL);
 			assert(m_httUsage);
@@ -192,9 +244,9 @@ CTooltipMan::AddUic(HWND hwndUic, const GetTextCallbacks_st &gtcb)
 		// Associate Uic to the tooltip.
 
 		TOOLINFO ti = { sizeof(TOOLINFO) };
+		ti.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
 		ti.hwnd = hdlg;
 		ti.uId = (UINT_PTR)hwndUic;
-		ti.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
 		ti.lpszText = LPSTR_TEXTCALLBACK;
 
 		LRESULT lsucc = SendMessage(m_httUsage, TTM_ADDTOOL, 0, (LPARAM)&ti);
@@ -204,15 +256,38 @@ CTooltipMan::AddUic(HWND hwndUic, const GetTextCallbacks_st &gtcb)
 		SendMessage(m_httUsage, TTM_SETDELAYTIME, TTDT_INITIAL, 100);
 	}
 
-	CxxWindowSubclass::ReCode_et err = CxxWindowSubclass::E_Fail;
-	CxxSubclassHottool *psub = 
-		CxxWindowSubclass::FetchCxxobjFromHwnd<CxxSubclassHottool>(
-			hwndUic, sig_EasyHottool, true, &err);
-	assert(psub);
-
 	if (gtcb.getContentText)
 	{
+		if (!m_httContent)
+		{
+			m_httContent = CreateWindowEx(
+				WS_EX_TOPMOST | WS_EX_TRANSPARENT,
+				TOOLTIPS_CLASS,
+				NULL, // window title
+				TTS_NOPREFIX | TTS_ALWAYSTIP | TTS_BALLOON, // want balloon style
+				0, 0, 0, 0,
+				hdlg, // tooltip-window's owner
+				NULL, NULL, NULL);
+			assert(m_httContent);
+		}
 
+		// Associate Uic to the tooltip.
+
+		TOOLINFO ti = { sizeof(TOOLINFO) };
+		ti.uFlags = TTF_IDISHWND | TTF_TRACK | TTF_CENTERTIP; 
+		// -- we "track" the tooltip manually
+		// -- TTF_ABSOLUTE is not required
+		ti.hwnd = hdlg;
+		ti.uId = (UINT_PTR)hwndUic;
+		ti.lpszText = LPSTR_TEXTCALLBACK;
+
+		LRESULT lsucc = SendMessage(m_httContent, TTM_ADDTOOL, 0, (LPARAM)&ti);
+		assert(lsucc);
+
+		// Enable multiline tooltip
+		SendMessage(m_httContent, TTM_SETMAXTIPWIDTH, 0, 800);
+
+		psub->SetHwndttContent(m_httContent);
 	}
 
 	psub->AssignCallback(gtcb);
@@ -228,6 +303,7 @@ CTooltipMan::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 //		dbg_WM_NOTIFY(wParam, lParam);
 
 		NMHDR *pnmh = (NMHDR *)lParam;
+		HWND hwndTooltip = pnmh->hwndFrom;
 		HWND hwndUic = (HWND)pnmh->idFrom;
 
 		if (pnmh->code == TTN_NEEDTEXT)
@@ -236,14 +312,33 @@ CTooltipMan::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				CxxWindowSubclass::FetchCxxobjFromHwnd<CxxSubclassHottool>(
 					hwndUic, sig_EasyHottool, FALSE);
 
+			vaDBG(_T("TTN_NEEDTEXT from hwndTooltip=0x%X for Uic=0x%X."), hwndTooltip, hwndUic);
+
 			if(phot)
 			{
-				const TCHAR *ptext = phot->Call_getUsageText();
+				const TCHAR *ptext = nullptr;
+
+				if (hwndTooltip == m_httUsage)
+					ptext = phot->Call_getUsageText();
+				else if (hwndTooltip == m_httContent)
+					ptext = phot->Call_getContentText();
 
 				NMTTDISPINFO *pdi = (NMTTDISPINFO *)pnmh;
 				pdi->lpszText = (LPTSTR)ptext;
 			}
 		}
+		else if (pnmh->code == TTN_SHOW)
+		{
+			RECT rc; TCHAR rctext[40];
+			GetWindowRect(hwndTooltip, &rc);
+			vaDBG(_T("TTN_SHOW from 0x%X, Rect=%s"), hwndTooltip, RECTtext(rc, rctext));
+		}
+	}
+	else if (uMsg == WM_MOVE)
+	{	
+		// If window moved, hide the tooltip
+		SendMessage(m_httContent, TTM_ACTIVATE, FALSE, 0);
+		SendMessage(m_httContent, TTM_ACTIVATE, TRUE, 0);
 	}
 
 	return DefSubclassProc(hwnd, uMsg, wParam, lParam);
