@@ -29,7 +29,7 @@ Dlgtte_err Dlgtte_EnableTooltip(HWND hwndCtl,
 #include <windowsx.h>
 #include <DlOpe.h>
 
-namespace Dlgtte
+namespace Dlgtte // (internal) 
 {
 
 struct SToolNode
@@ -60,24 +60,34 @@ struct SToolHead
 	}
 };
 
+static const TCHAR *sig_EasyHottool = _T("sig_EasyHottool");
+static const TCHAR *sig_EasyTooltipMan = _T("sig_EasyTooltipMan");
+
+struct GetTextCallbacks_st
+{
+	PROC_DlgtteGetText *getUsageText;
+	void *uctxUsage;
+
+	PROC_DlgtteGetText *getContentText;
+	void *uctxContent;
+};
+
 
 class CxxSubclassHottool : public CxxWindowSubclass
 {
 public:
 	CxxSubclassHottool();
-//	static const TCHAR *sig = _T("");
 
 	virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	
 	ReCode_et xxxAttachHwnd(HWND hwnd/*HWND hwndHottool, HWND hwndTooltip*/);
 
-	void AssignCallback(PROC_DlgtteGetText *getUsageText, void *uctxUsage,
-		PROC_DlgtteGetText *getContentText, void *uctxContent)
+	void AssignCallback(const GetTextCallbacks_st &gtcb)
 	{
-		m_getUsageText = getUsageText;
-		m_uctxUsage = uctxUsage;
-		m_getContentText = getContentText;
-		m_uctxContent = uctxContent;
+		m_getUsageText = gtcb.getUsageText;
+		m_uctxUsage = gtcb.uctxUsage;
+		m_getContentText = gtcb.getContentText;
+		m_uctxContent = gtcb.uctxContent;
 	}
 
 	const TCHAR *Call_getUsageText()
@@ -113,7 +123,7 @@ CxxSubclassHottool::CxxSubclassHottool()
 CxxSubclassHottool::ReCode_et
 CxxSubclassHottool::xxxAttachHwnd(HWND hwnd)
 {
-	ReCode_et err = __super::AttachHwnd(hwnd, _T("EasyHottool"));
+	ReCode_et err = __super::AttachHwnd(hwnd, sig_EasyHottool);
 	return err;
 }
 
@@ -138,10 +148,10 @@ public:
 		m_httContent = NULL;
 	}
 
-	ReCode_et PrepareEasyTooltip(HWND hdlg, HWND hwndCtl,
-		PROC_DlgtteGetText *getUsageText, void *uctxUsage,
-		PROC_DlgtteGetText *getContentText, void *uctxContent);
-
+	ReCode_et AddUic(HWND hwndUic, const GetTextCallbacks_st &gtcb);
+	// -- todo: a second call will overwrite previous gtcb
+	
+	ReCode_et DelUic(HWND hwndUic);
 
 	virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -156,11 +166,14 @@ private:
 
 
 CxxWindowSubclass::ReCode_et 
-CTooltipMan::PrepareEasyTooltip(HWND hdlg, HWND hwndCtl,
-	PROC_DlgtteGetText *getUsageText, void *uctxUsage,
-	PROC_DlgtteGetText *getContentText, void *uctxContent)
+CTooltipMan::AddUic(HWND hwndUic, const GetTextCallbacks_st &gtcb)
 {
-	if (getUsageText)
+	HWND hdlg = m_hwnd;
+
+	if (gtcb.getUsageText == nullptr && gtcb.getContentText == nullptr)
+		return E_BadParam;
+
+	if (gtcb.getUsageText)
 	{
 		if (!m_httUsage)
 		{
@@ -180,7 +193,7 @@ CTooltipMan::PrepareEasyTooltip(HWND hdlg, HWND hwndCtl,
 
 		TOOLINFO ti = { sizeof(TOOLINFO) };
 		ti.hwnd = hdlg;
-		ti.uId = (UINT_PTR)hwndCtl;
+		ti.uId = (UINT_PTR)hwndUic;
 		ti.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
 		ti.lpszText = LPSTR_TEXTCALLBACK;
 
@@ -194,15 +207,15 @@ CTooltipMan::PrepareEasyTooltip(HWND hdlg, HWND hwndCtl,
 	CxxWindowSubclass::ReCode_et err = CxxWindowSubclass::E_Fail;
 	CxxSubclassHottool *psub = 
 		CxxWindowSubclass::FetchCxxobjFromHwnd<CxxSubclassHottool>(
-			hwndCtl, _T("EasyHottool"), true, &err);
+			hwndUic, sig_EasyHottool, true, &err);
 	assert(psub);
 
-	psub->AssignCallback(getUsageText, uctxUsage, getContentText, uctxContent);
-
-	if (getContentText)
+	if (gtcb.getContentText)
 	{
 
 	}
+
+	psub->AssignCallback(gtcb);
 
 	return E_Success;
 }
@@ -221,7 +234,7 @@ CTooltipMan::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		{
 			CxxSubclassHottool *phot = 
 				CxxWindowSubclass::FetchCxxobjFromHwnd<CxxSubclassHottool>(
-					hwndUic, _T("EasyHottool"), FALSE);
+					hwndUic, sig_EasyHottool, FALSE);
 
 			if(phot)
 			{
@@ -237,9 +250,67 @@ CTooltipMan::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 }
 
 
-} // namespace Dlgtte
+static bool HasAnyHottool(HWND hwndTooltip)
+{
+	TOOLINFO ti = { sizeof(TOOLINFO) };
+	BOOL any = (BOOL)SendMessage(hwndTooltip, TTM_ENUMTOOLS, 0, (LPARAM)&ti);
+	return any ? true : false;
+}
+
+CxxWindowSubclass::ReCode_et
+CTooltipMan::DelUic(HWND hwndUic)
+{
+	ReCode_et err_th = CxxWindowSubclass::E_Fail;
+	CxxSubclassHottool *pth = CxxWindowSubclass::FetchCxxobjFromHwnd<CxxSubclassHottool>(
+		hwndUic, sig_EasyHottool, FALSE, &err_th);
+
+	if (err_th)
+		return err_th;
+
+	assert(pth);
+
+	ReCode_et err = pth->DetachHwnd();
+	assert(!err);
+
+	HWND hdlg = m_hwnd;
+
+	// Do TTM_DELTOOL on the dual tooltip-windows.
+
+	TOOLINFO ti = { sizeof(TOOLINFO) };
+	ti.hwnd = hdlg;
+	ti.uId = (UINT_PTR)hwndUic;
+
+	bool anyUsageTip = false;
+	bool anyContentTip = false;
+
+	if(m_httUsage)
+	{
+		SendMessage(m_httUsage, TTM_DELTOOL, 0, (LPARAM)&ti);
+		
+		anyUsageTip = HasAnyHottool(m_httUsage);
+	}
+	
+	if(m_httContent)
+	{
+		SendMessage(m_httContent, TTM_DELTOOL, 0, (LPARAM)&ti);
+
+		anyContentTip = HasAnyHottool(m_httContent);
+	}
+
+	if(!anyUsageTip && !anyContentTip)
+	{
+		this->DetachHwnd();
+	}
+
+	return E_Success;
+}
+
+
+} // (internal) namespace Dlgtte
+
 
 using namespace Dlgtte;
+
 
 Dlgtte_err Dlgtte_EnableTooltip(HWND hwndCtl,
 	PROC_DlgtteGetText *getUsageText, void *uctxUsage,
@@ -247,19 +318,60 @@ Dlgtte_err Dlgtte_EnableTooltip(HWND hwndCtl,
 {
 	HWND hdlg = GetParent(hwndCtl);
 
-	//	CTooltipMan *ptm = HwndGetPropAsCxxClass<CTooltipMan>(hdlg, _T("DlgTooltipEasy"));
-
 	CxxWindowSubclass::ReCode_et err = CxxWindowSubclass::E_Fail;
 	CTooltipMan *ptm = CxxWindowSubclass::FetchCxxobjFromHwnd<CTooltipMan>(
-		hdlg, _T("EasyTooltipMan"), TRUE, &err);
+		hdlg, sig_EasyTooltipMan, TRUE, &err);
 
 	assert(!err);
 
-	err = ptm->PrepareEasyTooltip(
-		hdlg, hwndCtl, getUsageText, uctxUsage, getContentText, uctxContent);
+	GetTextCallbacks_st gtcb = { getUsageText, uctxUsage, getContentText, uctxContent };
+
+	err = ptm->AddUic(hwndCtl, gtcb);
 
 	return err ? Dlgtte_Fail : Dlgtte_Succ;
 }
+
+
+bool Dlgtte_IsEnabled(HWND hwndCtl)
+{
+	// Check whether hwndCtl has been installed a DlgTooltipEasy facility.
+
+	CxxSubclassHottool *pth = CxxWindowSubclass::FetchCxxobjFromHwnd<CxxSubclassHottool>(
+		hwndCtl, sig_EasyHottool, FALSE);
+	
+	if (pth)
+		return true;
+	else
+		return false;
+}
+
+
+Dlgtte_err Dlgtte_RemoveTooltip(HWND hwndCtl)
+{
+	HWND hdlg = GetParent(hwndCtl);
+
+	CxxWindowSubclass::ReCode_et err_tm = CxxWindowSubclass::E_Fail;
+	CTooltipMan *ptm = CxxWindowSubclass::FetchCxxobjFromHwnd<CTooltipMan>(
+		hdlg, sig_EasyTooltipMan, FALSE, &err_tm);
+
+	CxxWindowSubclass::ReCode_et err_th = CxxWindowSubclass::E_Fail;
+	CxxSubclassHottool *pth = CxxWindowSubclass::FetchCxxobjFromHwnd<CxxSubclassHottool>(
+		hwndCtl, sig_EasyHottool, FALSE, &err_th);
+
+	if (err_tm == CxxWindowSubclass::E_NotExist)
+	{
+		assert(err_th == CxxWindowSubclass::E_NotExist);
+		return Dlgtte_Succ;
+	}
+
+	if (err_th == CxxWindowSubclass::E_NotExist)
+		return Dlgtte_Succ; // already removed, nothing to do
+
+	ptm->DelUic(hwndCtl);
+
+	return Dlgtte_Succ;
+}
+
 
 
 #endif // DlgTooltipEasy_IMPL
