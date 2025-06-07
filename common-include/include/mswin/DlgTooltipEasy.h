@@ -299,6 +299,18 @@ CTooltipMan::DelUic(HWND hwndUic)
 
 	if(!anyUsageTip && !anyContentTip)
 	{
+		// Cleanup tooltip-window resource
+
+		if (m_httUsage) {
+			DestroyWindow(m_httUsage);
+			m_httUsage = NULL;
+		}
+
+		if (m_httContent) {
+			DestroyWindow(m_httContent);
+			m_httContent = NULL;
+		}
+
 		this->DetachHwnd();
 	}
 
