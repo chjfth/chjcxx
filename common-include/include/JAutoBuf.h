@@ -1,5 +1,5 @@
-#ifndef __JAutoBuf_h_20250505_
-#define __JAutoBuf_h_20250505_
+#ifndef __JAutoBuf_h_20250608_
+#define __JAutoBuf_h_20250608_
 /******************************************************************************
 Module:  JAutoBuf.h
 Notices: Copyright (c) 2000 Jeffrey Richter
@@ -207,11 +207,11 @@ public:
 	unsigned int operator=(unsigned int eleCount) { return JAutoBufBase::Size(eleCount); }
 
 	// unsigned short/int/long returns the m_CurEle value
-	operator unsigned short() { return Size(); }
-	operator int()            { return Size(); }
-	operator unsigned int()   { return Size(); }
-	operator long()           { return Size(); }
-	operator unsigned long()  { return Size(); }
+	operator unsigned short() { return (unsigned short)Size(); }
+	operator int()            { return (int)          Size(); }
+	operator unsigned int()   { return (unsigned int) Size(); }
+	operator long()           { return (long)         Size(); }
+	operator unsigned long()  { return (unsigned long)Size(); }
 	operator __int64()        { return Size(); }
 	operator unsigned __int64() { return Size(); }
 
@@ -341,44 +341,27 @@ void JAutoBufBase::AdjustBuffer()
 	if (m_CurEle < m_ReqEle) 
 	{
 		// We're growing the buffer
-/*
-		HANDLE hHeap = GetProcessHeap();
 
-		if (*m_ppbBuffer != NULL) {
-			// We already have a buffer, re-size it
-			PBYTE pNew = (PBYTE) 
-				HeapReAlloc(hHeap, 0, *m_ppbBuffer, m_uNewSize * m_nMult);
-			if (pNew != NULL) {
-				m_uCurrentSize = m_uNewSize;
-				*m_ppbBuffer = pNew;
-			} 
-		} else {
-			// We don't have a buffer, create new one.
-			*m_ppbBuffer = (PBYTE) HeapAlloc(hHeap, 0, m_uNewSize * m_nMult);
-			if (*m_ppbBuffer != NULL) 
-				m_uCurrentSize = m_uNewSize;
-		}
-*/
 		assert(m_ReqEle>0);
-		int newsize = (m_ReqEle+m_ExtraEle)*m_nMult;
-		PBYTE_t newbuf = new unsigned char[newsize];
+		__int64 newsize = (m_ReqEle+m_ExtraEle)*m_nMult;
+		PBYTE_t newbuf = new unsigned char[(size_t)newsize]; // 32bit compiler hopes to have [uint]
 		if(!newbuf)
 			return; 
 
-		vaDBG(_T("[JAutoBuf@%p] size inc %u -> %u (%d bytes) ; moving memblock @%p -> @%p."), this, 
+		vaDBG(_T("[JAutoBuf@%p] size inc %llu -> %llu (%lld bytes) ; moving memblock @%p -> @%p."), this, 
 			m_CurEle, m_ReqEle,  newsize,  *m_ppbBuffer, newbuf);
 
 		// For best compatibility to various Windows API, we'd better copy 
 		// old content to new buffer. E.g. SetupDiGetDeviceInterfaceDetail() needs this.
 		if(*m_ppbBuffer)
 		{
-			memcpy(newbuf, *m_ppbBuffer, (m_CurEle+m_ExtraEle)*m_nMult);
+			memcpy(newbuf, *m_ppbBuffer, (size_t)((m_CurEle+m_ExtraEle)*m_nMult));
 		}
 		else
 		{
 			// We nullify first bytes of the new space, so that, when this space is 
 			// used to store C string, user will see a NUL-terminated string.
-			memset(newbuf, 0, (newsize<4 ? newsize : 4));
+			memset(newbuf, 0, size_t(newsize<4 ? newsize : 4));
 		}
 
 		delete *m_ppbBuffer;
