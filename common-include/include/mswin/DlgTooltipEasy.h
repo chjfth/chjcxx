@@ -11,7 +11,8 @@ enum Dlgtte_err
 
 };
 
-typedef const TCHAR* PROC_DlgtteGetText(void *userctx);
+typedef const TCHAR* PROC_DlgtteGetText(HWND hwndUic, void *userctx);
+// -- When callback, hwndUic tells which control(button, editbox) is requesting tooltip text.
 
 Dlgtte_err Dlgtte_EnableTooltip(HWND hwndCtl, 
 	PROC_DlgtteGetText *getUsageText, void *uctxUsage,
@@ -27,38 +28,9 @@ Dlgtte_err Dlgtte_EnableTooltip(HWND hwndCtl,
 
 #include <assert.h>
 #include <windowsx.h>
-#include <DlOpe.h>
 
 namespace Dlgtte // (internal) 
 {
-
-struct SToolNode
-{
-	SToolNode *phead, *pprev, *pnext;
-
-	PROC_DlgtteGetText *getText;
-	void *uctx;
-
-	SToolNode();
-};
-
-typedef DlOpeH<SToolNode, &SToolNode::phead, &SToolNode::pprev, &SToolNode::pnext> DLOPE_SToolNode;
-
-inline SToolNode::SToolNode()
-{
-	DLOPE_SToolNode::InitNode(this);
-	getText = nullptr; uctx = nullptr;
-}
-
-struct SToolHead
-{
-	SToolNode *pHead, *pPrev, *pNext;
-
-	SToolHead()
-	{
-		DLOPE_SToolNode::InitHead(pHead, pPrev, pNext);
-	}
-};
 
 static const TCHAR *sig_EasyHottool = _T("sig_EasyHottool");
 static const TCHAR *sig_EasyTooltipMan = _T("sig_EasyTooltipMan");
@@ -90,21 +62,21 @@ public:
 		m_uctxContent = gtcb.uctxContent;
 	}
 
-	const TCHAR *Call_getUsageText()
+	const TCHAR *Call_getUsageText(HWND hwndUic)
 	{
 		if (m_getUsageText)
 		{
-			return m_getUsageText(m_uctxUsage);
+			return m_getUsageText(hwndUic, m_uctxUsage);
 		}
 		else
 			return nullptr;
 	}
 
-	const TCHAR *Call_getContentText()
+	const TCHAR *Call_getContentText(HWND hwndUic)
 	{
 		if (m_getContentText)
 		{
-			return m_getContentText(m_uctxContent);
+			return m_getContentText(hwndUic, m_uctxContent);
 		}
 		else
 			return nullptr;
@@ -203,11 +175,9 @@ public:
 	virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 private:
-	HWND m_httUsage;  // tooltip-window HWND
+	// Two tooltip-window HWND
+	HWND m_httUsage;  
 	HWND m_httContent;
-
-	SToolHead m_headToolUsage;
-	SToolHead m_headToolContent;
 };
 
 
@@ -319,9 +289,9 @@ CTooltipMan::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				const TCHAR *ptext = nullptr;
 
 				if (hwndTooltip == m_httUsage)
-					ptext = phot->Call_getUsageText();
+					ptext = phot->Call_getUsageText(hwndUic);
 				else if (hwndTooltip == m_httContent)
-					ptext = phot->Call_getContentText();
+					ptext = phot->Call_getContentText(hwndUic);
 
 				NMTTDISPINFO *pdi = (NMTTDISPINFO *)pnmh;
 				pdi->lpszText = (LPTSTR)ptext;
