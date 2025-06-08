@@ -347,9 +347,14 @@ CTooltipMan::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 static bool HasAnyHottool(HWND hwndTooltip)
 {
+/*
+	// OK but verbose.
 	TOOLINFO ti = { sizeof(TOOLINFO) };
 	BOOL any = (BOOL)SendMessage(hwndTooltip, TTM_ENUMTOOLS, 0, (LPARAM)&ti);
 	return any ? true : false;
+*/
+	LRESULT count = SendMessage(hwndTooltip, TTM_GETTOOLCOUNT, 0, 0);
+	return count == 0 ? false : true;
 }
 
 CxxWindowSubclass::ReCode_et
