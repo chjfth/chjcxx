@@ -11,6 +11,12 @@ enum Dlgtte_err
 
 };
 
+enum Dlgtte_BalloonPrefer_et
+{
+	Dlgtte_BalloonUp = 0,
+	Dlgtte_BalloonDown = 1,
+};
+
 typedef const TCHAR* PROC_DlgtteGetText(HWND hwndUic, void *userctx);
 // -- When callback, hwndUic tells which control(button, editbox) is requesting tooltip text.
 
@@ -29,11 +35,16 @@ Dlgtte_err Dlgtte_EnableTooltip(HWND hwndCtl,
 #include <assert.h>
 #include <windowsx.h>
 
+#define WinMultiMon_IMPL
+#include <mswin/WinMultiMon.h>
+
 namespace Dlgtte // (internal) 
 {
 
 static const TCHAR *sig_EasyHottool = _T("sig_EasyHottool");
 static const TCHAR *sig_EasyTooltipMan = _T("sig_EasyTooltipMan");
+
+static UINT s_msgQUERY_FINAL_POS = 0;
 
 struct GetTextCallbacks_st
 {
@@ -52,8 +63,6 @@ public:
 
 	virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	
-	ReCode_et xxxAttachHwnd(HWND hwnd/*HWND hwndHottool, HWND hwndTooltip*/);
-
 	void AssignCallback(const GetTextCallbacks_st &gtcb)
 	{
 		m_getUsageText = gtcb.getUsageText;
@@ -97,6 +106,10 @@ private:
 	
 	PROC_DlgtteGetText *m_getContentText;
 	void *m_uctxContent;
+
+	Dlgtte_BalloonPrefer_et m_bpref;
+
+	RECT m_rcFinal; 
 };
 
 CxxSubclassHottool::CxxSubclassHottool()
@@ -105,15 +118,43 @@ CxxSubclassHottool::CxxSubclassHottool()
 
 	m_getUsageText = m_getContentText = nullptr;
 	m_uctxUsage = m_uctxContent = nullptr;
+
+	m_bpref = Dlgtte_BalloonDown; //Up;
+
+	SetRect(&m_rcFinal, -1, -1, -1, -1);
 }
 
-CxxSubclassHottool::ReCode_et
-CxxSubclassHottool::xxxAttachHwnd(HWND hwnd)
+static bool QueryTooltipRect_by_TrackPoint(HWND hwndTooltip, TOOLINFO &ti,
+	int screenx, int screeny, RECT *pRect)
 {
-	ReCode_et err = __super::AttachHwnd(hwnd, sig_EasyHottool);
-	return err;
+	SendMessage(hwndTooltip, TTM_TRACKPOSITION, 0, (LPARAM)MAKELONG(screenx, screeny));
+
+	SendMessage(hwndTooltip, TTM_TRACKACTIVATE, TRUE, (LPARAM)&ti);
+	// -- this will internally call TTM_NEEDTEXT
+
+	GetWindowRect(hwndTooltip, pRect);
+	TCHAR rctext[80];
+	vaDbgTs(_T("After TTM_TRACKACTIVATE, TT-rect: %s"), RECTtext(*pRect, rctext));
+
+	return true;
 }
 
+/*
+static int QueryTooltipHeight_by_TrackPoint(HWND hwndTooltip, TOOLINFO &ti,
+	int screenx, int screeny)
+{
+	RECT rc = {};
+	QueryTooltipRect_by_TrackPoint(hwndTooltip, ti, screenx, screeny, &rc);
+	return rc.bottom - rc.top;
+}
+*/
+
+
+inline int ptmid(int a, int b) { return (a + b) / 2; }
+inline int midx(const RECT &rc) { return (rc.left + rc.right) / 2; }
+inline int midy(const RECT &rc) { return (rc.top + rc.bottom) / 2; }
+inline int rcwidth(const RECT &rc) { return rc.right - rc.left; }
+inline int rcheight(const RECT &rc) { return rc.bottom - rc.top; }
 
 LRESULT 
 CxxSubclassHottool::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -131,24 +172,100 @@ CxxSubclassHottool::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		{
 			vaDBG(_T("Hottool(0x%X) Will show Content tooltip."), hUic);
 
+			HWND hwndTooltip = m_hwndttContent;
+
 			// We select top-middle or bottom-middle to display the tooltip.
-			RECT rc = {};
-			GetWindowRect(hUic, &rc);
-			POINT midpoint = { (rc.left + rc.right) / 2, (rc.top + rc.bottom) / 2 };
+			RECT rcUic = {};
+			GetWindowRect(hUic, &rcUic);
 
-			int screen_height = GetSystemMetrics(SM_CYSCREEN);
-			int usey = midpoint.y<screen_height/2 ? rc.bottom : rc.top;
+			RECT rcMon = {};
+			bool isok = getMonitorRectByPoint(midx(rcUic), midy(rcUic), &rcMon);
 
-			SendMessage(m_hwndttContent, TTM_TRACKPOSITION, 0, 
-				(LPARAM)MAKELONG(midpoint.x, usey));
+			bool dbg_isUp = false;
+			RECT rcTooltip = {};
 
+			if (m_bpref == Dlgtte_BalloonUp)
+			{
+				// probe-show the tooltip at monitor bottom, and peek its rect in rcTooltip
+				QueryTooltipRect_by_TrackPoint(hwndTooltip, ti, midx(rcMon), rcMon.bottom-1, &rcTooltip);
+
+				if (rcheight(rcTooltip) <= rcUic.top - rcMon.top)
+				{	// Up-space of Uic is enough for the tooltip
+					m_rcFinal.left = midx(rcUic) - rcwidth(rcTooltip) / 2;
+					m_rcFinal.right = m_rcFinal.left + rcwidth(rcTooltip);
+					m_rcFinal.top = rcUic.top - rcheight(rcTooltip);
+					m_rcFinal.bottom = rcUic.top;
+
+					dbg_isUp = true;
+				}
+				else
+				{	// Up-space not enough, force Dlgtte_BalloonDown
+
+					// probe-show the tooltip at monitor top, and peek its rect in rcTooltip
+					QueryTooltipRect_by_TrackPoint(hwndTooltip, ti, midx(rcMon), rcMon.top, &rcTooltip);
+
+					m_rcFinal.left = midx(rcUic) - rcwidth(rcTooltip) / 2;
+					m_rcFinal.right = m_rcFinal.left + rcwidth(rcTooltip);
+					m_rcFinal.top = rcUic.bottom;
+					m_rcFinal.bottom = m_rcFinal.top + rcheight(rcTooltip);
+
+					dbg_isUp = false;
+				}
+			}
+			else
+			{
+				assert(m_bpref == Dlgtte_BalloonDown);
+
+				// probe-show the tooltip at monitor top, and peek its rect in rcTooltip
+				QueryTooltipRect_by_TrackPoint(hwndTooltip, ti, midx(rcMon), rcMon.top, &rcTooltip);
+
+				if(rcheight(rcTooltip) <= rcMon.bottom - rcUic.bottom)
+				{	// Down-space of Uic is enough for the tooltip
+					m_rcFinal.left = midx(rcUic) - rcwidth(rcTooltip) / 2;
+					m_rcFinal.right = m_rcFinal.left + rcwidth(rcTooltip);
+					m_rcFinal.top = rcUic.bottom;
+					m_rcFinal.bottom = m_rcFinal.top + rcheight(rcTooltip);
+
+					dbg_isUp = false;
+				}
+				else
+				{	// Down-space not enough, force Dlgtte_BalloonUp
+
+					// probe-show the tooltip at monitor bottom, and peek its rect in rcTooltip
+					QueryTooltipRect_by_TrackPoint(hwndTooltip, ti, midx(rcMon), rcMon.bottom-1, &rcTooltip);
+
+					m_rcFinal.left = midx(rcUic) - rcwidth(rcTooltip) / 2;
+					m_rcFinal.right = m_rcFinal.left + rcwidth(rcTooltip);
+					m_rcFinal.top = rcUic.top - rcheight(rcTooltip);
+					m_rcFinal.bottom = rcUic.top;
+
+					dbg_isUp = true;
+				}
+			}
+
+			TCHAR rctext[80];
+			vaDbgTs(_T("In WM_SETFOCUS, [%s]tooltip-rect: %s"), 
+				dbg_isUp ? _T("UP") : _T("DN"),
+				RECTtext(m_rcFinal, rctext));
+
+			// We must force toggle TTM_TRACKACTIVATE so that tooltip refreshes its display position
+			// according to our new m_rcFinal.
+			SendMessage(m_hwndttContent, TTM_TRACKACTIVATE, FALSE, (LPARAM)&ti);
 			SendMessage(m_hwndttContent, TTM_TRACKACTIVATE, TRUE, (LPARAM)&ti);
+			// -- TTM_TRACKACTIVATE(TRUE) this will internally call TTM_NEEDTEXT
+
 		}
 		else if (uMsg == WM_KILLFOCUS)
 		{
 			vaDBG(_T("Hottool(0x%X) Will hide Content tooltip."), hUic);
 
 			SendMessage(m_hwndttContent, TTM_TRACKACTIVATE, FALSE, (LPARAM)&ti);
+		}
+		else if (uMsg == s_msgQUERY_FINAL_POS)
+		{
+			assert(lParam != 0);
+
+			*(RECT*)lParam = m_rcFinal;
 		}
 	}
 
@@ -185,6 +302,11 @@ private:
 CxxWindowSubclass::ReCode_et 
 CTooltipMan::AddUic(HWND hwndUic, const GetTextCallbacks_st &gtcb)
 {
+	if (s_msgQUERY_FINAL_POS == 0)
+	{
+		s_msgQUERY_FINAL_POS = RegisterWindowMessage(_T("Dlgtte-QUERY_FINAL_POS"));
+	}
+
 	HWND hdlg = m_hwnd;
 
 	if (gtcb.getUsageText == nullptr && gtcb.getContentText == nullptr)
@@ -299,9 +421,24 @@ CTooltipMan::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		}
 		else if (pnmh->code == TTN_SHOW)
 		{
-			RECT rc; TCHAR rctext[40];
-			GetWindowRect(hwndTooltip, &rc);
-			vaDBG(_T("TTN_SHOW from 0x%X, Rect=%s"), hwndTooltip, RECTtext(rc, rctext));
+			if (hwndTooltip == m_httContent)
+			{
+				RECT rc; TCHAR rctext[80];
+				GetWindowRect(hwndTooltip, &rc);
+				vaDBG(_T("TTN_SHOW from 0x%X,  init-Rect=%s"), hwndTooltip, RECTtext(rc, rctext));
+
+				SendMessage(hwndUic, s_msgQUERY_FINAL_POS, 0, (LPARAM)&rc);
+
+				vaDBG(_T("TTN_SHOW from 0x%X, final-Rect=%s"), hwndTooltip, RECTtext(rc, rctext));
+
+				if (rc.left != -1)
+				{
+					SetWindowPos(hwndTooltip, 0, rc.left, rc.top, 0, 0, SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOSIZE);
+				}
+
+				// return TRUE to make SetWindowPos() effective, no calling into DefSubclassProc().
+				return TRUE;
+			}
 		}
 	}
 	else if (uMsg == WM_MOVE)
