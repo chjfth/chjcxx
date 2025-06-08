@@ -123,7 +123,7 @@ static BOOL CALLBACK OneMonitorEnumProc(
 	RECT &rcOut = *(RECT*)dwData;
 	rcOut = minfo.rcMonitor;
 
-	return FALSE; // no need to callback again
+	return TRUE; // if FALSE, EnumDisplayMonitors() returns FALSE
 }
 
 
@@ -133,7 +133,7 @@ bool getMonitorRectByPoint(int screen_x, int screen_y, RECT *pMonitorRect)
 
 	RECT rcInput = { screen_x, screen_y, screen_x+1, screen_y+1 }; // one pixel rect
 
-	BOOL succ = EnumDisplayMonitors(NULL, &rcInput, OneMonitorEnumProc, (LPARAM)&pMonitorRect);
+	BOOL succ = EnumDisplayMonitors(NULL, &rcInput, OneMonitorEnumProc, (LPARAM)pMonitorRect);
 	if(!succ)
 		return false;
 
