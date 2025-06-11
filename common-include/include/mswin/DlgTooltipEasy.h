@@ -11,19 +11,26 @@ enum Dlgtte_err
 
 };
 
-enum Dlgtte_BalloonPrefer_et
+enum Dlgtte_BitFlags_et
 {
+	Dlgtte_Default0 = 0,
+
 	Dlgtte_BalloonUp = 0,
 	Dlgtte_BalloonDown = 1,
+
+	Dlgtte_AutoContentTipOnFocus_no = 0,
+	Dlgtte_AutoContentTipOnFocus = 2,
 };
 
 typedef const TCHAR* PROC_DlgtteGetText(HWND hwndUic, void *userctx);
-// -- When callback, hwndUic tells which control(button, editbox) is requesting tooltip text.
+// -- When callback, hwndUic tells which control(button, editbox etc) is requesting tooltip text.
+
+
 
 Dlgtte_err Dlgtte_EnableTooltip(HWND hwndCtl, 
 	PROC_DlgtteGetText *getUsageText, void *uctxUsage,
 	PROC_DlgtteGetText *getContentText = nullptr, void *uctxContent = nullptr,
-	Dlgtte_BalloonPrefer_et bpref = Dlgtte_BalloonUp);
+	Dlgtte_BitFlags_et flags = Dlgtte_Default0);
 
 Dlgtte_err Dlgtte_RemoveTooltip(HWND hwndCtl);
 
@@ -58,7 +65,7 @@ struct GetTextCallbacks_st
 	PROC_DlgtteGetText *getContentText;
 	void *uctxContent;
 
-	Dlgtte_BalloonPrefer_et bpref;
+	Dlgtte_BitFlags_et flags;
 };
 
 class CTooltipMan;
@@ -88,7 +95,7 @@ public:
 		m_getContentText = gtcb.getContentText;
 		m_uctxContent = gtcb.uctxContent;
 
-		m_bpref = gtcb.bpref;
+		m_flags = gtcb.flags;
 	}
 
 	const TCHAR *Call_getUsageText(HWND hwndUic)
@@ -130,7 +137,7 @@ private:
 	PROC_DlgtteGetText *m_getContentText;
 	void *m_uctxContent;
 
-	Dlgtte_BalloonPrefer_et m_bpref;
+	Dlgtte_BitFlags_et m_flags;
 
 	RECT m_rcFinal; 
 };
@@ -143,7 +150,7 @@ CHottoolSubsi::CHottoolSubsi()
 	m_getUsageText = m_getContentText = nullptr;
 	m_uctxUsage = m_uctxContent = nullptr;
 
-	m_bpref = Dlgtte_BalloonUp;
+	m_flags = Dlgtte_Default0;
 
 	SetRect(&m_rcFinal, -1, -1, -1, -1);
 }
@@ -237,10 +244,11 @@ CHottoolSubsi::in_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, bo
 
 	if (uMsg == WM_SETFOCUS)
 	{
+		if ((m_flags & Dlgtte_AutoContentTipOnFocus) == 0)
+			return 0;
+
 		HWND hwndPrevFocus = m_pTooltipMan->NotifyHottoolFocus(hUic);
-
 		vaDbgTs(_T("Hottool WM_SETFOCUS: hUic=0x%X, hwndPrevFocus=0x%X"), PtrToUint(hUic), PtrToUint(hwndPrevFocus));
-
 		if (hwndPrevFocus == hUic)
 		{
 			// Purpose: If user click tooltip-window itself to close the tooltip, the focus goes back
@@ -263,8 +271,10 @@ CHottoolSubsi::in_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, bo
 		bool dbg_isUp = false;
 		RECT rcTooltip = {};
 
-		if (m_bpref == Dlgtte_BalloonUp)
+		if ((m_flags & Dlgtte_BalloonDown)==0)
 		{
+			// User prefers Dlgtte_BalloonUp
+
 			// probe-show the tooltip at monitor bottom, and peek its rect in rcTooltip
 			QueryTooltipRect_by_TrackPoint(hwndTooltip, ti, midx(rcMon), rcMon.bottom-1, &rcTooltip);
 
@@ -293,7 +303,7 @@ CHottoolSubsi::in_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, bo
 		}
 		else
 		{
-			assert(m_bpref == Dlgtte_BalloonDown);
+			assert((m_flags & Dlgtte_BalloonDown) == Dlgtte_BalloonDown);
 
 			// probe-show the tooltip at monitor top, and peek its rect in rcTooltip
 			QueryTooltipRect_by_TrackPoint(hwndTooltip, ti, midx(rcMon), rcMon.top, &rcTooltip);
@@ -409,7 +419,7 @@ CTooltipMan::AddUic(HWND hwndUic, const GetTextCallbacks_st &gtcb)
 		if (!m_httContent)
 		{
 			m_httContent = CreateWindowEx(
-				WS_EX_TOPMOST, // no WS_EX_TRANSPARENT,
+				WS_EX_TOPMOST, // no WS_EX_TRANSPARENT to enable click,
 				TOOLTIPS_CLASS,
 				NULL, // window title
 				TTS_NOPREFIX | TTS_ALWAYSTIP | TTS_BALLOON, // want balloon style
@@ -590,7 +600,7 @@ using namespace Dlgtte;
 Dlgtte_err Dlgtte_EnableTooltip(HWND hwndCtl,
 	PROC_DlgtteGetText *getUsageText, void *uctxUsage,
 	PROC_DlgtteGetText *getContentText, void *uctxContent, 
-	Dlgtte_BalloonPrefer_et bpref)
+	Dlgtte_BitFlags_et flags)
 {
 	HWND hdlg = GetParent(hwndCtl);
 
@@ -601,7 +611,7 @@ Dlgtte_err Dlgtte_EnableTooltip(HWND hwndCtl,
 	assert(!err);
 
 	GetTextCallbacks_st gtcb = { getUsageText, uctxUsage, 
-		getContentText, uctxContent, bpref };
+		getContentText, uctxContent, flags };
 
 	err = ptm->AddUic(hwndCtl, gtcb);
 
