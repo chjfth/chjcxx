@@ -261,7 +261,10 @@ CHottoolSubsi::in_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, bo
 
 		HWND hwndTooltip = m_hwndttContent;
 
-		// We select top-middle or bottom-middle to display the tooltip.
+		// We will select Uic's upper-middle or lower-middle as "track-point" to display the tooltip.
+		// Selecting upper-middle means showing tooltip upside of the Uic, balloon-stem down.
+		// Selecting lower-middle means showing tooltip downside of the Uic, balloon-stem up.
+
 		RECT rcUic = {};
 		GetWindowRect(hUic, &rcUic);
 
@@ -278,58 +281,58 @@ CHottoolSubsi::in_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, bo
 			// probe-show the tooltip at monitor bottom, and peek its rect in rcTooltip
 			QueryTooltipRect_by_TrackPoint(hwndTooltip, ti, midx(rcMon), rcMon.bottom-1, &rcTooltip);
 
-			if (rcheight(rcTooltip) <= rcUic.top - rcMon.top)
-			{	// Up-space of Uic is enough for the tooltip
-				m_rcFinal.left = midx(rcUic) - rcwidth(rcTooltip) / 2;
-				m_rcFinal.right = m_rcFinal.left + rcwidth(rcTooltip);
-				m_rcFinal.top = rcUic.top - rcheight(rcTooltip);
-				m_rcFinal.bottom = rcUic.top;
-
+			if (
+				rcheight(rcTooltip) <= rcUic.top - rcMon.top // Upside-space of Uic is enough for tooltip
+				|| rcheight(rcTooltip) > rcMon.bottom - rcUic.bottom // Downside-space is not enough
+				)
+			{	// Use upside-space
 				dbg_isUp = true;
 			}
 			else
-			{	// Up-space not enough, force Dlgtte_BalloonDown
+			{	// Upside-space not enough, but downside-space enough, use downside.
 
 				// probe-show the tooltip at monitor top, and peek its rect in rcTooltip
 				QueryTooltipRect_by_TrackPoint(hwndTooltip, ti, midx(rcMon), rcMon.top, &rcTooltip);
 
-				m_rcFinal.left = midx(rcUic) - rcwidth(rcTooltip) / 2;
-				m_rcFinal.right = m_rcFinal.left + rcwidth(rcTooltip);
-				m_rcFinal.top = rcUic.bottom;
-				m_rcFinal.bottom = m_rcFinal.top + rcheight(rcTooltip);
-
-				dbg_isUp = false;
+				dbg_isUp = false; // ok, Downside enough, use it
 			}
 		}
-		else
+		else // User prefers Dlgtte_BalloonDown
 		{
 			assert((m_flags & Dlgtte_BalloonDown) == Dlgtte_BalloonDown);
 
 			// probe-show the tooltip at monitor top, and peek its rect in rcTooltip
 			QueryTooltipRect_by_TrackPoint(hwndTooltip, ti, midx(rcMon), rcMon.top, &rcTooltip);
 
-			if(rcheight(rcTooltip) <= rcMon.bottom - rcUic.bottom)
-			{	// Down-space of Uic is enough for the tooltip
-				m_rcFinal.left = midx(rcUic) - rcwidth(rcTooltip) / 2;
-				m_rcFinal.right = m_rcFinal.left + rcwidth(rcTooltip);
-				m_rcFinal.top = rcUic.bottom;
-				m_rcFinal.bottom = m_rcFinal.top + rcheight(rcTooltip);
-
+			if(
+				rcheight(rcTooltip) <= rcMon.bottom - rcUic.bottom // Downside-space of Uic is enough for tooltip
+				|| rcheight(rcTooltip) > rcUic.top - rcMon.top // Upside-space is not enough
+				)
+			{	// Use downside-space
 				dbg_isUp = false;
 			}
 			else
-			{	// Down-space not enough, force Dlgtte_BalloonUp
+			{	// Downside-space not enough, but upside-space enough, use upside.
 
 				// probe-show the tooltip at monitor bottom, and peek its rect in rcTooltip
 				QueryTooltipRect_by_TrackPoint(hwndTooltip, ti, midx(rcMon), rcMon.bottom-1, &rcTooltip);
 
-				m_rcFinal.left = midx(rcUic) - rcwidth(rcTooltip) / 2;
-				m_rcFinal.right = m_rcFinal.left + rcwidth(rcTooltip);
-				m_rcFinal.top = rcUic.top - rcheight(rcTooltip);
-				m_rcFinal.bottom = rcUic.top;
-
-				dbg_isUp = true;
+				dbg_isUp = true; // ok, Upside is enough, use it
 			}
+		}
+
+		m_rcFinal.left = midx(rcUic) - rcwidth(rcTooltip) / 2;
+		m_rcFinal.right = m_rcFinal.left + rcwidth(rcTooltip);
+
+		if (dbg_isUp)
+		{
+			m_rcFinal.top = rcUic.top - rcheight(rcTooltip);
+			m_rcFinal.bottom = rcUic.top;
+		}
+		else
+		{
+			m_rcFinal.top = rcUic.bottom;
+			m_rcFinal.bottom = m_rcFinal.top + rcheight(rcTooltip);
 		}
 
 		TCHAR rctext[80];
@@ -434,7 +437,7 @@ CTooltipMan::AddUic(HWND hwndUic, const GetTextCallbacks_st &gtcb)
 		TOOLINFO ti = { sizeof(TOOLINFO) };
 		ti.uFlags = TTF_IDISHWND | TTF_TRACK | TTF_CENTERTIP; 
 		// -- we "track" the tooltip manually
-		// -- TTF_ABSOLUTE is not required
+		// -- Without TTF_ABSOLUTE, we get correct top/bottom-edge probe-shown balloon stem pointing.
 		ti.hwnd = hdlg;
 		ti.uId = (UINT_PTR)hwndUic;
 		ti.lpszText = LPSTR_TEXTCALLBACK;
