@@ -49,6 +49,7 @@ static const TCHAR *sig_EasyTooltipMan = _T("sig_EasyTooltipMan");
 
 static UINT s_msgQUERY_FINAL_POS = 0;
 
+
 struct GetTextCallbacks_st
 {
 	PROC_DlgtteGetText *getUsageText;
@@ -60,16 +61,28 @@ struct GetTextCallbacks_st
 	Dlgtte_BalloonPrefer_et bpref;
 };
 
+class CTooltipMan;
 
 class CHottoolSubsi : public CxxWindowSubclass
 {
 public:
 	CHottoolSubsi();
 
-	virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-	
-	void AssignCallback(const GetTextCallbacks_st &gtcb)
+	virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
+		bool MsgDone = false;
+		LRESULT lre = in_WndProc(hwnd, uMsg, wParam, lParam, &MsgDone);
+		
+		if (MsgDone)
+			return lre;
+		else
+			return DefSubclassProc(hwnd, uMsg, wParam, lParam);
+	}
+	
+	void AssignCallback(CTooltipMan *pTooltipMan, const GetTextCallbacks_st &gtcb)
+	{
+		m_pTooltipMan = pTooltipMan;
+
 		m_getUsageText = gtcb.getUsageText;
 		m_uctxUsage = gtcb.uctxUsage;
 		m_getContentText = gtcb.getContentText;
@@ -104,6 +117,11 @@ public:
 	}
 
 private:
+	LRESULT in_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, bool *pMsgDone);
+
+private:
+	CTooltipMan *m_pTooltipMan;
+
 	HWND m_hwndttContent;
 
 	PROC_DlgtteGetText *m_getUsageText;
@@ -119,6 +137,7 @@ private:
 
 CHottoolSubsi::CHottoolSubsi()
 {
+	m_pTooltipMan = nullptr;
 	m_hwndttContent = NULL;
 
 	m_getUsageText = m_getContentText = nullptr;
@@ -128,6 +147,42 @@ CHottoolSubsi::CHottoolSubsi()
 
 	SetRect(&m_rcFinal, -1, -1, -1, -1);
 }
+
+class CTooltipMan : public CxxWindowSubclass
+{
+public:
+	CTooltipMan()
+	{
+		m_httUsage = NULL;
+		m_httContent = NULL;
+
+		m_prevHottoolFocus = NULL;
+	}
+
+	ReCode_et AddUic(HWND hwndUic, const GetTextCallbacks_st &gtcb);
+	// -- note: a second call will overwrite previous gtcb
+
+	ReCode_et DelUic(HWND hwndUic);
+
+	virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+	HWND NotifyHottoolFocus(HWND nowfocus)
+	{
+		HWND oldfocus = m_prevHottoolFocus;
+		m_prevHottoolFocus = nowfocus;
+		return oldfocus;
+	}
+
+private:
+	// Two tooltip-window HWND-s
+	HWND m_httUsage;
+	HWND m_httContent;
+
+	HWND m_prevHottoolFocus;
+};
+
+//////////////////////////////////////////////////////////////////////////
+
 
 static bool QueryTooltipRect_by_TrackPoint(HWND hwndTooltip, TOOLINFO &ti,
 	int screenx, int screeny, RECT *pRect)
@@ -162,146 +217,142 @@ inline int rcwidth(const RECT &rc) { return rc.right - rc.left; }
 inline int rcheight(const RECT &rc) { return rc.bottom - rc.top; }
 
 LRESULT 
-CHottoolSubsi::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+CHottoolSubsi::in_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, bool *pMsgDone)
 {
-	if(m_hwndttContent)
+	*pMsgDone = false;
+
+	if (!m_hwndttContent)
 	{
-		HWND hUic = hwnd;
-		HWND hdlg = GetParent(hwnd);
+		// User has not assigned a hottool for content-tooltip, so do nothing,
+		// just call next chain-node.
+		return 0;
+	}
 
-		TOOLINFO ti = { sizeof(TOOLINFO) };
-		ti.hwnd = hdlg;
-		ti.uId = (UINT_PTR)hUic;
+	HWND hUic = hwnd;
+	HWND hdlg = GetParent(hwnd);
 
-		if (uMsg == WM_SETFOCUS)
+	TOOLINFO ti = { sizeof(TOOLINFO) };
+	ti.hwnd = hdlg;
+	ti.uId = (UINT_PTR)hUic;
+
+	if (uMsg == WM_SETFOCUS)
+	{
+		HWND hwndPrevFocus = m_pTooltipMan->NotifyHottoolFocus(hUic);
+
+		vaDbgTs(_T("Hottool WM_SETFOCUS: hUic=0x%X, hwndPrevFocus=0x%X"), PtrToUint(hUic), PtrToUint(hwndPrevFocus));
+
+		if (hwndPrevFocus == hUic)
 		{
-			vaDBG(_T("Hottool(0x%X) Will show Content tooltip."), hUic);
+			// Purpose: If user click tooltip-window itself to close the tooltip, the focus goes back
+			// to the hottool. So `hwndPrevFocus==hUic` detects this case and the tooltip will not
+			// show up repeatedly.
+			return 0;
+		}
 
-			HWND hwndTooltip = m_hwndttContent;
+		vaDBG(_T("Hottool(0x%X) Will show Content tooltip."), PtrToUint(hUic));
 
-			// We select top-middle or bottom-middle to display the tooltip.
-			RECT rcUic = {};
-			GetWindowRect(hUic, &rcUic);
+		HWND hwndTooltip = m_hwndttContent;
 
-			RECT rcMon = {};
-			bool isok = getMonitorRectByPoint(midx(rcUic), midy(rcUic), &rcMon);
+		// We select top-middle or bottom-middle to display the tooltip.
+		RECT rcUic = {};
+		GetWindowRect(hUic, &rcUic);
 
-			bool dbg_isUp = false;
-			RECT rcTooltip = {};
+		RECT rcMon = {};
+		bool isok = getMonitorRectByPoint(midx(rcUic), midy(rcUic), &rcMon);
 
-			if (m_bpref == Dlgtte_BalloonUp)
-			{
-				// probe-show the tooltip at monitor bottom, and peek its rect in rcTooltip
-				QueryTooltipRect_by_TrackPoint(hwndTooltip, ti, midx(rcMon), rcMon.bottom-1, &rcTooltip);
+		bool dbg_isUp = false;
+		RECT rcTooltip = {};
 
-				if (rcheight(rcTooltip) <= rcUic.top - rcMon.top)
-				{	// Up-space of Uic is enough for the tooltip
-					m_rcFinal.left = midx(rcUic) - rcwidth(rcTooltip) / 2;
-					m_rcFinal.right = m_rcFinal.left + rcwidth(rcTooltip);
-					m_rcFinal.top = rcUic.top - rcheight(rcTooltip);
-					m_rcFinal.bottom = rcUic.top;
+		if (m_bpref == Dlgtte_BalloonUp)
+		{
+			// probe-show the tooltip at monitor bottom, and peek its rect in rcTooltip
+			QueryTooltipRect_by_TrackPoint(hwndTooltip, ti, midx(rcMon), rcMon.bottom-1, &rcTooltip);
 
-					dbg_isUp = true;
-				}
-				else
-				{	// Up-space not enough, force Dlgtte_BalloonDown
+			if (rcheight(rcTooltip) <= rcUic.top - rcMon.top)
+			{	// Up-space of Uic is enough for the tooltip
+				m_rcFinal.left = midx(rcUic) - rcwidth(rcTooltip) / 2;
+				m_rcFinal.right = m_rcFinal.left + rcwidth(rcTooltip);
+				m_rcFinal.top = rcUic.top - rcheight(rcTooltip);
+				m_rcFinal.bottom = rcUic.top;
 
-					// probe-show the tooltip at monitor top, and peek its rect in rcTooltip
-					QueryTooltipRect_by_TrackPoint(hwndTooltip, ti, midx(rcMon), rcMon.top, &rcTooltip);
-
-					m_rcFinal.left = midx(rcUic) - rcwidth(rcTooltip) / 2;
-					m_rcFinal.right = m_rcFinal.left + rcwidth(rcTooltip);
-					m_rcFinal.top = rcUic.bottom;
-					m_rcFinal.bottom = m_rcFinal.top + rcheight(rcTooltip);
-
-					dbg_isUp = false;
-				}
+				dbg_isUp = true;
 			}
 			else
-			{
-				assert(m_bpref == Dlgtte_BalloonDown);
+			{	// Up-space not enough, force Dlgtte_BalloonDown
 
 				// probe-show the tooltip at monitor top, and peek its rect in rcTooltip
 				QueryTooltipRect_by_TrackPoint(hwndTooltip, ti, midx(rcMon), rcMon.top, &rcTooltip);
 
-				if(rcheight(rcTooltip) <= rcMon.bottom - rcUic.bottom)
-				{	// Down-space of Uic is enough for the tooltip
-					m_rcFinal.left = midx(rcUic) - rcwidth(rcTooltip) / 2;
-					m_rcFinal.right = m_rcFinal.left + rcwidth(rcTooltip);
-					m_rcFinal.top = rcUic.bottom;
-					m_rcFinal.bottom = m_rcFinal.top + rcheight(rcTooltip);
+				m_rcFinal.left = midx(rcUic) - rcwidth(rcTooltip) / 2;
+				m_rcFinal.right = m_rcFinal.left + rcwidth(rcTooltip);
+				m_rcFinal.top = rcUic.bottom;
+				m_rcFinal.bottom = m_rcFinal.top + rcheight(rcTooltip);
 
-					dbg_isUp = false;
-				}
-				else
-				{	// Down-space not enough, force Dlgtte_BalloonUp
-
-					// probe-show the tooltip at monitor bottom, and peek its rect in rcTooltip
-					QueryTooltipRect_by_TrackPoint(hwndTooltip, ti, midx(rcMon), rcMon.bottom-1, &rcTooltip);
-
-					m_rcFinal.left = midx(rcUic) - rcwidth(rcTooltip) / 2;
-					m_rcFinal.right = m_rcFinal.left + rcwidth(rcTooltip);
-					m_rcFinal.top = rcUic.top - rcheight(rcTooltip);
-					m_rcFinal.bottom = rcUic.top;
-
-					dbg_isUp = true;
-				}
+				dbg_isUp = false;
 			}
-
-			TCHAR rctext[80];
-			vaDbgTs(_T("In WM_SETFOCUS, [%s]tooltip-rect: %s"), 
-				dbg_isUp ? _T("UP") : _T("DN"),
-				RECTtext(m_rcFinal, rctext));
-
-			// We must force toggle TTM_TRACKACTIVATE so that tooltip refreshes its display position
-			// according to our new m_rcFinal.
-			SendMessage(m_hwndttContent, TTM_TRACKACTIVATE, FALSE, (LPARAM)&ti);
-			SendMessage(m_hwndttContent, TTM_TRACKACTIVATE, TRUE, (LPARAM)&ti);
-			// -- TTM_TRACKACTIVATE(TRUE) this will internally call TTM_NEEDTEXT
-
 		}
-		else if (uMsg == WM_KILLFOCUS)
+		else
 		{
-			vaDBG(_T("Hottool(0x%X) Will hide Content tooltip."), hUic);
+			assert(m_bpref == Dlgtte_BalloonDown);
 
-			SendMessage(m_hwndttContent, TTM_TRACKACTIVATE, FALSE, (LPARAM)&ti);
-		}
-		else if (uMsg == s_msgQUERY_FINAL_POS)
-		{
-			assert(lParam != 0);
+			// probe-show the tooltip at monitor top, and peek its rect in rcTooltip
+			QueryTooltipRect_by_TrackPoint(hwndTooltip, ti, midx(rcMon), rcMon.top, &rcTooltip);
 
-			*(RECT*)lParam = m_rcFinal;
+			if(rcheight(rcTooltip) <= rcMon.bottom - rcUic.bottom)
+			{	// Down-space of Uic is enough for the tooltip
+				m_rcFinal.left = midx(rcUic) - rcwidth(rcTooltip) / 2;
+				m_rcFinal.right = m_rcFinal.left + rcwidth(rcTooltip);
+				m_rcFinal.top = rcUic.bottom;
+				m_rcFinal.bottom = m_rcFinal.top + rcheight(rcTooltip);
+
+				dbg_isUp = false;
+			}
+			else
+			{	// Down-space not enough, force Dlgtte_BalloonUp
+
+				// probe-show the tooltip at monitor bottom, and peek its rect in rcTooltip
+				QueryTooltipRect_by_TrackPoint(hwndTooltip, ti, midx(rcMon), rcMon.bottom-1, &rcTooltip);
+
+				m_rcFinal.left = midx(rcUic) - rcwidth(rcTooltip) / 2;
+				m_rcFinal.right = m_rcFinal.left + rcwidth(rcTooltip);
+				m_rcFinal.top = rcUic.top - rcheight(rcTooltip);
+				m_rcFinal.bottom = rcUic.top;
+
+				dbg_isUp = true;
+			}
 		}
+
+		TCHAR rctext[80];
+		vaDbgTs(_T("In WM_SETFOCUS, [%s]tooltip-rect: %s"), 
+			dbg_isUp ? _T("UP") : _T("DN"),
+			RECTtext(m_rcFinal, rctext));
+
+		// We must force toggle TTM_TRACKACTIVATE so that tooltip refreshes its display position
+		// according to our new m_rcFinal.
+		SendMessage(m_hwndttContent, TTM_TRACKACTIVATE, FALSE, (LPARAM)&ti);
+		SendMessage(m_hwndttContent, TTM_TRACKACTIVATE, TRUE, (LPARAM)&ti);
+		// -- TTM_TRACKACTIVATE(TRUE) this will internally call TTM_NEEDTEXT
+
+	}
+	else if (uMsg == WM_KILLFOCUS)
+	{
+		vaDBG(_T("Hottool(0x%X) Will hide Content tooltip."), hUic);
+
+		SendMessage(m_hwndttContent, TTM_TRACKACTIVATE, FALSE, (LPARAM)&ti);
+	}
+	else if (uMsg == s_msgQUERY_FINAL_POS)
+	{
+		assert(lParam != 0);
+
+		*(RECT*)lParam = m_rcFinal;
+
+		*pMsgDone = true;
 	}
 
-	return DefSubclassProc(hwnd, uMsg, wParam, lParam);
+	return 0;
 }
 
 //////////////////////////////////////////////////////////////////////////
-
-
-class CTooltipMan : public CxxWindowSubclass
-{
-public:
-	CTooltipMan()
-	{
-		m_httUsage = NULL;
-		m_httContent = NULL;
-	}
-
-	ReCode_et AddUic(HWND hwndUic, const GetTextCallbacks_st &gtcb);
-	// -- todo: a second call will overwrite previous gtcb
-	
-	ReCode_et DelUic(HWND hwndUic);
-
-	virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-
-private:
-	// Two tooltip-window HWND
-	HWND m_httUsage;  
-	HWND m_httContent;
-};
-
 
 
 CxxWindowSubclass::ReCode_et 
@@ -318,10 +369,10 @@ CTooltipMan::AddUic(HWND hwndUic, const GetTextCallbacks_st &gtcb)
 		return E_BadParam;
 
 	CxxWindowSubclass::ReCode_et err = CxxWindowSubclass::E_Fail;
-	CHottoolSubsi *psub =
+	CHottoolSubsi *phottool =
 		CxxWindowSubclass::FetchCxxobjFromHwnd<CHottoolSubsi>(
 			hwndUic, sig_EasyHottool, true, &err);
-	assert(psub);
+	assert(phottool);
 
 	if (gtcb.getUsageText)
 	{
@@ -358,7 +409,7 @@ CTooltipMan::AddUic(HWND hwndUic, const GetTextCallbacks_st &gtcb)
 		if (!m_httContent)
 		{
 			m_httContent = CreateWindowEx(
-				WS_EX_TOPMOST | WS_EX_TRANSPARENT,
+				WS_EX_TOPMOST, // no WS_EX_TRANSPARENT,
 				TOOLTIPS_CLASS,
 				NULL, // window title
 				TTS_NOPREFIX | TTS_ALWAYSTIP | TTS_BALLOON, // want balloon style
@@ -384,10 +435,10 @@ CTooltipMan::AddUic(HWND hwndUic, const GetTextCallbacks_st &gtcb)
 		// Enable multiline tooltip
 		SendMessage(m_httContent, TTM_SETMAXTIPWIDTH, 0, 800);
 
-		psub->SetHwndttContent(m_httContent);
+		phottool->SetHwndttContent(m_httContent);
 	}
 
-	psub->AssignCallback(gtcb);
+	phottool->AssignCallback(this, gtcb);
 
 	return E_Success;
 }
@@ -446,7 +497,7 @@ CTooltipMan::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			}
 		}
 	}
-	else if (uMsg == WM_MOVE)
+	else if (uMsg == WM_MOVE || uMsg == WM_SIZE)
 	{	
 		// If window moved, hide the tooltip
 		SendMessage(m_httContent, TTM_ACTIVATE, FALSE, 0);
