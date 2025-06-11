@@ -22,7 +22,8 @@ typedef const TCHAR* PROC_DlgtteGetText(HWND hwndUic, void *userctx);
 
 Dlgtte_err Dlgtte_EnableTooltip(HWND hwndCtl, 
 	PROC_DlgtteGetText *getUsageText, void *uctxUsage,
-	PROC_DlgtteGetText *getContentText, void *uctxContent);
+	PROC_DlgtteGetText *getContentText = nullptr, void *uctxContent = nullptr,
+	Dlgtte_BalloonPrefer_et bpref = Dlgtte_BalloonUp);
 
 
 ///////////////////////////////////////////////////////////////
@@ -53,6 +54,8 @@ struct GetTextCallbacks_st
 
 	PROC_DlgtteGetText *getContentText;
 	void *uctxContent;
+
+	Dlgtte_BalloonPrefer_et bpref;
 };
 
 
@@ -69,6 +72,8 @@ public:
 		m_uctxUsage = gtcb.uctxUsage;
 		m_getContentText = gtcb.getContentText;
 		m_uctxContent = gtcb.uctxContent;
+
+		m_bpref = gtcb.bpref;
 	}
 
 	const TCHAR *Call_getUsageText(HWND hwndUic)
@@ -96,8 +101,6 @@ public:
 		m_hwndttContent = httContent;
 	}
 
-//	friend class CTooltipMan;
-
 private:
 	HWND m_hwndttContent;
 
@@ -119,7 +122,7 @@ CxxSubclassHottool::CxxSubclassHottool()
 	m_getUsageText = m_getContentText = nullptr;
 	m_uctxUsage = m_uctxContent = nullptr;
 
-	m_bpref = Dlgtte_BalloonDown; //Up;
+	m_bpref = Dlgtte_BalloonUp;
 
 	SetRect(&m_rcFinal, -1, -1, -1, -1);
 }
@@ -533,7 +536,8 @@ using namespace Dlgtte;
 
 Dlgtte_err Dlgtte_EnableTooltip(HWND hwndCtl,
 	PROC_DlgtteGetText *getUsageText, void *uctxUsage,
-	PROC_DlgtteGetText *getContentText, void *uctxContent)
+	PROC_DlgtteGetText *getContentText, void *uctxContent, 
+	Dlgtte_BalloonPrefer_et bpref)
 {
 	HWND hdlg = GetParent(hwndCtl);
 
@@ -543,7 +547,8 @@ Dlgtte_err Dlgtte_EnableTooltip(HWND hwndCtl,
 
 	assert(!err);
 
-	GetTextCallbacks_st gtcb = { getUsageText, uctxUsage, getContentText, uctxContent };
+	GetTextCallbacks_st gtcb = { getUsageText, uctxUsage, 
+		getContentText, uctxContent, bpref };
 
 	err = ptm->AddUic(hwndCtl, gtcb);
 
