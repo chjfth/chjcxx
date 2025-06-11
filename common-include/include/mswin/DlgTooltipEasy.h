@@ -25,6 +25,8 @@ Dlgtte_err Dlgtte_EnableTooltip(HWND hwndCtl,
 	PROC_DlgtteGetText *getContentText = nullptr, void *uctxContent = nullptr,
 	Dlgtte_BalloonPrefer_et bpref = Dlgtte_BalloonUp);
 
+Dlgtte_err Dlgtte_RemoveTooltip(HWND hwndCtl);
+
 
 ///////////////////////////////////////////////////////////////
 // Implementation Below:
@@ -59,10 +61,10 @@ struct GetTextCallbacks_st
 };
 
 
-class CxxSubclassHottool : public CxxWindowSubclass
+class CHottoolSubsi : public CxxWindowSubclass
 {
 public:
-	CxxSubclassHottool();
+	CHottoolSubsi();
 
 	virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 	
@@ -115,7 +117,7 @@ private:
 	RECT m_rcFinal; 
 };
 
-CxxSubclassHottool::CxxSubclassHottool()
+CHottoolSubsi::CHottoolSubsi()
 {
 	m_hwndttContent = NULL;
 
@@ -160,7 +162,7 @@ inline int rcwidth(const RECT &rc) { return rc.right - rc.left; }
 inline int rcheight(const RECT &rc) { return rc.bottom - rc.top; }
 
 LRESULT 
-CxxSubclassHottool::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+CHottoolSubsi::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	if(m_hwndttContent)
 	{
@@ -316,8 +318,8 @@ CTooltipMan::AddUic(HWND hwndUic, const GetTextCallbacks_st &gtcb)
 		return E_BadParam;
 
 	CxxWindowSubclass::ReCode_et err = CxxWindowSubclass::E_Fail;
-	CxxSubclassHottool *psub =
-		CxxWindowSubclass::FetchCxxobjFromHwnd<CxxSubclassHottool>(
+	CHottoolSubsi *psub =
+		CxxWindowSubclass::FetchCxxobjFromHwnd<CHottoolSubsi>(
 			hwndUic, sig_EasyHottool, true, &err);
 	assert(psub);
 
@@ -403,8 +405,8 @@ CTooltipMan::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 		if (pnmh->code == TTN_NEEDTEXT)
 		{
-			CxxSubclassHottool *phot = 
-				CxxWindowSubclass::FetchCxxobjFromHwnd<CxxSubclassHottool>(
+			CHottoolSubsi *phot = 
+				CxxWindowSubclass::FetchCxxobjFromHwnd<CHottoolSubsi>(
 					hwndUic, sig_EasyHottool, FALSE);
 
 			vaDBG(_T("TTN_NEEDTEXT from hwndTooltip=0x%X for Uic=0x%X."), hwndTooltip, hwndUic);
@@ -471,7 +473,7 @@ CxxWindowSubclass::ReCode_et
 CTooltipMan::DelUic(HWND hwndUic)
 {
 	ReCode_et err_th = CxxWindowSubclass::E_Fail;
-	CxxSubclassHottool *pth = CxxWindowSubclass::FetchCxxobjFromHwnd<CxxSubclassHottool>(
+	CHottoolSubsi *pth = CxxWindowSubclass::FetchCxxobjFromHwnd<CHottoolSubsi>(
 		hwndUic, sig_EasyHottool, FALSE, &err_th);
 
 	if (err_th)
@@ -560,7 +562,7 @@ bool Dlgtte_IsEnabled(HWND hwndCtl)
 {
 	// Check whether hwndCtl has been installed a DlgTooltipEasy facility.
 
-	CxxSubclassHottool *pth = CxxWindowSubclass::FetchCxxobjFromHwnd<CxxSubclassHottool>(
+	CHottoolSubsi *pth = CxxWindowSubclass::FetchCxxobjFromHwnd<CHottoolSubsi>(
 		hwndCtl, sig_EasyHottool, FALSE);
 	
 	if (pth)
@@ -579,11 +581,13 @@ Dlgtte_err Dlgtte_RemoveTooltip(HWND hwndCtl)
 		hdlg, sig_EasyTooltipMan, FALSE, &err_tm);
 
 	CxxWindowSubclass::ReCode_et err_th = CxxWindowSubclass::E_Fail;
-	CxxSubclassHottool *pth = CxxWindowSubclass::FetchCxxobjFromHwnd<CxxSubclassHottool>(
+	CHottoolSubsi *pth = CxxWindowSubclass::FetchCxxobjFromHwnd<CHottoolSubsi>(
 		hwndCtl, sig_EasyHottool, FALSE, &err_th);
 
 	if (err_tm == CxxWindowSubclass::E_NotExist)
 	{
+		// Since there is no CTooltipMan, there should be no CxxSubclassHottool as well.
+
 		assert(err_th == CxxWindowSubclass::E_NotExist);
 		return Dlgtte_Succ;
 	}
