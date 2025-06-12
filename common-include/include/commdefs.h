@@ -134,6 +134,9 @@ inline enum_type operator | (enum_type a, enum_type b)
 template<typename enum_type>
 inline enum_type operator & (enum_type a, enum_type b) 
 {
+	// Note: We still need to make an explicit conversion of sencond operand, like this:
+	// 	ShowTs_et tsflags2 = tsflags & (ShowTs_et)~TsMillisec;
+	
 	return enum_type((int)a & b); 
 }
 #endif // #ifdef __cplusplus
