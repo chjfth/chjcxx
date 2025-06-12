@@ -665,6 +665,7 @@ CTooltipMan::DelUic(HWND hwndUic)
 		}
 
 		this->DetachHwnd();
+		delete this;
 	}
 
 	return E_Success;
