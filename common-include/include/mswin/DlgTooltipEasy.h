@@ -53,6 +53,8 @@ Dlgtte_err Dlgtte_ShowContentTooltip(HWND hwndCtl, bool is_show);
 #include <assert.h>
 #include <windowsx.h>
 
+#include <mswin/Tooltip-helper.h>
+
 #define WinMultiMon_IMPL
 #include <mswin/WinMultiMon.h>
 
@@ -472,11 +474,13 @@ CTooltipMan::AddUic(HWND hwndUic, const GetTextCallbacks_st &gtcb)
 		ti.uId = (UINT_PTR)hwndUic;
 		ti.lpszText = LPSTR_TEXTCALLBACK;
 
-		LRESULT lsucc = SendMessage(m_httUsage, TTM_ADDTOOL, 0, (LPARAM)&ti);
-		assert(lsucc);
+		BOOL succ = do_TTM_ADDTOOL_nodup(m_httUsage, ti);
+		assert(succ);
 
 		// Make the tooltip appear quickly (100ms), instead of default delaying 500ms.
 		SendMessage(m_httUsage, TTM_SETDELAYTIME, TTDT_INITIAL, 100);
+		// 
+		SendMessage(m_httUsage, TTM_SETDELAYTIME, TTDT_AUTOPOP, 29000);
 	}
 
 	if (gtcb.getContentText)
@@ -504,8 +508,8 @@ CTooltipMan::AddUic(HWND hwndUic, const GetTextCallbacks_st &gtcb)
 		ti.uId = (UINT_PTR)hwndUic;
 		ti.lpszText = LPSTR_TEXTCALLBACK;
 
-		LRESULT lsucc = SendMessage(m_httContent, TTM_ADDTOOL, 0, (LPARAM)&ti);
-		assert(lsucc);
+		BOOL succ = do_TTM_ADDTOOL_nodup(m_httContent, ti);
+		assert(succ);
 
 		// Enable multiline tooltip
 		SendMessage(m_httContent, TTM_SETMAXTIPWIDTH, 0, 800);
