@@ -25,6 +25,11 @@ public:
 		E_WinapiSubclass = -10,
 	};
 
+	// User starts here, passing is_create=true .
+	template<typename TChild>
+	static TChild* FetchCxxobjFromHwnd(HWND hwnd, const TCHAR *signature, BOOL is_create,
+		ReCode_et *pErr=nullptr);
+
 public:
 	CxxWindowSubclass();
 	~CxxWindowSubclass();
@@ -36,13 +41,11 @@ public:
 		return m_hwnd ? true : false;
 	}
 
-	template<typename TChild>
-	static TChild* FetchCxxobjFromHwnd(HWND hwnd, const TCHAR *signature, BOOL is_create,
-		ReCode_et *pErr=nullptr);
-
 protected:
 	virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
+		// User overrides this WndProc() to hook into hwnd's message processing.
+
 		return DefSubclassProc(hwnd, uMsg, wParam, lParam);
 	}
 
