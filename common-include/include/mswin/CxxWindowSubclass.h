@@ -30,12 +30,23 @@ public:
 	static TChild* FetchCxxobjFromHwnd(HWND hwnd, const TCHAR *signature, BOOL is_create,
 		ReCode_et *pErr=nullptr);
 
+	/* Example:
+	
+	CxxWindowSubclass::ReCode_et err = CxxWindowSubclass::E_Fail;
+	CTooltipMan *ptm = CxxWindowSubclass::FetchCxxobjFromHwnd<CTooltipMan>(
+		hdlg_toSubclass, _T("sig_EasyTooltipMan"), TRUE, &err);
+
+	When to delete `ptm` object?
+	If you call ptm->DetachHwnd(true) explicitly, or hdlg_toSubclass destroys, 
+	`delete ptm` is done automatically.
+	*/
+
 public:
 	CxxWindowSubclass();
-	~CxxWindowSubclass();
+	virtual ~CxxWindowSubclass();
 
-	ReCode_et AttachHwnd(HWND hwnd, const TCHAR *signature, bool isAutoCxxDelete=true);
-	ReCode_et DetachHwnd();
+	ReCode_et AttachHwnd(HWND hwnd, const TCHAR *signature);
+	ReCode_et DetachHwnd(bool delete_cxxobj=true);
 
 	bool IsAttached() {
 		return m_hwnd ? true : false;
@@ -65,8 +76,6 @@ private:
 	static ReCode_et CheckHwnd(HWND hwnd, const TCHAR *signature);
 
 protected:
-
-	bool m_isAutoDelete; // auto delete this C++ object in WM_DESTROY
 
 	HWND m_hwnd;
 	ATOM m_atom;
@@ -99,8 +108,6 @@ CxxWindowSubclass::CxxWindowSubclass()
 
 	m_magic = const_magic;
 	m_signature = nullptr;
-
-	m_isAutoDelete = false;
 
 	m_hwnd = NULL;
 	m_atom = 0;
@@ -149,14 +156,13 @@ CxxWindowSubclass::CheckHwnd(HWND hwnd, const TCHAR *signature)
 }
 
 CxxWindowSubclass::ReCode_et 
-CxxWindowSubclass::AttachHwnd(HWND hwnd, const TCHAR *signature, bool isAutoCxxDelete)
+CxxWindowSubclass::AttachHwnd(HWND hwnd, const TCHAR *signature)
 {
 	ReCode_et err = CheckHwnd(hwnd, signature);
 	if (err != E_NotExist)
 		return err;
 
 	m_hwnd = hwnd;
-	m_isAutoDelete = isAutoCxxDelete;
 
 	int slen = (int)_tcslen(signature);
 	m_signature = new TCHAR[slen+1];
@@ -177,6 +183,7 @@ CxxWindowSubclass::AttachHwnd(HWND hwnd, const TCHAR *signature, bool isAutoCxxD
 	// Subclass the hwnd.
 
 	succ = SetWindowSubclass(m_hwnd, SubclassProc, m_atom, (DWORD_PTR)this);
+	// -- To improve: We can use `this` as `uIdSubclass` param, eliminating atom?
 	if (!succ)
 	{
 		// If user pass in a HWND from another process, it fails with WinErr=2(ERROR_FILE_NOT_FOUND).
@@ -187,7 +194,7 @@ CxxWindowSubclass::AttachHwnd(HWND hwnd, const TCHAR *signature, bool isAutoCxxD
 		goto FAIL_END;
 	}
 
-	vaDBG(_T("SetWindowSubclass(hwnd=0x%X, , atom=0x%X) success."), m_hwnd, m_atom);
+	vaDBG(_T("SetWindowSubclass(hwnd=0x%X, atom=0x%X) success."), m_hwnd, m_atom);
 
 	return E_Success;
 
@@ -206,7 +213,7 @@ FAIL_END:
 }
 
 CxxWindowSubclass::ReCode_et 
-CxxWindowSubclass::DetachHwnd()
+CxxWindowSubclass::DetachHwnd(bool delete_cxxobj)
 {
 	if(!m_hwnd)
 		return E_BadParam;
@@ -229,6 +236,9 @@ CxxWindowSubclass::DetachHwnd()
 	m_signature = nullptr;
 
 	m_hwnd = NULL;
+
+	if(delete_cxxobj)
+		delete this;
 
 	return E_Success;
 }
@@ -259,12 +269,7 @@ CxxWindowSubclass::StockWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 	{
 		vaDBG(_T("CxxWindowSubclass@%p sees WM_NCDESTROY, now detach."), this);
 
-		DetachHwnd();
-
-		if (m_isAutoDelete)
-		{
-			delete this;
-		}
+		DetachHwnd(true);
 	}
 
 	return lre;

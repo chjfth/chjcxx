@@ -622,7 +622,7 @@ CTooltipMan::DelUic(HWND hwndUic)
 
 	assert(pth);
 
-	ReCode_et err = pth->DetachHwnd();
+	ReCode_et err = pth->DetachHwnd(true);
 	assert(!err);
 
 	HWND hdlg = m_hwnd;
@@ -664,8 +664,7 @@ CTooltipMan::DelUic(HWND hwndUic)
 			m_httContent = NULL;
 		}
 
-		this->DetachHwnd();
-		delete this;
+		this->DetachHwnd(true);
 	}
 
 	return E_Success;
