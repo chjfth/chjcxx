@@ -36,10 +36,14 @@ Dlgtte_err Dlgtte_EnableTooltip(HWND hwndCtl,
 
 Dlgtte_err Dlgtte_RemoveTooltip(HWND hwndCtl);
 
+void Dlgtte_GetTooltipHwnd(HWND hwndCtl, HWND *pUsage=NULL, HWND *pContent=NULL);
+
 Dlgtte_err Dlgtte_GetFlags(HWND hwndCtl, Dlgtte_BitFlags_et *pFlags);
 Dlgtte_err Dlgtte_SetFlags(HWND hwndCtl, Dlgtte_BitFlags_et flags);
 
 Dlgtte_err Dlgtte_ShowContentTooltip(HWND hwndCtl, bool is_show);
+// -- This can manually show/hide content-tooltip, useful when user does not assign
+//    Dlgtte_AutoContentTipOnFocus.
 
 
 
@@ -208,6 +212,12 @@ public:
 	virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 	CHottoolSubsi* FindHottoolByHwnd(HWND hwndUic);
+
+	void GetTooltipHwnd(HWND *pUsageTooltip, HWND *pContentTooltip)
+	{
+		*pUsageTooltip = m_httUsage;
+		*pContentTooltip = m_httContent;
+	}
 
 private:
 	// Two tooltip-window HWND-s
@@ -448,7 +458,7 @@ CTooltipMan::AddUic(HWND hwndUic, const GetTextCallbacks_st &gtcb)
 	CxxWindowSubclass::ReCode_et err = CxxWindowSubclass::E_Fail;
 	CHottoolSubsi *phottool =
 		CxxWindowSubclass::FetchCxxobjFromHwnd<CHottoolSubsi>(
-			hwndUic, sig_EasyHottool, true, &err);
+			hwndUic, sig_EasyHottool, TRUE, &err);
 	assert(phottool);
 
 	if (gtcb.getUsageText)
@@ -757,6 +767,22 @@ Dlgtte_err Dlgtte_RemoveTooltip(HWND hwndCtl)
 	return Dlgtte_Succ;
 }
 
+void Dlgtte_GetTooltipHwnd(HWND hwndCtl, HWND *pUsageTooltip, HWND *pContentTooltip)
+{
+	SETTLE_OUTPUT_PTR(HWND, pUsageTooltip, NULL);
+	SETTLE_OUTPUT_PTR(HWND, pContentTooltip, NULL);
+
+	HWND hdlg = GetParent(hwndCtl);
+
+	CxxWindowSubclass::ReCode_et err_tm = CxxWindowSubclass::E_Fail;
+	CTooltipMan *ptm = CxxWindowSubclass::FetchCxxobjFromHwnd<CTooltipMan>(
+		hdlg, sig_EasyTooltipMan, FALSE, &err_tm);
+
+	if(!ptm)
+		return;
+
+	ptm->GetTooltipHwnd(pUsageTooltip, pContentTooltip);
+}
 
 Dlgtte_err Dlgtte_GetFlags(HWND hwndCtl, Dlgtte_BitFlags_et *pFlags)
 {
