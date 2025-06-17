@@ -248,6 +248,21 @@ private:
 	int m_dbg_delay1;
 };
 
+class CContentTooltipPeeker: public CxxWindowSubclass
+{
+public:
+	virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+	{
+		if (uMsg == WM_LBUTTONDOWN)
+		{
+			vaDBG2(_T("CContentTooltipPeeker sees WM_LBUTTONDOWN. Hide myself."));
+			ShowWindow(hwnd, SW_HIDE);
+		}
+
+		return DefSubclassProc(hwnd, uMsg, wParam, lParam);
+	}
+};
+
 //////////////////////////////////////////////////////////////////////////
 
 static void ReActivateTrackingTooltip(HWND hwndTooltip, TOOLINFO &ti)
@@ -541,6 +556,10 @@ CTooltipMan::AddUic(HWND hwndUic, const GetTextCallbacks_st &gtcb)
 			if (m_httContent)
 			{
 				vaDBG1(_T("[+]Content-Tooltip created, hwnd=0x%X"), PtrToUint(m_httContent));
+
+				CContentTooltipPeeker *psp = CxxWindowSubclass::FetchCxxobjFromHwnd<CContentTooltipPeeker>(
+					m_httContent, _T("sig_CContentTooltipPeeker"), TRUE);
+				assert(psp);
 			}
 		}
 
@@ -648,6 +667,11 @@ CTooltipMan::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		// If window moved, hide the tooltip
 		SendMessage(m_httContent, TTM_ACTIVATE, FALSE, 0);
 		SendMessage(m_httContent, TTM_ACTIVATE, TRUE, 0);
+	}
+	else if (uMsg == WM_KILLFOCUS)
+	{
+		// Seems we cannot see this on a standard dialogbox.
+		vaDBG2(_T("CTooltipMan::WndProc() sees WM_KILLFOCUS"));
 	}
 
 	return DefSubclassProc(hwnd, uMsg, wParam, lParam);
