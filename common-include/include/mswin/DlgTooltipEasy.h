@@ -165,17 +165,17 @@ public:
 private:
 	LRESULT in_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, bool *pMsgDone);
 
-	enum { PosUnset = -1 };
+	enum { OffScreenPosX = -32001, OffScreenPosY = -32001 };
 
-	void UnSet_rcFinal() {
-		SetRect(&m_rcFinal, PosUnset, PosUnset, PosUnset, PosUnset);
+	void Clear_rcFinal() {
+		SetRect(&m_rcFinal, OffScreenPosX, OffScreenPosY, OffScreenPosX, OffScreenPosY);
 	}
 
-	void ToggleActivateContentTooltip();
+	void ReActivateContentTooltip();
 
 	static void CALLBACK Delayed_ToggleActivateContentTooltip(HWND hdlg, UINT uMsg, UINT_PTR idEvent, DWORD dwTime)
 	{
-		((CHottoolSubsi*)idEvent)->ToggleActivateContentTooltip();
+		((CHottoolSubsi*)idEvent)->ReActivateContentTooltip();
 		KillTimer(hdlg, idEvent);
 	}
 
@@ -206,7 +206,7 @@ CHottoolSubsi::CHottoolSubsi()
 
 	m_flags = Dlgtte_Flags0;
 
-	UnSet_rcFinal();
+	Clear_rcFinal();
 }
 
 class CTooltipMan : public CxxWindowSubclass
@@ -238,8 +238,6 @@ public:
 		*pContentTooltip = m_httContent;
 	}
 
-	enum { OffScreenPos = -32001 };
-
 private:
 	// Two tooltip-window HWND-s
 	HWND m_httUsage;
@@ -252,19 +250,33 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 
+static void ReActivateTrackingTooltip(HWND hwndTooltip, TOOLINFO &ti)
+{
+	// Purpose: Force tooltip libcode to re-draw tooltip text so the tooltip 
+	// window RECT is updated. 
+	// Caller can query GetWindowRect() after ReActivateTrackingTooltip() returns.
+
+	SendMessage(hwndTooltip, TTM_TRACKACTIVATE, FALSE, (LPARAM)&ti);
+
+	SendMessage(hwndTooltip, TTM_TRACKACTIVATE, TRUE, (LPARAM)&ti);
+	// -- this will internally call TTM_NEEDTEXT
+
+	// Note: If we lack the TTM_TRACKACTIVATE=FALSE step, and we did not do
+	// TTM_TRACKPOSITION to change tooltip position recently, tooltip libcode 
+	// does *nothing* inside TTM_TRACKACTIVATE=TRUE.
+}
+
 
 static bool QueryTooltipRect_by_TrackPoint(HWND hwndTooltip, TOOLINFO &ti,
 	int screenx, int screeny, RECT *pRect)
 {
 	SendMessage(hwndTooltip, TTM_TRACKPOSITION, 0, (LPARAM)MAKELONG(screenx, screeny));
 
-//	SendMessage(hwndTooltip, TTM_TRACKACTIVATE, FALSE, (LPARAM)&ti); // seems not a must
-	SendMessage(hwndTooltip, TTM_TRACKACTIVATE, TRUE, (LPARAM)&ti);
-	// -- this will internally call TTM_NEEDTEXT
+	ReActivateTrackingTooltip(hwndTooltip, ti);
 
 	GetWindowRect(hwndTooltip, pRect);
-	TCHAR rctext[80];
-	vaDbgTs(_T("After TTM_TRACKACTIVATE, TT-rect: %s"), RECTtext(*pRect, rctext));
+	TCHAR rctext[80] = _T("");
+	vaDBG2(_T("After TTM_TRACKACTIVATE, TT-rect: %s"), RECTtext(*pRect, rctext));
 
 	return true;
 }
@@ -289,7 +301,7 @@ CHottoolSubsi::ShowContentTooltip(bool is_show)
 
 	if(!is_show)
 	{
-		vaDBG(_T("Hottool(0x%X) Will hide Content tooltip."), PtrToUint(hUic));
+		vaDBG2(_T("Hottool(0x%X) Will hide Content tooltip."), PtrToUint(hUic));
 
 		SendMessage(m_hwndttContent, TTM_TRACKACTIVATE, FALSE, (LPARAM)&ti);
 		return Dlgtte_Succ;
@@ -297,7 +309,7 @@ CHottoolSubsi::ShowContentTooltip(bool is_show)
 
 	assert(is_show==true);
 
-	vaDBG(_T("Hottool(0x%X) Will show Content tooltip."), PtrToUint(hUic));
+	vaDBG2(_T("Hottool(0x%X) Will show Content tooltip."), PtrToUint(hUic));
 
 	// We will select Uic's upper-middle or lower-middle as "track-point" to display the tooltip.
 	// Selecting upper-middle means showing tooltip upside of the Uic, balloon-stem down.
@@ -317,7 +329,7 @@ CHottoolSubsi::ShowContentTooltip(bool is_show)
 		// User prefers Dlgtte_BalloonUp
 
 		// probe-show the tooltip at monitor bottom, and peek its rect in rcTooltip
-		QueryTooltipRect_by_TrackPoint(hwndTooltip, ti, midx(rcMon), rcMon.bottom-1, &rcTooltip);
+		QueryTooltipRect_by_TrackPoint(hwndTooltip, ti, midx(rcUic), rcMon.bottom-1, &rcTooltip);
 
 		if (
 			rcheight(rcTooltip) <= rcUic.top - rcMon.top // Upside-space of Uic is enough for tooltip
@@ -330,7 +342,7 @@ CHottoolSubsi::ShowContentTooltip(bool is_show)
 		{	// Upside-space not enough, but downside-space enough, use downside.
 
 			// probe-show the tooltip at monitor top, and peek its rect in rcTooltip
-			QueryTooltipRect_by_TrackPoint(hwndTooltip, ti, midx(rcMon), rcMon.top, &rcTooltip);
+			QueryTooltipRect_by_TrackPoint(hwndTooltip, ti, midx(rcUic), rcMon.top, &rcTooltip);
 
 			finalAbove = false; // ok, Downside enough, use it
 		}
@@ -340,7 +352,7 @@ CHottoolSubsi::ShowContentTooltip(bool is_show)
 		assert((m_flags & Dlgtte_BalloonDown) == Dlgtte_BalloonDown);
 
 		// probe-show the tooltip at monitor top, and peek its rect in rcTooltip
-		QueryTooltipRect_by_TrackPoint(hwndTooltip, ti, midx(rcMon), rcMon.top, &rcTooltip);
+		QueryTooltipRect_by_TrackPoint(hwndTooltip, ti, midx(rcUic), rcMon.top, &rcTooltip);
 
 		if(
 			rcheight(rcTooltip) <= rcMon.bottom - rcUic.bottom // Downside-space of Uic is enough for tooltip
@@ -353,14 +365,14 @@ CHottoolSubsi::ShowContentTooltip(bool is_show)
 		{	// Downside-space not enough, but upside-space enough, use upside.
 
 			// probe-show the tooltip at monitor bottom, and peek its rect in rcTooltip
-			QueryTooltipRect_by_TrackPoint(hwndTooltip, ti, midx(rcMon), rcMon.bottom-1, &rcTooltip);
+			QueryTooltipRect_by_TrackPoint(hwndTooltip, ti, midx(rcUic), rcMon.bottom-1, &rcTooltip);
 
 			finalAbove = true; // ok, Upside is enough, use it
 		}
 	}
 
-	m_rcFinal.left = midx(rcUic) - rcwidth(rcTooltip) / 2;
-	m_rcFinal.right = m_rcFinal.left + rcwidth(rcTooltip);
+	m_rcFinal.left = rcTooltip.left;
+	m_rcFinal.right = rcTooltip.right;
 
 	if (finalAbove)
 	{
@@ -374,14 +386,14 @@ CHottoolSubsi::ShowContentTooltip(bool is_show)
 	}
 
 	TCHAR rctext[80] = _T("");
-	vaDbgTs(_T("In ShowContentTooltip(), [%s]tooltip-rect: %s"), 
+	vaDBG2(_T("In ShowContentTooltip(), [%s]tooltip-rect: %s"), 
 		finalAbove ? _T("UP") : _T("DN"),
 		RECTtext(m_rcFinal, rctext));
 
 	// We must force toggle TTM_TRACKACTIVATE off/on, so that tooltip refreshes its 
 	// display position according to our new m_rcFinal.
 	if(m_pTooltipMan->m_dbg_delay1==0)
-		ToggleActivateContentTooltip();
+		ReActivateContentTooltip();
 	else
 		SetTimer(hdlg, (UINT_PTR)this, 1000, Delayed_ToggleActivateContentTooltip);
 
@@ -389,15 +401,13 @@ CHottoolSubsi::ShowContentTooltip(bool is_show)
 }
 
 void 
-CHottoolSubsi::ToggleActivateContentTooltip()
+CHottoolSubsi::ReActivateContentTooltip()
 {
 	TOOLINFO ti = { sizeof(TOOLINFO) };
 	ti.hwnd = GetParent(m_hwnd);
 	ti.uId = (UINT_PTR)m_hwnd;
 
-	SendMessage(m_hwndttContent, TTM_TRACKACTIVATE, FALSE, (LPARAM)&ti);
-	SendMessage(m_hwndttContent, TTM_TRACKACTIVATE, TRUE, (LPARAM)&ti);
-	// -- TTM_TRACKACTIVATE(TRUE) this will internally call TTM_NEEDTEXT
+	ReActivateTrackingTooltip(m_hwndttContent, ti);
 }
 
 LRESULT 
@@ -571,7 +581,7 @@ CTooltipMan::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				CxxWindowSubclass::FetchCxxobjFromHwnd<CHottoolSubsi>(
 					hwndUic, sig_EasyHottool, FALSE);
 
-			vaDBG(_T("TTN_NEEDTEXT from hwndTooltip=0x%X for Uic=0x%X."), hwndTooltip, hwndUic);
+			vaDBG2(_T("TTN_NEEDTEXT from hwndTooltip=0x%X for Uic=0x%X."), hwndTooltip, hwndUic);
 
 			if(phot)
 			{
@@ -590,33 +600,39 @@ CTooltipMan::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		{
 			if (hwndTooltip == m_httContent)
 			{
-				RECT rc; TCHAR rctext[80] = _T("");
-				GetWindowRect(hwndTooltip, &rc);
-				vaDBG(_T("TTN_SHOW from 0x%X,  init-Rect=%s"), hwndTooltip, RECTtext(rc, rctext));
+				TCHAR rctext[80] = _T("");
+				
+				RECT rcInit = {}; 
+				GetWindowRect(hwndTooltip, &rcInit);
+				vaDBG2(_T("TTN_SHOW from 0x%X,  init-Rect=%s"), hwndTooltip, RECTtext(rcInit, rctext));
 
 				CHottoolSubsi *phot = (CHottoolSubsi*)SendMessage(hwndUic, s_MSG_GetHottoolSubsi, 0, 0);
-				rc = phot->m_rcFinal;
+				RECT &rcFinal = phot->m_rcFinal;
 
-				vaDBG(_T("TTN_SHOW from 0x%X, final-Rect=%s"), hwndTooltip, RECTtext(rc, rctext));
+				vaDBG2(_T("TTN_SHOW from 0x%X, final-Rect=%s"), hwndTooltip, RECTtext(rcFinal, rctext));
 
-				if (rc.left != CHottoolSubsi::PosUnset)
+				if (rcFinal.left != CHottoolSubsi::OffScreenPosX) // rcFinal has valid value
 				{
-					SetWindowPos(hwndTooltip, 0, rc.left, rc.top, 0, 0, SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOSIZE);
+					SetWindowPos(hwndTooltip, 0, 
+						rcFinal.left, rcFinal.top, 0, 0, 
+						SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOSIZE);
 					
-					phot->UnSet_rcFinal(); // set phot->m_rcFinal.left to -1 (!)
+					phot->Clear_rcFinal();
 				}
 				else
 				{
 					// This happens inside QueryTooltipRect_by_TrackPoint().
 					// Now tooltip is at our probing position, we should better move it off-screen 
 					// to avoid user seeing a flicking temporal tooltip at that position.
-					// But for pedagogical, using EXE debugger to set m_dbg_delay1 to 1000 to see 
-					// what is under the hood.
+					// But for pedagogical purpose, using EXE debugger to set m_dbg_delay1 to 1000 
+					// to see what is under the hood.
 
 					if(m_dbg_delay1==0)
 					{
-						SetWindowPos(hwndTooltip, 0, OffScreenPos, OffScreenPos, 
-							0, 0, SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOSIZE);
+						SetWindowPos(hwndTooltip, 0, 
+							rcInit.left, CHottoolSubsi::OffScreenPosY, // note: keep .left intact
+							0, 0, 
+							SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOSIZE);
 					}
 				}
 
