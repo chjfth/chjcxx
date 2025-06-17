@@ -270,13 +270,15 @@ static void ReActivateTrackingTooltip(HWND hwndTooltip, TOOLINFO &ti)
 static bool QueryTooltipRect_by_TrackPoint(HWND hwndTooltip, TOOLINFO &ti,
 	int screenx, int screeny, RECT *pRect)
 {
+	vaDBG2(_T("TTM_TRACKPOSITION at screen-pos: x=%d, y=%d"), screenx, screeny);
+
 	SendMessage(hwndTooltip, TTM_TRACKPOSITION, 0, (LPARAM)MAKELONG(screenx, screeny));
 
 	ReActivateTrackingTooltip(hwndTooltip, ti);
 
 	GetWindowRect(hwndTooltip, pRect);
 	TCHAR rctext[80] = _T("");
-	vaDBG2(_T("After TTM_TRACKACTIVATE, TT-rect: %s"), RECTtext(*pRect, rctext));
+	vaDBG2(_T("TTM_TRACKACTIVATE done, TT-rect: %s"), RECTtext(*pRect, rctext));
 
 	return true;
 }
