@@ -167,6 +167,18 @@ private:
 
 	enum { PosUnset = -1 };
 
+	void UnSet_rcFinal() {
+		SetRect(&m_rcFinal, PosUnset, PosUnset, PosUnset, PosUnset);
+	}
+
+	void ToggleActivateContentTooltip();
+
+	static void CALLBACK Delayed_ToggleActivateContentTooltip(HWND hdlg, UINT uMsg, UINT_PTR idEvent, DWORD dwTime)
+	{
+		((CHottoolSubsi*)idEvent)->ToggleActivateContentTooltip();
+		KillTimer(hdlg, idEvent);
+	}
+
 private:
 	CTooltipMan *m_pTooltipMan;
 
@@ -194,7 +206,7 @@ CHottoolSubsi::CHottoolSubsi()
 
 	m_flags = Dlgtte_Flags0;
 
-	SetRect(&m_rcFinal, PosUnset, PosUnset, -1, -1);
+	UnSet_rcFinal();
 }
 
 class CTooltipMan : public CxxWindowSubclass
@@ -226,6 +238,8 @@ public:
 		*pContentTooltip = m_httContent;
 	}
 
+	enum { OffScreenPos = -32001 };
+
 private:
 	// Two tooltip-window HWND-s
 	HWND m_httUsage;
@@ -244,6 +258,7 @@ static bool QueryTooltipRect_by_TrackPoint(HWND hwndTooltip, TOOLINFO &ti,
 {
 	SendMessage(hwndTooltip, TTM_TRACKPOSITION, 0, (LPARAM)MAKELONG(screenx, screeny));
 
+//	SendMessage(hwndTooltip, TTM_TRACKACTIVATE, FALSE, (LPARAM)&ti); // seems not a must
 	SendMessage(hwndTooltip, TTM_TRACKACTIVATE, TRUE, (LPARAM)&ti);
 	// -- this will internally call TTM_NEEDTEXT
 
@@ -363,15 +378,27 @@ CHottoolSubsi::ShowContentTooltip(bool is_show)
 		isAbove ? _T("UP") : _T("DN"),
 		RECTtext(m_rcFinal, rctext));
 
-	// We must force toggle TTM_TRACKACTIVATE so that tooltip refreshes its display position
-	// according to our new m_rcFinal.
-	SendMessage(m_hwndttContent, TTM_TRACKACTIVATE, FALSE, (LPARAM)&ti);
-	SendMessage(m_hwndttContent, TTM_TRACKACTIVATE, TRUE, (LPARAM)&ti);
-	// -- TTM_TRACKACTIVATE(TRUE) this will internally call TTM_NEEDTEXT
+	// We must force toggle TTM_TRACKACTIVATE off/on, so that tooltip refreshes its 
+	// display position according to our new m_rcFinal.
+	if(m_pTooltipMan->m_dbg_delay1==0)
+		ToggleActivateContentTooltip();
+	else
+		SetTimer(hdlg, (UINT_PTR)this, 1000, Delayed_ToggleActivateContentTooltip);
 
 	return Dlgtte_Succ;
 }
 
+void 
+CHottoolSubsi::ToggleActivateContentTooltip()
+{
+	TOOLINFO ti = { sizeof(TOOLINFO) };
+	ti.hwnd = GetParent(m_hwnd);
+	ti.uId = (UINT_PTR)m_hwnd;
+
+	SendMessage(m_hwndttContent, TTM_TRACKACTIVATE, FALSE, (LPARAM)&ti);
+	SendMessage(m_hwndttContent, TTM_TRACKACTIVATE, TRUE, (LPARAM)&ti);
+	// -- TTM_TRACKACTIVATE(TRUE) this will internally call TTM_NEEDTEXT
+}
 
 LRESULT 
 CHottoolSubsi::in_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, bool *pMsgDone)
@@ -575,11 +602,22 @@ CTooltipMan::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				if (rc.left != CHottoolSubsi::PosUnset)
 				{
 					SetWindowPos(hwndTooltip, 0, rc.left, rc.top, 0, 0, SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOSIZE);
+					
+					phot->UnSet_rcFinal(); // set phot->m_rcFinal.left to -1 (!)
 				}
 				else
 				{
-					// This can happen inside QueryTooltipRect_by_TrackPoint().
-					m_dbg_delay1 = m_dbg_delay1; // to make a breakpoint
+					// This happens inside QueryTooltipRect_by_TrackPoint().
+					// Now tooltip is at our probing position, we should better move it off-screen 
+					// to avoid user seeing a flicking temporal tooltip at that position.
+					// But for pedagogical, using EXE debugger to set m_dbg_delay1 to 1000 to see 
+					// what is under the hood.
+
+					if(m_dbg_delay1==0)
+					{
+						SetWindowPos(hwndTooltip, 0, OffScreenPos, OffScreenPos, 
+							0, 0, SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOSIZE);
+					}
 				}
 
 				// return TRUE to make SetWindowPos() effective, no calling into DefSubclassProc().
