@@ -165,6 +165,8 @@ public:
 private:
 	LRESULT in_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, bool *pMsgDone);
 
+	enum { PosUnset = -1 };
+
 private:
 	CTooltipMan *m_pTooltipMan;
 
@@ -192,7 +194,7 @@ CHottoolSubsi::CHottoolSubsi()
 
 	m_flags = Dlgtte_Flags0;
 
-	SetRect(&m_rcFinal, -1, -1, -1, -1);
+	SetRect(&m_rcFinal, PosUnset, PosUnset, -1, -1);
 }
 
 class CTooltipMan : public CxxWindowSubclass
@@ -206,6 +208,7 @@ public:
 		m_httContent = NULL;
 
 		m_suppress_content_tip_once = false;
+		m_dbg_delay1 = 0;
 	}
 
 	ReCode_et AddUic(HWND hwndUic, const GetTextCallbacks_st &gtcb);
@@ -229,6 +232,8 @@ private:
 	HWND m_httContent;
 
 	bool m_suppress_content_tip_once;
+
+	int m_dbg_delay1;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -269,7 +274,7 @@ CHottoolSubsi::ShowContentTooltip(bool is_show)
 
 	if(!is_show)
 	{
-		vaDBG(_T("Hottool(0x%X) Will hide Content tooltip."), hUic);
+		vaDBG(_T("Hottool(0x%X) Will hide Content tooltip."), PtrToUint(hUic));
 
 		SendMessage(m_hwndttContent, TTM_TRACKACTIVATE, FALSE, (LPARAM)&ti);
 		return Dlgtte_Succ;
@@ -289,7 +294,7 @@ CHottoolSubsi::ShowContentTooltip(bool is_show)
 	RECT rcMon = {};
 	bool isok = getMonitorRectByPoint(midx(rcUic), midy(rcUic), &rcMon);
 
-	bool dbg_isUp = false;
+	bool isAbove = false; // show tooltip above Uic?
 	RECT rcTooltip = {};
 
 	if ((m_flags & Dlgtte_BalloonDown)==0)
@@ -304,7 +309,7 @@ CHottoolSubsi::ShowContentTooltip(bool is_show)
 			|| rcheight(rcTooltip) > rcMon.bottom - rcUic.bottom // Downside-space is not enough
 			)
 		{	// Use upside-space
-			dbg_isUp = true;
+			isAbove = true;
 		}
 		else
 		{	// Upside-space not enough, but downside-space enough, use downside.
@@ -312,7 +317,7 @@ CHottoolSubsi::ShowContentTooltip(bool is_show)
 			// probe-show the tooltip at monitor top, and peek its rect in rcTooltip
 			QueryTooltipRect_by_TrackPoint(hwndTooltip, ti, midx(rcMon), rcMon.top, &rcTooltip);
 
-			dbg_isUp = false; // ok, Downside enough, use it
+			isAbove = false; // ok, Downside enough, use it
 		}
 	}
 	else // User prefers Dlgtte_BalloonDown
@@ -327,7 +332,7 @@ CHottoolSubsi::ShowContentTooltip(bool is_show)
 			|| rcheight(rcTooltip) > rcUic.top - rcMon.top // Upside-space is not enough
 			)
 		{	// Use downside-space
-			dbg_isUp = false;
+			isAbove = false;
 		}
 		else
 		{	// Downside-space not enough, but upside-space enough, use upside.
@@ -335,14 +340,14 @@ CHottoolSubsi::ShowContentTooltip(bool is_show)
 			// probe-show the tooltip at monitor bottom, and peek its rect in rcTooltip
 			QueryTooltipRect_by_TrackPoint(hwndTooltip, ti, midx(rcMon), rcMon.bottom-1, &rcTooltip);
 
-			dbg_isUp = true; // ok, Upside is enough, use it
+			isAbove = true; // ok, Upside is enough, use it
 		}
 	}
 
 	m_rcFinal.left = midx(rcUic) - rcwidth(rcTooltip) / 2;
 	m_rcFinal.right = m_rcFinal.left + rcwidth(rcTooltip);
 
-	if (dbg_isUp)
+	if (isAbove)
 	{
 		m_rcFinal.top = rcUic.top - rcheight(rcTooltip);
 		m_rcFinal.bottom = rcUic.top;
@@ -353,9 +358,9 @@ CHottoolSubsi::ShowContentTooltip(bool is_show)
 		m_rcFinal.bottom = m_rcFinal.top + rcheight(rcTooltip);
 	}
 
-	TCHAR rctext[80];
-	vaDbgTs(_T("In ShowContentTooltip, [%s]tooltip-rect: %s"), 
-		dbg_isUp ? _T("UP") : _T("DN"),
+	TCHAR rctext[80] = _T("");
+	vaDbgTs(_T("In ShowContentTooltip(), [%s]tooltip-rect: %s"), 
+		isAbove ? _T("UP") : _T("DN"),
 		RECTtext(m_rcFinal, rctext));
 
 	// We must force toggle TTM_TRACKACTIVATE so that tooltip refreshes its display position
@@ -363,7 +368,6 @@ CHottoolSubsi::ShowContentTooltip(bool is_show)
 	SendMessage(m_hwndttContent, TTM_TRACKACTIVATE, FALSE, (LPARAM)&ti);
 	SendMessage(m_hwndttContent, TTM_TRACKACTIVATE, TRUE, (LPARAM)&ti);
 	// -- TTM_TRACKACTIVATE(TRUE) this will internally call TTM_NEEDTEXT
-
 
 	return Dlgtte_Succ;
 }
@@ -457,6 +461,11 @@ CTooltipMan::AddUic(HWND hwndUic, const GetTextCallbacks_st &gtcb)
 				hdlg, // tooltip-window's owner
 				NULL, NULL, NULL);
 			assert(m_httUsage);
+
+			if (m_httUsage)
+			{
+				vaDBG1(_T("[+]Usage-Tooltip created, hwnd=0x%X"), PtrToUint(m_httUsage));
+			}
 		}
 
 		// Associate Uic to the tooltip.
@@ -489,6 +498,11 @@ CTooltipMan::AddUic(HWND hwndUic, const GetTextCallbacks_st &gtcb)
 				hdlg, // tooltip-window's owner
 				NULL, NULL, NULL);
 			assert(m_httContent);
+
+			if (m_httContent)
+			{
+				vaDBG1(_T("[+]Content-Tooltip created, hwnd=0x%X"), PtrToUint(m_httContent));
+			}
 		}
 
 		// Associate Uic to the tooltip.
@@ -520,8 +534,6 @@ CTooltipMan::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	if (uMsg == WM_NOTIFY)
 	{
-//		dbg_WM_NOTIFY(wParam, lParam);
-
 		NMHDR *pnmh = (NMHDR *)lParam;
 		HWND hwndTooltip = pnmh->hwndFrom;
 		HWND hwndUic = (HWND)pnmh->idFrom;
@@ -551,7 +563,7 @@ CTooltipMan::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		{
 			if (hwndTooltip == m_httContent)
 			{
-				RECT rc; TCHAR rctext[80];
+				RECT rc; TCHAR rctext[80] = _T("");
 				GetWindowRect(hwndTooltip, &rc);
 				vaDBG(_T("TTN_SHOW from 0x%X,  init-Rect=%s"), hwndTooltip, RECTtext(rc, rctext));
 
@@ -560,9 +572,14 @@ CTooltipMan::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 				vaDBG(_T("TTN_SHOW from 0x%X, final-Rect=%s"), hwndTooltip, RECTtext(rc, rctext));
 
-				if (rc.left != -1)
+				if (rc.left != CHottoolSubsi::PosUnset)
 				{
 					SetWindowPos(hwndTooltip, 0, rc.left, rc.top, 0, 0, SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOSIZE);
+				}
+				else
+				{
+					// This can happen inside QueryTooltipRect_by_TrackPoint().
+					m_dbg_delay1 = m_dbg_delay1; // to make a breakpoint
 				}
 
 				// return TRUE to make SetWindowPos() effective, no calling into DefSubclassProc().
@@ -643,17 +660,23 @@ CTooltipMan::DelUic(HWND hwndUic)
 
 		if (m_httUsage) {
 			DestroyWindow(m_httUsage);
+
+			vaDBG1(_T("[-]In CTooltipMan::DelUic(), Usage-Tooltip destroyed, hwnd=0x%X"), PtrToUint(m_httUsage));
+
 			m_httUsage = NULL;
 		}
 
 		if (m_httContent) {
 			DestroyWindow(m_httContent);
+
+			vaDBG1(_T("[-]In CTooltipMan::DelUic(), Content-Tooltip destroyed, hwnd=0x%X"), PtrToUint(m_httContent));
+
 			m_httContent = NULL;
 		}
 
 		this->DetachHwnd(true);
 
-		vaDBG1(_T("[-] In CTooltipMan::DelUic(), destroyed CTooltipMan=%p "), this);
+		vaDBG1(_T("[-]In CTooltipMan::DelUic(), destroyed CTooltipMan=%p "), this);
 	}
 
 	return E_Success;
