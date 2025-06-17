@@ -65,6 +65,11 @@ Dlgtte_err Dlgtte_ShowContentTooltip(HWND hwndCtl, bool is_show);
 #define CxxWindowSubclass_IMPL
 #include <mswin/CxxWindowSubclass.h>
 
+#ifndef DlgTooltipEasy_DEBUG
+#define vaDBG1(...) // make it empty
+#define vaDBG2(...) // make it empty
+#endif
+
 namespace Dlgtte // (internal) 
 {
 
@@ -243,16 +248,6 @@ static bool QueryTooltipRect_by_TrackPoint(HWND hwndTooltip, TOOLINFO &ti,
 
 	return true;
 }
-
-/*
-static int QueryTooltipHeight_by_TrackPoint(HWND hwndTooltip, TOOLINFO &ti,
-	int screenx, int screeny)
-{
-	RECT rc = {};
-	QueryTooltipRect_by_TrackPoint(hwndTooltip, ti, screenx, screeny, &rc);
-	return rc.bottom - rc.top;
-}
-*/
 
 
 inline int ptmid(int a, int b) { return (a + b) / 2; }
@@ -605,8 +600,12 @@ CTooltipMan::DelUic(HWND hwndUic)
 	CHottoolSubsi *pth = CxxWindowSubclass::FetchCxxobjFromHwnd<CHottoolSubsi>(
 		hwndUic, sig_EasyHottool, FALSE, &err_th);
 
-	if (err_th)
+	if (err_th!=E_Existed)
+	{
+		vaDBG1(_T("!! CTooltipMan::DelUic(hwndUic=0x%X), wrong HWND input, ReCode_et=%d"), 
+			PtrToUint(hwndUic), err_th);
 		return err_th;
+	}
 
 	assert(pth);
 
@@ -653,36 +652,12 @@ CTooltipMan::DelUic(HWND hwndUic)
 		}
 
 		this->DetachHwnd(true);
+
+		vaDBG1(_T("[-] In CTooltipMan::DelUic(), destroyed CTooltipMan=%p "), this);
 	}
 
 	return E_Success;
 }
-
-
-/*
-CHottoolSubsi* CTooltipMan::FindHottoolByHwnd(HWND hwndUic)
-{
-	// Only for content-tooltip 
-	
-	HWND hwndTooltip = m_httContent;
-
-	int iTool = 0;
-	while(1)
-	{
-		TOOLINFO ti = { sizeof(TOOLINFO) };
-		BOOL any = (BOOL)SendMessage(hwndTooltip, TTM_ENUMTOOLS, iTool, (LPARAM)&ti);
-		
-		if (!any)
-			return nullptr;
-
-		if ((HWND)ti.uId == hwndUic)
-		{
-			CHottoolSubsi *phot = (CHottoolSubsi*)SendMessage(hwndUic, s_MSG_GetHottoolSubsi, 0, 0);
-			xxx;
-		}
-	}
-}
-*/
 
 
 } // (internal) namespace Dlgtte
@@ -702,7 +677,22 @@ Dlgtte_err Dlgtte_EnableTooltip(HWND hwndCtl,
 	CTooltipMan *ptm = CxxWindowSubclass::FetchCxxobjFromHwnd<CTooltipMan>(
 		hdlg, sig_EasyTooltipMan, TRUE, &err);
 
-	assert(!err);
+	if (err == CxxWindowSubclass::E_Success)
+	{
+		vaDBG1(_T("[+]Dlgtte_EnableTooltip(hwndCtl=0x%X) hwndParent=0x%X, created CTooltipMan=%p."), 
+			PtrToUint(hwndCtl), PtrToUint(hdlg), ptm);
+	}
+	else if (err == CxxWindowSubclass::E_Existed)
+	{
+		vaDBG2(_T("   Dlgtte_EnableTooltip(hwndCtl=0x%X) hwndParent=0x%X, existed CTooltipMan=%p."),
+			PtrToUint(hwndCtl), PtrToUint(hdlg), ptm);
+	}
+	else
+	{
+		vaDBG(_T("Dlgtte_EnableTooltip(hwndCtl=0x%X) hwndParent=0x%X, fail with CxxWindowSubclass::ReCode_et(%d)."),
+			PtrToUint(hwndCtl), PtrToUint(hdlg), err);
+		return Dlgtte_Fail;
+	}
 
 	GetTextCallbacks_st gtcb = { getUsageText, uctxUsage, 
 		getContentText, uctxContent, flags };

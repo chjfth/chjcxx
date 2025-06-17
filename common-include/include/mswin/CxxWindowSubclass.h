@@ -287,7 +287,6 @@ CxxWindowSubclass::FetchCxxobjFromHwnd(HWND hwnd, const TCHAR *signature, BOOL i
 
 	if(*pErr == E_Existed)
 	{
-		*pErr = E_Success;
 		return (TChild*)GetProp(hwnd, signature);
 	}
 	
@@ -297,8 +296,11 @@ CxxWindowSubclass::FetchCxxobjFromHwnd(HWND hwnd, const TCHAR *signature, BOOL i
 		*pErr = pobj->AttachHwnd(hwnd, signature);
 
 		if (*pErr == E_Success)
+		{
 			return reinterpret_cast<TChild*>(pobj);
-		else {
+		}
+		else 
+		{
 			delete pobj;
 			return nullptr;
 		}
