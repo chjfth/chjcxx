@@ -1,5 +1,5 @@
-#ifndef __DlgTooltipEasy_h_20250605_
-#define __DlgTooltipEasy_h_20250605_
+#ifndef __DlgTooltipEasy_h_20250617_
+#define __DlgTooltipEasy_h_20250617_
 
 #include <tchar.h>
 #include <windows.h>
@@ -73,7 +73,6 @@ static const TCHAR *sig_EasyTooltipMan = _T("sig_EasyTooltipMan");
 
 // Two window-messages:  get C++ object from HWND
 static UINT s_MSG_GetHottoolSubsi = 0;
-//static UINT s_MSG_GetTooltipMan = 0;
 
 
 struct GetTextCallbacks_st
@@ -201,7 +200,7 @@ public:
 		m_httUsage = NULL;
 		m_httContent = NULL;
 
-		m_hwndAssumeFocus = NULL;
+		m_suppress_content_tip_once = false;
 	}
 
 	ReCode_et AddUic(HWND hwndUic, const GetTextCallbacks_st &gtcb);
@@ -224,7 +223,7 @@ private:
 	HWND m_httUsage;
 	HWND m_httContent;
 
-	HWND m_hwndAssumeFocus;
+	bool m_suppress_content_tip_once;
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -360,7 +359,7 @@ CHottoolSubsi::ShowContentTooltip(bool is_show)
 	}
 
 	TCHAR rctext[80];
-	vaDbgTs(_T("In WM_SETFOCUS, [%s]tooltip-rect: %s"), 
+	vaDbgTs(_T("In ShowContentTooltip, [%s]tooltip-rect: %s"), 
 		dbg_isUp ? _T("UP") : _T("DN"),
 		RECTtext(m_rcFinal, rctext));
 
@@ -394,34 +393,27 @@ CHottoolSubsi::in_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, bo
 		if ((m_flags & Dlgtte_AutoContentTipOnFocus) == 0)
 			return 0;
 
-		if (m_pTooltipMan->m_hwndAssumeFocus == hwnd)
+		if (m_pTooltipMan->m_suppress_content_tip_once)
 		{
-			// Purpose: If user click tooltip-window itself to close the tooltip, the focus goes back
-			// to the hottool. So `hwndPrevFocus==hUic` detects this case and the content-tooltip 
-			// will not show up repeatedly. 
-			// Side effect: User click another program's window then click back, the content-tooltip vanishes too.
+			// Purpose: If user click content-tooltip-window itself to close the tooltip, 
+			// the focus goes back to the hottool. This time we will not show up that
+			// tooltip repeatedly. 
+
+			m_pTooltipMan->m_suppress_content_tip_once = false;
 			return 0;
 		}
-		else
-			m_pTooltipMan->m_hwndAssumeFocus = hwnd;
 
 		ShowContentTooltip(true);		
 	}
 	else if (uMsg == WM_KILLFOCUS)
 	{
-		HWND oldRoot = GetAncestor(hwnd, GA_ROOT);
-		HWND newRoot = GetAncestor((HWND)wParam, GA_ROOT);
+		HWND hwndGainFocus = (HWND)wParam;
 
-		if (oldRoot == newRoot)
+		if (hwndGainFocus==m_pTooltipMan->m_httContent)
 		{
-			// Conclusion: User has switched focus to another Uic in the same program.
-			m_pTooltipMan->m_hwndAssumeFocus = NULL;
-		}
-		else
-		{
-			// Consider user has switched focus to another EXE.
-			// We do not clear m_pTooltipMan->m_hwndAssumeFocus here, so that,
-			// when user later switched back to this EXE, content-toolip will NOT show-up(by design).
+			// We get here if user clicks on the content-tooltip.
+			// According to our design, that click will close(=hide) the tooltip.
+			m_pTooltipMan->m_suppress_content_tip_once = true;
 		}
 
 		ShowContentTooltip(false);
@@ -445,10 +437,6 @@ CTooltipMan::AddUic(HWND hwndUic, const GetTextCallbacks_st &gtcb)
 	{
 		s_MSG_GetHottoolSubsi = RegisterWindowMessage(_T("Dlgtte-GetHottoolSubsi"));
 	}
-// 	if (s_MSG_GetTooltipMan == 0)
-// 	{
-// 		s_MSG_GetTooltipMan = RegisterWindowMessage(_T("Dlgtte-GetTooltipMan"));
-// 	}
 
 	HWND hdlg = m_hwnd;
 
