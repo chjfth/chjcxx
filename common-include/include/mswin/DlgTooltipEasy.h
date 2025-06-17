@@ -309,7 +309,7 @@ CHottoolSubsi::ShowContentTooltip(bool is_show)
 	RECT rcMon = {};
 	bool isok = getMonitorRectByPoint(midx(rcUic), midy(rcUic), &rcMon);
 
-	bool isAbove = false; // show tooltip above Uic?
+	bool finalAbove = false; // true: finally show tooltip above Uic
 	RECT rcTooltip = {};
 
 	if ((m_flags & Dlgtte_BalloonDown)==0)
@@ -324,7 +324,7 @@ CHottoolSubsi::ShowContentTooltip(bool is_show)
 			|| rcheight(rcTooltip) > rcMon.bottom - rcUic.bottom // Downside-space is not enough
 			)
 		{	// Use upside-space
-			isAbove = true;
+			finalAbove = true;
 		}
 		else
 		{	// Upside-space not enough, but downside-space enough, use downside.
@@ -332,7 +332,7 @@ CHottoolSubsi::ShowContentTooltip(bool is_show)
 			// probe-show the tooltip at monitor top, and peek its rect in rcTooltip
 			QueryTooltipRect_by_TrackPoint(hwndTooltip, ti, midx(rcMon), rcMon.top, &rcTooltip);
 
-			isAbove = false; // ok, Downside enough, use it
+			finalAbove = false; // ok, Downside enough, use it
 		}
 	}
 	else // User prefers Dlgtte_BalloonDown
@@ -347,7 +347,7 @@ CHottoolSubsi::ShowContentTooltip(bool is_show)
 			|| rcheight(rcTooltip) > rcUic.top - rcMon.top // Upside-space is not enough
 			)
 		{	// Use downside-space
-			isAbove = false;
+			finalAbove = false;
 		}
 		else
 		{	// Downside-space not enough, but upside-space enough, use upside.
@@ -355,14 +355,14 @@ CHottoolSubsi::ShowContentTooltip(bool is_show)
 			// probe-show the tooltip at monitor bottom, and peek its rect in rcTooltip
 			QueryTooltipRect_by_TrackPoint(hwndTooltip, ti, midx(rcMon), rcMon.bottom-1, &rcTooltip);
 
-			isAbove = true; // ok, Upside is enough, use it
+			finalAbove = true; // ok, Upside is enough, use it
 		}
 	}
 
 	m_rcFinal.left = midx(rcUic) - rcwidth(rcTooltip) / 2;
 	m_rcFinal.right = m_rcFinal.left + rcwidth(rcTooltip);
 
-	if (isAbove)
+	if (finalAbove)
 	{
 		m_rcFinal.top = rcUic.top - rcheight(rcTooltip);
 		m_rcFinal.bottom = rcUic.top;
@@ -375,7 +375,7 @@ CHottoolSubsi::ShowContentTooltip(bool is_show)
 
 	TCHAR rctext[80] = _T("");
 	vaDbgTs(_T("In ShowContentTooltip(), [%s]tooltip-rect: %s"), 
-		isAbove ? _T("UP") : _T("DN"),
+		finalAbove ? _T("UP") : _T("DN"),
 		RECTtext(m_rcFinal, rctext));
 
 	// We must force toggle TTM_TRACKACTIVATE off/on, so that tooltip refreshes its 
