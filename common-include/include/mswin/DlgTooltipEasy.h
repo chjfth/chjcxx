@@ -76,7 +76,7 @@ static const TCHAR *sig_EasyHottool = _T("sig_EasyHottool");
 static const TCHAR *sig_EasyTooltipMan = _T("sig_EasyTooltipMan");
 
 // Window-message: Get subclass-C++ object from HWND
-static UINT s_MSG_GetHottoolSubsi = 0;
+static UINT s_MSG_GetSubclassCxxObj = 0;
 
 
 struct GetTextCallbacks_st
@@ -464,7 +464,7 @@ CHottoolSubsi::in_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, bo
 
 		ShowContentTooltip(false);
 	}
-	else if (uMsg == s_MSG_GetHottoolSubsi)
+	else if (uMsg == s_MSG_GetSubclassCxxObj)
 	{
 		*pMsgDone = true;
 		return (LRESULT)this;
@@ -478,9 +478,9 @@ CHottoolSubsi::in_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, bo
 CxxWindowSubclass::ReCode_et 
 CTooltipMan::AddUic(HWND hwndUic, const GetTextCallbacks_st &gtcb)
 {
-	if (s_MSG_GetHottoolSubsi == 0)
+	if (s_MSG_GetSubclassCxxObj == 0)
 	{
-		s_MSG_GetHottoolSubsi = RegisterWindowMessage(_T("Dlgtte-GetHottoolSubsi"));
+		s_MSG_GetSubclassCxxObj = RegisterWindowMessage(_T("Dlgtte-GetSubclassCxxObj"));
 	}
 
 	HWND hdlg = m_hwnd;
@@ -623,7 +623,7 @@ CTooltipMan::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				GetWindowRect(hwndTooltip, &rcInit);
 				vaDBG2(_T("TTN_SHOW from 0x%X,  init-Rect=%s"), hwndTooltip, RECTtext(rcInit, rctext));
 
-				CHottoolSubsi *phot = (CHottoolSubsi*)SendMessage(hwndUic, s_MSG_GetHottoolSubsi, 0, 0);
+				CHottoolSubsi *phot = (CHottoolSubsi*)SendMessage(hwndUic, s_MSG_GetSubclassCxxObj, 0, 0);
 				RECT &rcFinal = phot->m_rcFinal;
 
 				vaDBG2(_T("TTN_SHOW from 0x%X, final-Rect=%s"), hwndTooltip, RECTtext(rcFinal, rctext));
@@ -669,7 +669,7 @@ CTooltipMan::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		// Seems we cannot see this on a standard dialogbox.
 		vaDBG2(_T("CTooltipMan::WndProc() sees WM_KILLFOCUS"));
 	}
- 	else if (uMsg == s_MSG_GetHottoolSubsi)
+ 	else if (uMsg == s_MSG_GetSubclassCxxObj)
  	{
  		return (LRESULT)this;
  	}
@@ -834,10 +834,14 @@ public:
 			vaDBG2(_T("CContentTooltipPeeker sees WM_RBUTTONDOWN. Hide myself and copy text to clipboard."));
 
 			HWND hdlg = GetAncestor(hwndTooltip, GA_ROOTOWNER);
-			CTooltipMan *ptm = (CTooltipMan*)SendMessage(hdlg, s_MSG_GetHottoolSubsi, 0, 0);
+			CTooltipMan *ptm = (CTooltipMan*)SendMessage(hdlg, s_MSG_GetSubclassCxxObj, 0, 0);
 			if(ptm)
 			{
 				dlgtteSetClipboardText(ptm->m_pszRecentContentText);
+			}
+			else
+			{
+				vaDBG(_T("Unexpect! CTooltipMan s_MSG_GetSubclassCxxObj query fail!"));
 			}
 
 			ShowWindow(hwnd, SW_HIDE);
@@ -957,7 +961,7 @@ Dlgtte_err Dlgtte_GetFlags(HWND hwndCtl, Dlgtte_BitFlags_et *pFlags)
 	if (!IsWindow(hwndCtl))
 		return Dlgtte_InvalidHwnd;
 
-	CHottoolSubsi *phot = (CHottoolSubsi*)SendMessage(hwndCtl, s_MSG_GetHottoolSubsi, 0, 0);
+	CHottoolSubsi *phot = (CHottoolSubsi*)SendMessage(hwndCtl, s_MSG_GetSubclassCxxObj, 0, 0);
 	if (!phot)
 		return Dlgtte_InvalidHottool;
 
@@ -971,7 +975,7 @@ Dlgtte_err Dlgtte_SetFlags(HWND hwndCtl, Dlgtte_BitFlags_et flags)
 	if(!IsWindow(hwndCtl))
 		return Dlgtte_InvalidHwnd;
 
-	CHottoolSubsi *phot = (CHottoolSubsi*)SendMessage(hwndCtl, s_MSG_GetHottoolSubsi, 0, 0);
+	CHottoolSubsi *phot = (CHottoolSubsi*)SendMessage(hwndCtl, s_MSG_GetSubclassCxxObj, 0, 0);
 	if(!phot)
 		return Dlgtte_InvalidHottool;
 
@@ -986,7 +990,7 @@ Dlgtte_err Dlgtte_ShowContentTooltip(HWND hwndCtl, bool is_show)
 	if (!IsWindow(hwndCtl))
 		return Dlgtte_InvalidHwnd;
 
-	CHottoolSubsi *phot = (CHottoolSubsi*)SendMessage(hwndCtl, s_MSG_GetHottoolSubsi, 0, 0);
+	CHottoolSubsi *phot = (CHottoolSubsi*)SendMessage(hwndCtl, s_MSG_GetSubclassCxxObj, 0, 0);
 	if (!phot)
 		return Dlgtte_InvalidHottool;
 
