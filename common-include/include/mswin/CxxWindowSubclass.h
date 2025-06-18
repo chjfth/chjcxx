@@ -1,5 +1,5 @@
-#ifndef __CxxWindowSubclass_h_20250606_
-#define __CxxWindowSubclass_h_20250606_
+#ifndef __CxxWindowSubclass_h_20250618_
+#define __CxxWindowSubclass_h_20250618_
 
 // C++ encapsulation of SetWindowSubclass/RemoveWindowSubclass API.
 
@@ -78,7 +78,6 @@ private:
 protected:
 
 	HWND m_hwnd;
-	ATOM m_atom;
 
 private:
 	static const UINT const_magic = 0x20250606;
@@ -110,7 +109,6 @@ CxxWindowSubclass::CxxWindowSubclass()
 	m_signature = nullptr;
 
 	m_hwnd = NULL;
-	m_atom = 0;
 }
 
 CxxWindowSubclass::~CxxWindowSubclass()
@@ -160,7 +158,10 @@ CxxWindowSubclass::AttachHwnd(HWND hwnd, const TCHAR *signature)
 {
 	ReCode_et err = CheckHwnd(hwnd, signature);
 	if (err != E_NotExist)
-		return err;
+	{
+		// Note: err can be E_Existed, which...
+		return err; 
+	}
 
 	m_hwnd = hwnd;
 
@@ -176,14 +177,10 @@ CxxWindowSubclass::AttachHwnd(HWND hwnd, const TCHAR *signature)
 
 	ReCode_et err_ret = E_Fail;
 
-	m_atom = AddAtom(m_signature);
-	if(!m_atom)
-		goto FAIL_END;
-
 	// Subclass the hwnd.
 
-	succ = SetWindowSubclass(m_hwnd, SubclassProc, m_atom, (DWORD_PTR)this);
-	// -- To improve: We can use `this` as `uIdSubclass` param, eliminating atom?
+	succ = SetWindowSubclass(m_hwnd, SubclassProc, (UINT_PTR)this, 0);
+
 	if (!succ)
 	{
 		// If user pass in a HWND from another process, it fails with WinErr=2(ERROR_FILE_NOT_FOUND).
@@ -194,7 +191,7 @@ CxxWindowSubclass::AttachHwnd(HWND hwnd, const TCHAR *signature)
 		goto FAIL_END;
 	}
 
-	vaDBG(_T("SetWindowSubclass(hwnd=0x%X, atom=0x%X) success."), m_hwnd, m_atom);
+	vaDBG(_T("SetWindowSubclass(hwnd=0x%X, cxxobj=%p) success."), m_hwnd, this);
 
 	return E_Success;
 
@@ -204,8 +201,6 @@ FAIL_END:
 
 	delete m_signature;
 	m_signature = nullptr;
-
-	DeleteAtom(m_atom);
 
 	m_hwnd = NULL;
 
@@ -222,12 +217,8 @@ CxxWindowSubclass::DetachHwnd(bool delete_cxxobj)
 
 	// Detaching order is reverse of AttachHwnd()
 
-	BOOL succ = RemoveWindowSubclass(m_hwnd, SubclassProc, m_atom);
+	BOOL succ = RemoveWindowSubclass(m_hwnd, SubclassProc, (UINT_PTR)this);
 	assert(succ);
-
-	ATOM aret = DeleteAtom(m_atom);
-	assert(aret==0);
-	m_atom = 0;
 
 	HANDLE hret = RemoveProp(m_hwnd, m_signature);
 	assert(hret==this);
@@ -248,7 +239,8 @@ LRESULT CALLBACK
 CxxWindowSubclass::SubclassProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
 	UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
 {
-	CxxWindowSubclass *pobj = (CxxWindowSubclass*)dwRefData;
+	(void)dwRefData;
+	CxxWindowSubclass *pobj = (CxxWindowSubclass*)uIdSubclass;
 
 	HANDLE verify = GetProp(hwnd, pobj->m_signature);
 
