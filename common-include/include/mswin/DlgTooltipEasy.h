@@ -1,5 +1,5 @@
-#ifndef __DlgTooltipEasy_h_20250617_
-#define __DlgTooltipEasy_h_20250617_
+#ifndef __DlgTooltipEasy_h_20250618_
+#define __DlgTooltipEasy_h_20250618_
 
 #include <tchar.h>
 #include <windows.h>
@@ -66,8 +66,7 @@ Dlgtte_err Dlgtte_ShowContentTooltip(HWND hwndCtl, bool is_show);
 #include <mswin/CxxWindowSubclass.h>
 
 #ifndef DlgTooltipEasy_DEBUG
-#define vaDBG1(...) // make it empty
-#define vaDBG2(...) // make it empty
+#define vaDBG(...) // make it empty
 #endif
 
 namespace Dlgtte // (internal) 
@@ -76,7 +75,7 @@ namespace Dlgtte // (internal)
 static const TCHAR *sig_EasyHottool = _T("sig_EasyHottool");
 static const TCHAR *sig_EasyTooltipMan = _T("sig_EasyTooltipMan");
 
-// Two window-messages:  get C++ object from HWND
+// Window-message: Get subclass-C++ object from HWND
 static UINT s_MSG_GetHottoolSubsi = 0;
 
 
@@ -92,6 +91,7 @@ struct GetTextCallbacks_st
 };
 
 class CTooltipMan;
+class CContentTooltipPeeker;
 
 class CHottoolSubsi : public CxxWindowSubclass
 {
@@ -212,6 +212,7 @@ CHottoolSubsi::CHottoolSubsi()
 class CTooltipMan : public CxxWindowSubclass
 {
 	friend CHottoolSubsi;
+	friend CContentTooltipPeeker;
 
 public:
 	CTooltipMan()
@@ -220,6 +221,9 @@ public:
 		m_httContent = NULL;
 
 		m_suppress_content_tip_once = false;
+
+		m_pszRecentContentText = nullptr;
+
 		m_dbg_delay1 = 0;
 	}
 
@@ -245,23 +249,12 @@ private:
 
 	bool m_suppress_content_tip_once;
 
+	const TCHAR *m_pszRecentContentText; 
+	// -- recent content tooltip text, can right-click copy to clipboard
+
 	int m_dbg_delay1;
 };
 
-class CContentTooltipPeeker: public CxxWindowSubclass
-{
-public:
-	virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-	{
-		if (uMsg == WM_LBUTTONDOWN)
-		{
-			vaDBG2(_T("CContentTooltipPeeker sees WM_LBUTTONDOWN. Hide myself."));
-			ShowWindow(hwnd, SW_HIDE);
-		}
-
-		return DefSubclassProc(hwnd, uMsg, wParam, lParam);
-	}
-};
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -482,7 +475,6 @@ CHottoolSubsi::in_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, bo
 
 //////////////////////////////////////////////////////////////////////////
 
-
 CxxWindowSubclass::ReCode_et 
 CTooltipMan::AddUic(HWND hwndUic, const GetTextCallbacks_st &gtcb)
 {
@@ -611,7 +603,11 @@ CTooltipMan::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				if (hwndTooltip == m_httUsage)
 					ptext = phot->Call_getUsageText(hwndUic);
 				else if (hwndTooltip == m_httContent)
+				{ 
 					ptext = phot->Call_getContentText(hwndUic);
+
+					m_pszRecentContentText = ptext;
+				}
 
 				NMTTDISPINFO *pdi = (NMTTDISPINFO *)pnmh;
 				pdi->lpszText = (LPTSTR)ptext;
@@ -673,6 +669,10 @@ CTooltipMan::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		// Seems we cannot see this on a standard dialogbox.
 		vaDBG2(_T("CTooltipMan::WndProc() sees WM_KILLFOCUS"));
 	}
+ 	else if (uMsg == s_MSG_GetHottoolSubsi)
+ 	{
+ 		return (LRESULT)this;
+ 	}
 
 	return DefSubclassProc(hwnd, uMsg, wParam, lParam);
 }
@@ -761,6 +761,91 @@ CTooltipMan::DelUic(HWND hwndUic)
 
 	return E_Success;
 }
+
+//// tooltip-window subclass ////
+
+static BOOL
+openclipboard_with_timeout(DWORD millisec, HWND hwnd)
+{
+	DWORD msec_start = GetTickCount();
+	do
+	{
+		if (OpenClipboard(hwnd))
+			return TRUE;
+	} while (GetTickCount() - msec_start < millisec);
+	return FALSE;
+}
+
+BOOL
+dlgtteSetClipboardText(const TCHAR *pszText)
+{
+	BOOL b = FALSE;
+	HANDLE hret = NULL;
+
+	if(!pszText)
+		return FALSE;
+
+	int textchars = lstrlen(pszText);
+	int textchars_ = textchars + 1;
+
+	HGLOBAL hmem = GlobalAlloc(GPTR, textchars_ * sizeof(TCHAR));
+	if (!hmem)
+		return FALSE;
+
+	TCHAR *pmem = (TCHAR*)GlobalLock(hmem);
+	lstrcpyn(pmem, pszText, textchars_);
+	GlobalUnlock(hmem);
+
+	if (!openclipboard_with_timeout(1000, NULL)) {
+		goto FAIL_FREE_HMEM;
+	}
+
+	b = EmptyClipboard();
+	assert(b);
+
+	hret = SetClipboardData(sizeof(TCHAR) == 1 ? CF_TEXT : CF_UNICODETEXT, hmem);
+	if (!hret) {
+		goto FAIL_FREE_HMEM;
+	}
+
+	CloseClipboard();
+	return TRUE;
+
+FAIL_FREE_HMEM:
+	CloseClipboard();
+	GlobalFree(hmem);
+	return FALSE;
+}
+
+class CContentTooltipPeeker : public CxxWindowSubclass
+{
+public:
+	virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+	{
+		HWND hwndTooltip = hwnd;
+
+		if (uMsg == WM_LBUTTONDOWN)
+		{
+			vaDBG2(_T("CContentTooltipPeeker sees WM_LBUTTONDOWN. Hide myself."));
+			ShowWindow(hwnd, SW_HIDE);
+		}
+		else if (uMsg == WM_RBUTTONDOWN)
+		{
+			vaDBG2(_T("CContentTooltipPeeker sees WM_RBUTTONDOWN. Hide myself and copy text to clipboard."));
+
+			HWND hdlg = GetAncestor(hwndTooltip, GA_ROOTOWNER);
+			CTooltipMan *ptm = (CTooltipMan*)SendMessage(hdlg, s_MSG_GetHottoolSubsi, 0, 0);
+			if(ptm)
+			{
+				dlgtteSetClipboardText(ptm->m_pszRecentContentText);
+			}
+
+			ShowWindow(hwnd, SW_HIDE);
+		}
+
+		return DefSubclassProc(hwnd, uMsg, wParam, lParam);
+	}
+};
 
 
 } // (internal) namespace Dlgtte
@@ -855,12 +940,14 @@ void Dlgtte_GetTooltipHwnd(HWND hwndCtl, HWND *pUsageTooltip, HWND *pContentTool
 
 	HWND hdlg = GetParent(hwndCtl);
 
-	CxxWindowSubclass::ReCode_et err_tm = CxxWindowSubclass::E_Fail;
+	CxxWindowSubclass::ReCode_et err = CxxWindowSubclass::E_Fail;
 	CTooltipMan *ptm = CxxWindowSubclass::FetchCxxobjFromHwnd<CTooltipMan>(
-		hdlg, sig_EasyTooltipMan, FALSE, &err_tm);
+		hdlg, sig_EasyTooltipMan, FALSE, &err);
 
 	if(!ptm)
 		return;
+
+	assert(err==CxxWindowSubclass::E_Existed);
 
 	ptm->GetTooltipHwnd(pUsageTooltip, pContentTooltip);
 }
@@ -907,6 +994,11 @@ Dlgtte_err Dlgtte_ShowContentTooltip(HWND hwndCtl, bool is_show)
 }
 
 
+
+
+#ifndef DlgTooltipEasy_DEBUG
+#undef vaDBG       // revoke empty effect
+#endif
 
 #endif // DlgTooltipEasy_IMPL
 
