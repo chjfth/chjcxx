@@ -20,7 +20,10 @@ public:
 		E_Existed = -3,
 		E_BadParam = -4,
 		E_BadHwnd = -5,
-		E_HwndPropConflict = -6,
+		E_HwndPropConflict = -6, // User should pick a new signature string.
+		
+		E_CxxObjOccupied = -7,
+		E_CxxObjConflict = -8, 
 
 		E_WinapiSubclass = -10,
 	};
@@ -45,7 +48,7 @@ public:
 	CxxWindowSubclass();
 	virtual ~CxxWindowSubclass();
 
-	ReCode_et AttachHwnd(HWND hwnd, const TCHAR *signature);
+	ReCode_et AttachHwnd(HWND hwnd, const TCHAR *sigstr);
 	ReCode_et DetachHwnd(bool delete_cxxobj=true);
 
 	bool IsAttached() {
@@ -65,7 +68,7 @@ private:
 	UINT m_magic; 
 
 	// This identifies a concrete subclass instance, must be the 2nd member.
-	TCHAR *m_signature;
+	TCHAR *m_signature; // with s_winprop_prefix
 
 private:
 	static LRESULT CALLBACK SubclassProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
@@ -73,7 +76,7 @@ private:
 
 	LRESULT StockWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-	static ReCode_et CheckHwnd(HWND hwnd, const TCHAR *signature);
+	static ReCode_et CheckHwnd(HWND hwnd, const TCHAR *sigstr); // sigstr no s_winprop_prefix
 
 protected:
 
@@ -81,6 +84,7 @@ protected:
 
 private:
 	static const UINT const_magic = 0x20250606;
+	static const TCHAR s_winprop_prefix[];
 };
 
 
@@ -100,6 +104,8 @@ private:
 
 #include <commdefs.h>
 #include <mswin/win32cozy.h>
+
+const TCHAR CxxWindowSubclass::s_winprop_prefix[] = _T("CxxWinsubcls-");
 
 CxxWindowSubclass::CxxWindowSubclass()
 {
@@ -129,11 +135,10 @@ CxxWindowSubclass::~CxxWindowSubclass()
 CxxWindowSubclass::ReCode_et 
 CxxWindowSubclass::CheckHwnd(HWND hwnd, const TCHAR *signature)
 {
+	assert(signature);
+
 	if (!IsWindow(hwnd))
 		return E_BadHwnd;
-
-	if (!signature || !signature[0])
-		return E_BadParam;
 
 	CxxWindowSubclass *pOld = (CxxWindowSubclass*)GetProp(hwnd, signature);
 	if (pOld)
@@ -144,8 +149,8 @@ CxxWindowSubclass::CheckHwnd(HWND hwnd, const TCHAR *signature)
 		if ((UINT_PTR)pOld->m_signature < 0x10000)
 			return E_HwndPropConflict;
 
-		if (_tcscmp(pOld->m_signature, signature) != 0)
-			return E_HwndPropConflict;
+		if(_tcscmp(pOld->m_signature, signature) != 0)
+			return E_HwndPropConflict; // Maybe I'm running with a copycat code.
 
 		return E_Existed;
 	}
@@ -154,20 +159,53 @@ CxxWindowSubclass::CheckHwnd(HWND hwnd, const TCHAR *signature)
 }
 
 CxxWindowSubclass::ReCode_et 
-CxxWindowSubclass::AttachHwnd(HWND hwnd, const TCHAR *signature)
+CxxWindowSubclass::AttachHwnd(HWND hwnd, const TCHAR *sigstr)
 {
-	ReCode_et err = CheckHwnd(hwnd, signature);
+	// The sigstr is used to identify a subclass instance.
+	// This sigstr(appending an extra prefix) will be passed to SetProp(),
+	// so that FetchCxxobjFromHwnd() can later find out this Subclass-Cxxobj via HWND
+	// by querying GetProp().
+	//
+	// If user do not need to query Cxxobj from HWND, he can pass sigstr=nullptr.
+	// In this case, a unique string is generated as sigstr.
+
+	if(m_hwnd)
+	{
+		// We do not allow one CxxObj to attach TWO hwnds at the same time.
+		return E_CxxObjOccupied;
+	}
+
+	TCHAR szAddr[40] = {};
+
+	// Prepare window-prop signature.
+
+	if(!sigstr || !sigstr[0])
+	{
+		// Make unique sigstr for user.
+		_sntprintf_s(szAddr, _TRUNCATE, _T("cxxobj-%p"), this);
+		sigstr = szAddr;
+	}
+
+	assert(ARRAYSIZE(s_winprop_prefix)>8);
+
+	int slen = (int)_tcslen(sigstr);
+	int allbuflen = ARRAYSIZE(s_winprop_prefix) + slen; // NUL-term included
+	m_signature = new TCHAR[allbuflen];
+	_sntprintf_s(m_signature, allbuflen, _TRUNCATE, _T("%s%s"),	s_winprop_prefix, sigstr);
+
+	ReCode_et err = CheckHwnd(hwnd, m_signature);
 	if (err != E_NotExist)
 	{
-		// Note: err can be E_Existed, which...
+		assert(err!=E_Success);
+
+		if(err == E_Existed) {
+			err = E_CxxObjConflict;
+		}
+
 		return err; 
 	}
 
 	m_hwnd = hwnd;
-
-	int slen = (int)_tcslen(signature);
-	m_signature = new TCHAR[slen+1];
-	_tcscpy_s(m_signature, slen+1, signature);
 
 	BOOL succ = SetProp(m_hwnd, m_signature, (HANDLE)this);
 	if(!succ)
@@ -185,19 +223,19 @@ CxxWindowSubclass::AttachHwnd(HWND hwnd, const TCHAR *signature)
 	{
 		// If user pass in a HWND from another process, it fails with WinErr=2(ERROR_FILE_NOT_FOUND).
 
-		vaDBG(_T("SetWindowSubclass(hwnd=0x%X) fails with winerr=%d."), m_hwnd, GetLastError());
+		vaDBG(_T("SetWindowSubclass(hwnd=0x%X) fails with winerr=%d."), PtrToUint(m_hwnd), GetLastError());
 
 		err_ret = E_WinapiSubclass;
 		goto FAIL_END;
 	}
 
-	vaDBG(_T("SetWindowSubclass(hwnd=0x%X, cxxobj=%p) success."), m_hwnd, this);
+	vaDBG(_T("SetWindowSubclass(hwnd=0x%X, cxxobj=%p) success."), PtrToUint(m_hwnd), this);
 
 	return E_Success;
 
 FAIL_END:
 
-	RemoveProp(hwnd, signature);
+	RemoveProp(hwnd, m_signature);
 
 	delete m_signature;
 	m_signature = nullptr;
@@ -270,32 +308,52 @@ CxxWindowSubclass::StockWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 
 template<typename TChild> // TChild should be child class of CxxWindowSubclass
 TChild* 
-CxxWindowSubclass::FetchCxxobjFromHwnd(HWND hwnd, const TCHAR *signature, BOOL is_create,
+CxxWindowSubclass::FetchCxxobjFromHwnd(HWND hwnd, const TCHAR *sigstr, BOOL is_create,
 	ReCode_et *pErr)
 {
 	SETTLE_OUTPUT_PTR(ReCode_et, pErr, E_Fail);
 
-	*pErr = CheckHwnd(hwnd, signature);
-
-	if(*pErr == E_Existed)
+	if(sigstr && sigstr[0])
 	{
-		return (TChild*)GetProp(hwnd, signature);
-	}
-	
-	if (*pErr == E_NotExist && is_create)
-	{
-		CxxWindowSubclass *pobj = new TChild;
-		*pErr = pobj->AttachHwnd(hwnd, signature);
+		// Check whether old subclass-instance exists.
 
-		if (*pErr == E_Success)
+		TCHAR signature[80] = {};
+		_sntprintf_s(signature, _TRUNCATE, _T("%s%s"), s_winprop_prefix, sigstr);
+
+		*pErr = CheckHwnd(hwnd, signature);
+
+		if(*pErr == E_Existed)
 		{
-			return reinterpret_cast<TChild*>(pobj);
+			return (TChild*)GetProp(hwnd, signature);
 		}
-		else 
+
+		if( ! (*pErr==E_NotExist && is_create) )
+			return nullptr; // something wrong
+	}
+	else
+	{
+		// empty sigstr input
+
+		if(!is_create)
 		{
-			delete pobj;
+			*pErr = E_BadParam;
 			return nullptr;
 		}
+	}
+	
+	// Create a new subclass-instance.
+
+	CxxWindowSubclass *pobj = new TChild;
+	*pErr = pobj->AttachHwnd(hwnd, sigstr);
+
+	if (*pErr == E_Success)
+	{
+		return reinterpret_cast<TChild*>(pobj);
+	}
+	else 
+	{
+		delete pobj;
+		return nullptr;
 	}
 
 	return nullptr;
