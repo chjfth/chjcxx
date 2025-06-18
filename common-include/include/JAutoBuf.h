@@ -204,7 +204,7 @@ public:
 public:
 	operator Type*()  { return Buffer(); }
 
-	unsigned int operator=(unsigned int eleCount) { return JAutoBufBase::Size(eleCount); }
+	BufEles_t operator=(BufEles_t eleCount) { return JAutoBufBase::Size(eleCount); }
 
 	// unsigned short/int/long returns the m_CurEle value
 	operator unsigned short() { return (unsigned short)Size(); }
