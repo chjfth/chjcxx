@@ -6,8 +6,6 @@
 #include <tchar.h>
 #include <windows.h>
 
-//template<typename TUserCxx>
-
 class CxxWindowSubclass
 {
 public:
@@ -20,7 +18,7 @@ public:
 		E_Existed = -3,
 		E_BadParam = -4,
 		E_BadHwnd = -5,
-		E_HwndPropConflict = -6, // User should pick a new signature string.
+		E_HwndPropConflict = -6, // User should pick a new sigstr string.
 		
 		E_CxxObjOccupied = -7,
 		E_CxxObjConflict = -8, 
@@ -30,18 +28,18 @@ public:
 
 	// User starts here, passing is_create=true .
 	template<typename TChild>
-	static TChild* FetchCxxobjFromHwnd(HWND hwnd, const TCHAR *signature, BOOL is_create,
+	static TChild* FetchCxxobjFromHwnd(HWND hwnd, const TCHAR *sigstr, BOOL is_create,
 		ReCode_et *pErr=nullptr);
-
 	/* Example:
-	
+
 	CxxWindowSubclass::ReCode_et err = CxxWindowSubclass::E_Fail;
 	CTooltipMan *ptm = CxxWindowSubclass::FetchCxxobjFromHwnd<CTooltipMan>(
 		hdlg_toSubclass, _T("sig_EasyTooltipMan"), TRUE, &err);
 
 	When to delete `ptm` object?
 	If you call ptm->DetachHwnd(true) explicitly, or hdlg_toSubclass destroys, 
-	`delete ptm` is done automatically.
+	`delete ptm` is done automatically -- no need to manually delete it.
+	Only when you do ptm->DetachHwnd(false), you should `delete ptm` explicitly.
 	*/
 
 public:
