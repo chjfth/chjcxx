@@ -1,5 +1,5 @@
-#ifndef __DlgTooltipEasy_h_20250618_
-#define __DlgTooltipEasy_h_20250618_
+#ifndef __DlgTooltipEasy_h_20250621_
+#define __DlgTooltipEasy_h_20250621_
 
 #include <tchar.h>
 #include <windows.h>
@@ -24,9 +24,8 @@ enum Dlgtte_BitFlags_et
 	Dlgtte_AutoContentTipOnFocus = 2,
 };
 
-typedef const TCHAR* PROC_DlgtteGetText(HWND hwndUic, void *userctx);
-// -- When callback, hwndUic tells which control(button, editbox etc) is requesting tooltip text.
-
+typedef const TCHAR* PROC_DlgtteGetText(HWND hwndCtl, void *userctx);
+// -- When callback, hwndCtl tells which control(button, editbox etc) is requesting tooltip text.
 
 
 Dlgtte_err Dlgtte_EnableTooltip(HWND hwndCtl, 
@@ -286,7 +285,7 @@ static bool QueryTooltipRect_by_TrackPoint(HWND hwndTooltip, TOOLINFO &ti,
 
 	GetWindowRect(hwndTooltip, pRect);
 	TCHAR rctext[80] = _T("");
-	vaDBG2(_T("TTM_TRACKACTIVATE done, TT-rect: %s"), RECTtext(*pRect, rctext));
+	vaDBG2(_T("TTM_TRACKPOSITION done, TT-rect: %s"), RECTtext(*pRect, rctext));
 
 	return true;
 }
@@ -318,6 +317,8 @@ CHottoolSubsi::ShowContentTooltip(bool is_show)
 	}
 
 	assert(is_show==true);
+
+	this->Clear_rcFinal();
 
 	vaDBG2(_T("Hottool(0x%X) Will show Content tooltip."), PtrToUint(hUic));
 
@@ -601,13 +602,18 @@ CTooltipMan::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				const TCHAR *ptext = nullptr;
 
 				if (hwndTooltip == m_httUsage)
+				{ 
 					ptext = phot->Call_getUsageText(hwndUic);
+				}
 				else if (hwndTooltip == m_httContent)
 				{ 
 					ptext = phot->Call_getContentText(hwndUic);
 
 					m_pszRecentContentText = ptext;
 				}
+
+				// WinAPI behavior note: 
+				// If user's ptext is NULL or ptext[0] is NUL, the tooltip will not be displayed.
 
 				NMTTDISPINFO *pdi = (NMTTDISPINFO *)pnmh;
 				pdi->lpszText = (LPTSTR)ptext;
@@ -630,11 +636,14 @@ CTooltipMan::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 				if (rcFinal.left != CHottoolSubsi::OffScreenPosX) // rcFinal has valid value
 				{
+					int finalx = rcFinal.left;
+					int finaly = rcFinal.top;
+
+					vaDBG2(_T("TTN_SHOW final: move tooltip to LT(%d,%d)"), finalx, finaly);
+
 					SetWindowPos(hwndTooltip, 0, 
-						rcFinal.left, rcFinal.top, 0, 0, 
+						finalx, finaly, 0, 0, 
 						SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOSIZE);
-					
-					phot->Clear_rcFinal();
 				}
 				else
 				{
@@ -646,9 +655,13 @@ CTooltipMan::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 					if(m_dbg_delay1==0)
 					{
+						int tempx = rcInit.left; // note: keep .left intact
+						int tempy = CHottoolSubsi::OffScreenPosY; // an offscreen coord
+
+						vaDBG2(_T("TTN_SHOW probing: move tooltip offscreen to LT(%d,%d)"), tempx, tempy);
+
 						SetWindowPos(hwndTooltip, 0, 
-							rcInit.left, CHottoolSubsi::OffScreenPosY, // note: keep .left intact
-							0, 0, 
+							tempx, tempy, 0, 0, 
 							SWP_NOACTIVATE | SWP_NOZORDER | SWP_NOSIZE);
 					}
 				}
