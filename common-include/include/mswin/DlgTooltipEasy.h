@@ -65,7 +65,7 @@ Dlgtte_err Dlgtte_ShowContentTooltip(HWND hwndCtl, bool is_show);
 #include <mswin/CxxWindowSubclass.h>
 
 #ifndef DlgTooltipEasy_DEBUG
-#define vaDBG(...) // make it empty
+#include <CHIMPL_vaDBG_hide.h>
 #endif
 
 namespace Dlgtte // (internal) 
@@ -1018,7 +1018,7 @@ Dlgtte_err Dlgtte_ShowContentTooltip(HWND hwndCtl, bool is_show)
 
 
 #ifndef DlgTooltipEasy_DEBUG
-#undef vaDBG       // revoke empty effect
+#include <CHIMPL_vaDBG_hide.h>
 #endif
 
 #endif // DlgTooltipEasy_IMPL
