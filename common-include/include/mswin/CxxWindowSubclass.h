@@ -1,10 +1,14 @@
 #ifndef __CxxWindowSubclass_h_20250618_
 #define __CxxWindowSubclass_h_20250618_
 
+// From Jimm Chen's chjcxx repo.
+// Modification date at first line as version number.
+
 // C++ encapsulation of SetWindowSubclass/RemoveWindowSubclass API.
 
 #include <tchar.h>
 #include <windows.h>
+#include <CommCtrl.h> // DefSubclassProc
 
 class CxxWindowSubclass
 {
@@ -93,7 +97,7 @@ private:
 #ifdef CxxWindowSubclass_IMPL
 
 #ifndef CxxWindowSubclass_DEBUG
-#define vaDBG(...)
+#include <CHIMPL_vaDBG_hide.h>
 #endif
 
 // [2025-06-06] Note: We use SetWindowSubclass to store CxxWindowSubclass pointer as 
@@ -361,7 +365,7 @@ CxxWindowSubclass::FetchCxxobjFromHwnd(HWND hwnd, const TCHAR *sigstr, BOOL is_c
 
 
 #ifndef CxxWindowSubclass_DEBUG
-#undef vaDBG
+#include <CHIMPL_vaDBG_show.h>
 #endif
 
 #endif // CxxWindowSubclass_IMPL

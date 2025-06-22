@@ -1,5 +1,5 @@
-#ifndef __JULayout2_h_20250301_
-#define __JULayout2_h_20250301_
+#ifndef __JULayout2_h_20250622_
+#define __JULayout2_h_20250622_
 
 /******************************************************************************
 Original: UILayout.h
@@ -43,10 +43,15 @@ If not doing so for the Uic, the Uic will be erased when the groupbox is resizin
 #include <assert.h>
 #include <windows.h> // HWND, POINT, LRESULT etc
 
+#ifdef JULAYOUT_IMPL
+#define CxxWindowSubclass_IMPL
+#endif
+#include <mswin/CxxWindowSubclass.h> // needs comctl32.lib
+
 
 #define JULAYOUT_MAX_CONTROLS 200 
 
-class JULayout 
+class JULayout : public CxxWindowSubclass
 {
 public:
 	JULayout();
@@ -77,7 +82,7 @@ public:
 	// 		bool succ = JULayout::PropSheetProc(hwndPrsht, uMsg, lParam);
 	//		if(!succ) ... do some logging ...;
 	//
-	//      ... other hook actions you apply ...
+	//      ... other hook actions you routinely would do ...
 	//
 	// 		return 0;
 	// 	}
@@ -128,7 +133,7 @@ private:
 		RECT rectnow; // current position cache, debugging purpose
 	}; 
 
-	bool PatchWndProc();
+//	bool PatchWndProc();
 
 	static void PixelFromAnchorPoint(int cxParent, int cyParent, int xAnco, int yAnco, PPOINT ppt)
 	{
@@ -137,7 +142,9 @@ private:
 	}
 
 private:
-	static LRESULT CALLBACK JulWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+//	static LRESULT CALLBACK JulWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+	
+	virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 	static LRESULT CALLBACK PrshtWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -150,7 +157,7 @@ private:
 	POINT   m_ptMinParentDims;
 	POINT   m_ptMaxParentDims;
 
-	WNDPROC m_prevWndProc;
+	static const TCHAR s_sigSubclass[];
 }; 
 
 
@@ -166,17 +173,13 @@ private:
 #include <tchar.h>
 #include <assert.h>
 
-//#include "dbgprint.h" // temp debug
 
-#define JULAYOUT_STR          _T("JULayout")
-#define JULAYOUT_PRSHT_STR    _T("JULayout.Prsht")
-#define JULAYOUT_PRSHT2_STR   _T("JULayout.Prsht2")
-// -- Will use these strings to call SetProp()/GetProp(),
-//    to associate JULayout object with an HWND.
+#ifndef JULAYOUT_DEBUG
+#include <CHIMPL_vaDBG_hide.h>
+#endif
 
-#define ADD_PREV_WINPROC_SUFFIX(stem) stem _T(".PrevWndProc")
 
-UINT g_WM_JULAYOUT_DO_INIT = 0;
+const TCHAR JULayout::s_sigSubclass[] = _T("sig_JULayout");
 
 JULayout::JULayout()
 {
@@ -185,8 +188,8 @@ JULayout::JULayout()
 	m_hwndParent = NULL;
 	m_ptMinParentDims.x = m_ptMinParentDims.y = 0;
 	m_ptMaxParentDims.x = m_ptMaxParentDims.y = 0;
-	m_prevWndProc = NULL;
 }
+
 
 bool JULayout::Initialize(HWND hwndParent, 
 	int nMinWidth, int nMinHeight, int nMaxWidth, int nMaxHeight) 
@@ -227,109 +230,71 @@ bool JULayout::Initialize(HWND hwndParent,
 
 JULayout* JULayout::GetJULayout(HWND hwndParent)
 {
-	if(!IsWindow(hwndParent))
-		return NULL;
+	CxxWindowSubclass::ReCode_et serr;
+	JULayout *jul = CxxWindowSubclass::FetchCxxobjFromHwnd<JULayout>(
+		hwndParent, s_sigSubclass, FALSE, &serr);
 
-	JULayout *jul = (JULayout*)GetProp(hwndParent, JULAYOUT_STR);
 	return jul;
 }
 
 JULayout* JULayout::EnableJULayout(HWND hwndParent,
 	int nMinWidth, int nMinHeight, int nMaxWidth, int nMaxHeight)
 {
-	if(!IsWindow(hwndParent))
-		return NULL;
-
-	// First check whether a JULayout object has been associated with hwndParent.
-	// If so, just return that associated object.
-	JULayout *jul = GetJULayout(hwndParent);
-	if(jul)
-		return jul;
-
-	jul = new JULayout();
-	if(!jul)
-		return NULL;
+	CxxWindowSubclass::ReCode_et serr;
+	JULayout *jul = CxxWindowSubclass::FetchCxxobjFromHwnd<JULayout>(
+		hwndParent, s_sigSubclass, TRUE, &serr);
 	
 	bool succ = jul->Initialize(hwndParent, nMinWidth, nMinHeight, nMaxWidth, nMaxHeight);
 	if(!succ)
 	{
-		delete jul;
+		jul->DetachHwnd(true);
 		return NULL;
 	}
-
-	SetProp(hwndParent, JULAYOUT_STR, (HANDLE)jul);
-
-	jul->PatchWndProc();
 
 	return jul;
 }
 
-bool JULayout::PatchWndProc()
+LRESULT JULayout::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	// Patch WndProc so that we can handle WM_SIZE and WM_GETMINMAX automatically.
+	// User overrides this WndProc() to hook into hwnd's message processing.
 
-	if(!IsWindow(m_hwndParent))
-		return false;
-
-	m_prevWndProc = SubclassWindow(m_hwndParent, JulWndProc);
-
-	return true;
-}
-
-
-LRESULT CALLBACK 
-JULayout::JulWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
-{
-	JULayout *jul = (JULayout*)GetProp(hwnd, JULAYOUT_STR);
-	if(!jul)
+	if (uMsg == WM_SIZE)
 	{
-		// This implies we had got WM_NCDESTROY sometime ago.
-		// We have no "user data" now, so just fetch and call orig-WndProc.
-		//
-		// memo: I can see msg==WM_NOTIFY, wParam==1 multiple times here.
-
-		WNDPROC orig = (WNDPROC)GetProp(hwnd, ADD_PREV_WINPROC_SUFFIX(JULAYOUT_STR));
-		assert(orig);
-		return orig(hwnd, msg, wParam, lParam);
+		AdjustControls(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 	}
-
-	if(msg==WM_SIZE)
-	{
-		jul->AdjustControls(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
-	}
-	else if(msg==WM_GETMINMAXINFO)
+	else if (uMsg == WM_GETMINMAXINFO)
 	{
 		MINMAXINFO *pMinMaxInfo = (MINMAXINFO*)lParam;
-		jul->HandleMinMax(pMinMaxInfo);
+		HandleMinMax(pMinMaxInfo);
 	}
 
-	LRESULT ret = CallWindowProc(jul->m_prevWndProc, hwnd, msg, wParam, lParam);
-
-	if(msg==WM_NCDESTROY)
-	{
-		// Delete our "user data" but preserve orig-WndProc at a specific place.
-
-		RemoveProp(hwnd, JULAYOUT_STR);
-
-		SetProp(hwnd, ADD_PREV_WINPROC_SUFFIX(JULAYOUT_STR), jul->m_prevWndProc);
-
-		delete jul;
-	}
-
-	return ret;
+	return DefSubclassProc(hwnd, uMsg, wParam, lParam);
 }
 
-struct JULPrsht_st
-{
-	WNDPROC prev_winproc;
-	UINT xdiff, ydiff; // width,height diff of the Prsht and its containing page
 
-	JULPrsht_st()
+class JULPrsht : public CxxWindowSubclass
+{
+public:
+	JULPrsht()
 	{
-		prev_winproc = NULL;
 		xdiff = ydiff = 0;
 	}
+
+	virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+	static bool PropSheetPrepare(HWND hwndPrsht);
+
+private:
+	UINT xdiff, ydiff; // width,height diff of the Prsht and its containing page
+
+	static UINT s_WM_JULPrsht_DO_INIT;
+
+	static const TCHAR s_sigSubclass[];
 };
+
+UINT JULPrsht::s_WM_JULPrsht_DO_INIT = 0;
+
+const TCHAR JULPrsht::s_sigSubclass[] = _T("sig_JULPrsht");
 
 struct DLGTEMPLATEEX_msdn  {
 	WORD dlgVer;
@@ -368,30 +333,25 @@ bool JULayout::PropSheetProc(HWND hwndPrsht, UINT uMsg, LPARAM lParam)
 	}
 	else if(uMsg==PSCB_INITIALIZED_1) // =PSCB_INITIALIZED
 	{
-		bool succ = JULayout::in_PropSheetPrepare(hwndPrsht);
+		bool succ = JULPrsht::PropSheetPrepare(hwndPrsht);
 		return succ;
 	}
 	
 	return true;
 }
 
-bool JULayout::in_PropSheetPrepare(HWND hwndPrsht)
+bool JULPrsht::PropSheetPrepare(HWND hwndPrsht)
 {
 	//
 	// Subclass hwndPrsht for WM_SIZE processing
 	//
 
-	JULPrsht_st *jprsht = (JULPrsht_st*)GetProp(hwndPrsht, JULAYOUT_PRSHT_STR);
-	if(jprsht)
-	{
-		// EnableForPrsht already called.
-		return false; 
-	}
+	CxxWindowSubclass::ReCode_et serr;
+	JULPrsht *jul = CxxWindowSubclass::FetchCxxobjFromHwnd<JULPrsht>(
+		hwndPrsht, JULPrsht::s_sigSubclass, TRUE, &serr);
 
-	jprsht = new JULPrsht_st;
-	jprsht->prev_winproc = SubclassWindow(hwndPrsht, PrshtWndProc);
-
-	SetProp(hwndPrsht, JULAYOUT_PRSHT_STR, jprsht);
+	if(!jul)
+		return false;
 
 	// Next, we'll call JULayout::EnableJULayout(), but, we have to postpone it
 	// with a PostMessage. If we call JULayout::EnableJULayout() here, there is
@@ -402,42 +362,30 @@ bool JULayout::in_PropSheetPrepare(HWND hwndPrsht)
 	// 2. The first *page* inside the Prsht has not been created(=cannot find it by 
 	//	  FindWindowEx), so we lack some coord params for auto-layout.
 
-	if(!g_WM_JULAYOUT_DO_INIT)
+	if(!s_WM_JULPrsht_DO_INIT)
 	{
-		g_WM_JULAYOUT_DO_INIT = RegisterWindowMessage(JULAYOUT_PRSHT_STR);
+		s_WM_JULPrsht_DO_INIT = RegisterWindowMessage(JULPrsht::s_sigSubclass);
 	}
 	//
-	::PostMessage(hwndPrsht, g_WM_JULAYOUT_DO_INIT, 0, 0);
+	::PostMessage(hwndPrsht, s_WM_JULPrsht_DO_INIT, 0, 0);
 
 	return true;
 }
 
-LRESULT CALLBACK 
-JULayout::PrshtWndProc(HWND hwndPrsht, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT JULPrsht::WndProc(HWND hwndPrsht, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	JULPrsht_st *jprsht = (JULPrsht_st*)GetProp(hwndPrsht, JULAYOUT_PRSHT_STR);
-	if(!jprsht)
-	{
-		// This implies we had got WM_NCDESTROY sometime ago.
-		// We have no "user data" now, so just fetch and call orig-WndProc.
-
-		WNDPROC orig = (WNDPROC)GetProp(hwndPrsht, ADD_PREV_WINPROC_SUFFIX(JULAYOUT_PRSHT_STR));
-		assert(orig);
-		return orig(hwndPrsht, msg, wParam, lParam);
-	}
-
-	if(msg==g_WM_JULAYOUT_DO_INIT)
+	if (uMsg == s_WM_JULPrsht_DO_INIT)
 	{
 		JULayout *jul = JULayout::EnableJULayout(hwndPrsht);
 
 		// Find child windows of the Prsht and anchor them to JULayout.
 
 		HWND hwndPrevChild = NULL;
-		for(; ;)
+		for (; ;)
 		{
 			HWND hwndNowChild = FindWindowEx(hwndPrsht, hwndPrevChild, NULL, NULL);
 
-			if(hwndNowChild==NULL)
+			if (hwndNowChild == NULL)
 				break;
 
 			UINT id = GetWindowID(hwndNowChild);
@@ -445,53 +393,53 @@ JULayout::PrshtWndProc(HWND hwndPrsht, UINT msg, WPARAM wParam, LPARAM lParam)
 			GetClassName(hwndNowChild, classname, 100);
 //			dbgprint("See id=0x08%X , class=%s", id, classname);
 
-			if(_tcsicmp(classname, _T("button"))==0)
+			if (_tcsicmp(classname, _T("button")) == 0)
 			{
 				// Meet the bottom-right buttons like OK, Cancel, Apply.
-				jul->AnchorControl(100,100, 100,100, id);
+				jul->AnchorControl(100, 100, 100, 100, id);
 			}
 			else
 			{
 				// The SysTabControl32 and those #32770 substantial dlgbox.
 				// Anchor all these to top-left and bottom-right(fill their container)
 
-				jul->AnchorControl(0,0, 100,100, id);
+				jul->AnchorControl(0, 0, 100, 100, id);
 
-				if(_tcsicmp(classname, _T("#32770"))==0) // a page
+				if (_tcsicmp(classname, _T("#32770")) == 0) // a prsht-page
 				{
 					RECT rcPrsht = {};
-					RECT rcPage = {}; 
+					RECT rcPage = {};
 					GetClientRect(hwndPrsht, &rcPrsht);
 					GetClientRect(hwndNowChild, &rcPage);
 
-					jprsht->xdiff = rcPrsht.right - rcPage.right;
-					jprsht->ydiff = rcPrsht.bottom - rcPage.bottom;
-					assert(jprsht->xdiff>0); // e.g. 20 on Win7
-					assert(jprsht->ydiff>0); // e.g. 69 on Win7
+					this->xdiff = rcPrsht.right - rcPage.right;
+					this->ydiff = rcPrsht.bottom - rcPage.bottom;
+					assert(this->xdiff > 0); // e.g. 20 on Win7
+					assert(this->ydiff > 0); // e.g. 69 on Win7
 				}
 			}
 
 			hwndPrevChild = hwndNowChild;
 		}
 	}
-	else if(msg==WM_SIZE)
+	else if (uMsg == WM_SIZE)
 	{
 //		dbgprint("Prsht sizing: %d * %d", GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		RECT rcPrsht = {};
 		GetClientRect(hwndPrsht, &rcPrsht); // we need only its width & height
-		
+
 		HWND hwndPrevChild = NULL;
-		for(; ;)
+		for (; ;)
 		{
 			HWND hwndNowChild = FindWindowEx(hwndPrsht, hwndPrevChild, NULL, NULL);
-			if(hwndNowChild==NULL)
+			if (hwndNowChild == NULL)
 				break;
-			
+
 			TCHAR classname[100] = {};
 			GetClassName(hwndNowChild, classname, 100);
 //			dbgprint("See id=0x08%X , class=%s", id, classname);
 
-			if(_tcsicmp(classname, _T("#32770"))==0) 
+			if (_tcsicmp(classname, _T("#32770")) == 0)
 			{
 				// Now we meet a substantial dlgbox(=page), and we move it
 				// to fill all empty area of the Prsht(container).
@@ -503,30 +451,20 @@ JULayout::PrshtWndProc(HWND hwndPrsht, UINT msg, WPARAM wParam, LPARAM lParam)
 				// Now rc is relative to Prsht's client area.
 				// rc.left & rc.top are always ok, but rc.right & rc.bottom need to adjust.
 
-				MoveWindow(hwndNowChild, rc.left, rc.top, 
-					rcPrsht.right - jprsht->xdiff,
-					rcPrsht.bottom - jprsht->ydiff,
+				MoveWindow(hwndNowChild, rc.left, rc.top,
+					rcPrsht.right - this->xdiff,
+					rcPrsht.bottom - this->ydiff,
 					FALSE // FALSE: no need to force repaint
-					);
+				);
 			}
-			
+
 			hwndPrevChild = hwndNowChild;
 		}
 	}
 
-	LRESULT ret = CallWindowProc(jprsht->prev_winproc, hwndPrsht, msg, wParam, lParam);
-
-	if(msg==WM_NCDESTROY)
-	{
-		RemoveProp(hwndPrsht, JULAYOUT_PRSHT_STR);
-
-		SetProp(hwndPrsht, ADD_PREV_WINPROC_SUFFIX(JULAYOUT_PRSHT_STR), jprsht->prev_winproc);
-		
-		delete jprsht;
-	}
-
-	return ret;
+	return DefSubclassProc(hwndPrsht, uMsg, wParam, lParam);
 }
+
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -703,6 +641,9 @@ inline POINT GetOffset_from_child1_to_child2(HWND hwnd1, HWND hwnd2)
 }
 
 
+#ifndef JULAYOUT_DEBUG
+#include <CHIMPL_vaDBG_show.h>
+#endif
 
 #endif   // JULAYOUT_IMPL
 
