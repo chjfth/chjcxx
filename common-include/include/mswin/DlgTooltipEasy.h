@@ -603,10 +603,14 @@ CTooltipMan::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 				if (hwndTooltip == m_httUsage)
 				{ 
+					do_TTM_SETTITLE_ClearTitle(hwndTooltip);
+
 					ptext = phot->Call_getUsageText(hwndUic);
 				}
 				else if (hwndTooltip == m_httContent)
 				{ 
+					do_TTM_SETTITLE_ClearTitle(hwndTooltip);
+
 					ptext = phot->Call_getContentText(hwndUic);
 
 					m_pszRecentContentText = ptext;

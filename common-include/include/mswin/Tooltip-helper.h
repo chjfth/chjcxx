@@ -61,6 +61,13 @@ inline BOOL do_TTM_ADDTOOL_nodup(HWND htt, const TOOLINFO &ti, bool *pExisted=nu
 	}
 }
 
+inline BOOL do_TTM_SETTITLE_ClearTitle(HWND htt)
+{
+	LRESULT lsucc = SendMessage(htt, TTM_SETTITLE, TTI_NONE, (LPARAM)_T(""));
+	assert(lsucc);
+
+	return lsucc ? TRUE : FALSE;
+}
 
 
 #endif
