@@ -881,6 +881,8 @@ Dlgtte_err Dlgtte_EnableTooltip(HWND hwndCtl,
 	Dlgtte_BitFlags_et flags)
 {
 	HWND hdlg = GetParent(hwndCtl);
+	if(!hdlg)
+		return Dlgtte_InvalidHwnd;
 
 	CxxWindowSubclass::ReCode_et err = CxxWindowSubclass::E_Fail;
 	CTooltipMan *ptm = CxxWindowSubclass::FetchCxxobjFromHwnd<CTooltipMan>(
@@ -929,6 +931,8 @@ bool Dlgtte_IsEnabled(HWND hwndCtl)
 Dlgtte_err Dlgtte_RemoveTooltip(HWND hwndCtl)
 {
 	HWND hdlg = GetParent(hwndCtl);
+	if (!hdlg)
+		return Dlgtte_InvalidHwnd;
 
 	CxxWindowSubclass::ReCode_et err_tm = CxxWindowSubclass::E_Fail;
 	CTooltipMan *ptm = CxxWindowSubclass::FetchCxxobjFromHwnd<CTooltipMan>(
