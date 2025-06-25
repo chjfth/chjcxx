@@ -37,13 +37,15 @@ public:
 	/* Example:
 
 	CxxWindowSubclass::ReCode_et err = CxxWindowSubclass::E_Fail;
-	CTooltipMan *ptm = CxxWindowSubclass::FetchCxxobjFromHwnd<CTooltipMan>(
-		hdlg_toSubclass, _T("sig_EasyTooltipMan"), TRUE, &err);
+	CFooWndPeeker *peeker = CxxWindowSubclass::FetchCxxobjFromHwnd<CFooWndPeeker>(
+		hwnd_toSubclass, _T("sig_EasyTooltipMan"), TRUE, &err);
 
-	When to delete `ptm` object?
-	If you call ptm->DetachHwnd(true) explicitly, or hdlg_toSubclass destroys, 
-	`delete ptm` is done automatically -- no need to manually delete it.
-	Only when you do ptm->DetachHwnd(false), you should `delete ptm` explicitly.
+	When to delete `peeker` object?
+	
+	- If you call peeker->DetachHwnd(true) explicitly, or when hwnd_toSubclass destroys, 
+	`delete peeker` is done automatically -- no need to manually delete it.
+	
+	- Only when you do peeker->DetachHwnd(false), you should `delete peeker` explicitly.
 	*/
 
 public:
