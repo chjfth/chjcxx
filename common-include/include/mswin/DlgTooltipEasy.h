@@ -1,5 +1,5 @@
-#ifndef __DlgTooltipEasy_h_20250621_
-#define __DlgTooltipEasy_h_20250621_
+#ifndef __DlgTooltipEasy_h_20250628_
+#define __DlgTooltipEasy_h_20250628_
 
 #include <tchar.h>
 #include <windows.h>
@@ -32,6 +32,10 @@ Dlgtte_err Dlgtte_EnableTooltip(HWND hwndCtl,
 	PROC_DlgtteGetText *getUsageText, void *uctxUsage,
 	PROC_DlgtteGetText *getContentText = nullptr, void *uctxContent = nullptr,
 	Dlgtte_BitFlags_et flags = Dlgtte_Flags0);
+// -- This is the core function.
+// User assigns dynamic usage-text via callback [getUsageText, uctxUsage], and 
+// dynamic content-text via callback [getContentText, uctxContent].
+// At least one of getUsageText and getContentText must be non-NULL.
 
 Dlgtte_err Dlgtte_RemoveTooltip(HWND hwndCtl);
 
@@ -43,6 +47,19 @@ Dlgtte_err Dlgtte_SetFlags(HWND hwndCtl, Dlgtte_BitFlags_et flags);
 Dlgtte_err Dlgtte_ShowContentTooltip(HWND hwndCtl, bool is_show);
 // -- This can manually show/hide content-tooltip, useful when user does not assign
 //    Dlgtte_AutoContentTipOnFocus.
+
+
+// A facility function Dlgtte_EnableStaticUsageTooltip():
+static inline const TCHAR* _dlgtte_static_text(HWND hwndCtl, void *userctx)
+{
+	(void)hwndCtl;
+	return (const TCHAR*)userctx;
+}
+static inline Dlgtte_err Dlgtte_EnableStaticUsageTooltip(HWND hwndCtl, const TCHAR* usagetext)
+{
+	// Note: User's usagetext buffer must be persistent.
+	return Dlgtte_EnableTooltip(hwndCtl, _dlgtte_static_text, (void*)usagetext);
+}
 
 
 
