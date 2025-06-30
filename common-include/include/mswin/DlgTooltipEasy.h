@@ -1,5 +1,5 @@
-#ifndef __DlgTooltipEasy_h_20250628_
-#define __DlgTooltipEasy_h_20250628_
+#ifndef __DlgTooltipEasy_h_20250630_
+#define __DlgTooltipEasy_h_20250630_
 
 #include <tchar.h>
 #include <windows.h>
@@ -93,6 +93,37 @@ static const TCHAR *sig_EasyTooltipMan = _T("sig_EasyTooltipMan");
 
 // Window-message: Get subclass-C++ object from HWND
 static UINT s_MSG_GetSubclassCxxObj = 0;
+
+
+inline int ptmid(int a, int b) { return (a + b) / 2; }
+inline int midx(const RECT &rc) { return (rc.left + rc.right) / 2; }
+inline int midy(const RECT &rc) { return (rc.top + rc.bottom) / 2; }
+inline int rcwidth(const RECT &rc) { return rc.right - rc.left; }
+inline int rcheight(const RECT &rc) { return rc.bottom - rc.top; }
+
+
+BOOL SetTooltipWidth_by_MousePos(int screenx, int screeny, HWND hwndTooltiop)
+{
+	// This function considers multiple-monitor environment.
+	// Set TTM_SETMAXTIPWIDTH to half of [screenx,screeny]'s monitor.
+
+	RECT rcMon = {};
+	bool isok = getMonitorRectByPoint(screenx, screeny, &rcMon);
+	if (!isok)
+	{
+		const int defwidth = 600;
+		vaDBG2(_T("Unexpect! getMonitorRectByPoint() fail. Use %d as TTM_SETMAXTIPWIDTH."), defwidth);
+		SendMessage(hwndTooltiop, TTM_SETMAXTIPWIDTH, 0, defwidth);
+		return FALSE;
+	}
+
+	int ttwidth = rcwidth(rcMon) / 2;
+	assert(ttwidth>=40);
+	SendMessage(hwndTooltiop, TTM_SETMAXTIPWIDTH, 0, ttwidth);
+	vaDBG2(_T("Use %d as TTM_SETMAXTIPWIDTH."), ttwidth);
+
+	return TRUE;
+}
 
 
 struct GetTextCallbacks_st
@@ -307,12 +338,6 @@ static bool QueryTooltipRect_by_TrackPoint(HWND hwndTooltip, TOOLINFO &ti,
 	return true;
 }
 
-
-inline int ptmid(int a, int b) { return (a + b) / 2; }
-inline int midx(const RECT &rc) { return (rc.left + rc.right) / 2; }
-inline int midy(const RECT &rc) { return (rc.top + rc.bottom) / 2; }
-inline int rcwidth(const RECT &rc) { return rc.right - rc.left; }
-inline int rcheight(const RECT &rc) { return rc.bottom - rc.top; }
 
 Dlgtte_err 
 CHottoolSubsi::ShowContentTooltip(bool is_show)
@@ -621,6 +646,10 @@ CTooltipMan::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				if (hwndTooltip == m_httUsage)
 				{ 
 					do_TTM_SETTITLE_ClearTitle(hwndTooltip);
+
+					POINT pt = {};
+					GetCursorPos(&pt);
+					SetTooltipWidth_by_MousePos(pt.x, pt.y, hwndTooltip);
 
 					ptext = phot->Call_getUsageText(hwndUic);
 				}
