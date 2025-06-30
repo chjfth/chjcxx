@@ -39,7 +39,9 @@ Dlgtte_err Dlgtte_EnableTooltip(HWND hwndCtl,
 
 Dlgtte_err Dlgtte_RemoveTooltip(HWND hwndCtl);
 
-void Dlgtte_GetTooltipHwnd(HWND hwndCtl, HWND *pUsage=NULL, HWND *pContent=NULL);
+void Dlgtte_GetTooltipHwnd(HWND hwndCtl, HWND *pUsageTip=NULL, HWND *pContentTip=NULL);
+// -- Hint: In PROC_DlgtteGetText callback, user can fetch hwndContentTip via this function,
+//    and do SendMessage(hwndContentTip, TTM_SETTITLE, ...) to customize its icon/title.
 
 Dlgtte_err Dlgtte_GetFlags(HWND hwndCtl, Dlgtte_BitFlags_et *pFlags);
 Dlgtte_err Dlgtte_SetFlags(HWND hwndCtl, Dlgtte_BitFlags_et flags);
