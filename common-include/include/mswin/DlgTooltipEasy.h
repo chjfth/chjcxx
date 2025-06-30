@@ -105,7 +105,7 @@ inline int rcheight(const RECT &rc) { return rc.bottom - rc.top; }
 BOOL SetTooltipWidth_by_MousePos(int screenx, int screeny, HWND hwndTooltiop)
 {
 	// This function considers multiple-monitor environment.
-	// Set TTM_SETMAXTIPWIDTH to half of [screenx,screeny]'s monitor.
+	// Set TTM_SETMAXTIPWIDTH to half of [screenx,screeny]'s monitor width.
 
 	RECT rcMon = {};
 	bool isok = getMonitorRectByPoint(screenx, screeny, &rcMon);
@@ -120,7 +120,7 @@ BOOL SetTooltipWidth_by_MousePos(int screenx, int screeny, HWND hwndTooltiop)
 	int ttwidth = rcwidth(rcMon) / 2;
 	assert(ttwidth>=40);
 	SendMessage(hwndTooltiop, TTM_SETMAXTIPWIDTH, 0, ttwidth);
-	vaDBG2(_T("Use %d as TTM_SETMAXTIPWIDTH."), ttwidth);
+//	vaDBG2(_T("Use %d as TTM_SETMAXTIPWIDTH."), ttwidth);
 
 	return TRUE;
 }
@@ -374,6 +374,9 @@ CHottoolSubsi::ShowContentTooltip(bool is_show)
 	RECT rcMon = {};
 	bool isok = getMonitorRectByPoint(midx(rcUic), midy(rcUic), &rcMon);
 
+	// Set tooltip display width to half monitor width. (also enables multiline tooltip)
+	SetTooltipWidth_by_MousePos(midx(rcUic), midy(rcUic), hwndTooltip);
+
 	bool finalAbove = false; // true: finally show tooltip above Uic
 	RECT rcTooltip = {};
 
@@ -610,9 +613,6 @@ CTooltipMan::AddUic(HWND hwndUic, const GetTextCallbacks_st &gtcb)
 
 		BOOL succ = do_TTM_ADDTOOL_nodup(m_httContent, ti);
 		assert(succ);
-
-		// Enable multiline tooltip
-		SendMessage(m_httContent, TTM_SETMAXTIPWIDTH, 0, 800);
 
 		phottool->SetHwndttContent(m_httContent);
 	}
