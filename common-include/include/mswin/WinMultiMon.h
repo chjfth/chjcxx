@@ -28,7 +28,7 @@ bool getMonitorRectByPoint(int screen_x, int screen_y, RECT *pMonitorRect);
 #ifdef WinMultiMon_IMPL
 
 #include <commdefs.h>
-#include <mswin/win32cozy.h>
+#include <mswin/win32cozy.h> // RECTtext() macro
 
 #ifndef WinMultiMon_DEBUG
 #include <CHHI_vaDBG_hide.h>
@@ -59,24 +59,40 @@ MonitorEnumProc(
 	EnumMonitorPrivate_st &emp = *(EnumMonitorPrivate_st*)dwData;
 	emp.nMonitorCount++;
 
-	if( !(emp.nUserFilled < emp.nUserMoninfo) )
-		return TRUE;  // continue enumeration so that we can still update emp.nMonitorCount
+	if( emp.nUserFilled < emp.nUserMoninfo )
+	{
+		OneMonitorInfo_st &oneinfo = emp.arUserMoninfo[emp.nUserFilled];
 
-	OneMonitorInfo_st &oneinfo = emp.arUserMoninfo[emp.nUserFilled];
+		MONITORINFOEX minfo; // Damn M$: cannot just write = {sizeof(MONITORINFOEX)}
+		minfo.cbSize = sizeof(MONITORINFOEX);
+		BOOL b = GetMonitorInfo(hMonitor, &minfo);
+		if (!b)
+		{ 
+			DWORD winerr = GetLastError();
+			vaDBG(_T("GetMonitorInfo() fail on hMonitor=0x%p, winerr=%d."), hMonitor, winerr);
 
-	MONITORINFOEX minfo; // Damn M$: cannot just write = {sizeof(MONITORINFOEX)}
-	minfo.cbSize = sizeof(MONITORINFOEX);
-	BOOL b = GetMonitorInfo(hMonitor, &minfo);
-	if(!b)
-		return FALSE;
+			return FALSE;
+		}
 
-	oneinfo.isPrimary =	(minfo.dwFlags&MONITORINFOF_PRIMARY) ? true : false;
-	oneinfo.rcMonitor = minfo.rcMonitor;
-	oneinfo.rcWorkArea = minfo.rcWork;
-	_tcscpy_s(oneinfo.szDevice, minfo.szDevice);
+		oneinfo.isPrimary = (minfo.dwFlags&MONITORINFOF_PRIMARY) ? true : false;
+		oneinfo.rcMonitor = minfo.rcMonitor;
+		oneinfo.rcWorkArea = minfo.rcWork;
+		_tcscpy_s(oneinfo.szDevice, minfo.szDevice);
 
-	emp.nUserFilled++;
-	return TRUE;
+		emp.nUserFilled++;
+
+		TCHAR rctext[40] = _T("");
+		vaDBG(_T("MonitorEnumProc#%d: hMonitor=0x%p, hdcMonitor=0x%p, \"%s\" %s"),
+			emp.nMonitorCount,
+			hMonitor, hdcMonitor, minfo.szDevice, RECTtext(minfo.rcMonitor, rctext)
+			);
+	}
+	else
+	{
+		vaDBG(_T("MonitorEnumProc#%d: (no detail)"), emp.nMonitorCount);
+	}
+	
+	return TRUE; // continue enumeration 
 }
 
 WinErr_t 
