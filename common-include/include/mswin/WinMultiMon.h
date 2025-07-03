@@ -28,6 +28,11 @@ bool getMonitorRectByPoint(int screen_x, int screen_y, RECT *pMonitorRect);
 #ifdef WinMultiMon_IMPL
 
 #include <commdefs.h>
+#include <mswin/win32cozy.h>
+
+#ifndef WinMultiMon_DEBUG
+#include <CHHI_vaDBG_hide.h>
+#endif
 
 namespace WinMultiMon // (private)
 {
@@ -159,6 +164,10 @@ bool getMonitorRectByPoint(int screen_x, int screen_y, RECT *pMonitorRect)
 	return WinMultiMon::getMonitorRectByPoint(screen_x, screen_y, pMonitorRect);
 }
 
+
+#ifndef WinMultiMon_DEBUG
+#include <CHHI_vaDBG_show.h>
+#endif
 
 #endif // WinMultiMon_IMPL
 

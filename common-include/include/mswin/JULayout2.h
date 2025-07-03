@@ -175,7 +175,7 @@ private:
 
 
 #ifndef JULAYOUT_DEBUG
-#include <CHIMPL_vaDBG_hide.h>
+#include <CHHI_vaDBG_hide.h>
 #endif
 
 
@@ -642,7 +642,7 @@ inline POINT GetOffset_from_child1_to_child2(HWND hwnd1, HWND hwnd2)
 
 
 #ifndef JULAYOUT_DEBUG
-#include <CHIMPL_vaDBG_show.h>
+#include <CHHI_vaDBG_show.h>
 #endif
 
 #endif   // JULAYOUT_IMPL

@@ -1,12 +1,12 @@
-// If your CHIMPL.cpp wants to see debug-messages from various CHIMPL library modules
+// If your CHHI.cpp wants to see debug-messages from various CHHI library modules
 // (for XXX module, XXX_DEBUG defined as a premise), you need to:
-// Copy this file's content to start portion of your CHIMPL.cpp, then (tweaking)
+// Copy this file's content to start portion of your CHHI.cpp, then (tweaking)
 // replace `vaDbgTs` with your own debug-message output functions.
 //
 // Tweaking note: vaDBG, vaDGB1 etc must NOT be macro, they must be functions
-// to support CHIMPL_vaDBG_hide.h/CHIMPL_vaDBG_show.h's code pattern.
+// to support CHHI_vaDBG_hide.h/CHHI_vaDBG_show.h's code pattern.
 //
-// If your CHIMPL.cpp wants no debug messages, just ignore this file.
+// If your CHHI.cpp wants no debug messages, you don't have to use this file.
 
 
 #include <utility>       // to have std::forward

@@ -68,11 +68,13 @@ protected:
 	}
 
 private:
-	// This identifies an CxxWindowSubclass object, must be the first member.
+	///////////////////////////////////////////////////////////////////////////
+	// This int signifies an CxxWindowSubclass object, MUST be the first member.
 	UINT m_magic; 
 
-	// This identifies a concrete subclass instance, must be the 2nd member.
+	// This TCHAR string signifies a concrete subclass instance, MUST be the 2nd member.
 	TCHAR *m_signature; // with s_winprop_prefix
+	///////////////////////////////////////////////////////////////////////////
 
 private:
 	static LRESULT CALLBACK SubclassProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam,
@@ -83,8 +85,7 @@ private:
 	static ReCode_et CheckHwnd(HWND hwnd, const TCHAR *sigstr); // sigstr no s_winprop_prefix
 
 protected:
-
-	HWND m_hwnd;
+	HWND m_hwnd; // Derived class is allowed to see the raw HWND.
 
 private:
 	static const UINT const_magic = 0x20250606;
@@ -99,7 +100,7 @@ private:
 #ifdef CxxWindowSubclass_IMPL
 
 #ifndef CxxWindowSubclass_DEBUG
-#include <CHIMPL_vaDBG_hide.h>
+#include <CHHI_vaDBG_hide.h>
 #endif
 
 // [2025-06-06] Note: We use SetWindowSubclass to store CxxWindowSubclass pointer as 
@@ -367,7 +368,7 @@ CxxWindowSubclass::FetchCxxobjFromHwnd(HWND hwnd, const TCHAR *sigstr, BOOL is_c
 
 
 #ifndef CxxWindowSubclass_DEBUG
-#include <CHIMPL_vaDBG_show.h>
+#include <CHHI_vaDBG_show.h>
 #endif
 
 #endif // CxxWindowSubclass_IMPL

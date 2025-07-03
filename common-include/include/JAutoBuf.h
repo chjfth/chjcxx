@@ -1,5 +1,5 @@
-#ifndef __JAutoBuf_h_20250608_
-#define __JAutoBuf_h_20250608_
+#ifndef __JAutoBuf_h_20250703_
+#define __JAutoBuf_h_20250703_
 /******************************************************************************
 Module:  JAutoBuf.h
 Notices: Copyright (c) 2000 Jeffrey Richter
@@ -40,7 +40,7 @@ Examples of use:
 
 Note: To use this lib, pick one and only one of your xxx.cpp, write at its start:
 
-#define JAUTOBUF_IMPL
+#define JAutoBuf_IMPL
 #include "JAutoBuf.h"
 
 */
@@ -60,6 +60,8 @@ public:
 
 	BufEles_t SizeMin()
 	{
+		assert(m_ReqEle <= m_CurEle); // [2025-07-03] 
+
 		if(m_ReqEle<=m_CurEle)
 			return m_ReqEle;
 		else
@@ -73,15 +75,17 @@ public:
 
 	BufEles_t Size() const
 	{
-		return m_ReqEle * m_nMult;
+		return m_ReqEle;
 	}
+
+	BufEles_t Eles() const { return Size(); } // alias of const Size()
 
 	BufBytes_t Bytes()
 	{
 		return Size() * m_nMult;
 	}
 
-	BufEles_t Size()
+	BufEles_t Size() // non-const Size()
 	{ 
 		// AutoBuf user calls Size() to get a value to tell WinAPI his 
 		// "current" buffer size (in eles). 
@@ -158,8 +162,8 @@ private:
 private:
 	PBYTE_t  *m_ppbBuffer;    // Address of address of data buffer
 	int       m_nMult;        // Multiplier (in bytes) used for buffer growth
-	BufEles_t m_ReqEle; // Requested buffer size (in m_nMult units)
-	BufEles_t m_CurEle; // Actual storage size (in m_nMult units)
+	BufEles_t m_ReqEle; // User-requested buffer size (in m_nMult units)
+	BufEles_t m_CurEle; // Actual storage size (in m_nMult units), may >ReqEle .
 
 	int m_ExtraEle;  // User can request extra bytes, for example, for possible NUL to append.
 };
@@ -270,15 +274,13 @@ private:
 
 
 
-#ifdef JAUTOBUF_IMPL // only one .cpp should define this to get the implementation code
+#ifdef JAutoBuf_IMPL // only one .cpp should define this to get the implementation code
 
 #include <assert.h>
 #include <utility>
 
-#ifdef JAUTOBUF_DEBUG
-#undef  vaDBG      // revoke empty effect 
-#else
-#define vaDBG(...) // make vaDBG empty, no debugging message
+#ifndef JAutoBuf_DEBUG
+#include <CHHI_vaDBG_hide.h>
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -391,7 +393,11 @@ void JAutoBufBase::_base_move_assignment(JAutoBufBase& old)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-#endif   // JAUTOBUF_IMPL
+#ifndef JAutoBuf_DEBUG
+#include <CHHI_vaDBG_show.h>
+#endif
+
+#endif   // JAutoBuf_IMPL
 
 
 
