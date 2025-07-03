@@ -1,5 +1,5 @@
-#ifndef __JULayout2_h_20250622_
-#define __JULayout2_h_20250622_
+#ifndef __JULayout2_h_20250703_
+#define __JULayout2_h_20250703_
 
 /******************************************************************************
 Original: UILayout.h
@@ -24,7 +24,7 @@ Updates by Jimm Chen (as of 2025-03-01):
 [Usage] To use this lib, pick one and only one of your xxx.cpp(CHIMPL.cpp for example), 
 write at its start:
 	
-	#define JULAYOUT_IMPL
+	#define JULayout2_IMPL
 	#include "JULayout2.h"
 
 // In WM_INITDIALOG:
@@ -43,7 +43,11 @@ If not doing so for the Uic, the Uic will be erased when the groupbox is resizin
 #include <assert.h>
 #include <windows.h> // HWND, POINT, LRESULT etc
 
-#ifdef JULAYOUT_IMPL
+#ifdef JULAYOUT_IMPL // allow for old macro name JULAYOUT_IMPL
+#define JULayout2_IMPL
+#endif
+
+#ifdef JULayout2_IMPL
 #define CxxWindowSubclass_IMPL
 #endif
 #include <mswin/CxxWindowSubclass.h> // needs comctl32.lib
@@ -165,8 +169,7 @@ private:
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-
-#ifdef JULAYOUT_IMPL
+#ifdef JULayout2_IMPL
 
 #include <windows.h>
 #include <windowsx.h>
@@ -174,7 +177,7 @@ private:
 #include <assert.h>
 
 
-#ifndef JULAYOUT_DEBUG
+#ifndef JULayout2_DEBUG
 #include <CHHI_vaDBG_hide.h>
 #endif
 
@@ -641,13 +644,13 @@ inline POINT GetOffset_from_child1_to_child2(HWND hwnd1, HWND hwnd2)
 }
 
 
-#ifndef JULAYOUT_DEBUG
+#ifndef JULayout2_DEBUG
 #include <CHHI_vaDBG_show.h>
 #endif
 
-#endif   // JULAYOUT_IMPL
+#endif   // JULayout2_IMPL
 
 ///////////////////////////////////////////////////////////////////////////////
 
 
-#endif // __JULayout_h_
+#endif // __JULayout2_h_

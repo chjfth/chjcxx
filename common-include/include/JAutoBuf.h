@@ -48,6 +48,7 @@ Note: To use this lib, pick one and only one of your xxx.cpp, write at its start
 
 ///////////////////////////////////////////////////////////////////////////////
 
+#include <assert.h>
 
 // This class is only ever used as a base class of the JAutoBuf template class.
 // The base class exists so that all instances of the template class share
@@ -271,7 +272,9 @@ private:
 
 
 
-
+#ifdef JAUTOBUF_IMPL // allow for old macro name JAUTOBUF_IMPL
+#define JAutoBuf_IMPL
+#endif
 
 
 #ifdef JAutoBuf_IMPL // only one .cpp should define this to get the implementation code
