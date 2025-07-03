@@ -176,6 +176,7 @@ private:
 #include <tchar.h>
 #include <assert.h>
 
+#include <mswin/win32cozy.h>
 
 #ifndef JULayout2_DEBUG
 #include <CHHI_vaDBG_hide.h>
@@ -247,6 +248,13 @@ JULayout* JULayout::EnableJULayout(HWND hwndParent,
 	JULayout *jul = CxxWindowSubclass::FetchCxxobjFromHwnd<JULayout>(
 		hwndParent, s_sigSubclass, TRUE, &serr);
 	
+	if(serr==CxxWindowSubclass::E_Success)
+		vaDBG1(_T("[JULayout] object 0x%p created for hwnd=0x%08X."), jul, PtrToUint(hwndParent));
+	else if (serr == CxxWindowSubclass::E_Existed)
+		vaDBG1(_T("[JULayout] object 0x%p existed for hwnd=0x%08X."), jul, PtrToUint(hwndParent));
+	else
+		vaDBG(_T("[JULayout] object creation fail. Errcode=%d."), serr);
+
 	bool succ = jul->Initialize(hwndParent, nMinWidth, nMinHeight, nMaxWidth, nMaxHeight);
 	if(!succ)
 	{
@@ -554,13 +562,13 @@ bool JULayout::AdjustControls(int cx, int cy)
 	{
 		CtrlInfo_st &cinfo = m_CtrlInfo[i];
 
-		// Get control's upper/left position w/respect to parent's width/height
+		// Get control's left/top position w/respect to parent's width/height
 		RECT rcUic = {};
 		PixelFromAnchorPoint(cx, cy, cinfo.pt1x.Anco, cinfo.pt1y.Anco, (PPOINT)&rcUic);
 		rcUic.left += cinfo.pt1x.Offset; 
 		rcUic.top  += cinfo.pt1y.Offset; 
 
-		// Get control's lower/right position w/respect to parent's width/height
+		// Get control's right/bottom position w/respect to parent's width/height
 		PixelFromAnchorPoint(cx, cy, cinfo.pt2x.Anco, cinfo.pt2y.Anco, (PPOINT)&rcUic.right);
 		rcUic.right  += cinfo.pt2x.Offset;
 		rcUic.bottom += cinfo.pt2y.Offset;
@@ -568,10 +576,18 @@ bool JULayout::AdjustControls(int cx, int cy)
 		// Position/size the control
 		HWND hwndUic = GetDlgItem(m_hwndParent, cinfo.m_nID);
 
-		MoveWindow(hwndUic, rcUic.left, rcUic.top, 
+		MoveWindow(hwndUic, 
+			rcUic.left, rcUic.top, 
 			rcUic.right - rcUic.left, rcUic.bottom - rcUic.top,
 			FALSE // FALSE: Don't repaint immediately
 			);
+
+		if (!EqualRect(&cinfo.rectnow, &rcUic))
+		{
+			TCHAR text1[40], text2[40]; (void)text1; (void)text2;
+			vaDBG2(_T("[JULayout] Uic 0x08%X moved: %s -> %s"), 
+				PtrToUint(hwndUic), RECTtext(cinfo.rectnow, text1), RECTtext(rcUic, text2));
+		}
 
 		if(IsGroupBox(hwndUic))
 		{
@@ -598,6 +614,8 @@ bool JULayout::AdjustControls(int cx, int cy)
 			SendMessage(hwndUic, WM_NCPAINT, 1, 0); // 1: entire window frame needs to be updated.
 			UpdateWindow(hwndUic); // tell this Uic repaint immediately
 		}
+
+		CopyRect(&cinfo.rectnow, &rcUic);
 	}
 
 	// Paint the newly exposed portion of the dialog box's client area

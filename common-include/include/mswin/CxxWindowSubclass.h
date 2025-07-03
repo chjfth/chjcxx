@@ -19,7 +19,7 @@ public:
 		E_Fail = -1,
 
 		E_NotExist = -2,
-		E_Existed = -3,
+		E_Existed = -3,   // duplicate calling of FetchCxxobjFromHwnd()
 		E_BadParam = -4,
 		E_BadHwnd = -5,
 		E_HwndPropConflict = -6, // User should pick a new sigstr string.
