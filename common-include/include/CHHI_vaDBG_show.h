@@ -1,4 +1,4 @@
-// revoke these macros "empty effect" from CHIMPL_vaDBG_hide.h
+// revoke these macros's "empty effect" from CHHI_vaDBG_hide.h
 #undef vaDBG
 #undef vaDBG1
 #undef vaDBG2

@@ -1,5 +1,5 @@
-#ifndef __WinMultiMon_h_20250608_
-#define __WinMultiMon_h_20250608_
+#ifndef __WinMultiMon_h_20250703_
+#define __WinMultiMon_h_20250703_
 
 #include <windows.h>
 
@@ -24,6 +24,10 @@ bool getMonitorRectByPoint(int screen_x, int screen_y, RECT *pMonitorRect);
 //    Return true if pt is in one monitor, else false.
 //    *pMonitorRect outputs the screen-coord of the containing monitor.
 
+
+///////////////////////////////////////////////////////////////
+// Implementation Below:
+///////////////////////////////////////////////////////////////
 
 #ifdef WinMultiMon_IMPL
 

@@ -325,7 +325,7 @@ bool JULayout::PropSheetProc(HWND hwndPrsht, UINT uMsg, LPARAM lParam)
 
 		// Enable WS_OVERLAPPEDWINDOW(implies WS_THICKFRAME), so to make it resizable.
 		// Note: We have to turn on WS_THIKFRAME *here*. If we do it when processing
-		// g_WM_JULAYOUT_DO_INIT message, that WS_THICKFRAME bit is set, however, 
+		// s_WM_JULPrsht_DO_INIT message, that WS_THICKFRAME bit is set, however, 
 		// the Prsht frame is still not draggable. Can't explain why yet.
 		//
 		// WS_CLIPCHILDREN is to make the Tab-header less flickering.
