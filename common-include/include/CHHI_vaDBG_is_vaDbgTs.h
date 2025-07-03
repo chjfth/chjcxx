@@ -14,6 +14,7 @@
 
 #ifdef CXX11_OR_NEWER
 
+
 template<typename... Args>
 void vaDBG(Args&&... args) // forwards all arguments
 {
@@ -38,26 +39,43 @@ void vaDBG3(Args&&... args) // forwards all arguments
 	vaDbgTs(std::forward<Args>(args)...);
 }
 
+
 #else
 
-void vaDBG(...)
+
+#include <stdarg.h>
+#include <ps_TCHAR.h>
+
+void vaDBG(const TCHAR *fmt, ...)
 {
-	vaDbgTs(_T("Not C++11 compiled, vaDBG() is nullop."));
+	va_list args;
+	va_start(args, fmt);
+	vlDbgTs(fmt, args);
+	va_end(args);
 };
 
-void vaDBG1(...)
+void vaDBG1(const TCHAR *fmt, ...)
 {
-	vaDbgTs(_T("Not C++11 compiled, vaDBG() is nullop."));
+	va_list args;
+	va_start(args, fmt);
+	vlDbgTs(fmt, args);
+	va_end(args);
 };
 
-void vaDBG2(...)
+void vaDBG2(const TCHAR *fmt, ...)
 {
-	vaDbgTs(_T("Not C++11 compiled, vaDBG() is nullop."));
+	va_list args;
+	va_start(args, fmt);
+	vlDbgTs(fmt, args);
+	va_end(args);
 };
 
-void vaDBG3(...)
+void vaDBG3(const TCHAR *fmt, ...)
 {
-	vaDbgTs(_T("Not C++11 compiled, vaDBG() is nullop."));
+	va_list args;
+	va_start(args, fmt);
+	vlDbgTs(fmt, args);
+	va_end(args);
 };
 
-#endif // CXX11_OR_NEWER
+#endif // CXX11_OR_NEWER/else
