@@ -1,5 +1,5 @@
-#ifndef __DlgTooltipEasy_h_20250630_
-#define __DlgTooltipEasy_h_20250630_
+#ifndef __DlgTooltipEasy_h_20250707_
+#define __DlgTooltipEasy_h_20250707_
 
 #include <tchar.h>
 #include <windows.h>
@@ -46,9 +46,14 @@ void Dlgtte_GetTooltipHwnd(HWND hwndCtl, HWND *pUsageTip=NULL, HWND *pContentTip
 Dlgtte_err Dlgtte_GetFlags(HWND hwndCtl, Dlgtte_BitFlags_et *pFlags);
 Dlgtte_err Dlgtte_SetFlags(HWND hwndCtl, Dlgtte_BitFlags_et flags);
 
+Dlgtte_err Dlgtte_ShowUsageTooltip(HWND hwndCtl, bool is_show, int duration_millisec=0);
+// -- This is used when you die for constantly refreshing usage-tip. And you need to launch 
+//    a timer callback in PROC_DlgtteGetText to manually call Dlgtte_ShowUsageTooltip(),
+//    with appropriate is_show=true/false.
+
 Dlgtte_err Dlgtte_ShowContentTooltip(HWND hwndCtl, bool is_show);
-// -- This can manually show/hide content-tooltip, useful when user does not assign
-//    Dlgtte_AutoContentTipOnFocus.
+// -- This can manually show/hide content-tooltip, useful when user does not enable
+//    Dlgtte_AutoContentTipOnFocus flag.
 
 
 // A facility function Dlgtte_EnableStaticUsageTooltip():
@@ -148,6 +153,7 @@ class CHottoolSubsi : public CxxWindowSubclass
 
 public:
 	CHottoolSubsi();
+	virtual ~CHottoolSubsi();
 
 	virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
@@ -192,6 +198,11 @@ public:
 			return nullptr;
 	}
 
+	void SetHwndttUsage(HWND httUsage)
+	{
+		m_hwndttUsage = httUsage;
+	}
+
 	void SetHwndttContent(HWND httContent)
 	{
 		m_hwndttContent = httContent;
@@ -209,6 +220,8 @@ public:
 	}
 
 	Dlgtte_err ShowContentTooltip(bool is_show);
+
+	Dlgtte_err ShowUsageTooltip(bool is_show, int duration_millisec=0); // 0=default
 
 
 private:
@@ -228,9 +241,26 @@ private:
 		KillTimer(hdlg, idEvent);
 	}
 
+	void StopHideUsageTipTimer();
+
+	static void CALLBACK TimerProc_StopHideUsageTipTimer(HWND hwnd, UINT uMsg, UINT_PTR idEvent, DWORD dwTime)
+	{
+		CHottoolSubsi *phot = (CHottoolSubsi*)idEvent;
+		assert(hwnd == phot->m_hwndttUsage);
+
+		TOOLINFO ti = {sizeof(TOOLINFO)};
+		ti.hwnd = GetParent(phot->m_hwnd);
+		ti.uId = (UINT_PTR)phot->m_hwnd;
+		SendMessage(hwnd, TTM_TRACKACTIVATE, FALSE,	(LPARAM)&ti);
+
+		// This is call-once timer, so we stop the timer right now.
+		phot->StopHideUsageTipTimer();
+	}
+
 private:
 	CTooltipMan *m_pTooltipMan;
 
+	HWND m_hwndttUsage;
 	HWND m_hwndttContent;
 
 	PROC_DlgtteGetText *m_getUsageText;
@@ -242,12 +272,15 @@ private:
 	Dlgtte_BitFlags_et m_flags;
 
 	RECT m_rcFinal; 
+
+	UINT_PTR m_timeridHideUsageTip;
 };
 
 CHottoolSubsi::CHottoolSubsi()
 {
 	m_pTooltipMan = nullptr;
 
+	m_hwndttUsage = NULL;
 	m_hwndttContent = NULL;
 
 	m_getUsageText = m_getContentText = nullptr;
@@ -256,6 +289,24 @@ CHottoolSubsi::CHottoolSubsi()
 	m_flags = Dlgtte_Flags0;
 
 	Clear_rcFinal();
+
+	m_timeridHideUsageTip = 0;
+}
+
+CHottoolSubsi::~CHottoolSubsi()
+{
+	StopHideUsageTipTimer();
+}
+
+void CHottoolSubsi::StopHideUsageTipTimer()
+{
+	if (m_timeridHideUsageTip != 0)
+	{
+		assert(m_hwndttUsage);
+
+		KillTimer(m_hwndttUsage, m_timeridHideUsageTip);
+		m_timeridHideUsageTip = 0;
+	}
 }
 
 class CTooltipMan : public CxxWindowSubclass
@@ -341,6 +392,56 @@ static bool QueryTooltipRect_by_TrackPoint(HWND hwndTooltip, TOOLINFO &ti,
 }
 
 
+Dlgtte_err
+CHottoolSubsi::ShowUsageTooltip(bool is_show, int duration_millisec)
+{
+	// This function is required only when user wants to preserve a usage-tip on the screen.
+	// For example, when mouse hovering on a button, the tooltip refreshes a timestamp text
+	// every 0.5 second.
+
+	HWND hdlg = GetParent(m_hwnd);
+	HWND hUic = m_hwnd;
+	HWND hwndTooltip = m_hwndttUsage;
+
+	TOOLINFO ti = { sizeof(TOOLINFO) };
+	ti.hwnd = hdlg;
+	ti.uId = (UINT_PTR)hUic;
+
+	if (duration_millisec <= 0)
+	{
+		duration_millisec = SendMessage(hwndTooltip, TTM_GETDELAYTIME, TTDT_AUTOPOP, 0);
+		
+		if(duration_millisec<=0)
+			duration_millisec = 9999;
+	}
+
+	vaDBG2(_T("Hottool(0x%X) ShowUsageTooltip(%s, %dms)."), 
+		PtrToUint(hUic), 
+		is_show?_T("true"):_T("false"),
+		duration_millisec);
+
+	// Yes, TTM_TRACKACTIVATE is effective on non-TTF_TRACK tooltip.
+	// And we need a off/on toggle so that the usage-tip really refreshes its display.
+
+	SendMessage(hwndTooltip, TTM_TRACKACTIVATE, FALSE, (LPARAM)&ti);
+
+	if(is_show)
+	{
+		SendMessage(hwndTooltip, TTM_TRACKACTIVATE,
+			TRUE, 
+			(LPARAM)&ti);
+
+		// Set a timer to turn off the usage tooltip.
+		// If not doing this, the usage tooltip will persist on the screen and 
+		// "mouse hovering on other hottools" will not activate.
+
+		m_timeridHideUsageTip = SetTimer(hwndTooltip, (UINT_PTR)this, duration_millisec, 
+			TimerProc_StopHideUsageTipTimer);
+	}
+
+	return Dlgtte_Succ;
+}
+
 Dlgtte_err 
 CHottoolSubsi::ShowContentTooltip(bool is_show)
 {
@@ -356,7 +457,7 @@ CHottoolSubsi::ShowContentTooltip(bool is_show)
 	{
 		vaDBG2(_T("Hottool(0x%X) Will hide Content tooltip."), PtrToUint(hUic));
 
-		SendMessage(m_hwndttContent, TTM_TRACKACTIVATE, FALSE, (LPARAM)&ti);
+		SendMessage(hwndTooltip, TTM_TRACKACTIVATE, FALSE, (LPARAM)&ti);
 		return Dlgtte_Succ;
 	}
 
@@ -475,48 +576,47 @@ CHottoolSubsi::in_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, bo
 
 	*pMsgDone = false;
 
-	if (!m_hwndttContent)
-	{
-		// User has not assigned a hottool for content-tooltip, so do nothing,
-		// just call next chain-node.
-		return 0;
-	}
-
-	if (uMsg == WM_SETFOCUS)
-	{
-		if ((m_flags & Dlgtte_AutoContentTipOnFocus) == 0)
-			return 0;
-
-		if (m_pTooltipMan->m_suppress_content_tip_once)
-		{
-			// Purpose: If user click content-tooltip-window itself to close the tooltip, 
-			// the focus goes back to the hottool. This time we will not show up that
-			// tooltip repeatedly. 
-
-			m_pTooltipMan->m_suppress_content_tip_once = false;
-			return 0;
-		}
-
-		ShowContentTooltip(true);		
-	}
-	else if (uMsg == WM_KILLFOCUS)
-	{
-		HWND hwndGainFocus = (HWND)wParam;
-
-		if (hwndGainFocus==m_pTooltipMan->m_httContent)
-		{
-			// We get here if user clicks on the content-tooltip.
-			// According to our design, that click will close(=hide) the tooltip.
-			m_pTooltipMan->m_suppress_content_tip_once = true;
-		}
-
-		ShowContentTooltip(false);
-	}
-	else if (uMsg == s_MSG_GetSubclassCxxObj)
+	if (uMsg == s_MSG_GetSubclassCxxObj)
 	{
 		*pMsgDone = true;
 		return (LRESULT)this;
 	}
+
+
+	if (m_hwndttContent)
+	{
+		if (uMsg == WM_SETFOCUS)
+		{
+			if ((m_flags & Dlgtte_AutoContentTipOnFocus) == 0)
+				return 0;
+
+			if (m_pTooltipMan->m_suppress_content_tip_once)
+			{
+				// Purpose: If user click content-tooltip-window itself to close the tooltip, 
+				// the focus goes back to the hottool. This time we will not show up that
+				// tooltip repeatedly. 
+
+				m_pTooltipMan->m_suppress_content_tip_once = false;
+				return 0;
+			}
+
+			ShowContentTooltip(true);		
+		}
+		else if (uMsg == WM_KILLFOCUS)
+		{
+			HWND hwndGainFocus = (HWND)wParam;
+
+			if (hwndGainFocus==m_pTooltipMan->m_httContent)
+			{
+				// We get here if user clicks on the content-tooltip.
+				// According to our design, that click will close(=hide) the tooltip.
+				m_pTooltipMan->m_suppress_content_tip_once = true;
+			}
+
+			ShowContentTooltip(false);
+		}
+	
+	} // m_hwndttContent is true
 
 	return 0;
 }
@@ -572,6 +672,8 @@ CTooltipMan::AddUic(HWND hwndUic, const GetTextCallbacks_st &gtcb)
 
 		BOOL succ = do_TTM_ADDTOOL_nodup(m_httUsage, ti);
 		assert(succ);
+
+		phottool->SetHwndttUsage(m_httUsage);
 
 		// Make the tooltip appear quickly (100ms), instead of default delaying 500ms.
 		SendMessage(m_httUsage, TTM_SETDELAYTIME, TTDT_INITIAL, 100);
@@ -1053,6 +1155,17 @@ Dlgtte_err Dlgtte_SetFlags(HWND hwndCtl, Dlgtte_BitFlags_et flags)
 	return Dlgtte_Succ;
 }
 
+Dlgtte_err Dlgtte_ShowUsageTooltip(HWND hwndCtl, bool is_show, int duration_millisec)
+{
+	if (!IsWindow(hwndCtl))
+		return Dlgtte_InvalidHwnd;
+
+	CHottoolSubsi *phot = (CHottoolSubsi*)SendMessage(hwndCtl, s_MSG_GetSubclassCxxObj, 0, 0);
+	if (!phot)
+		return Dlgtte_InvalidHottool;
+
+	return phot->ShowUsageTooltip(is_show, duration_millisec);
+}
 
 Dlgtte_err Dlgtte_ShowContentTooltip(HWND hwndCtl, bool is_show)
 {
