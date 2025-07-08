@@ -1,5 +1,5 @@
-#ifndef __Editbox_EnableKbdAdjustNumber_h_20250326_
-#define __Editbox_EnableKbdAdjustNumber_h_20250326_
+#ifndef __Editbox_EnableKbdAdjustNumber_h_20250708_
+#define __Editbox_EnableKbdAdjustNumber_h_20250708_
 
 #include <windows.h>
 
@@ -11,7 +11,7 @@ enum EditboxKAN_err
 	EditboxKAN_Unknown = 1,
 	EditboxKAN_NoMem = 2,
 	EditboxKAN_AlreadyEnabled = 3,
-	EditboxKAN_SetProp = 4, // WinAPI SetProp() error
+	EditboxKAN_BadParam = 4, 
 
 	// Error on disable
 	EditboxKAN_NotEnabledYet = 10,
@@ -19,7 +19,7 @@ enum EditboxKAN_err
 };
 
 // Purpose: Add extra keyboard functionality to a standard editbox.
-// When the caret is a number, user pressing Up will increase the number,
+// When the caret is on a digit char, user pressing Up will increase the number,
 // pressing Down will decrease the number. This is convenient for adjusting
 // date/time value on an editbox.
 
@@ -43,57 +43,32 @@ EditboxKAN_err Editbox_DisableKbdAdjustNumber(HWND hEdit);
 #include <WindowsX.h>
 #include <mswin/WindowsX2.h> // chj: for SUBCLASS_FILTER_MSG0()
 
-#ifdef Editbox_EnableKbdAdjustNumber_DEBUG
-/*
-#define vaDBG vaDbgTs
-#include <mswin/winuser.itc.h>
-*/
-#else
-#ifndef vaDBG
-# define vaDBG(...)
+#define CxxWindowSubclass_IMPL
+#include <mswin/CxxWindowSubclass.h>
+
+
+#ifndef Editbox_EnableKbdAdjustNumber_DEBUG
+#include <CHHI_vaDBG_hide.h>
 #endif
-#ifndef ITCSv
-# define ITCSv(...) 0
-#endif
-#endif // not Editbox_EnableKbdAdjustNumber_DEBUG
 
 
 namespace EditboxKAN
 {
 
-enum { HEXMAGIC = 0x20241024 };
-enum { SZFMT_MAX_= 8 };
+//enum { SZFMT_MAX_= 8 };
 enum { MaxUpDownDigits = 6 };
 
-// Keyword used to store the original WndProc in the window's property-list
-const TCHAR* MYEDITBOX_PROP_STR = _T("WndProc_before_EnableKbdAdjustNumber");
+const TCHAR *s_sigSubclass = _T("sig_EditboxKAN");
 
-struct EditCustProp_st
+class EditboxPeeker : public CxxWindowSubclass
 {
-	UINT hexmagic;
-	WNDPROC wndproc_was;
-	int min_val;
-	int max_val;
-	bool is_wrap_around;
-	bool is_pad_0; // "5" becomes "05" or "005" etc, according to hot length
+public:
+	EditboxPeeker() {}
+	void ctor_params(int min_val, int max_val, bool is_wrap_around, bool is_pad_0);
 
-	bool is_cleanup_ready;
-	bool is_mouse_hidden;
+	virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-	EditCustProp_st(WNDPROC wndproc_was,
-		int min_val, int max_val, bool is_wrap_around, bool is_pad_0)
-	{
-		this->hexmagic = HEXMAGIC;
-		this->wndproc_was = wndproc_was;
-		this->min_val = min_val;
-		this->max_val = max_val;
-		this->is_wrap_around = is_wrap_around;
-		this->is_pad_0 = is_pad_0;
-
-		this->is_cleanup_ready = false;
-		this->is_mouse_hidden = false;
-	}
-
+private:
 	void HideMouse()
 	{
 		// When user starts adjusting numbers with keyboard, I'll hide the mouse 
@@ -111,7 +86,34 @@ struct EditCustProp_st
 			is_mouse_hidden = false;
 		}
 	}
+
+	MsgRelay_et Edit_OnKey(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT flags);
+
+	MsgRelay_et Edit_OnMouseMove(HWND hEdit, int x, int y, UINT keyFlags);
+
+	MsgRelay_et Edit_OnNCDestroy(HWND hEdit);
+
+private:
+	int min_val;
+	int max_val;
+	bool is_wrap_around;
+	bool is_pad_0; // "5" becomes "05" or "005" etc, according to hot length
+
+	bool is_cleanup_ready;
+	bool is_mouse_hidden;
 };
+
+void
+EditboxPeeker::ctor_params(int min_val, int max_val, bool is_wrap_around, bool is_pad_0)
+{
+	this->min_val = min_val;
+	this->max_val = max_val;
+	this->is_wrap_around = is_wrap_around;
+	this->is_pad_0 = is_pad_0;
+
+	this->is_cleanup_ready = false;
+	this->is_mouse_hidden = false;
+}
 
 
 static bool is_all_number_digits(const TCHAR *p, int nchars)
@@ -125,7 +127,8 @@ static bool is_all_number_digits(const TCHAR *p, int nchars)
 	return true;
 }
 
-static MsgRelay_et Edit_OnKey(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT flags)
+MsgRelay_et
+EditboxPeeker::Edit_OnKey(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT flags)
 {
 	HWND hEdit = hwnd;
 
@@ -157,7 +160,7 @@ static MsgRelay_et Edit_OnKey(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT 
 	int startPos = 0, endPos = 0;
 	SendMessage(hEdit, EM_GETSEL, (WPARAM)&startPos, (LPARAM)&endPos);
 
-	vaDBG(_T("hEdit 0x%08X: [#%d~%d) %s | %.*s"), hEdit, startPos, endPos, szText, 
+	vaDBG2(_T("hEdit 0x%08X: [#%d~%d) %s | %.*s"), hEdit, startPos, endPos, szText, 
 		endPos-startPos, szText+startPos // the substring after |
 		);
 
@@ -169,7 +172,7 @@ static MsgRelay_et Edit_OnKey(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT 
 	}
 
 	// Now, we check two cases.
-	// Case 1: If user has explicitly select(higlighted) some numbered text,
+	// Case 1: If user has explicitly select(highlighted) some numbered text,
 	//         we process only that selected text.
 	// Case 2: If user has selected nothing, we find a whole number string
 	//         around the caret and process that whole number.
@@ -190,7 +193,7 @@ static MsgRelay_et Edit_OnKey(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT 
 			isdigit(szText[startPos]) || (startPos>0 && isdigit(szText[startPos-1]))
 			) ) 
 		{
-			vaDBG(_T("Caret pos NOT on a digit, do nothing."));
+			vaDBG2(_T("Caret pos NOT on a digit, do nothing."));
 			return Relay_yes;
 		}
 		
@@ -210,32 +213,30 @@ static MsgRelay_et Edit_OnKey(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT 
 	
 	if(hotlen<=MaxUpDownDigits)
 	{
-		vaDBG(_T("hEdit 0x%08X: hot [@%d~%d) %s"), hEdit,	startHot, endHot_, szHot);
+		vaDBG2(_T("hEdit 0x%08X: hot [@%d~%d) %s"), hEdit,	startHot, endHot_, szHot);
 	}
 	else
 	{
-		vaDBG(_T("hEdit 0x%08X: bad [@%d~%d) %s (exceed %d)"), hEdit, startHot, endHot_, szHot, MaxUpDownDigits);
+		vaDBG2(_T("hEdit 0x%08X: bad [@%d~%d) %s (exceed %d)"), hEdit, startHot, endHot_, szHot, MaxUpDownDigits);
 		return Relay_yes;
 	}
 
 	// Now we increase/decrease the hot number.
 
-	EditCustProp_st *myprop = (EditCustProp_st*)GetProp(hEdit, MYEDITBOX_PROP_STR);
-	
 	int numHot = _tcstoul(szHot, 0, 10);
 	int newHot = is_inc ? numHot+1 : numHot-1;
-	if(newHot > myprop->max_val)
+	if(newHot > max_val)
 	{
-		newHot = myprop->is_wrap_around ? myprop->min_val : myprop->max_val;
+		newHot = is_wrap_around ? min_val : max_val;
 	}
-	else if(newHot < myprop->min_val)
+	else if(newHot < min_val)
 	{
-		newHot = myprop->is_wrap_around ? myprop->max_val : myprop->min_val;
+		newHot = is_wrap_around ? max_val : min_val;
 	}
 
 	assert(hotlen>0);
 	TCHAR szFmt[20] = _T("%d");
-	if(myprop->is_pad_0)
+	if(is_pad_0)
 		_sntprintf_s(szFmt, _TRUNCATE, _T("%%0%ud"), hotlen);
 	
 	TCHAR szNewHot[TBUFSIZE] = {};
@@ -245,13 +246,13 @@ static MsgRelay_et Edit_OnKey(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT 
 
 	if(hotlenv > hotlen)
 	{
-		// For example, there is "52" at carent, but user select only "5"(hotlen==1) and then increase it.
+		// For example, there is "52" at caret, but user select only "5"(hotlen==1) and then increase it.
 		// Then, when hotstring goes from 5,6,7... and reaches "10", we should chop off the "1"
 		// and preserve only the "0", bcz strlen("10") has exceeded hotlen.
 		pszNewHot = szNewHot + hotlenv - hotlen;
 	}
 
-	vaDBG(_T("    %s : %s -> %s"), is_inc?_T("INC"):_T("DEC"), szHot, pszNewHot);
+	vaDBG2(_T("    %s : %s -> %s"), is_inc?_T("INC"):_T("DEC"), szHot, pszNewHot);
 
 	TCHAR szNewText[TBUFSIZE] = {};
 	
@@ -263,48 +264,44 @@ static MsgRelay_et Edit_OnKey(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT 
 	Edit_SetText(hEdit, szNewText);
 	Edit_SetSel(hEdit, startHot, endHot_);
 	
-	if(myprop->is_cleanup_ready)
+	if(is_cleanup_ready)
 	{
-		myprop->HideMouse();
+		HideMouse();
 	}
 	
 	return Relay_no;
 }
 
-MsgRelay_et Edit_OnMouseMove(HWND hEdit, int x, int y, UINT keyFlags)
+MsgRelay_et
+EditboxPeeker::Edit_OnMouseMove(HWND hEdit, int x, int y, UINT keyFlags)
 {
-	EditCustProp_st *myprop = (EditCustProp_st*)GetProp(hEdit, MYEDITBOX_PROP_STR);
-
-	if(! myprop->is_cleanup_ready)
+	if(! is_cleanup_ready)
 	{
 		// Establish WM_MOUSELEAVE tracking.
 		TRACKMOUSEEVENT tme = {sizeof(tme), TME_LEAVE, hEdit};
 		TrackMouseEvent(&tme);
 
-		myprop->is_cleanup_ready = true;
+		is_cleanup_ready = true;
 	}
 
 	return Relay_yes;
 }
 
-MsgRelay_et Edit_OnNCDestroy(HWND hEdit)
+MsgRelay_et
+EditboxPeeker::Edit_OnNCDestroy(HWND hEdit)
 {
 	EditboxKAN_err err = Editbox_DisableKbdAdjustNumber(hEdit);
     assert(!err);
+
 	return Relay_yes;
 }
 
 // Custom window procedure for the edit control
-LRESULT CALLBACK Edit_MyWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT 
+EditboxPeeker::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	HWND hEdit = hwnd;
 	
-    // Retrieve the original WndProc from the window's properties
-	//
-	EditCustProp_st *myprop = (EditCustProp_st*)GetProp(hEdit, MYEDITBOX_PROP_STR);
-    WNDPROC oldWndProc = myprop->wndproc_was;
-	bool succ = false;
-
     switch (uMsg)
 	{
 		SUBCLASS_FILTER_MSG0(hwnd, WM_KEYDOWN, Edit_OnKey);
@@ -312,71 +309,55 @@ LRESULT CALLBACK Edit_MyWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
     	SUBCLASS_FILTER_MSG0(hwnd, WM_NCDESTROY, Edit_OnNCDestroy);
 	
 	case WM_MOUSELEAVE: 
-		myprop->ShowMouse();
-		myprop->is_cleanup_ready = false;
+		ShowMouse();
+		is_cleanup_ready = false;
 		break;
 	}
 
-    // Call the original WndProc for default processing
-    return CallWindowProc(oldWndProc, hEdit, uMsg, wParam, lParam);
+    // Call into existing WndProc chain.
+    return DefSubclassProc(hwnd, uMsg, wParam, lParam);
 }
 
 
 EditboxKAN_err _Editbox_EnableKbdAdjustNumber(HWND hEdit,
 	int min_val, int max_val, bool is_wrap_around, bool is_pad_0)
 {
-	EditCustProp_st *myprop = (EditCustProp_st*)GetProp(hEdit, MYEDITBOX_PROP_STR);
-	if(myprop)
+	if(!IsWindow(hEdit))
+		return EditboxKAN_BadParam;
+
+	CxxWindowSubclass::ReCode_et err = CxxWindowSubclass::E_Fail;
+	EditboxPeeker *peeker = CxxWindowSubclass::FetchCxxobjFromHwnd<EditboxPeeker>(
+		hEdit, s_sigSubclass, 
+		TRUE, 
+		&err);
+
+	if(err==CxxWindowSubclass::E_Existed)
 		return EditboxKAN_AlreadyEnabled;
 
-	myprop = new EditCustProp_st(nullptr,
-		min_val, max_val, is_wrap_around, is_pad_0);
-	if(!myprop)
-		return EditboxKAN_NoMem;
+	if(!peeker)
+		return EditboxKAN_Unknown;
 
-    WNDPROC oldWndProc = SubclassWindow(hEdit, Edit_MyWndProc);
+	peeker->ctor_params(min_val, max_val, is_wrap_around, is_pad_0);
 
-	myprop->wndproc_was = oldWndProc;
-	
-    BOOL succ = SetProp(hEdit, MYEDITBOX_PROP_STR, myprop); // Store custom props into hEdit.
-	if(succ)
-	{
-		return EditboxKAN_Succ;
-	}
-	else
-	{	// restore old state
-		SubclassWindow(hEdit, oldWndProc);
-		delete myprop;
-		return EditboxKAN_SetProp;
-	}
+	return EditboxKAN_Succ;
 }
 
 EditboxKAN_err _Editbox_DisableKbdAdjustNumber(HWND hEdit)
 {
-	WNDPROC currentWndProc = (WNDPROC)GetWindowLongPtr(hEdit, GWLP_WNDPROC);
-	EditCustProp_st *myprop = (EditCustProp_st*)GetProp(hEdit, MYEDITBOX_PROP_STR);
+	if(!IsWindow(hEdit))
+		return EditboxKAN_BadParam;
 
-	if(!myprop)
+	CxxWindowSubclass::ReCode_et err = CxxWindowSubclass::E_Fail;
+	EditboxPeeker *peeker = CxxWindowSubclass::FetchCxxobjFromHwnd<EditboxPeeker>(
+		hEdit, s_sigSubclass, 
+		FALSE, 
+		&err);
+
+	if(err==CxxWindowSubclass::E_NotExist)
 		return EditboxKAN_NotEnabledYet;
-
-	if(currentWndProc != Edit_MyWndProc)
-	{
-		// Someone else has further subclassed this hEdit, so we should not unsubclass it.
-		return EditboxKAN_ChainMoved;
-	}
-
-	assert(myprop->hexmagic==HEXMAGIC);
-	assert(myprop->wndproc_was);
-
-	// Restore original WndProc for editbox
-	SubclassWindow(hEdit, myprop->wndproc_was);
-
-	// Remove our custom wnd-prop
-	RemoveProp(hEdit, MYEDITBOX_PROP_STR);
-
-	// Destroy our custom struct
-	delete myprop;
 	
+	peeker->DetachHwnd(true);
+
 	return EditboxKAN_Succ;
 }
 
@@ -397,6 +378,12 @@ EditboxKAN_err Editbox_DisableKbdAdjustNumber(HWND hEdit)
 	return EditboxKAN::_Editbox_DisableKbdAdjustNumber(hEdit);
 }
 
+
+
+#ifndef Editbox_EnableKbdAdjustNumber_DEBUG
+#include <CHHI_vaDBG_show.h>
+#endif
+
 #endif // Editbox_EnableKbdAdjustNumber_IMPL
 
-#endif // __Editbox_EnableKbdAdjustNumber_h_
+#endif
