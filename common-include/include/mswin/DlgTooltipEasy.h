@@ -409,7 +409,7 @@ CHottoolSubsi::ShowUsageTooltip(bool is_show, int duration_millisec)
 
 	if (duration_millisec <= 0)
 	{
-		duration_millisec = SendMessage(hwndTooltip, TTM_GETDELAYTIME, TTDT_AUTOPOP, 0);
+		duration_millisec = (int)SendMessage(hwndTooltip, TTM_GETDELAYTIME, TTDT_AUTOPOP, 0);
 		
 		if(duration_millisec<=0)
 			duration_millisec = 9999;
