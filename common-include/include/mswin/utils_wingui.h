@@ -31,20 +31,7 @@ void vaAppendText_mled(HWND hedit, const TCHAR *szfmt, ...);
 typedef void PROC_WM_TIMER_call_once(void *usercontext);
 bool WM_TIMER_call_once(HWND hwnd, int delay_millisec, PROC_WM_TIMER_call_once *userproc, void *usercontext);
 
-unsigned __int64 get_qpf();
-unsigned __int64 get_qpc();
-
-DWORD TrueGetMillisec();
-
-inline const TCHAR *str_ANSIorUnicode()
-{
-	return sizeof(TCHAR)==1 ? _T("ANSI") : _T("Unicode");
-}
-
 void util_SetDlgDefaultButton(HWND hwndDlg, UINT idDefault);
-
-BOOL Is_UserAnAdmin();
-
 
 
 ///////////////////////////////////////////////////////////////
@@ -52,6 +39,11 @@ BOOL Is_UserAnAdmin();
 ///////////////////////////////////////////////////////////////
 
 #ifdef utils_wingui_IMPL
+
+#include <assert.h>
+
+#define utils_env_IMPL
+#include <mswin/utils_env.h> // need GetExeFilename
 
 
 int vaMsgBox(HWND hwnd, UINT utype, const TCHAR *szTitle, const TCHAR *szfmt, ...)
@@ -175,36 +167,6 @@ bool WM_TIMER_call_once(HWND hwnd, int delay_millisec,
 	return true;
 }
 
-unsigned __int64 get_qpf()
-{
-	LARGE_INTEGER li = {};
-	BOOL succ = QueryPerformanceFrequency(&li);
-	if(!succ)
-		return -1;
-	else
-		return li.QuadPart;
-}
-
-unsigned __int64 get_qpc()
-{
-	LARGE_INTEGER li = {};
-	BOOL succ = QueryPerformanceCounter(&li);
-	if(!succ)
-		return -1;
-	else
-		return li.QuadPart;
-}
-
-DWORD TrueGetMillisec()
-{
-	static __int64 s_qpf = get_qpf();
-
-	// We should use QueryPerformanceCounter(), 
-	// bcz GetTickCount only has 15.6 ms resolution.
-	DWORD millisec = DWORD(get_qpc()*1000 / s_qpf);
-	return millisec;
-}
-
 
 void util_SetDlgDefaultButton(HWND hwndDlg, UINT idDefault) 
 {
@@ -228,30 +190,6 @@ void util_SetDlgDefaultButton(HWND hwndDlg, UINT idDefault)
 	SendDlgItemMessage(hwndDlg, idDefault, BM_SETSTYLE, 
 		BS_DEFPUSHBUTTON, // make it a stand-out button
 		(LPARAM) TRUE); 
-}
-
-#pragma comment(lib, "Shell32.lib")
-
-BOOL Is_UserAnAdmin()
-{
-	// Define this wrapper instead of using IsUserAnAdmin(), bcz on VC2015 blames warning on a buggy line from ShlObj.h:
-	/*
-1>C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\include\ShlObj.h(1151): warning C4091: 'typedef ': ignored on left of 'tagGPFIDL_FLAGS' when no variable is declared
-1>         utils.cpp
-
-The buggy line is(L#1146):
-
-typedef enum tagGPFIDL_FLAGS
-{
-	GPFIDL_DEFAULT    = 0x0000,      // normal Win32 file name, servers and drive roots included
-	GPFIDL_ALTNAME    = 0x0001,      // short file name
-	GPFIDL_UNCPRINTER = 0x0002,      // include UNC printer names too (non file system item)
-};
-
-WinSDK 8.1 has fixed it.
-	*/
-	
-	return IsUserAnAdmin();
 }
 
 
