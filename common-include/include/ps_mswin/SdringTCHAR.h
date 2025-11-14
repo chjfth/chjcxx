@@ -3,6 +3,14 @@
 
 // This is for Windows.
 
+/* [2025-11-14] This file may be redundant. When you need String, why not write:
+
+	#include <ps_TCHAR.h>
+	
+	typedef sdring<TCHAR> Sdring
+
+*/
+
 #include <sdring.h>
 
 #include <tchar.h>

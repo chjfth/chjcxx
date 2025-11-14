@@ -2,7 +2,7 @@
 #define __snTprintf_h_20250628_
 
 // snTprintf() is the TCHAR-style function name for C99 snprintf and its WCHAR counterpart.
-// This is C++ header(not C header), useable on VC2010+
+// This is C++ header(not C header), usable on VC2010+.
 
 #include <stdarg.h>
 #include <stdio.h>
