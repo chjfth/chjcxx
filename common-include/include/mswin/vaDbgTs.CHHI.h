@@ -9,13 +9,8 @@
 #include <stdlib.h>
 #include <wchar.h>
 
-#include <commdefs.h>
-
 //////////////////////////////// #include done ////////////////////////////////
 
-#ifndef WinMultiMon_DEBUG
-#include <CHHI_vaDBG_hide.h>
-#endif
 
 namespace CHHI_vaDbgTs { // private namespace
 
@@ -93,12 +88,12 @@ void ivlDbgTs(const TCHAR *fmt, va_list args) // internal debug interface
 	SYSTEMTIME st = {};
 	GetLocalTime(&st);
 
-	_sntprintf_s(buf, _TRUNCATE, _T("{%04d-%02d-%02d_%02d:%02d:%02d}ivaDbg: "),
+	snTprintf(buf, _T("{%04d-%02d-%02d_%02d:%02d:%02d}ivaDbg: "),
 		st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
 
 	int pfxlen = _tcslen(buf);
 
-	_vsntprintf_s(buf+pfxlen, ARRAYSIZE(buf)-pfxlen, _TRUNCATE, fmt, args);
+	vsnTprintf(buf+pfxlen, ARRAYSIZE(buf)-pfxlen, fmt, args);
 	
 	pfxlen = _tcslen(buf);
 	if(pfxlen == ARRAYSIZE(buf)-1)
@@ -141,49 +136,33 @@ void default_output_proc(const TCHAR *dbgstr, void *ctx)
 }
 
 
-const int msec_bias_tolerant = 1000;
-
-int g_msec_check_interval = 10000;
-
-const int DBG_BUFCHARS = 16000;
-
-static int g_dbgcount = 0;
-
-unsigned int g_opts = vaDbg_all;
-
-PROC_vaDbg_output *g_vadbg_output = default_output_proc;
-void *g_ctx_output = 0;
-
-
-void vaDbg_set_output(PROC_vaDbg_output proc, void *ctx)
-{
-	g_vadbg_output = proc;
-	g_ctx_output = ctx;
-}
-
-TCHAR* SystimeToString(const SYSTEMTIME &st, TCHAR buf[], int bufchars)
+TCHAR* SystimeToString(vaDbg_opt_et opts, const SYSTEMTIME &st, TCHAR buf[], int bufchars)
 {
 	buf[0] = '['; buf[1] = '\0';
 
-	if (g_opts & vaDbg_ymd)
+	if (opts & vaDbg_ymd)
 	{
-		_sntprintf_s(buf, bufchars, _TRUNCATE, _T("%s%04d-%02d-%02d_"), buf,
+		snTprintf(buf, bufchars, _T("%s%04d-%02d-%02d_"), buf,
 			st.wYear, st.wMonth, st.wDay);
 	}
 
-	_sntprintf_s(buf, bufchars, _TRUNCATE, _T("%s%02d:%02d:%02d"), buf,
+	snTprintf(buf, bufchars, _T("%s%02d:%02d:%02d"), buf,
 		st.wHour, st.wMinute, st.wSecond);
 
-	if (g_opts & vaDbg_millisec)
+	if (opts & vaDbg_millisec)
 	{
-		_sntprintf_s(buf, bufchars, _TRUNCATE, _T("%s.%03d"), buf,
+		snTprintf(buf, bufchars, _T("%s.%03d"), buf,
 			st.wMilliseconds);
 	}
 
-	_sntprintf_s(buf, bufchars, _TRUNCATE, _T("%s]"), buf);
+	snTprintf(buf, bufchars, _T("%s]"), buf);
 
 	return buf;
 }
+
+const int msec_bias_tolerant = 1000;
+
+int g_msec_check_interval = 10000;
 
 
 struct SAccuMillisec
@@ -209,7 +188,7 @@ struct SAccuMillisec
 		ivaDbgTs1(_T("Reset() done. uemsec_base=%I64u, mt_base=%u"), uemsec_base, mt_base);
 	}
 
-	TCHAR* NowTimeStr(TCHAR buf[], int bufchars)
+	TCHAR* NowTimeStr(vaDbg_opt_et opts, TCHAR buf[], int bufchars)
 	{
 		// This function deals with system clock bias overtime. Cases are
 		// * User changes system clock suddenly.
@@ -260,23 +239,20 @@ struct SAccuMillisec
 
 		buf[0] = '['; buf[1] = '\0';
 				
-		return SystimeToString(st, buf, bufchars);
+		return SystimeToString(opts, st, buf, bufchars);
 	}
 };
 
-SAccuMillisec g_accums;
-
-unsigned int vaDbgTs_options(unsigned int opts)
+TCHAR* now_timestr(vaDbg_opt_et opts, TCHAR buf[], int bufchars)
 {
-	Uint oldval = g_opts;
-	g_opts = opts;
-	return oldval;
+	static SAccuMillisec g_accums;
+	return g_accums.NowTimeStr(opts, buf, bufchars);
 }
 
 int vaDbgTs_bias_check_interval(int seconds)
 {
 	int oldval = g_msec_check_interval / 1000;
-	
+
 	if(seconds>0)
 	{ 
 		g_msec_check_interval = seconds * 1000;
@@ -286,138 +262,10 @@ int vaDbgTs_bias_check_interval(int seconds)
 }
 
 
-
-void vlDbgTs(const TCHAR *fmt, va_list args)
-{
-	// Note: Each calling outputs one line, with timestamp prefix.
-	// A '\n' will be added automatically at end.
-
-	static DWORD s_prev_msec = va_millisec();
-
-	DWORD now_msec = va_millisec();
-
-	TCHAR buf[DBG_BUFCHARS] = {0};
-
-	// Print extra dot-line to show that time has elapsed for more than one second.
-	DWORD delta_msec = now_msec - s_prev_msec;
-	if(delta_msec>=1000)
-	{
-		g_vadbg_output(_T(".\n"), g_ctx_output);
-	}
-
-	TCHAR timebuf[40] = {};
-	g_accums.NowTimeStr(timebuf, ARRAYSIZE(timebuf));
-
-	if(g_opts & vaDbg_diff)
-	{
-		_sntprintf_s(buf, _TRUNCATE, _T("[%d]%s (+%3u.%03us) "),
-			++g_dbgcount,
-			timebuf,
-			delta_msec / 1000, delta_msec % 1000);
-	}
-
-	int prefixlen = (int)_tcslen(buf);
-
-	_vsntprintf_s(buf+prefixlen, ARRAYSIZE(buf)-3-prefixlen, _TRUNCATE, fmt, args);
-
-	if(g_opts & vaDbg_newline)
-	{
-		// add trailing \n
-		int slen = (int)_tcslen(buf);
-		if(slen==ARRAYSIZE(buf)-1)
-			--slen;
-
-		buf[slen] = '\n';
-		buf[slen+1] = '\0';
-	}
-
-	g_vadbg_output(buf, g_ctx_output);
-
-	s_prev_msec = now_msec;
-}
-
-
-void vlDbgS(const TCHAR *fmt, va_list args)
-{
-	// This only has Sequential prefix.
-
-	TCHAR buf[DBG_BUFCHARS] = {0};
-
-	_sntprintf_s(buf, ARRAYSIZE(buf)-3, _TRUNCATE, TEXT("[%d] "), ++g_dbgcount); // prefix seq
-
-	int prefixlen = (int)_tcslen(buf);
-
-	_vsntprintf_s(buf+prefixlen, ARRAYSIZE(buf)-3-prefixlen, _TRUNCATE, fmt, args);
-
-	if(g_opts & vaDbg_newline)
-	{
-		// add trailing \n
-		int slen = (int)_tcslen(buf);
-		if(slen==ARRAYSIZE(buf)-1)
-			--slen;
-
-		buf[slen] = '\n';
-		buf[slen+1] = '\0';
-
-	}
-
-	g_vadbg_output(buf, g_ctx_output);
-}
-
-
 } // private namespace
 
-////////////////////////////////////////////////////////////////////////////////// 
-//////////////////////////////// public API below ////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////
-
-unsigned int va_millisec()
-{
-	return CHHI_vaDbgTs::va_millisec();
-}
-
-void vaDbgTs(const TCHAR *fmt, ...)
-{
-	va_list args;
-	va_start(args, fmt);
-	CHHI_vaDbgTs::vlDbgTs(fmt, args);
-	va_end(args);
-}
-
-void vlDbgTs(const TCHAR *fmt, va_list args)
-{
-	CHHI_vaDbgTs::vlDbgTs(fmt, args);
-}
-
-void vaDbgS(const TCHAR *fmt, ...)
-{
-	va_list args;
-	va_start(args, fmt);
-	CHHI_vaDbgTs::vlDbgS(fmt, args);
-	va_end(args);
-}
-
-void vlDbgS(const TCHAR *fmt, va_list args)
-{
-	CHHI_vaDbgTs::vlDbgS(fmt, args);
-}
-
-
-unsigned int vaDbgTs_options(unsigned int opts)
-{
-	return CHHI_vaDbgTs::vaDbgTs_options(opts);
-}
 
 int vaDbgTs_bias_check_interval(int seconds)
 {
 	return CHHI_vaDbgTs::vaDbgTs_bias_check_interval(seconds);
 }
-
-void vaDbg_set_output(PROC_vaDbg_output proc, void *ctx)
-{
-	CHHI_vaDbgTs::vaDbg_set_output(proc, ctx);
-}
-
-#ifndef WinMultiMon_DEBUG
-#include <CHHI_vaDBG_show.h>
-#endif
