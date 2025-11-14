@@ -22,6 +22,19 @@
 
 	Of course, vaDbgTs does not launch a background thread for bias check, it is only 
 	carried out when user calls vaDbgTs().
+	
+	snTprintf note: This file contains snprintf calling code shared by MSVC & GCC.
+	But, Linux's snprintf(eg Ubuntu 20.04, gcc 9.4) lacks the ability to append a buffer 
+	with more substrings. So avoid doing that.
+	.
+	The following code prints "123456789" on MSVC, but not on GCC:
+	
+	    const int size = 20;
+	    char buf[size] = "123";
+	    snprintf(buf, size, "%s%d", buf, 456);
+	    snprintf(buf, size, "%s%d", buf, 789);
+	   
+	    printf("%s\n", buf);
 */
 
 #include <stdarg.h>

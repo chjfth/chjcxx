@@ -30,25 +30,34 @@ char* now_timestr(vaDbg_opt_et opts, char buf[], int bufchars)
 {
 	timeval tv_abs = {};
 	gettimeofday(&tv_abs, NULL);
-	
+
 	struct tm tm;
 	struct tm *ptm = localtime_r(&tv_abs.tv_sec, &tm);
-	
+
 	buf[0] = '['; buf[1] = '\0';
 
 	if (opts & vaDbg_ymd)
 	{
-		snTprintf(buf, bufchars, _T("%s%04d-%02d-%02d_"), buf,
-			tm.tm_year, tm.tm_mon, tm.tm_mday);
+		snTprintf(buf+1, bufchars-1, _T("%04d-%02d-%02d_"),     
+			tm.tm_year+1900, tm.tm_mon+1, tm.tm_mday);
 	}
 
-	snTprintf(buf, bufchars, _T("%s%02d:%02d:%02d"), buf,
+	int pfxlen = (int)strlen(buf);
+	snTprintf(buf+pfxlen, bufchars-pfxlen, _T("%02d:%02d:%02d"),     
 		tm.tm_hour, tm.tm_min, tm.tm_sec);
 
+	pfxlen = (int)strlen(buf);
 	if (opts & vaDbg_millisec)
 	{
-		snTprintf(buf, bufchars, _T("%s.%03d"), buf,
-			tv_abs.tv_usec/1000);
+		snTprintf(buf+pfxlen, bufchars-pfxlen, _T(".%03d"),     
+		        tv_abs.tv_usec/1000);
+	}
+	
+	pfxlen = (int)strlen(buf);
+	if (pfxlen < bufchars-1)
+	{
+		buf[pfxlen] = ']';
+		buf[pfxlen+1] = '\0';
 	}
 
 	return buf;
@@ -59,7 +68,7 @@ void default_output_proc(const char *dbgstr, void *ctx)
 	(void)ctx;
     openlog("vaDbgTs", LOG_PID | LOG_NDELAY, LOG_USER);
     
-    syslog(LOG_DEBUG, dbgstr);
+    syslog(LOG_DEBUG, "%s", dbgstr);
     
     closelog();
 }
