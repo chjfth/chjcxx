@@ -96,12 +96,18 @@ void ivlDbgTs(const TCHAR *fmt, va_list args) // internal debug interface
 	_sntprintf_s(buf, _TRUNCATE, _T("{%04d-%02d-%02d_%02d:%02d:%02d}ivaDbg: "),
 		st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
 
-	OutputDebugString(buf);
+	int pfxlen = _tcslen(buf);
 
-	_vsntprintf_s(buf, _TRUNCATE, fmt, args);
-
+	_vsntprintf_s(buf+pfxlen, ARRAYSIZE(buf)-pfxlen, _TRUNCATE, fmt, args);
+	
+	pfxlen = _tcslen(buf);
+	if(pfxlen == ARRAYSIZE(buf)-1)
+		--pfxlen;
+	
+	buf[pfxlen] = '\n';
+	buf[pfxlen+1] = '\0';
+	
 	OutputDebugString(buf);
-	OutputDebugString(_T("\n"));
 }
 
 void ivaDbgTs1(const TCHAR *fmt, ...) // internal debug interface
@@ -292,7 +298,7 @@ void vlDbgTs(const TCHAR *fmt, va_list args)
 
 	TCHAR buf[DBG_BUFCHARS] = {0};
 
-	// Print timestamp to show that time has elapsed for more than one second.
+	// Print extra dot-line to show that time has elapsed for more than one second.
 	DWORD delta_msec = now_msec - s_prev_msec;
 	if(delta_msec>=1000)
 	{
