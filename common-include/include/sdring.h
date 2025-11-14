@@ -1,6 +1,8 @@
 #ifndef __sdring_h_20250512_
 #define __sdring_h_20250512_
 
+#include <ps_TCHAR.h>
+
 template<typename T_CHAR>
 class sdring
 {
@@ -114,6 +116,8 @@ private:
 	T_CHAR* m_buf; // buffer size is m_nchars+1
 };
 
+
+typedef sdring<TCHAR> Sdring;
 
 
 #endif
