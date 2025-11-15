@@ -17,8 +17,8 @@
 	a PCMildTick(15.625 millisec) accuracy. So I need the help of QueryPerformanceCounter()
 	for millisec reference.
 
-	vaDbgTs deals with system clock changing by doing a bias verifying every 10 seconds
-	(configurable via vaDbgTs_bias_verify_interval).
+	On Windows, vaDbgTs deals with system clock drifting by doing a bias verifying every 
+	5 seconds. (configurable via vaDbgTs_bias_check_interval).
 
 	Of course, vaDbgTs does not launch a background thread for bias check, it is only 
 	carried out when user calls vaDbgTs().

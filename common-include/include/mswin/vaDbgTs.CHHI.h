@@ -162,7 +162,7 @@ TCHAR* SystimeToString(vaDbg_opt_et opts, const SYSTEMTIME &st, TCHAR buf[], int
 
 const int msec_bias_tolerant = 1000;
 
-int g_msec_check_interval = 10000;
+int g_bias_check_interval_msec = 5000;
 
 
 struct SAccuMillisec
@@ -202,9 +202,9 @@ struct SAccuMillisec
 
 		int check_delayed = mt_now - mt_last_check;
 
-//		ivaDbgTs2(_T("==== check_delayed=%d , ckin=%d"), check_delayed, g_msec_check_interval);
+//		ivaDbgTs2(_T("==== check_delayed=%d , ckin=%d"), check_delayed, g_bias_check_interval_msec);
 
-		if (abs(check_delayed)>=g_msec_check_interval)
+		if (abs(check_delayed)>=g_bias_check_interval_msec)
 		{
 			// Check for sysclock bias
 
@@ -251,11 +251,11 @@ TCHAR* now_timestr(vaDbg_opt_et opts, TCHAR buf[], int bufchars)
 
 int vaDbgTs_bias_check_interval(int seconds)
 {
-	int oldval = g_msec_check_interval / 1000;
+	int oldval = g_bias_check_interval_msec / 1000;
 
 	if(seconds>0)
 	{ 
-		g_msec_check_interval = seconds * 1000;
+		g_bias_check_interval_msec = seconds * 1000;
 	}
 
 	return oldval;
