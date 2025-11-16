@@ -3,6 +3,7 @@
 
 // This requires C++14 (VC2015+)
 // Vierarchy: V-round-calling hierarchy
+// (still in experimental state)
 
 #include <tuple>
 #include <utility>
