@@ -63,9 +63,10 @@ char* now_timestr(vaDbg_opt_et opts, char buf[], int bufchars)
 	return buf;
 }
 
-void default_output_proc(const char *dbgstr, void *ctx)
+void default_output_proc(vaDbg_level_et lvl, const char *dbgstr, void *ctx)
 {
-	(void)ctx;
+	(void)lvl; (void)ctx;
+
     openlog("vaDbgTs", LOG_PID | LOG_NDELAY, LOG_USER);
     
     syslog(LOG_DEBUG, "%s", dbgstr);

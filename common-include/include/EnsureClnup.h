@@ -327,11 +327,13 @@ public:
 #define MakeDelega_CleanupPtr_winapi(CecClassName, RetType, pCleanupFunction, PTR_TYPE) \
 	inline RetType CecClassName ## pCleanupFunction ## _Ptr__plain(PTR_TYPE ptr){ return pCleanupFunction(ptr); } \
 	typedef CEnsureCleanupPtr< PTR_TYPE, RetType, CecClassName ## pCleanupFunction ## _Ptr__plain > CecClassName;
+	// MakeCleanupClass_winapi's _winapi suffix implies that:
+	// it provides a non-__stdcall wrapper so that CEnsureCleanupData can be used smoothly.
+	// You know, for x86 Windows app code, a __cdecl function is not compatible with a __stdcall one.
 
 #define MakeDelega_CleanupAny_winapi(CecClassName, RetType, pCleanupFunction, DATA_TYPE, ValueInvalid) \
 	inline RetType CecClassName ## pCleanupFunction ## __plain(DATA_TYPE h){ return pCleanupFunction(h); } \
 	typedef CEnsureCleanupData<DATA_TYPE, RetType, CecClassName ## pCleanupFunction ## __plain, ValueInvalid> CecClassName;
-	// MakeCleanupClass_winapi provide a non-__stdcall wrapper so that CEnsureCleanupData can be used smoothly.
 
 
 //
