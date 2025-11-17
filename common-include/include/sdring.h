@@ -1,7 +1,7 @@
-#ifndef __sdring_h_20250512_
-#define __sdring_h_20250512_
+#ifndef __sdring_h_20251117_
+#define __sdring_h_20251117_
 
-#include <ps_TCHAR.h>
+//#include <ps_TCHAR.h>
 
 template<typename T_CHAR>
 class sdring
@@ -34,7 +34,7 @@ public:
 
 	sdring& operator=(sdring&& old) // move-assign
 	{
-		if (this != old) {
+		if (this != &old) {
 			delete this->m_buf;
 			_steal_from_old(old);
 		}
@@ -53,6 +53,10 @@ public:
 	}
 
 	T_CHAR* getbuf() {
+		return m_buf;
+	}
+
+	T_CHAR* c_str() {
 		return m_buf;
 	}
 
@@ -93,12 +97,12 @@ private:
 		m_buf = nullptr;
 
 		if (instr)
-			m_nchars = (int)_tcslen(instr);
+			m_nchars = str_len(instr);
 
 		if (m_nchars > 0)
 		{
 			m_buf = new T_CHAR[bufSize(m_nchars)];
-			_tcscpy_s(m_buf, bufSize(m_nchars), instr);
+			str_cpy(m_buf, instr);
 		}
 	}
 
@@ -109,6 +113,23 @@ private:
 
 		old.m_buf = nullptr;
 		old.m_nchars = 0;
+	}
+
+	static int str_len(const T_CHAR s[])
+	{
+		int slen = 0;
+		while(s[slen])
+			slen++;
+		return slen;
+	}
+
+	static int str_cpy(T_CHAR dst[], const T_CHAR src[])
+	{
+		int i = 0;
+		for(; src[i]; i++)
+			dst[i] = src[i];
+		dst[i] = 0; // append NUL char
+		return i; // i is string len
 	}
 
 private:
