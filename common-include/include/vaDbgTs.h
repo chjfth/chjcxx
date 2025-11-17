@@ -50,15 +50,28 @@ unsigned int va_millisec();
 // WinNT's GetTickCount() at most times has only 15.625 millisec precision.
 // This should be an ever increasing value, even after user turns system clock backward.
 
-void vaDbgTs(const TCHAR *fmt, ...); // with seq+timestamp prefix
+void vaDbgTs(const TCHAR *fmt, ...);
 void vlDbgTs(const TCHAR *fmt, va_list args);
 
-void vaDbgS(const TCHAR *fmt, ...);  // with sequence-only prefix
-void vlDbgS(const TCHAR *fmt, va_list args);
 
-typedef void PROC_vaDbg_output(const TCHAR *dbgstr, void *ctx);
+enum vaDbg_level_et
+{
+	vaDbg_ERROR = 0,
+	vaDbg_WARN = 1,
+	vaDbg_INFO = 2,
+	vaDbg_VERBOSE = 3,
+
+	vaDbg_DOTS = -1
+};
+
+void vaDbgTsl(vaDbg_level_et lvl, const TCHAR *fmt, ...);
+void vlDbgTsl(vaDbg_level_et lvl, const TCHAR *fmt, va_list args);
+
+
+typedef void PROC_vaDbg_output(vaDbg_level_et lvl, const TCHAR *dbgstr, void *ctx);
 
 void vaDbg_set_output(PROC_vaDbg_output proc, void *ctx);
+
 
 enum vaDbg_opt_et {
 	vaDbg_seq = 1,      // leading sequence number
@@ -144,7 +157,7 @@ void vaDbg_set_output(PROC_vaDbg_output proc, void *ctx)
 
 
 
-void vlDbgTs(const TCHAR *fmt, va_list args)
+void vlDbgTsl(vaDbg_level_et lvl, const TCHAR *fmt, va_list args)
 {
 	// Note: Each calling outputs one line, with timestamp prefix.
 	// A '\n' will be added automatically at end.
@@ -159,25 +172,44 @@ void vlDbgTs(const TCHAR *fmt, va_list args)
 	Uint delta_msec = now_msec - s_prev_msec;
 	if(delta_msec>=1000)
 	{
-		g_vadbg_output(_T(".\n"), g_ctx_output);
+		TCHAR dots[12] = _T("..........\n");
+		Uint delta_sec = delta_msec / 1000;
+		if(delta_sec>10)
+			delta_sec = 10;
+
+		dots[delta_sec] = '\n';
+		dots[delta_sec+1] = '\0';
+		g_vadbg_output(vaDbg_DOTS, dots, g_ctx_output);
 	}
 
 	TCHAR timebuf[60] = {};
 	now_timestr(g_opts, timebuf, ARRAYSIZE(timebuf));
 
-	if(g_opts & vaDbg_diff)
+	int prefixlen = 0;
+
+	int opts = g_opts;
+	if(opts & vaDbg_seq)
 	{
-		snTprintf(buf, _T("[%d]%s (+%3u.%03us) "),
-			++g_dbgcount,
-			timebuf,
+		snTprintf(buf, _T("[%d]%s "), ++g_dbgcount,	timebuf);
+	}
+	else
+	{
+		snTprintf(buf, _T("%s "), ++g_dbgcount,	timebuf);
+	}
+
+	if(opts & vaDbg_diff)
+	{
+		prefixlen = (int)_tcslen(buf);
+
+		snTprintf(buf+prefixlen, ARRAYSIZE(buf)-prefixlen, _T("(+%3u.%03us) "),
 			delta_msec / 1000, delta_msec % 1000);
 	}
 
-	int prefixlen = (int)_tcslen(buf);
+	prefixlen = (int)_tcslen(buf);
 
 	vsnTprintf(buf+prefixlen, ARRAYSIZE(buf)-3-prefixlen, fmt, args);
 
-	if(g_opts & vaDbg_newline)
+	if(opts & vaDbg_newline)
 	{
 		// add trailing \n
 		int slen = (int)_tcslen(buf);
@@ -188,38 +220,11 @@ void vlDbgTs(const TCHAR *fmt, va_list args)
 		buf[slen+1] = '\0';
 	}
 
-	g_vadbg_output(buf, g_ctx_output);
+	g_vadbg_output(lvl, buf, g_ctx_output);
 
 	s_prev_msec = now_msec;
 }
 
-
-void vlDbgS(const TCHAR *fmt, va_list args)
-{
-	// This only has Sequential prefix.
-
-	TCHAR buf[DBG_BUFCHARS] = {0};
-
-	snTprintf(buf, ARRAYSIZE(buf)-3, _T("[%d] "), ++g_dbgcount); // prefix seq
-
-	int prefixlen = (int)_tcslen(buf);
-
-	vsnTprintf(buf+prefixlen, ARRAYSIZE(buf)-3-prefixlen, fmt, args);
-
-	if(g_opts & vaDbg_newline)
-	{
-		// add trailing \n
-		int slen = (int)_tcslen(buf);
-		if(slen==ARRAYSIZE(buf)-1)
-			--slen;
-
-		buf[slen] = '\n';
-		buf[slen+1] = '\0';
-
-	}
-
-	g_vadbg_output(buf, g_ctx_output);
-}
 
 
 } // private namespace
@@ -237,26 +242,26 @@ void vaDbgTs(const TCHAR *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
-	CHHI_vaDbgTs::vlDbgTs(fmt, args);
+	CHHI_vaDbgTs::vlDbgTsl(vaDbg_VERBOSE, fmt, args);
 	va_end(args);
 }
 
 void vlDbgTs(const TCHAR *fmt, va_list args)
 {
-	CHHI_vaDbgTs::vlDbgTs(fmt, args);
+	CHHI_vaDbgTs::vlDbgTsl(vaDbg_VERBOSE, fmt, args);
 }
 
-void vaDbgS(const TCHAR *fmt, ...)
+void vaDbgTsl(vaDbg_level_et lvl, const TCHAR *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
-	CHHI_vaDbgTs::vlDbgS(fmt, args);
+	CHHI_vaDbgTs::vlDbgTsl(lvl, fmt, args);
 	va_end(args);
 }
 
-void vlDbgS(const TCHAR *fmt, va_list args)
+void vlDbgTs(vaDbg_level_et lvl, const TCHAR *fmt, va_list args)
 {
-	CHHI_vaDbgTs::vlDbgS(fmt, args);
+	CHHI_vaDbgTs::vlDbgTsl(vaDbg_VERBOSE, fmt, args);
 }
 
 

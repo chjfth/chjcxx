@@ -129,9 +129,9 @@ void ivaDbgTs2(const TCHAR *fmt, ...) // internal debug interface
 #endif
 }
 
-void default_output_proc(const TCHAR *dbgstr, void *ctx)
+void default_output_proc(vaDbg_level_et lvl, const TCHAR *dbgstr, void *ctx)
 {
-	(void)ctx;
+	(void)lvl; (void)ctx;
 	OutputDebugString(dbgstr);
 }
 
