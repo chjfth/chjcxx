@@ -14,29 +14,36 @@
 
 #ifdef CXX11_OR_NEWER
 
+#define vaDBG_ALL vaDbg_VERBOSE
 
 template<typename... Args>
 void vaDBG(Args&&... args) // forwards all arguments
 {
-	vaDbgTs(std::forward<Args>(args)...);
+	vaDbgTsl(vaDBG_ALL, std::forward<Args>(args)...);
+}
+
+template<typename... Args>
+void vaDBG0(Args&&... args) // forwards all arguments
+{
+	vaDbgTsl(vaDbg_ERROR, std::forward<Args>(args)...);
 }
 
 template<typename... Args>
 void vaDBG1(Args&&... args) // forwards all arguments
 {
-	vaDbgTs(std::forward<Args>(args)...);
+	vaDbgTsl(vaDbg_WARN, std::forward<Args>(args)...);
 }
 
 template<typename... Args>
 void vaDBG2(Args&&... args) // forwards all arguments
 {
-	vaDbgTs(std::forward<Args>(args)...);
+	vaDbgTsl(vaDbg_INFO, std::forward<Args>(args)...);
 }
 
 template<typename... Args>
 void vaDBG3(Args&&... args) // forwards all arguments
 {
-	vaDbgTs(std::forward<Args>(args)...);
+	vaDbgTsl(vaDbg_VERBOSE, std::forward<Args>(args)...);
 }
 
 
@@ -50,7 +57,15 @@ void vaDBG(const TCHAR *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
-	vlDbgTs(fmt, args);
+	vlDbgTsl(vaDBG_ALL, fmt, args);
+	va_end(args);
+};
+
+void vaDBG0(const TCHAR *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	vlDbgTsl(vaDBG_ERROR, fmt, args);
 	va_end(args);
 };
 
@@ -58,7 +73,7 @@ void vaDBG1(const TCHAR *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
-	vlDbgTs(fmt, args);
+	vlDbgTsl(vaDBG_WARN, fmt, args);
 	va_end(args);
 };
 
@@ -66,7 +81,7 @@ void vaDBG2(const TCHAR *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
-	vlDbgTs(fmt, args);
+	vlDbgTsl(vaDBG_INFO, fmt, args);
 	va_end(args);
 };
 
@@ -74,7 +89,7 @@ void vaDBG3(const TCHAR *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
-	vlDbgTs(fmt, args);
+	vlDbgTsl(vaDbg_VERBOSE, fmt, args);
 	va_end(args);
 };
 
