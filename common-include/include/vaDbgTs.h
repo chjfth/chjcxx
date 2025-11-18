@@ -37,6 +37,7 @@
 	    printf("%s\n", buf);
 */
 
+#include <stdio.h>
 #include <stdarg.h>
 
 #include <ps_TCHAR.h> // for stramphibian TCHAR
@@ -68,11 +69,6 @@ void vaDbgTsl(vaDbg_level_et lvl, const TCHAR *fmt, ...);
 void vlDbgTsl(vaDbg_level_et lvl, const TCHAR *fmt, va_list args);
 
 
-typedef void PROC_vaDbg_output(vaDbg_level_et lvl, const TCHAR *dbgstr, void *ctx);
-
-void vaDbg_set_output(PROC_vaDbg_output proc, void *ctx);
-
-
 enum vaDbg_opt_et {
 	vaDbg_seq = 1,      // leading sequence number
 	vaDbg_ymd = 2,      // show year, month, date
@@ -86,6 +82,16 @@ enum vaDbg_opt_et {
 unsigned int vaDbgTs_options(
 	vaDbg_opt_et opts // vaDbg_ymd etc
 	); // -- return old value
+
+
+typedef void PROC_vaDbg_output(vaDbg_level_et lvl, const TCHAR *dbgstr, void *ctx);
+//
+void vaDbg_set_output(PROC_vaDbg_output proc, void *ctx);
+
+
+typedef int PROC_vsnprintf(TCHAR *buf, size_t bufchars, const TCHAR *fmt, va_list args);
+//
+PROC_vsnprintf* vaDbg_set_vsnprintf(PROC_vsnprintf custom_vsnp);
 
 int vaDbgTs_bias_check_interval(int seconds);
 // -- return old value
@@ -140,6 +146,7 @@ vaDbg_opt_et g_opts = vaDbg_all;
 PROC_vaDbg_output *g_vadbg_output = default_output_proc;
 void *g_ctx_output = 0;
 
+PROC_vsnprintf *g_custom_vsnprintf = NULL;
 
 
 unsigned int vaDbgTs_options(vaDbg_opt_et opts)
@@ -155,7 +162,12 @@ void vaDbg_set_output(PROC_vaDbg_output proc, void *ctx)
 	g_ctx_output = ctx;
 }
 
-
+PROC_vsnprintf* vaDbg_set_vsnprintf(PROC_vsnprintf custom_vsnp)
+{
+	PROC_vsnprintf *oldfn = g_custom_vsnprintf;
+	g_custom_vsnprintf = custom_vsnp;
+	return oldfn;
+}
 
 void vlDbgTsl(vaDbg_level_et lvl, const TCHAR *fmt, va_list args)
 {
@@ -207,7 +219,10 @@ void vlDbgTsl(vaDbg_level_et lvl, const TCHAR *fmt, va_list args)
 
 	prefixlen = (int)_tcslen(buf);
 
-	vsnTprintf(buf+prefixlen, ARRAYSIZE(buf)-3-prefixlen, fmt, args);
+	if(g_custom_vsnprintf)
+		g_custom_vsnprintf(buf+prefixlen, ARRAYSIZE(buf)-3-prefixlen, fmt, args);
+	else
+		vsnTprintf        (buf+prefixlen, ARRAYSIZE(buf)-3-prefixlen, fmt, args);
 
 	if(opts & vaDbg_newline)
 	{
@@ -276,6 +291,10 @@ void vaDbg_set_output(PROC_vaDbg_output proc, void *ctx)
 	CHHI_vaDbgTs::vaDbg_set_output(proc, ctx);
 }
 
+PROC_vsnprintf* vaDbg_set_vsnprintf(PROC_vsnprintf custom_vsnp)
+{
+	return CHHI_vaDbgTs::vaDbg_set_vsnprintf(custom_vsnp);
+}
 
 
 #endif // ...CHHI_ALL_IMPL...
