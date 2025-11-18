@@ -300,7 +300,6 @@ int test_v4_memdump()
 	unsigned char mem[1024];
 	for(i=0; i<sizeof(mem); i++) 
 		mem[i]=i;
-//	mprintA("Hexdump1:\n%k%8r%*b!\n", "_", 4, 17, bytes);
 
 	oks = t("000102030405060708");
 	mprint(oks, t("%9m"), mem);
@@ -585,6 +584,10 @@ void test_v7_memdump_hexgrouping()
 	// [2025-11-18] This is supported since v7.2
 
 	const char *alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ12345678";
+	int i;
+	unsigned char mem[256];
+	for(i=0; i<sizeof(mem); i++) 
+		mem[i]=i;
 
 	// dump 5 bytes, 2-bytes group, big-endian
 	oks = t("4142  4344  45");
@@ -597,7 +600,7 @@ void test_v7_memdump_hexgrouping()
 	// dump 26 bytes, 4-bytes group, big-endian, 16 columns
 	oks = t("\
 ----00-01-02-03-04-05-06-07-08-09-0A-0B-0C-0D-0E-0F\n\
-00: 41424344....45464748....494a4b4c....4d4e4f50....\n\
+00: 41424344....45464748....494a4b4c....4d4e4f50...\n\
 10: 51525354....55565758....59.5a");
 	mprint(oks, t("%k%R%*.*m"), t("."), 
 		16,
@@ -607,19 +610,29 @@ void test_v7_memdump_hexgrouping()
 	// dump 26 bytes, 4-bytes group, little-endian, 16 columns
 	oks = t("\
 ----00-01-02-03-04-05-06-07-08-09-0A-0B-0C-0D-0E-0F\n\
-00: 44434241    48474645    4c4b4a49    504f4e4d    \n\
+00: 44434241    48474645    4c4b4a49    504f4e4d   \n\
 10: 54535251    58575655    59 5a");
 	mprint(oks, t("%k%R%*.*m"), t(" "), 
 		16,
 		26, -4, alphabet // %*.*m (negative precision)
 		);
 
+	// similar to prev, but with "." as hyphen
+	oks = t("\
+----00-01-02-03-04-05-06-07-08-09-0A-0B-0C-0D-0E-0F\n\
+00: 03020100....07060504....0B0A0908....0F0E0D0C...\n\
+10: 13121110....17161514....1B1A1918....1C.1D.1E");
+	mprint(oks, t("%k%R%*.*M"), t("."),
+		16, // %R
+		31, -4, mem // %*.*M
+		);
+
 	// dump with 4-bytes group(DWORDs), column tail NOT aligned
 	oks = t("\
 ----00-01-02-03-04-05-06-07-08-09\n\
-00: 41424344....45464748....494a4b4c....\n\
-0A:       4d4e4f50....31323334....\n\
-14: 35363738....");
+00: 41424344....45464748....494a4b4c...\n\
+0A:       4d4e4f50....31323334...\n\
+14: 35363738...");
 	mprint(oks, t("%k%R%.*m"), // auto count narrow-string length 
 		".", 
 		10, // %R columns
@@ -629,8 +642,8 @@ void test_v7_memdump_hexgrouping()
 	// QWORD grouping
 	oks = t("\
 ----00-01-02-03-04-05-06-07-08-09-0A-0B-0C-0D-0E-0F\n\
-00: 4142434445464748........494a4b4c4d4e4f50........\n\
-10: 5152535455565758........595a313233343536........");
+00: 4142434445464748........494a4b4c4d4e4f50.......\n\
+10: 5152535455565758........595a313233343536.......");
 	mprint(oks, t("%k%R%32.8m"), t("."), 16, alphabet);
 
 	// tail singles scattered two dumplines

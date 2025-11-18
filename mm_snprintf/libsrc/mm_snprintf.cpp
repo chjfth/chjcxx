@@ -963,7 +963,7 @@ _mm_dump_bytes(TCHAR *buf, int bufchars,
 			if(mdd_right[0])
 				mmfill_strcpy(mmfill, mdd_right,     ctipack);
 
-			if(j<columns_remain-1) // append hyphens btw two-bytes
+			if(j<columns_remain-1) // append hyphens btw two-bytes, or btw two-hexgroups
 			{
 				bool is_compenstate = (abs_gbs > 1);
 
@@ -979,7 +979,10 @@ _mm_dump_bytes(TCHAR *buf, int bufchars,
 					}
 				}
 
-				mmfill_strcpy(mmfill, mdd_hyphens,   ctipack); // the usual one, w/wo hexgrouping
+				if(j+(abs_gbs-1) < columns_remain-1)
+				{
+					mmfill_strcpy(mmfill, mdd_hyphens,   ctipack); // the usual one, w/wo hexgrouping
+				}
 
 				if(is_compenstate)
 				{
