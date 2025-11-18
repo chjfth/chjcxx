@@ -795,7 +795,7 @@ cal_adcol_widths(Uint64 imagine_addr, Uint64 imagine_end_,
 
 int 
 _mm_dump_bytes(TCHAR *buf, int bufchars, 
-	const void *_pbytes, int dump_bytes, bool uppercase,
+	const void *_pbytes, int dump_bytes, int grouping_bytes, bool uppercase,
 	const TCHAR *mdd_hyphens, const TCHAR *mdd_left, const TCHAR *mdd_right,
 	int columns, int colskip, bool ruler,
 	int indents, 
@@ -809,8 +809,13 @@ _mm_dump_bytes(TCHAR *buf, int bufchars,
 	pbytes: point to byte buffer.
 	dump_bytes: bytes to dump.
 
+	grouping_bytes: (default 0, range -8 ~ +8)
+		For input HEXRR [A0 A1 A2 A3 A4 A5 A6 A7]
+		- If 2, the dump will be "A0A1 A2A3 A4A5 A6A7". (big-endian)
+		- If -4, the dump will be "A3A2A1A0 A7A6A5A4". (little-endian)
+
 	columns: Consume that many bytes for one output line, 
-		use use this to add line breaks for large input bytes.
+		use this to add line breaks for large input bytes.
 		If 0, dump all on one line.
 
 	indents: spaces to add for every dump line output.
@@ -827,7 +832,6 @@ _mm_dump_bytes(TCHAR *buf, int bufchars,
 		 ^
 		 I call this address-column, default adcol_digits=4
 
-
 	Return: how many TCHARs will be output assuming buf[] is large enough.
 	*/
 
@@ -837,6 +841,11 @@ _mm_dump_bytes(TCHAR *buf, int bufchars,
 			buf[0] = '\0';
 		return 0;
 	}
+
+	const int MaxGroupBytes = 8;
+	grouping_bytes = Mid(-MaxGroupBytes, grouping_bytes, MaxGroupBytes);
+	if(grouping_bytes==0 || grouping_bytes==-1) 
+		grouping_bytes = 1;
 
 	const unsigned char *pbytes = (unsigned char*)_pbytes;
 
@@ -848,8 +857,9 @@ _mm_dump_bytes(TCHAR *buf, int bufchars,
 	colskip = Mid(0, colskip, columns-1);
 
 	const int ex2 = 2;
-	int i, j;
+	int i, j, k;
 	TCHAR onehex[8]; // only to accommodate "00", "01", "0f", "ff" etc
+	TCHAR onehexgroup[2*MaxGroupBytes + 2]; // 2 for term-NUL
 	int len_hyphens = TMM_strlen(mdd_hyphens);
 	int len_left = TMM_strlen(mdd_left);
 	int len_right = TMM_strlen(mdd_right);
@@ -892,7 +902,7 @@ _mm_dump_bytes(TCHAR *buf, int bufchars,
 
 	for(;;)
 	{
-		// Every cycle generates one output line
+		// Every cycle generates one output dumpline
 
 		// first: indents
 		mmfill_fill_chars(mmfill, _T(' '), indents,          ctipack);
@@ -915,25 +925,78 @@ _mm_dump_bytes(TCHAR *buf, int bufchars,
 		}
 
 		// fourth: hex dumps of current line with decoration
-		int colomn_remain = Min(dump_bytes-consumed, columns-colskip);
-			// columns remain for this dump line
-		for(j=0; j<colomn_remain; j++)
+		
+		int abs_gbs = abs(grouping_bytes);
+
+		int bytes_remain = dump_bytes - consumed;
+		int columns_remain = Min(bytes_remain, columns-colskip);
+			// columns remain for this dumpline
+
+//		int j_inc = abs_gbs;
+		for(j=0; j<columns_remain; j+=abs_gbs, bytes_remain-=abs_gbs)
 		{
 			if(mdd_left[0])
 				mmfill_strcpy(mmfill, mdd_left,      ctipack);
+
+			// process one hexgroup >>>
+
+			if(abs_gbs==1 || bytes_remain < abs_gbs)
+			{
+				in_snprintf(onehex, mmquan(onehex), fmthex, pbytes[consumed+j]);
+				mmfill_strcpy(mmfill, onehex,        ctipack);
+				abs_gbs = 1;
+			}
+			else // need to apply hexgrouping
+			{
+				for(k=0; k<abs_gbs; k++)
+				{
+					in_snprintf(onehexgroup + k*2, mmquan(onehexgroup) - k*2, 
+						fmthex, 
+						pbytes[ grouping_bytes>0 ? consumed+j+k : consumed+j+(abs_gbs-1-k) ]
+					);
+				}
+				mmfill_strcpy(mmfill, onehexgroup,   ctipack);
+			}
 			
-			in_snprintf(onehex, mmquan(onehex), fmthex, pbytes[consumed+j]);
-			mmfill_strcpy(mmfill, onehex,            ctipack);
-			
+			// process one hexgroup <<<
+
 			if(mdd_right[0])
 				mmfill_strcpy(mmfill, mdd_right,     ctipack);
 
-			if(j<colomn_remain-1)
-				mmfill_strcpy(mmfill, mdd_hyphens,   ctipack);
-		}
-		colskip = 0;
+			if(j<columns_remain-1) // append hyphens btw two-bytes
+			{
+				bool is_compenstate = (abs_gbs > 1);
 
-		consumed += colomn_remain;
+				if(is_compenstate)
+				{
+					// compensate collapsed clamp-right-side(for prev byte) with space-chars
+					mmfill_fill_chars(mmfill, ' ', len_right*(abs_gbs-1),   ctipack);
+
+					// compensate hyphens for the collapsed hexgroup
+					for(k=0; k<abs_gbs-1; k++)
+					{
+						mmfill_strcpy(mmfill, mdd_hyphens, ctipack);
+					}
+				}
+
+				mmfill_strcpy(mmfill, mdd_hyphens,   ctipack); // the usual one, w/wo hexgrouping
+
+				if(is_compenstate)
+				{
+					// compensate collapsed clamp-left-side(for next byte) with space-chars
+					mmfill_fill_chars(mmfill, ' ', len_left*(abs_gbs-1),    ctipack);
+				}
+			}
+		}
+		
+		// Here, j is the bytes consumed on this dumpline, maybe >column_reamain on grouping case. 
+
+		if(j > columns_remain)
+			colskip = j - columns_remain;
+		else
+			colskip = 0; 
+
+		consumed += j;
 
 		if(consumed==dump_bytes)
 			break;
@@ -989,7 +1052,7 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 	Uint64 imagine_maddr = 0; // %v 's data
 	int v_adcol_width = 0, v_sep_width = 0; // %v's address-column-width and separator width
 	bool v_is_isozeros = false; // for %v
-
+	//
 	int thousep_width = 3; // %_ to modify
 	const TCHAR *psz_thousep = NULL; // thousand separator, (%t to modify)
 	const TCHAR *psz_THOUSEP = NULL; // only for %D, %U, %O, (%T to modify)
@@ -1080,6 +1143,9 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 
 		bool is_UorD = false;
 
+		int grouping_bytes = 0; // (<0) used by eg "%32.4m" and "%.-8m"
+		// -- above: grouping_bytes is 4 (big-endian DWORD) and -8 (little-endian QWORD) respectively.
+
 		///////
 
 		TCHAR fmt_spec = _T('\0');
@@ -1131,30 +1197,28 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 
 		/* parse precision */
 		if (*p == _T('.')) {
+			int j = 0;
 			p++; precision_specified = true;
 			if (*p == _T('*')) {
-			  int j = va_arg(ap, int);
+			  j = va_arg(ap, int);
 			  p++;
-			  if (j >= 0) 
-				  precision = j;
-			  else {
-				precision_specified = false; precision = 0;
-			 /* NOTE:
-			  *   Solaris 2.6 man page claims that in this case the precision
-			  *   should be set to 0.  Digital Unix 4.0, HPUX 10 and BSD man page
-			  *   claim that this case should be treated as unspecified precision,
-			  *   which is what we do here.
-			  */
-			  }
 			} 
-			else if (TMM_isdigit(*p)) {
-			  /* mmbufsize_t could be wider than unsigned int;
-				 make sure we treat argument like common implementations do */
-			  unsigned int uj = *p++ - '0';
+			else if (TMM_isdigit(*p) || *p=='-') {
+			  int sign = 1;
+			  if( *p=='-' )
+				  p++, sign = -1;
+				
+			  j = *p++ - '0';
 			  while (TMM_isdigit(*p)) 
-				  uj = 10*uj + (unsigned int)(*p++ - _T('0'));
-			  precision = uj;
+				  j = 10*j + (*p++ - '0');
+			  j = j * sign;
 			}
+
+			precision = j;
+			grouping_bytes = precision; // v7.2: only for %m, can be negative
+
+			if (j < 0) 
+				precision_specified = false, precision = 0;
 		}
 		
 		/* parse 'h', 'l' and 'll' length modifiers */
@@ -1469,7 +1533,7 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 						// mm_snprintf should not use %f and %g, which would give empty results.
 						// Limit the precision so that not to overflow tmp[].
 
-						f_l += in_snprintf(flfmt+f_l, GetEleQuan(flfmt), _T(".%d"), precision); 
+						f_l += in_snprintf(flfmt+f_l, mmquan(flfmt), _T(".%d"), precision); 
 							//For floating point number, we leave precision processing to system's sprintf.
 
 						precision_specified = false; precision = 0;
@@ -1596,7 +1660,7 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 						// Quite some subtle processing here.
 						// I need to work with Windows _snprintf and C99's snprintf and C99's swprintf.
 
-						int tmpbufsize = GetEleQuan(tmp);
+						int tmpbufsize = mmquan(tmp);
 						tmp[tmpbufsize-1] = _T('\0'); // so to cope with _snprintf's no-NUL on buffer full
 
 						int cf = TMM_snprintf(tmp+str_arg_l, tmpbufsize-str_arg_l-1, flfmt, double_arg);
@@ -1750,7 +1814,7 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 					if(min_field_width==0 && zero_padding) {
 						dump_bytes = 0; 
 							// for fmtspec "%0m", the "0" before "m" is considered
-							// zeropadding instead of min_field_witdth
+							// zero-padding instead of min_field_witdth
 					}
 					else {
 						dump_bytes = TMM_strlen((TCHAR*)pbytes)*sizeof(TCHAR);
@@ -1759,13 +1823,13 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				}
 
 				int result_chars = _mm_dump_bytes(strbuf+str_l, str_max-str_l, 
-					pbytes, dump_bytes, fmt_spec==_T('M')?true:false,
+					pbytes, dump_bytes, grouping_bytes, fmt_spec==_T('M')?true:false,
 					mdd_hyphens, mdd_left, mdd_right,
 					mdf_columns, mdf_colskip, is_print_ruler,
 					mdd_indents, 
 					imagine_maddr, 
 					v_sep_width, 
-					Is_RequestIsoZeros(v_is_isozeros, v_adcol_width)?(-1):v_adcol_width, 
+					Is_RequestIsoZeros(v_is_isozeros, v_adcol_width) ? (-1) : v_adcol_width, 
 					psz_thousep,
 					ctipack);
 				str_l += result_chars;
