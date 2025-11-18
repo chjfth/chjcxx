@@ -1,6 +1,6 @@
 #ifdef __linux__
 # define _tmain main
-#elif defined WIN32
+#elif defined _WIN32
 # define WIN32_LEAN_AND_MEAN
 # define _CRT_SECURE_NO_WARNINGS // Disable old-function warning on VS2010
 # include <windows.h>

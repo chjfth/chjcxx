@@ -1,11 +1,9 @@
-[2022-03-11]
+[2025-11-18]
 
-D:\gitw\chjcxx\mm_snprintf\test\mmVerify\mmVerify.vcxproj refers to 
+D:\gitw\chjcxx\mm_snprintf\test\mmVerify\mmVerify.vcxproj
 
-	..\..\vs2019_proj\lib_mm_snprintf\lib_mm_snprintf.vcxproj
+is the self-test project. It is adaptable to VC2010+.
 
-as LIB project. 
-
-For simplicity, I do not prepare vs2010 vcxproj for these Test-projects.
-
-So, to run test projects, use VS2019 .
+Open
+	D:\gitw\chjcxx\mm_snprintf\vs2010_proj\mmTests-vs2010.sln
+to get the lib and self-test in one Visual Studio solution.

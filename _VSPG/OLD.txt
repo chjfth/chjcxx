@@ -1,0 +1,3 @@
+[2025-11-18] 
+VSPG files here has been out-dated(earlier than v608) for quite some time.
+I have to reconsider whether/how I should use VSPG to implement Scalacon.
