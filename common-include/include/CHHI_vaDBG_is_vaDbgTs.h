@@ -12,9 +12,10 @@
 #include <utility>       // to have std::forward
 #include <CxxVerCheck.h> // to see CXX11_OR_NEWER
 
-#ifdef CXX11_OR_NEWER
+#define vaDbg_ALL vaDbg_VERBOSE
 
-#define vaDBG_ALL vaDbg_VERBOSE
+
+#ifdef CXX11_OR_NEWER
 
 template<typename... Args>
 void vaDBG(Args&&... args) // forwards all arguments
@@ -57,7 +58,7 @@ void vaDBG(const TCHAR *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
-	vlDbgTsl(vaDBG_ALL, fmt, args);
+	vlDbgTsl(vaDbg_ALL, fmt, args);
 	va_end(args);
 };
 
@@ -65,7 +66,7 @@ void vaDBG0(const TCHAR *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
-	vlDbgTsl(vaDBG_ERROR, fmt, args);
+	vlDbgTsl(vaDbg_ERROR, fmt, args);
 	va_end(args);
 };
 
@@ -73,7 +74,7 @@ void vaDBG1(const TCHAR *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
-	vlDbgTsl(vaDBG_WARN, fmt, args);
+	vlDbgTsl(vaDbg_WARN, fmt, args);
 	va_end(args);
 };
 
@@ -81,7 +82,7 @@ void vaDBG2(const TCHAR *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
-	vlDbgTsl(vaDBG_INFO, fmt, args);
+	vlDbgTsl(vaDbg_INFO, fmt, args);
 	va_end(args);
 };
 

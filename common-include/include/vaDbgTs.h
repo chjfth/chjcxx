@@ -253,6 +253,11 @@ unsigned int va_millisec()
 	return CHHI_vaDbgTs::va_millisec();
 }
 
+void vlDbgTsl(vaDbg_level_et lvl, const TCHAR *fmt, va_list args)
+{
+	CHHI_vaDbgTs::vlDbgTsl(lvl, fmt, args);
+}
+
 void vaDbgTs(const TCHAR *fmt, ...)
 {
 	va_list args;
