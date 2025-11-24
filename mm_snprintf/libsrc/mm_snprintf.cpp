@@ -1015,7 +1015,7 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				In "%ld", 'l' is length-modifier; in "%hd", 'h' is length-modifier,
 				while "%d" has no length-modifier in it.
 			*/
-		TCHAR tmp[128];/* temporary buffer for simple numeric->string conversion */
+		TCHAR tmpnum[128];/* temporary buffer for simple numeric->string conversion */
 			//[2017-10-00]Chj: %f and %g will use this as system snprintf's output. (ff_16)
 
 		const TCHAR *str_arg = NULL; /* string address in case of string argument */
@@ -1341,7 +1341,7 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 					//[2006-10-03]Chj Set/clear More vars? Seems enough.
 				}
 
-				str_arg = tmp; str_arg_l = 0;
+				str_arg = tmpnum; str_arg_l = 0;
 
 				/* NOTE:
 				*   For d, i, u, o, x, and X conversions, if precision is specified,
@@ -1355,7 +1355,7 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				if(fmtcat==fmt_decimal_signed || fmtcat==fmt_float) 
 				{
 					if (force_sign && arg_sign >= 0)
-						tmp[str_arg_l++] = space_for_positive ? _T(' ') : _T('+');
+						tmpnum[str_arg_l++] = space_for_positive ? _T(' ') : _T('+');
 					 /* leave negative numbers for sprintf to handle,
 						to avoid handling tricky cases like (short int)(-32768) */
 // #ifdef LINUX_COMPATIBLE
@@ -1381,8 +1381,8 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 						 Using small 'x' seems more reasonable, since it corresponds to the
 						 small type-char 'p'.
 						*/
-						tmp[str_arg_l++] = _T('0'); 
-						tmp[str_arg_l++] = 
+						tmpnum[str_arg_l++] = _T('0'); 
+						tmpnum[str_arg_l++] = 
 							fmt_spec==_T('x')||fmt_spec==_T('p') // if lower-case
 							? _T('x') : 
 							_T('X'); 
@@ -1470,7 +1470,7 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 						str_arg_l += unsigned_ntos(u64, 
 							RdxHex, fmt_spec==_T('p')?false:true, sizeof(ptr_arg)*2,
 							psz_thousep, thousep_width,
-							tmp+str_arg_l, mmquan(tmp)-str_arg_l
+							tmpnum+str_arg_l, mmquan(tmpnum)-str_arg_l
 							);
 					}
 					else if(fmtcat==fmt_decimal_signed) 
@@ -1500,7 +1500,7 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 							RdxDec, false, 
 							is_zp_thoubody(zero_padding_thou, precision) ? abs(precision) : 0, // stuff_zero_max
 							psz_thousep_now, thousep_width_now,
-							tmp+str_arg_l, mmquan(tmp)-str_arg_l
+							tmpnum+str_arg_l, mmquan(tmpnum)-str_arg_l
 							);
 					} 
 					else if(fmtcat==fmt_decimal_unsigned) 
@@ -1541,7 +1541,7 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 							radix, fmt_spec==_T('X')?true:false, 
 							is_zp_thoubody(zero_padding_thou, precision) ? abs(precision) : 0, // stuff_zero_max
 							psz_thousep_now, thousep_width_now,
-							tmp+str_arg_l, mmquan(tmp)-str_arg_l
+							tmpnum+str_arg_l, mmquan(tmpnum)-str_arg_l
 							);
 					}
 					else // floating type
@@ -1551,10 +1551,10 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 						// Quite some subtle processing here.
 						// I need to work with Windows _snprintf, C99's snprintf and C99's swprintf.
 
-						int tmpbufsize = mmquan(tmp);
-						tmp[tmpbufsize-1] = _T('\0'); // so to cope with _snprintf's no-NUL on buffer full
+						int tmpbufsize = mmquan(tmpnum);
+						tmpnum[tmpbufsize-1] = _T('\0'); // so to cope with _snprintf's no-NUL on buffer full
 
-						int cf = TMM_snprintf(tmp+str_arg_l, tmpbufsize-str_arg_l-1, flfmt, double_arg);
+						int cf = TMM_snprintf(tmpnum+str_arg_l, tmpbufsize-str_arg_l-1, flfmt, double_arg);
 						if(cf>=0)
 						{
 							str_arg_l += cf;
@@ -1567,15 +1567,15 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 							// We need to strlen() it bcz _snprintf and swprintf has 
 							// different NUL appending policy when buffer is not enough.
 							// Strlen()'s result is the best deduction we can make here.
-							int flen = TMM_strlen(tmp);
+							int flen = TMM_strlen(tmpnum);
 							str_arg_l += flen;
 						}
 
-						assert(tmp[str_arg_l]=='\0');
+						assert(tmpnum[str_arg_l]=='\0');
 
 						if(fl_clean_tail)
 						{
-							TCHAR *p_clean_tail = &tmp[str_arg_l - 1];
+							TCHAR *p_clean_tail = &tmpnum[str_arg_l - 1];
 							
 							while(*p_clean_tail=='0')
 								*p_clean_tail-- = ' ';
@@ -1591,7 +1591,7 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 					/* include the optional minus sign and possible "0x"
 					  in the region before the zero padding insertion point */
 					if (zero_padding_insertion_ind < str_arg_l &&
-						tmp[zero_padding_insertion_ind] == '-') {
+						tmpnum[zero_padding_insertion_ind] == '-') {
 						//[2006-10-03]Chj: If the result string from system's sprintf 
 						//starts with '-', then take it as if '-' is filled by us and
 						//only the substring after '-' is from system's sprintf.
@@ -1601,8 +1601,8 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 						zero_padding_insertion_ind++;
 					}
 					if (zero_padding_insertion_ind+1 < str_arg_l &&
-						tmp[zero_padding_insertion_ind]   == _T('0') &&
-						(tmp[zero_padding_insertion_ind+1] == _T('x') || tmp[zero_padding_insertion_ind+1] == _T('X')) 
+						tmpnum[zero_padding_insertion_ind]   == _T('0') &&
+						(tmpnum[zero_padding_insertion_ind+1] == _T('x') || tmpnum[zero_padding_insertion_ind+1] == _T('X')) 
 						) {
 						//[2006-10-03]Chj: If the result string from system's sprintf 
 						//starts with "0x", then take it as if "0x" is filled by us and
@@ -1615,7 +1615,7 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				int num_of_digits = str_arg_l - zero_padding_insertion_ind;
 				if (alternate_form && fmt_spec == _T('o')
 					/* unless zero is already the first character */
-					&& !(zero_padding_insertion_ind < str_arg_l && tmp[zero_padding_insertion_ind] == _T('0'))
+					&& !(zero_padding_insertion_ind < str_arg_l && tmpnum[zero_padding_insertion_ind] == _T('0'))
 					) 
 				{        /* assure leading zero for alternate-form octal numbers */
 					if (!precision_specified || abs(precision) < num_of_digits+1) {
