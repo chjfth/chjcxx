@@ -1037,9 +1037,6 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 
 		bool is_UorD = false;
 
-		int grouping_bytes = 0; // (<0) used by eg "%32.4m" and "%.-8m"
-		// -- above: grouping_bytes is 4 (big-endian DWORD) and -8 (little-endian QWORD) respectively.
-
 		///////
 
 		TCHAR fmt_spec = _T('\0');
@@ -1108,11 +1105,12 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 			  j = j * sign;
 			}
 
+			// Since v7.3, precision is allowed to be negative. 
+			// If negative is meaningless, it is silently corrected to positive.
 			precision = j;
-			grouping_bytes = precision; // v7.2: only for %m, can be negative
 
-			if (j < 0) 
-				precision_specified = false, precision = 0;
+			// [precision_specified==true && precision==0] is considered a special case,
+			// which is not the same as precision_specified==false.
 		}
 		
 		/* parse 'h', 'l' and 'll' length modifiers */
@@ -1199,8 +1197,8 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 					else if (precision == 0) 
 						str_arg_l = 0; //Chj: Yes, no characters from the string will be printed if `precision' is zero.
 					else { // `precision' specified and > 0 
-						const TCHAR *p0 = _mm_memchr(str_arg, _T('\0'), precision);
-						str_arg_l = p0 ? (mmbufsize_t)(p0-str_arg) : precision;
+						const TCHAR *p0 = _mm_memchr(str_arg, _T('\0'), abs(precision));
+						str_arg_l = p0 ? (mmbufsize_t)(p0-str_arg) : abs(precision);
 					}
 				}
 				break; // end of process for type '%','c','s' .
@@ -1210,6 +1208,9 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 		case _T('p'): case _T('P'): // [2017-02-11] Chj adds 'P', upper-case pointer value
 		case _T('f'): case _T('g'): case _T('G'): case _T('e'): case _T('E'):
 			{
+				// [2025-11-24] Memo: These fmt-types are grouped together, bcz they share
+				// some width-padding & precision processing. 
+
 				/* NOTE: the u, o, x, X and p conversion specifiers imply
 						 the value is unsigned;  d implies a signed value */
 
@@ -1400,23 +1401,19 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 						precision = 1;   /* default precision is 1 for integer types */
 				}
 
-				if (precision == 0 && arg_sign == 0
-// #if defined(LINUX_COMPATIBLE)
-// 					&& fmt_spec != 'p'
-// 				 /* HPUX 10 man page claims: With conversion character p the result of
-// 				  * converting a zero value with a precision of zero is a null string.
-// 				  * Actually HP returns all zeros, and Linux returns(outputs) "(nil)". */
-// #endif //[2006-10-03]Chj: I do not use Linux's behavior here.
-					) 
+				if (precision == 0 && arg_sign == 0) 
 				{
-				 /* converted to null string */
-				 /* When zero value is formatted with an explicit precision 0,
-					the resulting formatted string is empty (d, i, u, o, x, X, p).   */
-				//[2006-10-02]Chj: This is the behavior of MSVCRT
+					 /* converted to null string */
+					 /* When zero value is formatted with an explicit precision 0,
+						the resulting formatted string is empty (d, i, u, o, x, X, p).   */
+					//[2006-10-02]Chj: This is the behavior of MSVCRT
 				} 
 				else 
 				{
 					// >>> Use signed_ntos, unsigned_ntos, or system's sprintf to format numeric string in tmp[].
+
+					bool fl_clean_tail = (precision<0) ? true : false; 
+					// -- v7.3: "1.500" will be printed as "1.5  "
 
 					TCHAR flfmt[32]; int f_l = 0; // `flfmt' used as a temp format string for system's snprintf
 					flfmt[f_l++] = _T('%');    /* construct a simple format string for sprintf */
@@ -1427,7 +1424,7 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 						// mm_snprintf should not use %f and %g, which would give empty results.
 						// Limit the precision so that not to overflow tmp[].
 
-						f_l += in_snprintf(flfmt+f_l, mmquan(flfmt), _T(".%d"), precision); 
+						f_l += in_snprintf(flfmt+f_l, mmquan(flfmt)-f_l, _T(".%d"), abs(precision)); 
 							//For floating point number, we leave precision processing to system's sprintf.
 
 						precision_specified = false; precision = 0;
@@ -1501,7 +1498,7 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 						}
 						str_arg_l += signed_ntos(i64, 
 							RdxDec, false, 
-							is_zp_thoubody(zero_padding_thou, precision) ? precision : 0, // stuff_zero_max
+							is_zp_thoubody(zero_padding_thou, precision) ? abs(precision) : 0, // stuff_zero_max
 							psz_thousep_now, thousep_width_now,
 							tmp+str_arg_l, mmquan(tmp)-str_arg_l
 							);
@@ -1542,7 +1539,7 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 						}
 						str_arg_l += unsigned_ntos(u64, 
 							radix, fmt_spec==_T('X')?true:false, 
-							is_zp_thoubody(zero_padding_thou, precision) ? precision : 0, // stuff_zero_max
+							is_zp_thoubody(zero_padding_thou, precision) ? abs(precision) : 0, // stuff_zero_max
 							psz_thousep_now, thousep_width_now,
 							tmp+str_arg_l, mmquan(tmp)-str_arg_l
 							);
@@ -1552,7 +1549,7 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 						assert(fmtcat==fmt_float);
 
 						// Quite some subtle processing here.
-						// I need to work with Windows _snprintf and C99's snprintf and C99's swprintf.
+						// I need to work with Windows _snprintf, C99's snprintf and C99's swprintf.
 
 						int tmpbufsize = mmquan(tmp);
 						tmp[tmpbufsize-1] = _T('\0'); // so to cope with _snprintf's no-NUL on buffer full
@@ -1572,6 +1569,20 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 							// Strlen()'s result is the best deduction we can make here.
 							int flen = TMM_strlen(tmp);
 							str_arg_l += flen;
+						}
+
+						assert(tmp[str_arg_l]=='\0');
+
+						if(fl_clean_tail)
+						{
+							TCHAR *p_clean_tail = &tmp[str_arg_l - 1];
+							
+							while(*p_clean_tail=='0')
+								*p_clean_tail-- = ' ';
+							
+							// If remaining is "2.", we clean the trailing dot as well.
+							if(*p_clean_tail=='.') 
+								*p_clean_tail = ' ';
 						}
 					}
 
@@ -1607,7 +1618,7 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 					&& !(zero_padding_insertion_ind < str_arg_l && tmp[zero_padding_insertion_ind] == _T('0'))
 					) 
 				{        /* assure leading zero for alternate-form octal numbers */
-					if (!precision_specified || precision < num_of_digits+1) {
+					if (!precision_specified || abs(precision) < num_of_digits+1) {
 					 /* precision is increased to force the first character to be zero,
 						except if a zero value is formatted with an explicit precision
 						of zero */
@@ -1616,8 +1627,8 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				}
 				
 				/* zero padding to specified precision? */
-				if (num_of_digits < precision) 
-					number_of_zeros_to_pad = precision - num_of_digits;
+				if (num_of_digits < abs(precision))
+					number_of_zeros_to_pad = abs(precision) - num_of_digits;
 				
 				/* zero padding to specified minimal field width? */
 				if (!justify_left && zero_padding) {
@@ -1666,7 +1677,7 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 					mdd_indents = min_field_width;
 					mdd_indents = Mid(0, mdd_indents, 64);
 				}
-				mdf_colskip = precision;
+				mdf_colskip = abs(precision);
 
 				mdf_columns = va_arg(ap, int);
 				CTI_SETVAL(cti, val_int, mdf_columns);
@@ -1687,7 +1698,7 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				assert(min_field_width>=0 && precision>=0);
 
 				v_sep_width = min_field_width;
-				v_adcol_width = precision; // = left-pad zeros to reach this width
+				v_adcol_width = abs(precision); // = left-pad zeros to reach this width
 
 				v_is_isozeros = precision_specified;
 				
@@ -1717,7 +1728,7 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 				}
 
 				int result_chars = _mm_dump_bytes(strbuf+str_l, str_max-str_l, 
-					pbytes, dump_bytes, grouping_bytes, fmt_spec==_T('M')?true:false,
+					pbytes, dump_bytes, precision, fmt_spec==_T('M')?true:false,
 					mdd_hyphens, mdd_left, mdd_right,
 					mdf_columns, mdf_colskip, is_print_ruler,
 					mdd_indents, 

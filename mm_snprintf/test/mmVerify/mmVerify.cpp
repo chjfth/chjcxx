@@ -579,7 +579,7 @@ int test_v4_memdump()
 	return 0;
 }
 
-void test_v7_memdump_hexgrouping()
+void test_v7dot2_memdump_hexgrouping()
 {
 	// [2025-11-18] This is supported since v7.2
 
@@ -1325,6 +1325,31 @@ void test_v7_fmtspec_n()
 	mprint(oks, t("%*n"), 0, t("xxx"));
 }
 
+void test_v7dot3_float_clean_tail()
+{
+	// A negative precision in %f will clean the trailing zeros to space-chars.
+
+	oks = t("[ 2    ][-2    ]");
+	mprint(oks, t("[% .-3f][% .-3f]"), 2.0f, -2.0f);
+
+	oks = t("[ 0.5  ][-0.5  ]");
+	mprint(oks, t("[% .-3f][% .-3f]"), 0.5, -0.5);
+
+	// tuck in a positive precision case for comparison
+	oks = t("[ 0.500][-0.500]");
+	mprint(oks, t("[% .3f][% .3f]"), 0.5, -0.5);
+
+	oks = t("[ 0    ][-0    ]");
+	mprint(oks, t("[% .-3f][% .-3f]"), 0.00001f, -0.00001f);
+
+	oks = t("[     1.5  ][    -1.5  ]");
+	mprint(oks, t("[% 10.-3f][% 10.-3f]"), 1.5, -1.5);
+}
+
+void _test_trivials()
+{
+//	mm_printf(_T("mmprintf [% .-3f][% .-3f]\n"), 1.2, -1.2);
+}
 
 int _tmain()
 {
@@ -1349,6 +1374,8 @@ int _tmain()
 	}
 #endif
 
+	_test_trivials();
+
 	test_fms_s();
 
 	test_v2();
@@ -1370,7 +1397,9 @@ int _tmain()
 	test_v7_F();
 	test_v7_ct();
 
-	test_v7_memdump_hexgrouping();
+	test_v7dot2_memdump_hexgrouping();
+
+	test_v7dot3_float_clean_tail();
 
 	mm_printf(_T("\n[[[ All %d test cases passed. ]]]\n"), g_cases);
 
