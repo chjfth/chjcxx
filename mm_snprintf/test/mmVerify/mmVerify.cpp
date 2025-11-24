@@ -1,6 +1,6 @@
 #ifdef __linux__
 # define _tmain main
-#elif defined WIN32
+#elif defined _WIN32
 # define WIN32_LEAN_AND_MEAN
 # define _CRT_SECURE_NO_WARNINGS // Disable old-function warning on VS2010
 # include <windows.h>
@@ -296,12 +296,10 @@ void test_v3()
 int test_v4_memdump()
 {
 	// [2014-07-12] bytes dump
-	const TCHAR *str=t("ABN");
 	int i;
 	unsigned char mem[1024];
 	for(i=0; i<sizeof(mem); i++) 
 		mem[i]=i;
-//	mprintA("Hexdump1:\n%k%8r%*b!\n", "_", 4, 17, bytes);
 
 	oks = t("000102030405060708");
 	mprint(oks, t("%9m"), mem);
@@ -525,6 +523,16 @@ int test_v4_memdump()
 		300, mem+3 // %*m
 		);
 
+	oks = t("\
+------00-----01-----02-----03-----04-----05-----06-----07--\n\
+00: <<41>>+<<42>>+<<43>>+<<44>>+<<45>>+<<46>>+<<47>>+<<48>>\n\
+08: <<49>>+<<4a>>+<<4b>>+<<4c>>+<<4d>>+<<4e>>+<<4f>>+<<50>>\n\
+10: <<51>>+<<52>>+<<53>>+<<54>>+<<55>>+<<56>>+<<57>>+<<58>>\n\
+18: <<59>>+<<5a>>");
+	mprint(oks, t("%k%K%R%m"), 
+		t("+"), t("<<>>"),  // %k%K
+		8, // %R
+		"ABCDEFGHIJKLMNOPQRSTUVWXYZ");
 
 /*	mprintW(L"%k%K"
 		L"%*.*R"
@@ -569,6 +577,84 @@ int test_v4_memdump()
 	mm_set_crlf_style(mm_crlf_default);
 
 	return 0;
+}
+
+void test_v7_memdump_hexgrouping()
+{
+	// [2025-11-18] This is supported since v7.2
+
+	const char *alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ12345678";
+	int i;
+	unsigned char mem[256];
+	for(i=0; i<sizeof(mem); i++) 
+		mem[i]=i;
+
+	// dump 5 bytes, 2-bytes group, big-endian
+	oks = t("4142  4344  45");
+	mprint(oks, t("%k%5.2m"), t(" "), alphabet);
+
+	// dump 5 bytes, 2-bytes group, little-endian
+	oks = t("4241..4443..45");
+	mprint(oks, t("%k%5.-2m"), ("."), alphabet);
+
+	// dump 26 bytes, 4-bytes group, big-endian, 16 columns
+	oks = t("\
+----00-01-02-03-04-05-06-07-08-09-0A-0B-0C-0D-0E-0F\n\
+00: 41424344....45464748....494a4b4c....4d4e4f50...\n\
+10: 51525354....55565758....59.5a");
+	mprint(oks, t("%k%R%*.*m"), t("."), 
+		16,
+		26, 4, alphabet // %*.*m
+		);
+
+	// dump 26 bytes, 4-bytes group, little-endian, 16 columns
+	oks = t("\
+----00-01-02-03-04-05-06-07-08-09-0A-0B-0C-0D-0E-0F\n\
+00: 44434241    48474645    4c4b4a49    504f4e4d   \n\
+10: 54535251    58575655    59 5a");
+	mprint(oks, t("%k%R%*.*m"), t(" "), 
+		16,
+		26, -4, alphabet // %*.*m (negative precision)
+		);
+
+	// similar to prev, but with "." as hyphen
+	oks = t("\
+----00-01-02-03-04-05-06-07-08-09-0A-0B-0C-0D-0E-0F\n\
+00: 03020100....07060504....0B0A0908....0F0E0D0C...\n\
+10: 13121110....17161514....1B1A1918....1C.1D.1E");
+	mprint(oks, t("%k%R%*.*M"), t("."),
+		16, // %R
+		31, -4, mem // %*.*M
+		);
+
+	// dump with 4-bytes group(DWORDs), column tail NOT aligned
+	oks = t("\
+----00-01-02-03-04-05-06-07-08-09\n\
+00: 41424344....45464748....494a4b4c...\n\
+0A:       4d4e4f50....31323334...\n\
+14: 35363738...");
+	mprint(oks, t("%k%R%.*m"), // auto count narrow-string length 
+		".", 
+		10, // %R columns
+		4, "ABCD" "EFGH" "IJKL" "MNOP" "12345678" // "%.*m", 24 bytes
+		);
+
+	// QWORD grouping
+	oks = t("\
+----00-01-02-03-04-05-06-07-08-09-0A-0B-0C-0D-0E-0F\n\
+00: 4142434445464748........494a4b4c4d4e4f50.......\n\
+10: 5152535455565758........595a313233343536.......");
+	mprint(oks, t("%k%R%32.8m"), t("."), 16, alphabet);
+
+	// tail singles scattered two dumplines
+	oks = t("\
+---00-01-02-03-04-05-06-07-08\n\
+0: 41424344....45464748....49\n\
+9: 4A.4B");
+	mprint(oks, t("%k%R%*.4M"), t("."), 
+		9, // %R column
+		11, alphabet // "%*.4m", so final 3 bytes are singles
+		);
 }
 
 
@@ -1283,6 +1369,8 @@ int _tmain()
 	test_v7_generic();
 	test_v7_F();
 	test_v7_ct();
+
+	test_v7_memdump_hexgrouping();
 
 	mm_printf(_T("\n[[[ All %d test cases passed. ]]]\n"), g_cases);
 
