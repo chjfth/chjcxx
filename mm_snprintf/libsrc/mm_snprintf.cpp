@@ -3,113 +3,10 @@
  *
  * INITIAL AUTHOR
  *   Mark Martinec <mark.martinec@ijs.si>, April 1999.
+ *   http://www.ijs.si/software/snprintf/
  *
  * V3.0 and above updated by:
  *	Chen Jun.
- *
- *   Copyright 1999, Mark Martinec. All rights reserved.
- *
- * TERMS AND CONDITIONS
- *   This program is free software; you can redistribute it and/or modify
- *   it under the terms of the "Frontier Artistic License" which comes
- *   with this Kit.
- *
- *   This program is distributed in the hope that it will be useful,
- *   but WITHOUT ANY WARRANTY; without even the implied warranty
- *   of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- *   See the Frontier Artistic License for more details.
- *
- *   You should have received a copy of the Frontier Artistic License
- *   with this Kit in the file named LICENSE.txt .
- *   If not, I'll be glad to provide one.
- *
- * FEATURES
- * - careful adherence to specs regarding flags, field width and precision;
- * - good performance for large string handling (large format, large
- *   argument or large paddings). Performance is similar to system's sprintf
- *   and in several cases significantly better (make sure you compile with
- *   optimizations turned on, tell the compiler the code is strict ANSI
- *   if necessary to give it more freedom for optimizations);
- * - return value semantics per ISO/IEC 9899:1999 ("ISO C99");
- * - written in standard ISO/ANSI C - requires an ANSI C compiler.
- *
- * SUPPORTED CONVERSION SPECIFIERS AND DATA TYPES
- *
- * This snprintf only supports the following conversion specifiers:
- * s, c, d, u, o, x, X, p  (and synonyms: i, D, U, O - see below)
- * with flags: '-', '+', ' ', '0' and '#'.
- * An asterisk is supported for field width as well as precision.
- *
- * Length modifiers 'h' (short int), 'l' (long int),
- * and 'll' (long long int) are supported.
- * NOTE:
- *   If macro SNPRINTF_LONGLONG_SUPPORT is not defined (default) the
- *   length modifier 'll' is recognized but treated the same as 'l',
- *   which may cause argument value truncation! Defining
- *   SNPRINTF_LONGLONG_SUPPORT requires that your system's sprintf also
- *   handles length modifier 'll'.  long long int is a language extension
- *   which may not be portable.
- *
- * Conversion of numeric data (conversion specifiers d, u, o, x, X, p)
- * with length modifiers (none or h, l, ll) is left to the system routine
- * sprintf, but all handling of flags, field width and precision as well as
- * c and s conversions is done very carefully by this portable routine.
- * If a string precision (truncation) is specified (e.g. %.8s) it is
- * guaranteed the string beyond the specified precision will not be referenced.
- *
- * The following common synonyms for conversion characters are supported:
- *   - i is a synonym for d
- *   - D is a synonym for ld, explicit length modifiers are ignored
- *   - U is a synonym for lu, explicit length modifiers are ignored
- *   - O is a synonym for lo, explicit length modifiers are ignored
- * The D, O and U conversion characters are nonstandard, they are supported
- * for backward compatibility only, and should not be used for new code.
- *
- * The following is specifically NOT supported:
- *   - flag ' (thousands' grouping character) is recognized but ignored
- *   - numeric conversion specifiers: f, e, E, g, G and synonym F,
- *     as well as the new a and A conversion specifiers
- *   - length modifier 'L' (long double) and 'q' (quad - use 'll' instead)
- *   - wide character/string conversions: lc, ls, and nonstandard
- *     synonyms C and S
- *   - writeback of converted string length: conversion character n
- *   - the n$ specification for direct reference to n-th argument
- *   - locales
- *
- * It is permitted for str_m to be zero, and it is permitted to specify NULL
- * pointer for resulting string argument if str_m is zero (as per ISO C99).
- *
- * The return value is the number of characters which would be generated
- * for the given input, excluding the trailing null. If this value
- * is greater or equal to str_m, not all characters from the result
- * have been stored in str, output bytes beyond the (str_m-1) -th character
- * are discarded. If str_m is greater than zero it is guaranteed
- * the resulting string will be null-terminated.
- *
- * NOTE that this matches the ISO C99, OpenBSD, and GNU C library 2.1,
- * but is different from some older and vendor implementations,
- * and is also different from XPG, XSH5, SUSv2 specifications.
- * For historical discussion on changes in the semantics and standards
- * of snprintf see printf(3) man page in the Linux programmers manual.
- *
- * Routines asprintf and vasprintf return a pointer (in the ptr argument)
- * to a buffer sufficiently large to hold the resulting string. This pointer
- * should be passed to free(3) to release the allocated storage when it is
- * no longer needed. If sufficient space cannot be allocated, these functions
- * will return -1 and set ptr to be a NULL pointer. These two routines are a
- * GNU C library extensions (glibc).
- *
- * Routines asnprintf and vasnprintf are similar to asprintf and vasprintf,
- * yet, like snprintf and vsnprintf counterparts, will write at most str_m-1
- * characters into the allocated output string, the last character in the
- * allocated buffer then gets the terminating null. If the formatted string
- * length (the return value) is greater than or equal to the str_m argument,
- * the resulting string was truncated and some of the formatted characters
- * were discarded. These routines present a handy way to limit the amount
- * of allocated memory to some sane value.
- *
- * AVAILABILITY
- *   http://www.ijs.si/software/snprintf/
  *
  * REVISION HISTORY
  * 1999-04	V0.9  Mark Martinec
@@ -271,19 +168,13 @@
  */
 
 
-/* Define SNPRINTF_LONGLONG_SUPPORT if you want to support
- * data type (long long int) and length modifier 'll' (e.g. %lld).
- * If undefined, 'll' is recognized but treated as a single 'l'.
- *
- */
-
 // Some configuration macros:
 
-#define _CRT_SECURE_NO_WARNINGS // Disable VC8+ warning of strcpy etc.
+#define _CRT_SECURE_NO_WARNINGS // Disable VC8+ warning on strcpy etc.
 
 #define SNPRINTF_LONGLONG_SUPPORT
 
-// USE_CPP_NEW:
+//#define USE_CPP_NEW:
 //	Use C++ new/delete for asprintf memory allocation.
 //	If not defined, use malloc/free.
 
