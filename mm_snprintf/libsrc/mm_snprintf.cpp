@@ -5,8 +5,8 @@
  *   Mark Martinec <mark.martinec@ijs.si>, April 1999.
  *   http://www.ijs.si/software/snprintf/
  *
- * V3.0 and above updated by:
- *	Chen Jun.
+ * V3.0 and above updated by: Jimm Chen
+ *   Use C++ style comments (// ...) since then.
  *
  * REVISION HISTORY
  * 1999-04	V0.9  Mark Martinec
@@ -162,7 +162,7 @@
  *
  *      - %4n to output a substring 4 times.
  *
- *      - For now on, I decide to use 'int' type for bufsize, not the unsigned size_t.
+ *      - From now on, I decide to use 'int' type for bufsize, not the unsigned size_t.
  *        Don't you think it has been decades-long ridiculous that bufsize use 
  *        *unsigned* type while snprintf returns *signed* type ?
  */
@@ -904,6 +904,11 @@ _mm_dump_bytes(TCHAR *buf, int bufchars,
 	return mmfill.produced;
 }
 
+inline bool Is_ForceSign_NonNeg(bool force_sign, int arg_sign)
+{
+	return (force_sign && arg_sign >= 0);
+}
+
 ///////////////////
 
 int mm_vsnprintf(TCHAR *strbuf, mmbufsize_t str_m, const TCHAR *fmt, va_list ap)
@@ -1019,8 +1024,8 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 			//[2017-10-00]Chj: %f and %g will use this as system snprintf's output. (ff_16)
 
 		const TCHAR *str_arg = NULL; /* string address in case of string argument */
-		int str_arg_l = 0;       /* natural field width of arg without padding
-								   and sign */
+		int str_arg_l = 0;       /* natural field width of arg without padding and sign */
+
 		TCHAR uchar_arg; //unsigned char uchar_arg;
 		/* unsigned char argument value - only defined for c conversion.
 		   N.B. standard explicitly states the char argument for
@@ -1354,15 +1359,8 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 
 				if(fmtcat==fmt_decimal_signed || fmtcat==fmt_float) 
 				{
-					if (force_sign && arg_sign >= 0)
+					if (Is_ForceSign_NonNeg(force_sign, arg_sign)) // (force_sign && arg_sign >= 0)
 						tmpnum[str_arg_l++] = space_for_positive ? _T(' ') : _T('+');
-					 /* leave negative numbers for sprintf to handle,
-						to avoid handling tricky cases like (short int)(-32768) */
-// #ifdef LINUX_COMPATIBLE
-// 				} 
-// 				else if (fmt_spec == 'p' && force_sign && arg_sign > 0) {
-// 					tmp[str_arg_l++] = space_for_positive ? ' ' : '+';
-// #endif //[2006-10-03]Chj: I do not use Linux's behavior here.
 				} 
 				else if (alternate_form) 
 				{
@@ -1553,6 +1551,17 @@ int mm_vsnprintf_v7(mmv7_st &mmi, const TCHAR *fmt, va_list ap)
 
 						int tmpbufsize = mmquan(tmpnum);
 						tmpnum[tmpbufsize-1] = _T('\0'); // so to cope with _snprintf's no-NUL on buffer full
+
+						double neg0 = -0.0f;
+						if( *(Uint64*)(&double_arg)==*(Uint64*)(&neg0) && Is_ForceSign_NonNeg(force_sign, arg_sign))
+						{	
+							// This is to deal with a very special case: 
+							// The neg0 is a accurate zero value with IEEE754 negative sign-bit.
+							// Later it will be converted to "-0", "-0.0000" etc, so we need to
+							// revoke the previously added ' ' or '+' .
+							assert(str_arg_l==1);
+							str_arg_l = 0;
+						}
 
 						int cf = TMM_snprintf(tmpnum+str_arg_l, tmpbufsize-str_arg_l-1, flfmt, double_arg);
 						if(cf>=0)

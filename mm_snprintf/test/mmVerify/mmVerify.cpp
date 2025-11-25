@@ -1342,13 +1342,24 @@ void test_v7dot3_float_clean_tail()
 	oks = t("[ 0    ][-0    ]");
 	mprint(oks, t("[% .-3f][% .-3f]"), 0.00001f, -0.00001f);
 
+	double pos0 = 0.0f, neg0 = -0.0f; // same value but differ only by sign-bit
+	//
+	oks = t("[ 0    ][-0    ]");
+	mprint(oks, t("[% .-3f][% .-3f]"), pos0, neg0);
+	//
+	oks = t("[+0    ][-0    ]");
+	mprint(oks, t("[%+.-3f][%+.-3f]"), pos0, neg0);
+	//
+	oks = t("[0.000][-0.000]");
+	mprint(oks, t("[%.3f][%.3f]"), pos0, neg0);
+
 	oks = t("[     1.5  ][    -1.5  ]");
 	mprint(oks, t("[% 10.-3f][% 10.-3f]"), 1.5, -1.5);
 }
 
 void _test_trivials()
 {
-//	mm_printf(_T("mmprintf [% .-3f][% .-3f]\n"), 1.2, -1.2);
+//	printf("%+d,%+d\n", 3, 0);
 }
 
 int _tmain()
