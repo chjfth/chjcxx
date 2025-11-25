@@ -37,6 +37,8 @@ typedef int RE_CODE;
 
 #define NULL_PTR 0
 #define NULL_BUF 0
+#define NULL_IN 0
+#define NULL_OUT 0
 
 #define BUFSIZE_0 0
 
