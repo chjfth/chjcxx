@@ -97,6 +97,9 @@ int vaDbgTs_bias_check_interval(int seconds);
 // -- return old value
 // -- This is only for Windows, debugging purpose.
 
+int vaDbgTs_set_seq_width(int width);
+// Default is 1. If set to 3, the seq prefix "[1]" will be printed as "[  1]".
+// -- return old value
 
 #ifdef __cplusplus
 } // extern"C" {
@@ -148,6 +151,8 @@ void *g_ctx_output = 0;
 
 PROC_vsnprintf *g_custom_vsnprintf = NULL;
 
+int g_seq_width = 1; 
+
 
 unsigned int vaDbgTs_options(vaDbg_opt_et opts)
 {
@@ -160,6 +165,13 @@ void vaDbg_set_output(PROC_vaDbg_output proc, void *ctx)
 {
 	g_vadbg_output = proc;
 	g_ctx_output = ctx;
+}
+
+int vaDbgTs_set_seq_width(int width)
+{
+	int oldval = g_seq_width;
+	g_seq_width = (width >= 1 && width <= 8)? width : 1;
+	return oldval;
 }
 
 PROC_vsnprintf* vaDbg_set_vsnprintf(PROC_vsnprintf custom_vsnp)
@@ -202,7 +214,7 @@ void vlDbgTsl(vaDbg_level_et lvl, const TCHAR *fmt, va_list args)
 	int opts = g_opts;
 	if(opts & vaDbg_seq)
 	{
-		snTprintf(buf, _T("[%d]%s "), ++g_dbgcount,	timebuf);
+		snTprintf(buf, _T("[%*d]%s "), g_seq_width, ++g_dbgcount, timebuf);
 	}
 	else
 	{
@@ -294,6 +306,11 @@ unsigned int vaDbgTs_options(vaDbg_opt_et opts)
 void vaDbg_set_output(PROC_vaDbg_output proc, void *ctx)
 {
 	CHHI_vaDbgTs::vaDbg_set_output(proc, ctx);
+}
+
+int vaDbgTs_set_seq_width(int width)
+{
+	return CHHI_vaDbgTs::vaDbgTs_set_seq_width(width);
 }
 
 PROC_vsnprintf* vaDbg_set_vsnprintf(PROC_vsnprintf custom_vsnp)
