@@ -1,14 +1,24 @@
-#ifndef ___MINMAX__H_20250822_
-#define ___MINMAX__H_20250822_
+#ifndef ___MINMAX__H_20251208_
+#define ___MINMAX__H_20251208_
 
 
-template<typename T> T _MIN_(T x, T y) { return x < y ? x : y; }
-template<typename T> T _MAX_(T x, T y) { return x > y ? x : y; }
-
-template<typename T> T _MID_(T x, T m, T y) 
+template<typename T1, typename T2> 
+T1 _MIN_(T1 x, T2 y) 
 { 
-	// Pull m into the range of [x,y] .
-	return _MAX_(x, _MIN_(m, y));
+	return x < y ? x : (T1)y; 
+}
+
+template<typename T1, typename T2> 
+T1 _MAX_(T1 x, T2 y) 
+{ 
+	return x > y ? x : (T1)y; 
+}
+
+template<typename T1, typename T2, typename T3> 
+T2 _MID_(T1 x, T2 m, T3 y) 
+{ 
+	// Clamp m into range of [x,y] .
+	return _MAX_(_MIN_(m, y), x);
 }
 
 
