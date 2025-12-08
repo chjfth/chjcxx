@@ -1,3 +1,6 @@
+#ifndef __CHHI_vaDBG_is_vaDbgTs_h_20251208_
+#define __CHHI_vaDBG_is_vaDbgTs_h_20251208_
+
 // If your CHHI.cpp wants to see debug-messages from various CHHI library modules
 // (for XXX module, XXX_DEBUG defined as a premise), you need to:
 // Copy this file's content to start portion of your CHHI.cpp, then (tweaking)
@@ -48,7 +51,7 @@ void vaDBG3(Args&&... args) // forwards all arguments
 }
 
 
-#else
+#else // pre-C++11
 
 
 #include <stdarg.h>
@@ -95,3 +98,5 @@ void vaDBG3(const TCHAR *fmt, ...)
 };
 
 #endif // CXX11_OR_NEWER/else
+
+#endif

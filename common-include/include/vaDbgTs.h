@@ -113,7 +113,8 @@ int vaDbgTs_set_seq_width(int width);
 
 #if defined(vaDbgTs_IMPL) || (defined CHHI_ALL_IMPL && !defined CHHI_ALL_IMPL_HIDE_vaDbgTs)
 
-#ifdef _MSC_VER 
+#ifdef _MSC_VER
+// ...
 #else 
 #include <linux/msvc_extras.h> // for __int64
 #define _tcslen strlen
@@ -126,7 +127,7 @@ int vaDbgTs_set_seq_width(int width);
 
 #ifdef _MSC_VER 
 // Using Microsoft Visual C++ as compiler
-#include "mswin/vaDbgTs.CHHI.h"
+#include "mswin\vaDbgTs.CHHI.h"
 #else 
 // Consider it Linux/GCC
 #include "linux/vaDbgTs.CHHI.h"
