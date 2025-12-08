@@ -321,7 +321,8 @@ namespace itc {                        // API namespace
 		//
 
 		CInterpretConst(const TCHAR *valfmt,
-			... // [arSinglebit2Val, nSinglebit2Val] pairs, end with [nullptr, 0]
+			const SingleBit2Val_st *arSinglebit2Val, int nVals,
+			... // [arSinglebit2Val, nVals] pairs, end with [nullptr, 0]
 			) // VK0
 		{
 			va_list args;
@@ -332,18 +333,18 @@ namespace itc {                        // API namespace
 
 		CInterpretConst(const TCHAR *valfmt,
 			const EnumGroup_st *arGroups, int nGroups, 
-			... // [arSinglebit2Val, nSinglebit2Val] pairs, end with [nullptr, 0]
+			... // [arGroups, nGroups] pairs, end with [nullptr, 0]
 			) // VK1
 		{
 			va_list args;
 			va_start(args, nGroups);
-			_ctor(valfmt, arGroups, nGroups, args);
+			_ctor(valfmt, arGroups, nGroups, args);  // call to the {most generic initor}
 			va_end(args);
 		}
 
 		CInterpretConst(const TCHAR *valfmt,
 			const Enum2Val_st *arEnum2Val, int nEnum2Val, 
-			... // [arSinglebit2Val, nSinglebit2Val] pairs, end with [nullptr, 0]
+			... // [arEnum2Val, nEnum2Val] pairs, end with [nullptr, 0]
 			) // VK2
 		{
 			// This is a simplified version of VK1.
