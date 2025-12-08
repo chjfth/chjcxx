@@ -1,3 +1,6 @@
+#ifndef __commdefs_h_20251208_
+#define __commdefs_h_20251208_
+
 /**************************************************************************
 
 	Header file to present some common defines.
@@ -5,9 +8,6 @@
 	Created by Chj on 2002.11.28
 
 **************************************************************************/
-
-#ifndef __commdefs_h_20250514_
-#define __commdefs_h_20250514_
 
 // #include <stddef.h>
 
@@ -128,12 +128,18 @@ typedef int YorN;
 // Without this function, the result was an int.
 // NOTE: ENUM_ENABLE_BITWISE_OR should normally be used in global scope, not in a class definition.
 template<typename enum_type>
+#if _MSC_VER >= 1900
+constexpr // VC2015+ requires this
+#endif
 inline enum_type operator | (enum_type a, enum_type b) 
 {
 	return enum_type((int)a | b); 
 }
 //
 template<typename enum_type>
+#if _MSC_VER >= 1900
+constexpr // VC2015+ requires this
+#endif
 inline enum_type operator & (enum_type a, enum_type b) 
 {
 	// Note: We still need to make an explicit conversion of second operand, like this:
