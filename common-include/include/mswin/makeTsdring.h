@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __makeTstring_h_20251217_
+#define __makeTstring_h_20251217_
 
 #include <tchar.h>
 #include <windows.h>
@@ -7,11 +8,11 @@
 
 // makeTstring() is used in situation that the input string from external source 
 // is known to be tied to `char` or tied to `WCHAR`, but you still want to have
-// a TCHAR string(sdring) for internal process.
+// a TCHAR string(Sdring) for internal process.
 //
 // For example, D3DXAssembleShader() returns error string definitely as narrow char,
 // but you want to send that string to TCHAR-style WinAPI, you can construct a 
-// sdring<TCHAR> object as soon as you get that narrow error string.
+// sdring<TCHAR> object as soon as you get that narrow string.
 
 inline char* char_from_wchar(int codepage, const wchar_t* instr)
 {
@@ -30,6 +31,7 @@ inline wchar_t* wchar_from_char(int codepage, const char* instr)
 }
 
 
+// sdring<TCHAR> from char*
 sdring<TCHAR> makeTsdring(const char *instr)
 {
 #if defined(UNICODE) || defined(_UNICODE)
@@ -44,7 +46,7 @@ sdring<TCHAR> makeTsdring(const char *instr)
 #endif
 }
 
-// sdring<wchar_t> from wchar_t*
+// sdring<TCHAR> from wchar_t*
 sdring<TCHAR> makeTsdring(const wchar_t *instr)
 {
 #if defined(UNICODE) || defined(_UNICODE)
@@ -59,3 +61,6 @@ sdring<TCHAR> makeTsdring(const wchar_t *instr)
 #endif
 }
 
+
+
+#endif
