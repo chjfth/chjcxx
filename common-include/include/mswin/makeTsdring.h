@@ -16,6 +16,9 @@
 
 inline char* char_from_wchar(int codepage, const wchar_t* instr)
 {
+	if(!instr)
+		return NULL;
+
 	int bytesreq = WideCharToMultiByte(codepage, 0, instr, -1, NULL, 0, NULL, NULL);
 	char *charbuf = new char[bytesreq];
 	WideCharToMultiByte(codepage, 0, instr, -1, charbuf, bytesreq, NULL, NULL);
@@ -24,6 +27,9 @@ inline char* char_from_wchar(int codepage, const wchar_t* instr)
 
 inline wchar_t* wchar_from_char(int codepage, const char* instr)
 {
+	if(!instr)
+		return NULL;
+
 	int wcreq = MultiByteToWideChar(codepage, 0, instr, -1, NULL, 0);
 	wchar_t *wcbuf = new wchar_t[wcreq];
 	MultiByteToWideChar(codepage, 0, instr, -1, wcbuf, wcreq);

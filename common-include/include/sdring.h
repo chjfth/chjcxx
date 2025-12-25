@@ -1,5 +1,5 @@
-#ifndef __sdring_h_20251117_
-#define __sdring_h_20251117_
+#ifndef __sdring_h_20251225_
+#define __sdring_h_20251225_
 
 //#include <ps_TCHAR.h>
 
@@ -8,7 +8,7 @@ class sdring
 {
 public:
 
-	static int bufSize(int nchars){ return nchars+1; }
+	static int bufSize_(int nchars){ return nchars+1; }
 
 	sdring(int nchars=0)
 	{
@@ -16,7 +16,10 @@ public:
 		m_buf = nullptr;
 
 		if(nchars>0)
-			m_buf = new T_CHAR[bufSize(nchars)];
+		{
+			m_buf = new T_CHAR[bufSize_(nchars)];
+			m_buf[0] = '\0';
+		}
 	}
 
 	sdring(const T_CHAR* instr)	{
@@ -93,15 +96,19 @@ public:
 private:
 	void _ctor(const T_CHAR *instr)
 	{
+		// [2025-12-25] Note: We distinguish btw 
+		//	instr==NULL 
+		// and
+		//	instr[0]=='\0'
+
 		m_nchars = 0;
 		m_buf = nullptr;
 
 		if (instr)
-			m_nchars = str_len(instr);
-
-		if (m_nchars > 0)
 		{
-			m_buf = new T_CHAR[bufSize(m_nchars)];
+			m_nchars = str_len(instr); // m_nchars can be 0
+
+			m_buf = new T_CHAR[bufSize_(m_nchars)];
 			str_cpy(m_buf, instr);
 		}
 	}
@@ -128,7 +135,7 @@ private:
 		int i = 0;
 		for(; src[i]; i++)
 			dst[i] = src[i];
-		dst[i] = 0; // append NUL char
+		dst[i] = '\0'; // append NUL char
 		return i; // i is string len
 	}
 
