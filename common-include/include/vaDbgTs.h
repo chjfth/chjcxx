@@ -292,11 +292,6 @@ void vaDbgTsl(vaDbg_level_et lvl, const TCHAR *fmt, ...)
 	va_end(args);
 }
 
-void vlDbgTs(vaDbg_level_et lvl, const TCHAR *fmt, va_list args)
-{
-	CHHI_vaDbgTs::vlDbgTsl(vaDbg_VERBOSE, fmt, args);
-}
-
 
 unsigned int vaDbgTs_options(vaDbg_opt_et opts)
 {
