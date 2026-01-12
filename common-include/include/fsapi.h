@@ -41,6 +41,8 @@ enum fserror_et
 	E_not_found = -5,
 	E_create = -6,
 	E_access_denied = -7,
+
+	E_disk_full = -10, // pending
 };
 
 
@@ -60,6 +62,8 @@ enum open_share_et // can be OR-ed
 };
 
 typedef __int64 filehandle_t;
+
+enum { bad_filehandle = -1 }; // use it as invalid filehandle_t
 
 filehandle_t file_open(const TCHAR *filepath, open_for_et ofor, open_share_et oshare);
 // -- 

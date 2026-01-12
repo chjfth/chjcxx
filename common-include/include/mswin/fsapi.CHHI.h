@@ -36,7 +36,7 @@ file_open(const TCHAR *filepath, open_for_et ofor, open_share_et oshare)
 {
 	DWORD dwDesiredAccess = 0;
 	dwDesiredAccess |= (ofor & open_for_read) ? GENERIC_READ : 0;
-	dwDesiredAccess |= (ofor & open_for_write) ? GENERIC_WRITE : 0;
+	dwDesiredAccess |= (ofor & (open_for_write|open_for_append)) ? GENERIC_WRITE : 0;
 	dwDesiredAccess |= (ofor & open_for_append) ? FILE_APPEND_DATA : 0;
 
 	DWORD dwShareMode = 0;
