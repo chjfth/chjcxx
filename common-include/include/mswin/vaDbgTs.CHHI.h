@@ -91,11 +91,11 @@ void ivlDbgTs(const TCHAR *fmt, va_list args) // internal debug interface
 	snTprintf(buf, _T("{%04d-%02d-%02d_%02d:%02d:%02d}ivaDbg: "),
 		st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
 
-	int pfxlen = _tcslen(buf);
+	int pfxlen = (int)_tcslen(buf);
 
 	vsnTprintf(buf+pfxlen, ARRAYSIZE(buf)-pfxlen, fmt, args);
 	
-	pfxlen = _tcslen(buf);
+	pfxlen = (int)_tcslen(buf);
 	if(pfxlen == ARRAYSIZE(buf)-1)
 		--pfxlen;
 	
