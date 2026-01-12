@@ -46,11 +46,6 @@
 extern"C" {
 #endif
 
-unsigned int va_millisec(); 
-// -- This function tries to provide real 1 millisecond granularity.
-// WinNT's GetTickCount() at most times has only 15.625 millisec precision.
-// This should be an ever increasing value, even after user turns system clock backward.
-
 void vaDbgTs(const TCHAR *fmt, ...);
 void vlDbgTs(const TCHAR *fmt, va_list args);
 
@@ -101,6 +96,28 @@ int vaDbgTs_set_seq_width(int width);
 // Default is 1. If set to 3, the seq prefix "[1]" will be printed as "[  1]".
 // -- return old value
 
+
+//
+// Bonus time functions: va_millisec() and va_now_timestr()
+//
+unsigned int va_millisec(); // va: vaDbgTs prefix -OR- very accurate
+// --
+// This function tries to provide real 1 millisecond granularity.
+// WinNT's GetTickCount() at most times has only 15.625 millisec precision.
+// This should be an ever increasing value, even after user turns system clock backward.
+
+
+enum VaNowtime_et
+{
+	VaNowtime_ymd      = vaDbg_ymd,      // show year, month, date
+	VaNowtime_millisec = vaDbg_millisec, // show millisecond
+	VaNowtime_diff     = vaDbg_diff,     // show diff seconds to previous(hint, not accurate)
+};
+
+TCHAR *va_now_timestr(VaNowtime_et timefmt, TCHAR buf[], int bufchars);
+// -- return input buf[]
+
+
 #ifdef __cplusplus
 } // extern"C" {
 #endif
@@ -138,7 +155,7 @@ namespace CHHI_vaDbgTs { // private namespace
 TCHAR* now_timestr(vaDbg_opt_et opts, TCHAR buf[], int bufchars);
 // -- Mswin/Linux code must implement this function to complete vaDbgTs() codeflow.
 // The return string should be like:
-//		"[2025-11-14_15:20:44.510]"
+//		"2025-11-14_15:20:44.510"
 // but varies according to opts.
 
 const int DBG_BUFCHARS = 16000;
@@ -207,10 +224,13 @@ void vlDbgTsl(vaDbg_level_et lvl, const TCHAR *fmt, va_list args)
 		g_vadbg_output(vaDbg_DOTS, dots, g_ctx_output);
 	}
 
-	TCHAR timebuf[60] = {};
-	now_timestr(g_opts, timebuf, ARRAYSIZE(timebuf));
+	TCHAR timebuf[60];
+	timebuf[0] = '[';
+	now_timestr(g_opts, timebuf+1, ARRAYSIZE(timebuf)-2);
 
-	int prefixlen = 0;
+	int prefixlen = (int)_tcslen(timebuf);
+	timebuf[prefixlen]   = ']';
+	timebuf[prefixlen+1] = '\0';
 
 	int opts = g_opts;
 	if(opts & vaDbg_seq)
@@ -265,6 +285,12 @@ unsigned int va_millisec()
 {
 	return CHHI_vaDbgTs::va_millisec();
 }
+
+TCHAR *va_now_timestr(VaNowtime_et timefmt, TCHAR buf[], int bufchars)
+{
+	return CHHI_vaDbgTs::now_timestr((vaDbg_opt_et)timefmt, buf, bufchars);
+}
+
 
 void vlDbgTsl(vaDbg_level_et lvl, const TCHAR *fmt, va_list args)
 {

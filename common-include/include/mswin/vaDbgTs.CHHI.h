@@ -37,7 +37,7 @@ inline Uint64 get_qpc()
 
 unsigned int va_millisec()
 {
-	// In vaDbgTs libcode, we'll use this function an more accurate GetTickCount().
+	// In vaDbgTs libcode, we'll use this function as more accurate GetTickCount().
 	// 32bit is enough bcz user should care for the diff of two va_millisec() calls.
 
 	Uint64 s_qpf = get_qpf(); // To play it safe, not `static`
@@ -138,7 +138,7 @@ void default_output_proc(vaDbg_level_et lvl, const TCHAR *dbgstr, void *ctx)
 
 TCHAR* SystimeToString(vaDbg_opt_et opts, const SYSTEMTIME &st, TCHAR buf[], int bufchars)
 {
-	buf[0] = '['; buf[1] = '\0';
+	buf[0] = '\0';
 
 	if (opts & vaDbg_ymd)
 	{
@@ -154,8 +154,6 @@ TCHAR* SystimeToString(vaDbg_opt_et opts, const SYSTEMTIME &st, TCHAR buf[], int
 		snTprintf(buf, bufchars, _T("%s.%03d"), buf,
 			st.wMilliseconds);
 	}
-
-	snTprintf(buf, bufchars, _T("%s]"), buf);
 
 	return buf;
 }
@@ -237,8 +235,6 @@ struct SAccuMillisec
 
 		SYSTEMTIME st = UemsecToLocalTime(uemsec_now);
 
-		buf[0] = '['; buf[1] = '\0';
-				
 		return SystimeToString(opts, st, buf, bufchars);
 	}
 };
