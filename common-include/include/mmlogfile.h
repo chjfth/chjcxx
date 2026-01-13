@@ -8,7 +8,7 @@ class CBufferedLogfile;
 class CMmLogfile
 {
 public:
-	CMmLogfile(const TCHAR *logfile, bool isAppend=true);
+	CMmLogfile(const TCHAR *logfile, bool isAppend=true, int bufmax=8192);
 	~CMmLogfile();
 
 	bool mmlog(const TCHAR *fmt, ...);
@@ -17,6 +17,7 @@ public:
 private:
 	const TCHAR *m_logfile;
 	bool m_isAppend;
+	int m_bufmax; // buffer size in bytes, 1 means totally no buffer.
 
 	CBufferedLogfile *m_blg;
 	int m_count;
@@ -70,10 +71,11 @@ private:
 
 using namespace fsapi;
 
-CMmLogfile::CMmLogfile(const TCHAR *logfile, bool isAppend)
+CMmLogfile::CMmLogfile(const TCHAR *logfile, bool isAppend, int bufmax)
 {
 	m_logfile = logfile;
 	m_isAppend = isAppend;
+	m_bufmax = bufmax;
 
 	m_blg = nullptr;
 	m_count = 0;
@@ -118,7 +120,7 @@ bool CMmLogfile::mmlog(const TCHAR *fmt, ...)
 		if(!m_blg)
 			return false;
 
-		succ = m_blg->Start(m_logfile, m_isAppend, 16384);
+		succ = m_blg->Start(m_logfile, m_isAppend, m_bufmax);
 		if(!succ)
 			return false;
 	}

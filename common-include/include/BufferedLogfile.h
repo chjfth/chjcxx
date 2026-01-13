@@ -95,7 +95,7 @@ bool
 CBufferedLogfile::Start(const TCHAR *filepath, bool isAppend, int bufmax)
 {
 	if(bufmax<=0)
-		return false;
+		bufmax = 1;
 
 	m_ndirty = 0;
 	m_bufmax = bufmax;
