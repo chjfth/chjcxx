@@ -49,6 +49,7 @@ private:
 #include <mm_snprintf.h>
 #include <vaDbgTs.h>
 #include <BufferedLogfile.h>
+#include <utf8wchar.h>
 
 #ifndef _MSC_VER
 #include <msvc_extras.h> // for ARRAYSIZE() macro
@@ -106,7 +107,23 @@ static void mmct_CMmLogfile_write(void *ctx_user, const TCHAR *pcontent, int nch
 
 	CMmLogfile_ctx &ctx = *(CMmLogfile_ctx*)ctx_user;
 
-	bool succ = ctx.blg->Append(pcontent, nchars); // PENDINNG TODO: UTF8
+	bool succ = false;
+	
+	if(sizeof(TCHAR)==1)
+	{
+		succ = ctx.blg->Append(pcontent, nchars);
+	}
+	else
+	{	
+		// TCHAR is wchar_t. Convert it to utf8 string then write to file.
+		int utf8_bytes = 0;
+		char *utf8s = utf8::ptr_from_wchars(pcontent, nchars, NULL, &utf8_bytes);
+
+		succ = ctx.blg->Append(utf8s, utf8_bytes);
+
+		utf8::ptr_freebuf(utf8s);
+	}
+
 	ctx.fserr = succ ? E_success : E_unknown;
 }
 
