@@ -38,7 +38,7 @@ inline wchar_t* wchar_from_char(int codepage, const char* instr)
 
 
 // sdring<TCHAR> from char*
-sdring<TCHAR> makeTsdring(const char *instr)
+inline sdring<TCHAR> makeTsdring(const char *instr)
 {
 #if defined(UNICODE) || defined(_UNICODE)
 	wchar_t *wcbuf = wchar_from_char(CP_ACP, instr);
@@ -53,7 +53,7 @@ sdring<TCHAR> makeTsdring(const char *instr)
 }
 
 // sdring<TCHAR> from wchar_t*
-sdring<TCHAR> makeTsdring(const wchar_t *instr)
+inline sdring<TCHAR> makeTsdring(const wchar_t *instr)
 {
 #if defined(UNICODE) || defined(_UNICODE)
 	return sdring<wchar_t>(instr);

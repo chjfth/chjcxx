@@ -325,7 +325,7 @@ struct mmF_pair_stW
 #ifdef __cplusplus
 	mmF_pair_stW(FUNC_mmF_FormatterW *f, void *p) : magic(mm_fpair_magic), func(f), func_param(p) {}
 	mmF_pair_stW* operator&(){ return this; }
-#define MM_FPAIR_PARAMW(f, p) &mmF_pair_stW( (f), ((void*)(p)) ) // only for C++
+#define MM_FPAIR_PARAMW(func, ctx) &mmF_pair_stW( (func), ((void*)(ctx)) ) // only for C++
 #endif
 };
 #endif // #ifndef MMSNPRINTF_NO_UNICODE
