@@ -36,8 +36,9 @@ inline wchar_t* wchar_from_char(int codepage, const char* instr)
 	return wcbuf;
 }
 
-
+//
 // sdring<TCHAR> from char*
+//
 inline sdring<TCHAR> makeTsdring(const char *instr)
 {
 #if defined(UNICODE) || defined(_UNICODE)
@@ -52,7 +53,10 @@ inline sdring<TCHAR> makeTsdring(const char *instr)
 #endif
 }
 
+
+//
 // sdring<TCHAR> from wchar_t*
+//
 inline sdring<TCHAR> makeTsdring(const wchar_t *instr)
 {
 #if defined(UNICODE) || defined(_UNICODE)
@@ -68,5 +72,39 @@ inline sdring<TCHAR> makeTsdring(const wchar_t *instr)
 }
 
 
+//
+// sdring<char> from TCHAR*
+//
+inline sdring<char> makeAsdring(const TCHAR *instr)
+{
+#if defined(UNICODE) || defined(_UNICODE)
+	char *charbuf = char_from_wchar(CP_ACP, instr);
+
+	sdring<char> rets = charbuf;
+
+	delete charbuf;
+	return rets;
+#else
+	return sdring<char>(instr);
+#endif
+}
+
+
+//
+// sdring<wchar_t> from TCHAR*
+//
+inline sdring<wchar_t> makeWsdring(const TCHAR *instr)
+{
+#if defined(UNICODE) || defined(_UNICODE)
+	return sdring<wchar_t>(instr);
+#else
+	wchar_t *wcbuf = wchar_from_char(CP_ACP, instr);
+
+	sdring<wchar_t> rets = wcbuf;
+
+	delete wcbuf;
+	return rets;
+#endif
+}
 
 #endif
