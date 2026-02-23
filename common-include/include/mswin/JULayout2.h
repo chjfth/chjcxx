@@ -1,5 +1,5 @@
-#ifndef __JULayout2_h_20250703_
-#define __JULayout2_h_20250703_
+#ifndef __JULayout2_h_20260223_
+#define __JULayout2_h_20260223_
 
 /******************************************************************************
 Original: UILayout.h
@@ -43,11 +43,8 @@ If not doing so for the Uic, the Uic will be erased when the groupbox is resizin
 #include <assert.h>
 #include <windows.h> // HWND, POINT, LRESULT etc
 
-#ifdef JULAYOUT_IMPL // allow for old macro name JULAYOUT_IMPL
-#define JULayout2_IMPL
-#endif
 
-#ifdef JULayout2_IMPL
+#if defined(JULayout2_IMPL) || (defined CHHI_ALL_IMPL && !defined CHHI_ALL_IMPL_HIDE_JULayout2)
 #define CxxWindowSubclass_IMPL
 #endif
 #include <mswin/CxxWindowSubclass.h> // needs comctl32.lib
@@ -165,18 +162,31 @@ private:
 }; 
 
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
-#ifdef JULayout2_IMPL
-
+/*
+////////////////////////////////////////////////////////////////////////////
+ ___                 _                           _        _   _             
+|_ _|_ __ ___  _ __ | | ___ _ __ ___   ___ _ __ | |_ __ _| |_(_) ___  _ __  
+ | || '_ ` _ \| '_ \| |/ _ \ '_ ` _ \ / _ \ '_ \| __/ _` | __| |/ _ \| '_ \ 
+ | || | | | | | |_) | |  __/ | | | | |  __/ | | | || (_| | |_| | (_) | | | |
+|___|_| |_| |_| .__/|_|\___|_| |_| |_|\___|_| |_|\__\__,_|\__|_|\___/|_| |_|
+              |_|                                                           
+////////////////////////////////////////////////////////////////////////////
+*/
+// ++++++++++++++++++ Implementation Below ++++++++++++++++++
+//
+#if defined(JULayout2_IMPL) || (defined CHHI_ALL_IMPL && !defined CHHI_ALL_IMPL_HIDE_JULayout2) // [IMPL] begin
+// [IMPL] //
+// [IMPL] //
+// Include system/OS headers here
 #include <windows.h>
 #include <windowsx.h>
 #include <tchar.h>
 #include <assert.h>
-
+//
 #include <mswin/win32cozy.h>
+// [IMPL] //
+// [IMPL] //
+
 
 #ifndef JULayout2_DEBUG
 #include <CHHI_vaDBG_hide.h>

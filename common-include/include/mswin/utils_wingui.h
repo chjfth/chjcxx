@@ -34,16 +34,38 @@ bool WM_TIMER_call_once(HWND hwnd, int delay_millisec, PROC_WM_TIMER_call_once *
 void util_SetDlgDefaultButton(HWND hwndDlg, UINT idDefault);
 
 
-///////////////////////////////////////////////////////////////
-// Implementation Below:
-///////////////////////////////////////////////////////////////
+#define HANDLE_dlgMSG(hwnd, message, fn) \
+  case (message): \
+  return SetDlgMsgResult( hwnd, message, HANDLE_##message((hwnd), (wParam), (lParam), (fn)) );
+  // For message processing in a WinAPI user's dialog-procedure, we need a further step
+  // beyond that of windowsx.h's HANDLE_MSG(). This HANDLE_dlgMSG() applies that further step.
+  // Ref: Raymond Chen https://devblogs.microsoft.com/oldnewthing/20031107-00/?p=41923
 
-#ifdef utils_wingui_IMPL
 
+
+
+/*
+////////////////////////////////////////////////////////////////////////////
+ ___                 _                           _        _   _             
+|_ _|_ __ ___  _ __ | | ___ _ __ ___   ___ _ __ | |_ __ _| |_(_) ___  _ __  
+ | || '_ ` _ \| '_ \| |/ _ \ '_ ` _ \ / _ \ '_ \| __/ _` | __| |/ _ \| '_ \ 
+ | || | | | | | |_) | |  __/ | | | | |  __/ | | | || (_| | |_| | (_) | | | |
+|___|_| |_| |_| .__/|_|\___|_| |_| |_|\___|_| |_|\__\__,_|\__|_|\___/|_| |_|
+              |_|                                                           
+////////////////////////////////////////////////////////////////////////////
+*/
+// ++++++++++++++++++ Implementation Below ++++++++++++++++++
+//
+#if defined(utils_wingui_IMPL) || (defined CHHI_ALL_IMPL && !defined CHHI_ALL_IMPL_HIDE_utils_wingui) // [IMPL] begin
+// [IMPL] //
+// [IMPL] //
+// Include system/OS headers here
 #include <assert.h>
-
+//
 #define utils_env_IMPL
-#include <mswin/utils_env.h> // need GetExeFilename
+#include <mswin/utils_env.h> // need GetExeFilename()
+// [IMPL] //
+// [IMPL] //
 
 
 int vaMsgBox(HWND hwnd, UINT utype, const TCHAR *szTitle, const TCHAR *szfmt, ...)

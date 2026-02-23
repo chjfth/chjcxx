@@ -31,11 +31,26 @@ TCHAR *parse_cmdparam_HEXRR(
 
 
 
-///////////////////////////////////////////////////////////////
-// Implementation Below:
-///////////////////////////////////////////////////////////////
-
-#ifdef utils_env_IMPL
+/*
+////////////////////////////////////////////////////////////////////////////
+ ___                 _                           _        _   _             
+|_ _|_ __ ___  _ __ | | ___ _ __ ___   ___ _ __ | |_ __ _| |_(_) ___  _ __  
+ | || '_ ` _ \| '_ \| |/ _ \ '_ ` _ \ / _ \ '_ \| __/ _` | __| |/ _ \| '_ \ 
+ | || | | | | | |_) | |  __/ | | | | |  __/ | | | || (_| | |_| | (_) | | | |
+|___|_| |_| |_| .__/|_|\___|_| |_| |_|\___|_| |_|\__\__,_|\__|_|\___/|_| |_|
+              |_|                                                           
+////////////////////////////////////////////////////////////////////////////
+*/
+// ++++++++++++++++++ Implementation Below ++++++++++++++++++
+//
+#if defined(utils_env_IMPL) || (defined CHHI_ALL_IMPL && !defined CHHI_ALL_IMPL_HIDE_utils_env) // [IMPL] begin
+// [IMPL] //
+// [IMPL] //
+// Include system/OS headers here
+#include <Shlwapi.h> // for StrRChr
+#pragma comment(lib, "Shlwapi.lib")
+// [IMPL] //
+// [IMPL] //
 
 
 unsigned __int64 get_qpf()
@@ -95,8 +110,6 @@ WinSDK 8.1 has fixed it.
 	return IsUserAnAdmin();
 }
 
-#include <Shlwapi.h> // for StrRChr
-#pragma comment(lib, "Shlwapi.lib")
 
 const TCHAR* GetExeFilename()
 {
