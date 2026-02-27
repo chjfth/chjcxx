@@ -15,6 +15,8 @@
 #include <utility>       // to have std::forward
 #include <CxxVerCheck.h> // to see CXX11_OR_NEWER
 
+#include <vaDbgTs.h>
+
 #define vaDbg_ALL vaDbg_VERBOSE
 
 

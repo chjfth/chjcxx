@@ -1,5 +1,5 @@
-#ifndef __WinMultiMon_h_20250703_
-#define __WinMultiMon_h_20250703_
+#ifndef __WinMultiMon_h_20260227_
+#define __WinMultiMon_h_20260227_
 
 #include <windows.h>
 
@@ -13,7 +13,9 @@ struct OneMonitorInfo_st
 	bool isPrimary;
 	RECT rcMonitor;
 	RECT rcWorkArea;
-	TCHAR szDevice[CCHDEVICENAME];
+	TCHAR szDevice[CCHDEVICENAME]; // '\\.\DISPLAY1', '\\.\DISPLAY2' etc
+	HMONITOR hMonitor;
+	HDC hdcMonitor;
 };
 
 WinErr_t doEnumDisplayMonitors(OneMonitorInfo_st arMonInfo[], int arEles, int *pTotalMonitors);
@@ -66,6 +68,8 @@ MonitorEnumProc(
 	if( emp.nUserFilled < emp.nUserMoninfo )
 	{
 		OneMonitorInfo_st &oneinfo = emp.arUserMoninfo[emp.nUserFilled];
+		oneinfo.hMonitor = hMonitor;
+		oneinfo.hdcMonitor = hdcMonitor;
 
 		MONITORINFOEX minfo; // Damn M$: cannot just write = {sizeof(MONITORINFOEX)}
 		minfo.cbSize = sizeof(MONITORINFOEX);
@@ -73,9 +77,21 @@ MonitorEnumProc(
 		if (!b)
 		{ 
 			DWORD winerr = GetLastError();
-			vaDBG(_T("GetMonitorInfo() fail on hMonitor=0x%p, winerr=%d."), hMonitor, winerr);
+			vaDBG0(_T("GetMonitorInfo() fail on hMonitor=0x%p, winerr=%d."), hMonitor, winerr);
 
 			return FALSE;
+		}
+
+		if(! EqualRect(lprcMonitor, &minfo.rcMonitor))
+		{
+			RECT &r1 = *lprcMonitor;
+			RECT &r2 = minfo.rcMonitor;
+			vaDBG0(
+				_T("Panic! In MonitorEnumProc(): Callback lprcMonitor does NOT equal to GetMonitorInfo().\n")
+				_T("    L/T/R/B [%d,%d,%d,%d] vs [%d,%d,%d,%d]")
+				, 
+				r1.left, r1.top, r1.right, r1.bottom,  r2.left, r2.top, r2.right, r2.bottom
+				);
 		}
 
 		oneinfo.isPrimary = (minfo.dwFlags&MONITORINFOF_PRIMARY) ? true : false;
@@ -86,14 +102,16 @@ MonitorEnumProc(
 		emp.nUserFilled++;
 
 		TCHAR rctext[40] = _T("");
-		vaDBG(_T("MonitorEnumProc#%d: hMonitor=0x%p, hdcMonitor=0x%p, \"%s\" %s"),
+		vaDBG2(_T("MonitorEnumProc#%d: hMonitor=0x%p, hdcMonitor=0x%p, \"%s\" %s"),
 			emp.nMonitorCount,
-			hMonitor, hdcMonitor, minfo.szDevice, RECTtext(minfo.rcMonitor, rctext)
+			hMonitor, hdcMonitor, 
+			minfo.szDevice, // \"%s\"
+			RECTtext(minfo.rcMonitor, rctext) // %s
 			);
 	}
 	else
 	{
-		vaDBG(_T("MonitorEnumProc#%d: (no detail)"), emp.nMonitorCount);
+		vaDBG2(_T("MonitorEnumProc#%d: less buffer, not calling GetMonitorInfo()"), emp.nMonitorCount);
 	}
 	
 	return TRUE; // continue enumeration 
