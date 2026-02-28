@@ -556,7 +556,7 @@ CInterpretConst::DumpText(TCHAR userbuf[], int nbufchars, int *pReqBufsize) cons
 
 CONSTVAL_t CInterpretConst::OneNameToVal(const TCHAR *name, bool *p_is_err)
 {
-	CONSTVAL_t retval = 0;
+//	CONSTVAL_t retval = 0;
 	
 	bool is_err = false;
 	if(!p_is_err)

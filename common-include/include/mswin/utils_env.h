@@ -29,6 +29,14 @@ TCHAR *parse_cmdparam_HEXRR(
 	); // // return just outbuf.
 	// note: was named parse_cmdparam_TCHARs() from G:\gitw\bookcode-mswin\share\vaDbg.cpp
 
+inline int com_GetRefCount(IUnknown *piu)
+{
+	if(!piu)
+		return 0;
+
+	piu->AddRef();
+	return piu->Release();
+}
 
 
 /*
