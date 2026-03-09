@@ -173,13 +173,16 @@ inline bool Is_decidigit(int c)
 	return isdigit(c) || c=='.';
 }
 
-static bool Is_valid_decimal(const TCHAR *p, int nchars)
+static bool Is_valid_decimal(const TCHAR *p, int nchars, bool want_neg)
 {
 	int i = 0;
-	if(nchars>0 && p[0]=='-')
+	if(want_neg)
 	{
-		// Allow minus sign at start.
-		i = 1;
+		if(nchars>0 && p[0]=='-')
+		{
+			// Allow minus sign at start.
+			i = 1;
+		}
 	}
 
 	int dot_count = 0;
@@ -278,6 +281,7 @@ EditboxPeeker::Edit_OnKey(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT flag
 
 	int startHot = startPos, endHot_ = endPos; // The hot section is what we operate.
 	bool as_int_ring = false;
+	bool want_neg = (this->min_val < 0); // consider '-' as negative-sign
 	
 	// Special for edge-case of pure caret(=no text-selection) at VB's end_
 	if( startHot==endHot_ && startHot>0)
@@ -290,7 +294,7 @@ EditboxPeeker::Edit_OnKey(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT flag
 	while(startHot>0 && Is_decidigit(szText[startHot-1]))
 		startHot--;
 
-	if(this->min_val < 0) 
+	if(want_neg) 
 	{
 		// try to include an extra minus sign at left-side
 		if(startHot>0 && szText[startHot-1]=='-')
@@ -303,14 +307,14 @@ EditboxPeeker::Edit_OnKey(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT flag
 
 	if(startHot==endHot_)
 	{
-		vaDBG2(_T("Caret pos NOT on numeric string, do nothing."));
+		vaDBG2(_T("Caret pos NOT on valid numeric string, do nothing."));
 		return Relay_yes;
 	}
-	else if(!Is_valid_decimal(szText+startHot, endHot_-startHot))
+	else if(!Is_valid_decimal(szText+startHot, endHot_-startHot, want_neg))
 	{
-		vaDBG2(_T("Caret selection '%.*s' NOT a numeric string, do nothing."), 
+		vaDBG2(_T("Caret selection '%.*s' NOT a valid numeric string, do nothing."), 
 			endHot_-startHot, szText+startHot);
-		return Relay_yes;
+		return Relay_no; // Relay_no so that user text-selection is preserved.
 	}
 
 	if(startPos==endPos)
