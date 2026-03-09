@@ -147,20 +147,22 @@ EditboxPeeker::ctor_params(double min_val, double max_val, double step_val,
 	this->is_mouse_hidden = false;
 }
 
-
-static bool is_all_number_digits(const TCHAR *p, int nchars)
+inline bool Is_0_9(int c)
 {
-	int i;
-	for(i=0; i<nchars; i++)
+	return (c>='0' && c<='9') ? true : false;
+}
+
+static bool Is_all_0_9(const TCHAR *p, int nchars)
+{
+	for(int i=0; i<nchars; i++)
 	{
-		if(! isdigit(p[i]))
+		if(!Is_0_9(p[i]))
 			return false;
 	}
 	return true;
 }
 
-
-inline bool is_decidigit(int c)
+inline bool Is_decidigit(int c)
 {
 	if(c>0xff) {
 		// This can be an Unicode-char value.
@@ -170,6 +172,47 @@ inline bool is_decidigit(int c)
 
 	return isdigit(c) || c=='.';
 }
+
+static bool Is_valid_decimal(const TCHAR *p, int nchars)
+{
+	int i = 0;
+	if(nchars>0 && p[0]=='-')
+	{
+		// Allow minus sign at start.
+		i = 1;
+	}
+
+	int dot_count = 0;
+	for(; i<nchars; i++)
+	{
+		if(! Is_decidigit(p[i]))
+			return false;
+
+		if(p[i]=='.')
+			dot_count++;
+	}
+
+	// Note: "3." and ".3" are all value float values in the eye of atof().
+
+	if(dot_count==0 || dot_count==1)
+	{
+		if(dot_count==nchars)
+			return false;   // "."
+		else
+			return true;
+	}
+	else
+		return false;
+}
+
+static int Int_power(int base, int pow)
+{
+	int ret = 1;
+	for(int i=0; i<pow; i++)
+		ret *= base;
+	return ret;
+}
+
 
 MsgRelay_et
 EditboxPeeker::Edit_OnKey(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT flags)
@@ -204,7 +247,9 @@ EditboxPeeker::Edit_OnKey(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT flag
 	int startPos = 0, endPos = 0;
 	SendMessage(hEdit, EM_GETSEL, (WPARAM)&startPos, (LPARAM)&endPos);
 
-	vaDBG2(_T("hEdit 0x%08X: [#%d~%d) %s | %.*s"), hEdit, startPos, endPos, szText, 
+	vaDBG2(_T("hEdit 0x%08X: [#%d~%d) %s | %.*s"), 
+		hEdit, 
+		startPos, endPos, szText, // [#%d~%d) %s
 		endPos-startPos, szText+startPos // the substring after |
 		);
 
@@ -215,40 +260,86 @@ EditboxPeeker::Edit_OnKey(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT flag
 		endPos = tmp;
 	}
 
-	// Now, we check two cases.
-	// Case 1: If user has explicitly select(highlighted) some numbered text,
-	//         we process only that selected text AS DECIMAL int.
-	// Case 2: If user has selected nothing, we find a whole number string
-	//         around the caret and process that whole float number.
+	// Now, we check these cases.
+	// [1] Caret is placed somewhere in editbox , no text-selection(no invert-color chars).
+	//     We search left-and-right to find the value-boundary(VB), and adjust the whole
+	//     number inside VB as a float-number.
+	//
+	// [2] If there is text-selection already, we still search left-and-right(based on 
+	//     the selection) to identify the VB.
+	//
+	// [2.1] If VB equals text-selection, we adjust the whole number as float-number
+	//
+	// [2.3] If VB is larger than text-selection, that means only partial digits are 
+	//       selected, then we consider the selected digits as integer-ring.
+	//       For example, editbox has 1.0234, and "02" is select, then 
+	//       Up keys will adjust the number to be 1.0334, 1.0434, 1.0534 ...
+	//       Down keys will adjust the nubmer to be 1.0134, 1.0034, 1.9934, 1.9834 ...
 
 	int startHot = startPos, endHot_ = endPos; // The hot section is what we operate.
-	bool as_int = false;
+	bool as_int_ring = false;
 	
-	if(startPos<endPos) // user has explicit selection
+	// Special for edge-case of pure caret(=no text-selection) at VB's end_
+	if( startHot==endHot_ && startHot>0)
 	{
-		if(is_all_number_digits(szText+startPos, endPos-startPos))
-			as_int = true;
-		else
-			as_int = false;
-	}
-	else // find float number around caret
-	{
-		// caret pos or pos[-1] needs to be a digit or a decimal-point(dcpoint)
-		if(! (
-			is_decidigit(szText[startPos]) || (startPos>0 && is_decidigit(szText[startPos-1]))
-			) ) 
-		{
-			vaDBG2(_T("Caret pos NOT on a float number, do nothing."));
-			return Relay_yes;
-		}
-		
-		// Looking left-side:
-		while(startHot>0 && is_decidigit(szText[startHot-1]))
+		if(!Is_decidigit(szText[startHot]) && Is_0_9(szText[startHot-1])) 
 			startHot--;
+	}
 
-		// Looking right-size:
-		while(endHot_<textlen && is_decidigit(szText[endHot_]))
-			endHot_++;
+	// Looking left-side:
+	while(startHot>0 && Is_decidigit(szText[startHot-1]))
+		startHot--;
+
+	if(this->min_val < 0) 
+	{
+		// try to include an extra minus sign at left-side
+		if(startHot>0 && szText[startHot-1]=='-')
+			startHot--;
+	}
+
+	// Looking right-size:
+	while(endHot_<textlen && Is_decidigit(szText[endHot_]))
+		endHot_++;
+
+	if(startHot==endHot_)
+	{
+		vaDBG2(_T("Caret pos NOT on numeric string, do nothing."));
+		return Relay_yes;
+	}
+	else if(!Is_valid_decimal(szText+startHot, endHot_-startHot))
+	{
+		vaDBG2(_T("Caret selection '%.*s' NOT a numeric string, do nothing."), 
+			endHot_-startHot, szText+startHot);
+		return Relay_yes;
+	}
+
+	if(startPos==endPos)
+	{
+		// Case[1], startHot & endHot_ already settled.
+		as_int_ring = false;
+	}
+	else
+	{
+		if(endPos-startPos == endHot_-startHot)
+		{
+			// Case[2.1], do nothing, startHot & endHot_ already settled.
+			as_int_ring = false;
+		}
+		else
+		{
+			// Case[2.2]
+			as_int_ring = true;
+		
+			if(!Is_all_0_9(szText+startPos, endPos-startPos))
+			{
+				vaDBG2(_T("Partial selection '%.*s' contains non 0-9 chars, do nothing."), 
+					endPos-startPos, szText+startPos);
+				return Relay_no;
+			}
+			
+			// Tweak VB's meaning to be user's text-selection
+			startHot = startPos; endHot_ = endPos;
+		}
 	}
 
 	int hotlen = (int)(endHot_-startHot);
@@ -262,7 +353,7 @@ EditboxPeeker::Edit_OnKey(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT flag
 	else
 	{
 		vaDBG2(_T("hEdit 0x%08X: bad [@%d~%d) %s (exceed %d)"), hEdit, startHot, endHot_, szHot, MaxUpDownDigits);
-		return Relay_yes;
+		return Relay_no;
 	}
 
 	// Now we increase/decrease the hot number.
@@ -270,10 +361,15 @@ EditboxPeeker::Edit_OnKey(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT flag
 	TCHAR szNewHot[TBUFSIZE] = {};
 	const TCHAR *pszNewHot = szNewHot; // may adjust later
 
-	if(as_int)
+	if(as_int_ring)
 	{
 		int numHot = _tcstoul(szHot, 0, 10);
 		int newHot = is_inc ? numHot+1 : numHot-1;
+		if(newHot<0) 
+		{
+			// If newHot goes down from 02, 01, 00 to -01, we rewind it to 99.
+			newHot += Int_power(10, endHot_-newHot);
+		}
 
 		assert(hotlen>0);
 		_sntprintf_s(szNewHot, _TRUNCATE, _T("%0*d"), hotlen, newHot);
@@ -287,7 +383,7 @@ EditboxPeeker::Edit_OnKey(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT flag
 			pszNewHot = szNewHot + hotlenv - hotlen;
 		}
 
-		vaDBG2(_T("    %s : %s -> %s"), is_inc?_T("INC"):_T("DEC"), szHot, pszNewHot);
+		vaDBG2(_T("    %s : %s -> %s"), is_inc?_T("KAF:Inc"):_T("KAF:Dec"), szHot, pszNewHot);
 	}
 	else // as float number
 	{
