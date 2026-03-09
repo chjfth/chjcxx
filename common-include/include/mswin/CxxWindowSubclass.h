@@ -1,5 +1,5 @@
-#ifndef __CxxWindowSubclass_h_20250618_
-#define __CxxWindowSubclass_h_20250618_
+#ifndef CHHI__CxxWindowSubclass_h_20260309_
+#define CHHI__CxxWindowSubclass_h_20260309_
 
 // From Jimm Chen's chjcxx repo.
 // Modification date at first line as version number.
@@ -62,14 +62,14 @@ public:
 protected:
 	virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
-		// User overrides this WndProc() to hook into hwnd's message processing.
+		// User's TChild overrides this WndProc() to hook into hwnd's message processing.
 
 		return DefSubclassProc(hwnd, uMsg, wParam, lParam);
 	}
 
 private:
 	///////////////////////////////////////////////////////////////////////////
-	// This int signifies an CxxWindowSubclass object, MUST be the first member.
+	// This UINT signifies an CxxWindowSubclass object, MUST be the first member.
 	UINT m_magic; 
 
 	// This TCHAR string signifies a concrete subclass instance, MUST be the 2nd member.
@@ -93,11 +93,25 @@ private:
 };
 
 
-///////////////////////////////////////////////////////////////
-// Implementation Below:
-///////////////////////////////////////////////////////////////
+/*
+////////////////////////////////////////////////////////////////////////////
+ ___                 _                           _        _   _             
+|_ _|_ __ ___  _ __ | | ___ _ __ ___   ___ _ __ | |_ __ _| |_(_) ___  _ __  
+ | || '_ ` _ \| '_ \| |/ _ \ '_ ` _ \ / _ \ '_ \| __/ _` | __| |/ _ \| '_ \ 
+ | || | | | | | |_) | |  __/ | | | | |  __/ | | | || (_| | |_| | (_) | | | |
+|___|_| |_| |_| .__/|_|\___|_| |_| |_|\___|_| |_|\__\__,_|\__|_|\___/|_| |_|
+              |_|                                                           
+////////////////////////////////////////////////////////////////////////////
+*/
+// ++++++++++++++++++ Implementation Below ++++++++++++++++++
 
-#ifdef CxxWindowSubclass_IMPL
+#if defined(CxxWindowSubclass_IMPL) || (defined CHHI_ALL_IMPL && !defined CHHI_ALL_IMPL_HIDE_CxxWindowSubclass) // [IMPL]
+
+// >>> Include headers required by this lib's implementation
+#include <commdefs.h>
+#include <mswin/win32cozy.h>
+// <<< Include headers required by this lib's implementation
+
 
 #ifndef CxxWindowSubclass_DEBUG
 #include <CHHI_vaDBG_hide.h>
@@ -107,14 +121,12 @@ private:
 // user context. And we use SetProp/GetProp to associate the very CxxWindowSubclass pointer 
 // with the HWND, so that user can fetch the CxxWindowSubclass pointer from HWND.
 
-#include <commdefs.h>
-#include <mswin/win32cozy.h>
 
 const TCHAR CxxWindowSubclass::s_winprop_prefix[] = _T("CxxWinsubcls-");
 
 CxxWindowSubclass::CxxWindowSubclass()
 {
-	vaDBG(_T("CxxWindowSubclass@%p ctor()."), this);
+	vaDBG2(_T("CxxWindowSubclass@%p ctor()."), this);
 
 	m_magic = const_magic;
 	m_signature = nullptr;
@@ -127,9 +139,9 @@ CxxWindowSubclass::~CxxWindowSubclass()
 	bool isatt = IsAttached();
 	
 	if(isatt)
-		vaDBG(_T("CxxWindowSubclass@%p dtor(), will detach HWND=0x%X"), this, m_hwnd);
+		vaDBG2(_T("CxxWindowSubclass@%p dtor(), will detach HWND=0x%X"), this, m_hwnd);
 	else
-		vaDBG(_T("CxxWindowSubclass@%p dtor(), already detached from HWND."), this);
+		vaDBG2(_T("CxxWindowSubclass@%p dtor(), already detached from HWND."), this);
 
 	if(isatt)
 		DetachHwnd();
@@ -228,13 +240,13 @@ CxxWindowSubclass::AttachHwnd(HWND hwnd, const TCHAR *sigstr)
 	{
 		// If user pass in a HWND from another process, it fails with WinErr=2(ERROR_FILE_NOT_FOUND).
 
-		vaDBG(_T("SetWindowSubclass(hwnd=0x%X) fails with winerr=%d."), PtrToUint(m_hwnd), GetLastError());
+		vaDBG1(_T("SetWindowSubclass(hwnd=0x%X) fails with winerr=%d."), PtrToUint(m_hwnd), GetLastError());
 
 		err_ret = E_WinapiSubclass;
 		goto FAIL_END;
 	}
 
-	vaDBG(_T("SetWindowSubclass(hwnd=0x%X, cxxobj=%p) success."), PtrToUint(m_hwnd), this);
+	vaDBG2(_T("SetWindowSubclass(hwnd=0x%X, cxxobj=%p) success."), PtrToUint(m_hwnd), this);
 
 	return E_Success;
 
@@ -256,7 +268,7 @@ CxxWindowSubclass::DetachHwnd(bool delete_cxxobj)
 	if(!m_hwnd)
 		return E_BadParam;
 
-	vaDBG(_T("CxxWindowSubclass@%p in DetachHwnd(0x%X)."), this, m_hwnd);
+	vaDBG2(_T("CxxWindowSubclass@%p in DetachHwnd(0x%X)."), this, m_hwnd);
 
 	// Detaching order is reverse of AttachHwnd()
 
@@ -302,7 +314,7 @@ CxxWindowSubclass::StockWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 
 	if(uMsg==WM_NCDESTROY)
 	{
-		vaDBG(_T("CxxWindowSubclass@%p sees WM_NCDESTROY, now detach."), this);
+		vaDBG2(_T("CxxWindowSubclass@%p sees WM_NCDESTROY, now detach."), this);
 
 		DetachHwnd(true);
 	}
@@ -371,6 +383,6 @@ CxxWindowSubclass::FetchCxxobjFromHwnd(HWND hwnd, const TCHAR *sigstr, BOOL is_c
 #include <CHHI_vaDBG_show.h>
 #endif
 
-#endif // CxxWindowSubclass_IMPL
+#endif // [IMPL]
 
 #endif
