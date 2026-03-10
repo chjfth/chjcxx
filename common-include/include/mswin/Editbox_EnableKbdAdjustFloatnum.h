@@ -554,7 +554,7 @@ const TCHAR* EditboxPeeker::GetTooltipText()
 		_T("Min: %g , Max: %g\n")
 		_T("\n")
 		_T("Use Up/Down key to adjust value step-by-step.\n")
-		_T("You can select partial digits and adjust them onlyl.\n")
+		_T("You can select partial digits and adjust them only.\n")
 		,
 		step_val,
 		min_val, max_val
