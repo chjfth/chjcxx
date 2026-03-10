@@ -1,5 +1,5 @@
-#ifndef CHHI__CxxWindowSubclass_h_20260309_
-#define CHHI__CxxWindowSubclass_h_20260309_
+#ifndef CHHI__CxxWindowSubclass_h_20250606_20260310_
+#define CHHI__CxxWindowSubclass_h_20250606_20260310_
 
 // From Jimm Chen's chjcxx repo.
 // Modification date at first line as version number.
@@ -9,8 +9,9 @@
 #include <tchar.h>
 #include <windows.h>
 #include <CommCtrl.h> // DefSubclassProc
+#include <Cxx_delete_this_helper.h>
 
-class CxxWindowSubclass
+class CxxWindowSubclass : public Cxx_delete_this_base
 {
 public:
 	enum ReCode_et
@@ -268,6 +269,8 @@ CxxWindowSubclass::DetachHwnd(bool delete_cxxobj)
 	if(!m_hwnd)
 		return E_BadParam;
 
+	Cxx_delete_this_helper dth(this);
+
 	vaDBG2(_T("CxxWindowSubclass@%p in DetachHwnd(0x%X)."), this, m_hwnd);
 
 	// Detaching order is reverse of AttachHwnd()
@@ -284,7 +287,7 @@ CxxWindowSubclass::DetachHwnd(bool delete_cxxobj)
 	m_hwnd = NULL;
 
 	if(delete_cxxobj)
-		delete this;
+		dth.MarkDelete();
 
 	return E_Success;
 }
@@ -309,6 +312,8 @@ CxxWindowSubclass::SubclassProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 LRESULT 
 CxxWindowSubclass::StockWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	Cxx_delete_this_helper dth(this); // due to DetachHwnd() internally may `delete this`
+
 	// Call child-class virtual function
 	LRESULT lre = this->WndProc(hwnd, uMsg, wParam, lParam);
 
