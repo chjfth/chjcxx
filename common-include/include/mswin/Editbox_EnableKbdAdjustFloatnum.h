@@ -57,8 +57,8 @@ EditboxKAF_err Editbox_DisableKbdAdjustFloatnum(HWND hEdit);
 #include <WindowsX.h>
 #include <mswin/WindowsX2.h> // chj: for SUBCLASS_FILTER_MSG0()
 //
-#define CxxWindowSubclass_IMPL
 #include <mswin/CxxWindowSubclass.h>
+#include <mswin/DlgTooltipEasy.h>
 // <<< Include headers required by this lib's implementation
 
 
@@ -78,7 +78,7 @@ EditboxKAF_err Editbox_DisableKbdAdjustFloatnum(HWND hEdit);
 // We should enclose this lib's implementation into private namespace.
 
 ////////////////////////////////////////////////////////////////////////////
-namespace EditboxKAF { 
+namespace EditboxKAF {
 ////////////////////////////////////////////////////////////////////////////
 // (private namespace 'EditboxKAF') 
 
@@ -96,6 +96,8 @@ public:
 		const TCHAR *fmt, bool is_wrap_around);
 
 	virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+	const TCHAR* GetTooltipText();
 
 private:
 	void HideMouse()
@@ -479,6 +481,22 @@ EditboxPeeker::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 }
 
 
+const TCHAR* KAF_GetTooltipText(HWND hEdit, void *userctx)
+{
+	(void)userctx;
+	CxxWindowSubclass::ReCode_et err = CxxWindowSubclass::E_Fail;
+	EditboxKAF::EditboxPeeker *peeker = 
+		CxxWindowSubclass::FetchCxxobjFromHwnd<EditboxKAF::EditboxPeeker>(
+		hEdit, EditboxKAF::s_sigSubclass, 
+		FALSE, // FALSE: bcz hEdit must have been created
+		&err
+		);
+	assert(err==CxxWindowSubclass::E_Existed);
+
+	return peeker->GetTooltipText();
+}
+
+
 EditboxKAF_err _Editbox_EnableKbdAdjustFloatnum(HWND hEdit,
 	double min_val, double max_val, double step_val, const TCHAR *fmt,
 	bool is_wrap_around)
@@ -500,6 +518,10 @@ EditboxKAF_err _Editbox_EnableKbdAdjustFloatnum(HWND hEdit,
 
 	peeker->ctor_params(min_val, max_val, step_val, fmt, is_wrap_around);
 
+	Dlgtte_err tterr = Dlgtte_EnableTooltip(hEdit, NULL, 0, KAF_GetTooltipText, 0,
+		Dlgtte_BalloonDown|Dlgtte_AutoContentTipOnFocus);
+	assert(!tterr);
+
 	return EditboxKAF_Succ;
 }
 
@@ -520,6 +542,24 @@ EditboxKAF_err _Editbox_DisableKbdAdjustFloatnum(HWND hEdit)
 	peeker->DetachHwnd(true);
 
 	return EditboxKAF_Succ;
+}
+
+
+const TCHAR* EditboxPeeker::GetTooltipText()
+{
+	static TCHAR s_sztooltip[4000];
+
+	_sntprintf_s(s_sztooltip, _TRUNCATE, 
+		_T("Step: %g\n")
+		_T("Min: %g , Max: %g\n")
+		_T("\n")
+		_T("Use Up/Down key to adjust value step-by-step.\n")
+		_T("You can select partial digits and adjust them onlyl.\n")
+		,
+		step_val,
+		min_val, max_val
+		);
+	return s_sztooltip;
 }
 
 
