@@ -25,7 +25,7 @@
 template<typename... Args>
 void vaDBG(Args&&... args) // forwards all arguments
 {
-	vaDbgTsl(vaDBG_ALL, std::forward<Args>(args)...);
+	vaDbgTsl(vaDbg_ALL, std::forward<Args>(args)...);
 }
 
 template<typename... Args>

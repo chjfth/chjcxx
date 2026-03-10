@@ -29,6 +29,7 @@ TCHAR *parse_cmdparam_HEXRR(
 	); // // return just outbuf.
 	// note: was named parse_cmdparam_TCHARs() from G:\gitw\bookcode-mswin\share\vaDbg.cpp
 
+#ifndef WIN32_LEAN_AND_MEAN // would obscure IUnknown definition
 inline int com_GetRefCount(IUnknown *piu)
 {
 	if(!piu)
@@ -37,7 +38,7 @@ inline int com_GetRefCount(IUnknown *piu)
 	piu->AddRef();
 	return piu->Release();
 }
-
+#endif
 
 /*
 ////////////////////////////////////////////////////////////////////////////

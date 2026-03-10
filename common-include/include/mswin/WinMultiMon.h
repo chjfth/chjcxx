@@ -1,5 +1,5 @@
-#ifndef __WinMultiMon_h_20260227_
-#define __WinMultiMon_h_20260227_
+#ifndef __WinMultiMon_h_20260227_20260310_
+#define __WinMultiMon_h_20260227_20260310_
 
 #include <windows.h>
 
@@ -27,21 +27,44 @@ bool getMonitorRectByPoint(int screen_x, int screen_y, RECT *pMonitorRect);
 //    *pMonitorRect outputs the screen-coord of the containing monitor.
 
 
-///////////////////////////////////////////////////////////////
-// Implementation Below:
-///////////////////////////////////////////////////////////////
+/*
+////////////////////////////////////////////////////////////////////////////
+ ___                 _                           _        _   _             
+|_ _|_ __ ___  _ __ | | ___ _ __ ___   ___ _ __ | |_ __ _| |_(_) ___  _ __  
+ | || '_ ` _ \| '_ \| |/ _ \ '_ ` _ \ / _ \ '_ \| __/ _` | __| |/ _ \| '_ \ 
+ | || | | | | | |_) | |  __/ | | | | |  __/ | | | || (_| | |_| | (_) | | | |
+|___|_| |_| |_| .__/|_|\___|_| |_| |_|\___|_| |_|\__\__,_|\__|_|\___/|_| |_|
+              |_|                                                           
+////////////////////////////////////////////////////////////////////////////
+*/
+// ++++++++++++++++++ Implementation Below ++++++++++++++++++
+#if defined(WinMultiMon_IMPL) || (defined CHHI_ALL_IMPL && !defined CHHI_ALL_IMPL_HIDE_WinMultiMon) // [IMPL]
 
-#ifdef WinMultiMon_IMPL
-
+// >>> Include headers required by this lib's implementation
 #include <commdefs.h>
 #include <mswin/win32cozy.h> // RECTtext() macro
+// <<< Include headers required by this lib's implementation
+
 
 #ifndef WinMultiMon_DEBUG
 #include <CHHI_vaDBG_hide.h>
 #endif
 
-namespace WinMultiMon // (private)
-{
+/*
+    ____       _             __                                                                
+   / __ \_____(_)   ______ _/ /____       ____  ____ _____ ___  ___  _________  ____ _________ 
+  / /_/ / ___/ / | / / __ `/ __/ _ \     / __ \/ __ `/ __ `__ \/ _ \/ ___/ __ \/ __ `/ ___/ _ \
+ / ____/ /  / /| |/ / /_/ / /_/  __/    / / / / /_/ / / / / / /  __(__  ) /_/ / /_/ / /__/  __/
+/_/   /_/  /_/ |___/\__,_/\__/\___/    /_/ /_/\__,_/_/ /_/ /_/\___/____/ .___/\__,_/\___/\___/ 
+                                                                      /_/                      
+*/
+// We should enclose this lib's implementation into private namespace.
+
+////////////////////////////////////////////////////////////////////////////
+namespace WinMultiMon {
+////////////////////////////////////////////////////////////////////////////
+// (private namespace 'WinMultiMon') 
+
 
 
 struct EnumMonitorPrivate_st
@@ -187,8 +210,21 @@ bool getMonitorRectByPoint(int screen_x, int screen_y, RECT *pMonitorRect)
 }
 
 
-} // namespace WinMultiMon (private)
+////////////////////////////////////////////////////////////////////////////
+} // namespace WinMultiMon
+////////////////////////////////////////////////////////////////////////////
 
+
+
+/*
+ ,-. .     .       .                          ,.  ;-.  ,
+/    |     |       |                         /  \ |  ) |
+| -. | ,-. |-. ,-: |   ,-. ;-. ,-: ,-. ,-.   |--| |-'  |
+\  | | | | | | | | |   `-. | | | | |   |-'   |  | |    |
+ `-' ' `-' `-' `-` '   `-' |-' `-` `-' `-'   '  ' '    '
+*/
+
+// Global space API implementation wrapper:
 
 
 WinErr_t 
@@ -207,6 +243,6 @@ bool getMonitorRectByPoint(int screen_x, int screen_y, RECT *pMonitorRect)
 #include <CHHI_vaDBG_show.h>
 #endif
 
-#endif // WinMultiMon_IMPL
+#endif // [IMPL]
 
 #endif
