@@ -144,7 +144,7 @@ CxxWindowSubclass::~CxxWindowSubclass()
 		vaDBG2(_T("CxxWindowSubclass@%p dtor(), already detached from HWND."), this);
 
 	if(isatt)
-		DetachHwnd();
+		DetachHwnd(true);
 
 	m_magic = 0;
 }
@@ -316,7 +316,7 @@ CxxWindowSubclass::StockWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 	{
 		vaDBG2(_T("CxxWindowSubclass@%p sees WM_NCDESTROY, now detach."), this);
 
-		DetachHwnd(true);
+		this->DetachHwnd(true);
 	}
 
 	return lre;
