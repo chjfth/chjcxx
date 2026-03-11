@@ -29,7 +29,10 @@ enum EditboxKAF_err
 EditboxKAF_err Editbox_EnableKbdAdjustFloatnum(HWND hEdit,
 	double min_val, double max_val, double step_val=1.0, 
 	const TCHAR *szfmt=_T("%g"), // %f, %g, %.3f etc
-	bool is_wrap_around=false);
+	bool is_wrap_around=false,
+	const TCHAR *szHelpText=nullptr // Can be multiline
+	);
+// -- Hint: If szHelpText[] ends in '\n', library's stock extra keyboard hint will be appended.
 
 EditboxKAF_err Editbox_DisableKbdAdjustFloatnum(HWND hEdit);
 // -- optional, Editbox's WM_NCDESTROY will call this automatically
@@ -57,6 +60,7 @@ EditboxKAF_err Editbox_DisableKbdAdjustFloatnum(HWND hEdit);
 #include <WindowsX.h>
 #include <mswin/WindowsX2.h> // chj: for SUBCLASS_FILTER_MSG0()
 //
+#include <sdring.h>
 #include <mswin/CxxWindowSubclass.h>
 #include <mswin/DlgTooltipEasy.h>
 // <<< Include headers required by this lib's implementation
@@ -93,7 +97,7 @@ class EditboxPeeker : public CxxWindowSubclass
 public:
 	EditboxPeeker() {}
 	void ctor_params(double min_val, double max_val, double step_val, 
-		const TCHAR *fmt, bool is_wrap_around);
+		const TCHAR *fmt, bool is_wrap_around, const TCHAR *szHelpText);
 
 	virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -128,8 +132,9 @@ private:
 	double min_val;
 	double max_val;
 	double step_val;
-	const TCHAR *fmt;
+	sdring<TCHAR> fmt;  
 	bool is_wrap_around;
+	sdring<TCHAR> helptext;
 	
 	bool is_cleanup_ready;
 	bool is_mouse_hidden;
@@ -137,13 +142,14 @@ private:
 
 void
 EditboxPeeker::ctor_params(double min_val, double max_val, double step_val, 
-	const TCHAR *fmt, bool is_wrap_around)
+	const TCHAR *szfmt, bool is_wrap_around, const TCHAR *szHelpText)
 {
 	this->min_val = min_val;
 	this->max_val = max_val;
 	this->step_val = step_val;
-	this->fmt = fmt;
+	fmt = szfmt;
 	this->is_wrap_around = is_wrap_around;
+	this->helptext = szHelpText;
 
 	this->is_cleanup_ready = false;
 	this->is_mouse_hidden = false;
@@ -426,7 +432,7 @@ EditboxPeeker::Edit_OnKey(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT flag
 			newHot = is_wrap_around ? max_val : min_val;
 		}
 
-		_sntprintf_s(szNewHot, _TRUNCATE, this->fmt, newHot);
+		_sntprintf_s(szNewHot, _TRUNCATE, fmt.c_str(), newHot);
 
 		vaDBG2(_T("    KAF (%c%g): %g -> %g (output string: %s)"), 
 			is_inc?_T('+'):_T('-'), step_val,
@@ -519,7 +525,7 @@ const TCHAR* KAF_GetTooltipText(HWND hEdit, void *userctx)
 
 EditboxKAF_err _Editbox_EnableKbdAdjustFloatnum(HWND hEdit,
 	double min_val, double max_val, double step_val, const TCHAR *szfmt,
-	bool is_wrap_around)
+	bool is_wrap_around, const TCHAR *szHelpText)
 {
 	if(!IsWindow(hEdit))
 		return EditboxKAF_BadParam;
@@ -539,7 +545,7 @@ EditboxKAF_err _Editbox_EnableKbdAdjustFloatnum(HWND hEdit,
 	if(!peeker)
 		return EditboxKAF_Unknown;
 
-	peeker->ctor_params(min_val, max_val, step_val, szfmt, is_wrap_around);
+	peeker->ctor_params(min_val, max_val, step_val, szfmt, is_wrap_around, szHelpText);
 
 	Dlgtte_err tterr = Dlgtte_EnableTooltip(hEdit, NULL, 0, KAF_GetTooltipText, 0,
 		Dlgtte_BalloonDown|Dlgtte_AutoContentTipOnFocus);
@@ -575,13 +581,25 @@ const TCHAR* EditboxPeeker::GetTooltipText()
 	_sntprintf_s(s_sztooltip, _TRUNCATE, 
 		_T("Step: %g\n")
 		_T("Min: %g , Max: %g\n")
-		_T("\n")
-		_T("Use Up/Down key to adjust value step-by-step.\n")
-		_T("You can select partial digits and adjust them only.\n")
 		,
 		step_val,
-		min_val, max_val
-		);
+		min_val, max_val);
+
+	int htlen = this->helptext.len();
+	const TCHAR *pszUser = this->helptext.c_str();
+	if(htlen>0 && !(htlen==1 && pszUser[0]=='\n'))
+	{
+		_sntprintf_s(s_sztooltip, _TRUNCATE, _T("%s\n%s"), s_sztooltip, pszUser);
+	}
+
+	if(htlen>0 && pszUser[htlen-1]=='\n')
+	{
+		const TCHAR *szKbdHint =
+			_T("Use Up/Down key to adjust value step-by-step.\n")
+			_T("You can select partial digits and adjust them only.");
+		_sntprintf_s(s_sztooltip, _TRUNCATE, _T("%s\n%s"), s_sztooltip, szKbdHint);
+	}
+
 	return s_sztooltip;
 }
 
@@ -604,10 +622,10 @@ const TCHAR* EditboxPeeker::GetTooltipText()
 
 EditboxKAF_err Editbox_EnableKbdAdjustFloatnum(HWND hEdit,
 	double min_val, double max_val, double step_val, const TCHAR *szfmt,
-	bool is_wrap_around)
+	bool is_wrap_around, const TCHAR *szHelpText)
 {
 	return EditboxKAF::_Editbox_EnableKbdAdjustFloatnum(hEdit,
-		min_val, max_val, step_val, szfmt, is_wrap_around);
+		min_val, max_val, step_val, szfmt, is_wrap_around, szHelpText);
 }
 
 EditboxKAF_err Editbox_DisableKbdAdjustFloatnum(HWND hEdit)
