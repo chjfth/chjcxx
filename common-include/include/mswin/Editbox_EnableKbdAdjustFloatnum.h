@@ -96,7 +96,7 @@ class EditboxPeeker : public CxxWindowSubclass
 {
 public:
 	EditboxPeeker() {}
-	void ctor_params(double min_val, double max_val, double step_val, 
+	EditboxKAF_err ctor_params(double min_val, double max_val, double step_val, 
 		const TCHAR *fmt, bool is_wrap_around, const TCHAR *szHelpText);
 
 	virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -140,10 +140,13 @@ private:
 	bool is_mouse_hidden;
 };
 
-void
+EditboxKAF_err
 EditboxPeeker::ctor_params(double min_val, double max_val, double step_val, 
 	const TCHAR *szfmt, bool is_wrap_around, const TCHAR *szHelpText)
 {
+	if(min_val>max_val)
+		return EditboxKAF_BadParam;
+
 	this->min_val = min_val;
 	this->max_val = max_val;
 	this->step_val = step_val;
@@ -153,6 +156,8 @@ EditboxPeeker::ctor_params(double min_val, double max_val, double step_val,
 
 	this->is_cleanup_ready = false;
 	this->is_mouse_hidden = false;
+
+	return EditboxKAF_Succ;
 }
 
 inline bool Is_0_9(int c)
@@ -183,6 +188,8 @@ inline bool Is_decidigit(int c)
 
 static bool Is_valid_decimal(const TCHAR *p, int nchars, bool want_neg)
 {
+	assert(nchars>0);
+
 	int i = 0;
 	if(want_neg)
 	{
@@ -310,13 +317,13 @@ EditboxPeeker::Edit_OnKey(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT flag
 
 	int startVB = startSel, endVB_ = endSel_; 
 	bool as_int_ring = false;
-	bool want_neg = (this->min_val < 0); // consider '-' as negative-sign
+	bool want_neg = (this->min_val < 0); // is consider '-' as negative-sign
 	
 	// Special for edge-case of pure caret(=no text-selection) at VB's end_ :
 	// We consider the caret is within VB by startVB-- .
 	if( startVB==endVB_ && startVB>0)
 	{
-		if(!Is_decidigit(szOldText[startVB]) && Is_0_9(szOldText[startVB-1])) 
+		if( !Is_decidigit(szOldText[startVB]) && Is_0_9(szOldText[startVB-1]) )
 			startVB--;
 	}
 
@@ -414,14 +421,14 @@ EditboxPeeker::Edit_OnKey(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT flag
 		_sntprintf_s(szNewHot, _TRUNCATE, _T("%0*d"), lenVB, newHot);
 
 		vaDBG2(_T("    %s : %s -> %s"), 
-			is_inc?_T("KAF:Inc"):_T("KAF:Dec"), 
+			is_inc?_T("IntRing:Inc"):_T("IntRing:Dec"), 
 			szOldHot, szNewHot    // %s -> %s
 			);
 	}
 	else // as float number
 	{
-		double numHot = _ttof(szOldHot);
-		double newHot = is_inc ? numHot+step_val : numHot-step_val;
+		double oldHot = _ttof(szOldHot);
+		double newHot = is_inc ? oldHot+step_val : oldHot-step_val;
 
 		if(newHot > max_val)
 		{
@@ -436,7 +443,7 @@ EditboxPeeker::Edit_OnKey(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT flag
 
 		vaDBG2(_T("    KAF (%c%g): %g -> %g (output string: %s)"), 
 			is_inc?_T('+'):_T('-'), step_val,
-			numHot, newHot,  // %g -> %g
+			oldHot, newHot,  // %g -> %g
 			szNewHot);
 	}
 
@@ -545,7 +552,10 @@ EditboxKAF_err _Editbox_EnableKbdAdjustFloatnum(HWND hEdit,
 	if(!peeker)
 		return EditboxKAF_Unknown;
 
-	peeker->ctor_params(min_val, max_val, step_val, szfmt, is_wrap_around, szHelpText);
+	EditboxKAF_err err2 =
+		peeker->ctor_params(min_val, max_val, step_val, szfmt, is_wrap_around, szHelpText);
+	if(err2)
+		return err2;
 
 	Dlgtte_err tterr = Dlgtte_EnableTooltip(hEdit, NULL, 0, KAF_GetTooltipText, 0,
 		Dlgtte_BalloonDown|Dlgtte_AutoContentTipOnFocus);
