@@ -242,27 +242,27 @@ EditboxPeeker::Edit_OnKey(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT flag
 	// Get editbox text length.
 	
 	const int TBUFSIZE = 100;
-	TCHAR szText[TBUFSIZE] = {};
-	Edit_GetText(hEdit, szText, TBUFSIZE-1);
-	int textlen = (int)_tcslen(szText);
+	TCHAR szOldText[TBUFSIZE] = {};
+	Edit_GetText(hEdit, szOldText, TBUFSIZE-1);
+	int textlen = (int)_tcslen(szOldText);
 	if(textlen<=0)
 		return Relay_yes;
 	
 	// Send EM_GETSEL to retrieve the selection range (or caret position if no selection)
-	int startPos = 0, endPos = 0;
-	SendMessage(hEdit, EM_GETSEL, (WPARAM)&startPos, (LPARAM)&endPos);
+	int startSel = 0, endSel_ = 0;
+	SendMessage(hEdit, EM_GETSEL, (WPARAM)&startSel, (LPARAM)&endSel_);
 
 	vaDBG2(_T("hEdit 0x%08X: [#%d~%d) %s | %.*s"), 
 		hEdit, 
-		startPos, endPos, szText, // [#%d~%d) %s
-		endPos-startPos, szText+startPos // the substring after |
+		startSel, endSel_, szOldText, // [#%d~%d) %s
+		endSel_-startSel, szOldText+startSel // the substring after |
 		);
 
-	if(startPos>endPos) // then swap, not seen this case yet
+	if(startSel>endSel_) // then swap, not seen this case yet
 	{
-		DWORD tmp = startPos;
-		startPos = endPos;
-		endPos = tmp;
+		DWORD tmp = startSel;
+		startSel = endSel_;
+		endSel_ = tmp;
 	}
 
 	// Now, we check these cases.
@@ -279,56 +279,59 @@ EditboxPeeker::Edit_OnKey(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT flag
 	//       selected, then we consider the selected digits as integer-ring.
 	//       For example, editbox has 1.0234, and "02" is select, then 
 	//       Up keys will adjust the number to be 1.0334, 1.0434, 1.0534 ...
-	//       Down keys will adjust the nubmer to be 1.0134, 1.0034, 1.9934, 1.9834 ...
+	//       Down keys will adjust the number to be 1.0134, 1.0034, 1.9934, 1.9834 ...
 
-	int startHot = startPos, endHot_ = endPos; // The hot section is what we operate.
+	int startVB = startSel, endVB_ = endSel_; 
 	bool as_int_ring = false;
 	bool want_neg = (this->min_val < 0); // consider '-' as negative-sign
 	
-	// Special for edge-case of pure caret(=no text-selection) at VB's end_
-	if( startHot==endHot_ && startHot>0)
+	// Special for edge-case of pure caret(=no text-selection) at VB's end_ :
+	// We consider the caret is within VB by startVB-- .
+	if( startVB==endVB_ && startVB>0)
 	{
-		if(!Is_decidigit(szText[startHot]) && Is_0_9(szText[startHot-1])) 
-			startHot--;
+		if(!Is_decidigit(szOldText[startVB]) && Is_0_9(szOldText[startVB-1])) 
+			startVB--;
 	}
 
 	// Looking left-side:
-	while(startHot>0 && Is_decidigit(szText[startHot-1]))
-		startHot--;
+	while(startVB>0 && Is_decidigit(szOldText[startVB-1]))
+		startVB--;
 
 	if(want_neg) 
 	{
 		// try to include an extra minus sign at left-side
-		if(startHot>0 && szText[startHot-1]=='-')
-			startHot--;
+		if(startVB>0 && szOldText[startVB-1]=='-')
+			startVB--;
 	}
 
 	// Looking right-size:
-	while(endHot_<textlen && Is_decidigit(szText[endHot_]))
-		endHot_++;
+	while(endVB_<textlen && Is_decidigit(szOldText[endVB_]))
+		endVB_++;
 
-	if(startHot==endHot_)
+	int lenVB = endVB_-startVB;
+
+	if(startVB==endVB_)
 	{
-		vaDBG2(_T("Caret pos NOT on valid numeric string, do nothing."));
+		vaDBG2(_T("Caret pos NOT on valid numeric string, do editbox default."));
 		return Relay_yes;
 	}
-	else if(!Is_valid_decimal(szText+startHot, endHot_-startHot, want_neg))
+	else if(!Is_valid_decimal(szOldText+startVB, lenVB, want_neg))
 	{
 		vaDBG2(_T("Caret selection '%.*s' NOT a valid numeric string, do nothing."), 
-			endHot_-startHot, szText+startHot);
+			lenVB, szOldText+startVB);
 		return Relay_no; // Relay_no so that user text-selection is preserved.
 	}
 
-	if(startPos==endPos)
+	if(startSel==endSel_)
 	{
-		// Case[1], startHot & endHot_ already settled.
+		// Case[1], startVB & endVB_ as probed.
 		as_int_ring = false;
 	}
 	else
 	{
-		if(endPos-startPos == endHot_-startHot)
+		if(endSel_-startSel == lenVB)
 		{
-			// Case[2.1], do nothing, startHot & endHot_ already settled.
+			// Case[2.1], do the same as Case[1]
 			as_int_ring = false;
 		}
 		else
@@ -336,64 +339,61 @@ EditboxPeeker::Edit_OnKey(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT flag
 			// Case[2.2]
 			as_int_ring = true;
 		
-			if(!Is_all_0_9(szText+startPos, endPos-startPos))
+			if(!Is_all_0_9(szOldText+startSel, endSel_-startSel))
 			{
 				vaDBG2(_T("Partial selection '%.*s' contains non 0-9 chars, do nothing."), 
-					endPos-startPos, szText+startPos);
+					endSel_-startSel, szOldText+startSel);
 				return Relay_no;
 			}
 			
 			// Tweak VB's meaning to be user's text-selection
-			startHot = startPos; endHot_ = endPos;
+			startVB = startSel; endVB_ = endSel_;
+			lenVB = endVB_-startVB;
 		}
 	}
 
-	int hotlen = (int)(endHot_-startHot);
-
-	TCHAR szHot[TBUFSIZE] = {};
-	_sntprintf_s(szHot, _TRUNCATE, _T("%.*s"), hotlen, szText+startHot);
-	if(hotlen<=MaxUpDownDigits)
+	TCHAR szOldHot[TBUFSIZE] = {};
+	_sntprintf_s(szOldHot, _TRUNCATE, _T("%.*s"), lenVB, szOldText+startVB);
+	if(lenVB<=MaxUpDownDigits)
 	{
-		vaDBG2(_T("hEdit 0x%08X: hot [@%d~%d) %s"), hEdit,	startHot, endHot_, szHot);
+		vaDBG2(_T("hEdit 0x%08X: VB [@%d~%d) %s"), hEdit,  startVB, endVB_,  szOldHot);
 	}
 	else
 	{
-		vaDBG2(_T("hEdit 0x%08X: bad [@%d~%d) %s (exceed %d)"), hEdit, startHot, endHot_, szHot, MaxUpDownDigits);
+		vaDBG2(_T("hEdit 0x%08X: bad VB [@%d~%d) %s (exceed %d)"), hEdit,  startVB, endVB_,  szOldHot, MaxUpDownDigits);
 		return Relay_no;
 	}
 
 	// Now we increase/decrease the hot number.
 
 	TCHAR szNewHot[TBUFSIZE] = {};
-	const TCHAR *pszNewHot = szNewHot; // may adjust later
+//	const TCHAR *pszNewHot = szNewHot; // pszNewHot may adjust later
 
 	if(as_int_ring)
 	{
-		int numHot = _tcstoul(szHot, 0, 10);
+		assert(lenVB>0);
+		int ring_mod = Int_power(10, lenVB); // 10, 100, 1000 etc
+
+		int numHot = _tcstoul(szOldHot, 0, 10);
 		int newHot = is_inc ? numHot+1 : numHot-1;
 		if(newHot<0) 
 		{
-			// If newHot goes down from 02, 01, 00 to -01, we rewind it to 99.
-			newHot += Int_power(10, endHot_-newHot);
+			// If newHot goes down from 02, 01, 00 to -01, we rewind -01 to 99(make it positive).
+			newHot += ring_mod;
 		}
 
-		assert(hotlen>0);
-		_sntprintf_s(szNewHot, _TRUNCATE, _T("%0*d"), hotlen, newHot);
-		int hotlenv = (int)_tcslen(szNewHot); // v: (this len could be) verbose
+		newHot %= ring_mod; 
 
-		if(hotlenv > hotlen)
-		{
-			// For example, there is "52" at caret, but user select only "5"(hotlen==1) and then increase it.
-			// Then, when hotstring goes from 5,6,7... and reaches "10", we should chop off the "1"
-			// and preserve only the "0", bcz strlen("10") has exceeded hotlen.
-			pszNewHot = szNewHot + hotlenv - hotlen;
-		}
+		_sntprintf_s(szNewHot, _TRUNCATE, _T("%0*d"), lenVB, newHot);
 
-		vaDBG2(_T("    %s : %s -> %s"), is_inc?_T("KAF:Inc"):_T("KAF:Dec"), szHot, pszNewHot);
+		vaDBG2(_T("    %s : %s -> %s"), 
+			is_inc?_T("KAF:Inc"):_T("KAF:Dec"), 
+			szOldHot, szNewHot    // %s -> %s
+			);
 	}
 	else // as float number
 	{
-		double numHot = _ttof(szHot);
+		double numHot = _ttof(szOldHot);
 		double newHot = is_inc ? numHot+step_val : numHot-step_val;
 
 		if(newHot > max_val)
@@ -408,23 +408,23 @@ EditboxPeeker::Edit_OnKey(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT flag
 		_sntprintf_s(szNewHot, _TRUNCATE, this->fmt, newHot);
 		// --TODO: Check this->fmt's validity, avoid user-input attack.
 
-		hotlen = (int)_tcslen(szNewHot);
-
-		vaDBG2(_T("    KAF (%c%f): %f -> %f (output string: %s)"), 
+		vaDBG2(_T("    KAF (%c%g): %g -> %g (output string: %s)"), 
 			is_inc?_T('+'):_T('-'), step_val,
-			numHot, newHot,  // %f -> %f
+			numHot, newHot,  // %g -> %g
 			szNewHot);
 	}
 
 	
 	TCHAR szNewText[TBUFSIZE] = {};
 	_sntprintf_s(szNewText, _TRUNCATE, _T("%.*s%s%s"), 
-		startHot, szText,
-		pszNewHot,
-		szText + endHot_);
+		startVB, szOldText,
+		szNewHot,
+		szOldText + endVB_);
+
+	int hotlen = (int)_tcslen(szNewHot);
 
 	Edit_SetText(hEdit, szNewText);
-	Edit_SetSel(hEdit, startHot, startHot+hotlen);
+	Edit_SetSel(hEdit, startVB, startVB+hotlen);
 	
 	if(is_cleanup_ready)
 	{
