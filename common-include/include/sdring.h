@@ -63,6 +63,13 @@ public:
 		return m_buf;
 	}
 
+	int len() {
+		if(!m_buf || !m_buf[0])
+			return 0;
+		else
+			return str_len(m_buf);
+	}
+
 	sdring& operator=(const TCHAR *instr)
 	{
 		delete m_buf;
