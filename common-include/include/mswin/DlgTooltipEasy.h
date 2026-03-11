@@ -1216,7 +1216,7 @@ Dlgtte_err Dlgtte_ShowContentTooltip(HWND hwndCtl, bool is_show)
 
 
 #ifndef DlgTooltipEasy_DEBUG
-#include <CHHI_vaDBG_hide.h>
+#include <CHHI_vaDBG_show.h>
 #endif
 
 #endif // [IMPL]
