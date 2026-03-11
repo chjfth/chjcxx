@@ -1,5 +1,5 @@
-#ifndef CHHI__Editbox_EnableKbdAdjustFloatnum_h_20260309_
-#define CHHI__Editbox_EnableKbdAdjustFloatnum_h_20260309_
+#ifndef CHHI__Editbox_EnableKbdAdjustFloatnum_h_20260311_
+#define CHHI__Editbox_EnableKbdAdjustFloatnum_h_20260311_
 
 // This file is modified from Editbox_EnableKbdAdjustNumber.h
 
@@ -28,7 +28,7 @@ enum EditboxKAF_err
 
 EditboxKAF_err Editbox_EnableKbdAdjustFloatnum(HWND hEdit,
 	double min_val, double max_val, double step_val=1.0, 
-	const TCHAR *fmt=_T("%f"), // %f, %g, %.3f etc
+	const TCHAR *szfmt=_T("%g"), // %f, %g, %.3f etc
 	bool is_wrap_around=false);
 
 EditboxKAF_err Editbox_DisableKbdAdjustFloatnum(HWND hEdit);
@@ -216,6 +216,27 @@ static int Int_power(int base, int pow)
 	for(int i=0; i<pow; i++)
 		ret *= base;
 	return ret;
+}
+
+bool IsValidFmt_fg(const TCHAR *szfmt)
+{
+	int slen = (int)_tcslen(szfmt);
+	if(slen<2)
+		return false;
+
+	if(szfmt[0]!='%')
+		return false;
+
+	if(szfmt[slen-1]!='f' && szfmt[slen-1]!='g')
+		return false;
+
+	if(slen==2) // '%f' or '%g'
+		return true;
+
+	if(Is_valid_decimal(szfmt+1, slen-2, false))
+		return true;
+	else
+		return false;
 }
 
 
@@ -406,7 +427,6 @@ EditboxPeeker::Edit_OnKey(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT flag
 		}
 
 		_sntprintf_s(szNewHot, _TRUNCATE, this->fmt, newHot);
-		// --TODO: Check this->fmt's validity, avoid user-input attack.
 
 		vaDBG2(_T("    KAF (%c%g): %g -> %g (output string: %s)"), 
 			is_inc?_T('+'):_T('-'), step_val,
@@ -498,10 +518,13 @@ const TCHAR* KAF_GetTooltipText(HWND hEdit, void *userctx)
 
 
 EditboxKAF_err _Editbox_EnableKbdAdjustFloatnum(HWND hEdit,
-	double min_val, double max_val, double step_val, const TCHAR *fmt,
+	double min_val, double max_val, double step_val, const TCHAR *szfmt,
 	bool is_wrap_around)
 {
 	if(!IsWindow(hEdit))
+		return EditboxKAF_BadParam;
+
+	if(!IsValidFmt_fg(szfmt))
 		return EditboxKAF_BadParam;
 
 	CxxWindowSubclass::ReCode_et err = CxxWindowSubclass::E_Fail;
@@ -516,7 +539,7 @@ EditboxKAF_err _Editbox_EnableKbdAdjustFloatnum(HWND hEdit,
 	if(!peeker)
 		return EditboxKAF_Unknown;
 
-	peeker->ctor_params(min_val, max_val, step_val, fmt, is_wrap_around);
+	peeker->ctor_params(min_val, max_val, step_val, szfmt, is_wrap_around);
 
 	Dlgtte_err tterr = Dlgtte_EnableTooltip(hEdit, NULL, 0, KAF_GetTooltipText, 0,
 		Dlgtte_BalloonDown|Dlgtte_AutoContentTipOnFocus);
@@ -580,11 +603,11 @@ const TCHAR* EditboxPeeker::GetTooltipText()
 // Global space API implementation wrapper:
 
 EditboxKAF_err Editbox_EnableKbdAdjustFloatnum(HWND hEdit,
-	double min_val, double max_val, double step_val, const TCHAR *fmt,
+	double min_val, double max_val, double step_val, const TCHAR *szfmt,
 	bool is_wrap_around)
 {
 	return EditboxKAF::_Editbox_EnableKbdAdjustFloatnum(hEdit,
-		min_val, max_val, step_val, fmt, is_wrap_around);
+		min_val, max_val, step_val, szfmt, is_wrap_around);
 }
 
 EditboxKAF_err Editbox_DisableKbdAdjustFloatnum(HWND hEdit)
