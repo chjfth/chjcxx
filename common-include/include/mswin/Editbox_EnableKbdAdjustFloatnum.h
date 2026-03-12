@@ -1,5 +1,5 @@
-#ifndef CHHI__Editbox_EnableKbdAdjustFloatnum_h_20260311_
-#define CHHI__Editbox_EnableKbdAdjustFloatnum_h_20260311_
+#ifndef __CHHI__Editbox_EnableKbdAdjustFloatnum_h_20260312_
+#define __CHHI__Editbox_EnableKbdAdjustFloatnum_h_20260312_
 
 // This file is modified from Editbox_EnableKbdAdjustNumber.h
 
@@ -35,7 +35,7 @@ EditboxKAF_err Editbox_EnableKbdAdjustFloatnum(HWND hEdit,
 // -- Hint: If szHelpText[] ends in '\n', library's stock extra keyboard hint will be appended.
 
 EditboxKAF_err Editbox_DisableKbdAdjustFloatnum(HWND hEdit);
-// -- optional, Editbox's WM_NCDESTROY will call this automatically
+// -- optional, Editbox's WM_NCDESTROY will call this automatically, or you do it explicitly.
 
 
 
@@ -588,10 +588,14 @@ const TCHAR* EditboxPeeker::GetTooltipText()
 {
 	static TCHAR s_sztooltip[4000];
 
-	_sntprintf_s(s_sztooltip, _TRUNCATE, 
-		_T("Step: %g\n")
-		_T("Min: %g , Max: %g\n")
+	TCHAR szfmtParamHint[100];
+	_sntprintf_s(szfmtParamHint, _TRUNCATE,
+		_T("Step: %%g\n")
+		_T("Min: %s , Max: %s\n")
 		,
+		fmt.c_str(), fmt.c_str());
+
+	_sntprintf_s(s_sztooltip, _TRUNCATE, szfmtParamHint,
 		step_val,
 		min_val, max_val);
 
