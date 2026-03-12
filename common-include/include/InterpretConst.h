@@ -1,18 +1,17 @@
-#ifndef __InterpretConst_h_20251208_
-#define __InterpretConst_h_20251208_
+#ifndef __CHHI__InterpretConst_h_20251208_20260312_
+#define __CHHI__InterpretConst_h_20251208_20260312_
 
 
-// Include OS headers to provide OS-specific data-types used in API prototype.
-// Example:
-// <windows.h> provides DWORD
-// <unistd.h> provides pid_t, off64_t
+// Note: The API interface code(not implementation code) should ONLY rely on 
+// standard C headers, NOT relying on OS platform headers like <windows.h> .
+// So that, it can be used standalone with NtStatus.itc.h .
+//
+// [2026-03-12] Linux implementation pending.
 
-#ifdef _WIN32
-# include <windows.h>
-#else // consider it Linux
-# include <unistd.h>
-#endif
+#include <stdarg.h>
+#include <stdio.h>
 
+#include <ps_TCHAR.h>
 
 //
 // Check current compiler 
@@ -112,27 +111,15 @@ namespace itc {                        // API namespace
 	public:
 		String(int need_chars)
 		{
-			//		vaDBG(_T("[@%p]itc::String() ctor: %d chars"), this, need_chars);
+		//		vaDBG(_T("[@%p]itc::String() ctor: %d chars"), this, need_chars);
 
 			m_chars = need_chars;
 			m_str = new TCHAR[m_chars];
 		}
 
-		String(const TCHAR *instr)
-		{
-			m_chars = (int)_tcslen(instr) + 1;
-			m_str = new TCHAR[m_chars];
-			_tcscpy_s(m_str, m_chars, instr);
-		}
+		String(const TCHAR *instr); // use _tcscpy_s() internally
 
-		String(const String& itcs)
-		{
-			//		vaDBG(_T("[@%p]itc::String() copy-ctor= %s"), this, itcs.m_str);
-
-			m_chars = itcs.m_chars;
-			m_str = new TCHAR[m_chars];
-			_sntprintf_s(m_str, m_chars, _TRUNCATE, _T("%s"), itcs.m_str);
-		}
+		String(const String& itcs); // use _sntprintf_s() internally
 
 		String(String&& old) // move-ctor
 		{
@@ -143,7 +130,7 @@ namespace itc {                        // API namespace
 
 		String& operator=(String&& old) // move-assign
 		{
-			//		vaDBG(_T("[@%p]itc::String() move-assign= %s"), this, old.m_str);
+//			vaDBG(_T("[@%p]itc::String() move-assign= %s"), this, old.m_str);
 
 			if(this != &old)
 			{
@@ -155,7 +142,7 @@ namespace itc {                        // API namespace
 
 		~String()
 		{
-			//		vaDBG(_T("[%p]itc::String() dtor: %s"), this, m_str);
+//			vaDBG(_T("[%p]itc::String() dtor: %s"), this, m_str);
 
 			delete m_str;
 			m_str = nullptr;
@@ -166,13 +153,7 @@ namespace itc {                        // API namespace
 
 		TCHAR* getbuf(){ return m_str; }
 
-		void put(const TCHAR *pstr)
-		{
-			if(m_str)
-			{
-				_sntprintf_s(m_str, m_chars, _TRUNCATE, _T("%s"), pstr);
-			}
-		}
+		void put(const TCHAR *pstr); // use _sntprintf_s() internally
 
 		int bufsize(){ return m_chars; }
 
@@ -509,7 +490,6 @@ namespace itc {                        // API namespace
 ////////////////////////////////////////////////////////////////////////////
 */
 // ++++++++++++++++++ Implementation Below ++++++++++++++++++
-// (private namespace 'CHHI_Itc') 
 
 
 #if defined(InterpretConst_IMPL) || (defined CHHI_ALL_IMPL && !defined CHHI_ALL_IMPL_HIDE_InterpretConst) // [IMPL]

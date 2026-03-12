@@ -2,7 +2,7 @@
 #define __snTprintf_h_20251113_
 
 // snTprintf() is the TCHAR-style function name for C99 snprintf and its WCHAR counterpart.
-// This is TCHAR-style function name make me fell comfortable when writing Windows C++ program,
+// This is TCHAR-style function name make me feel comfortable when writing Windows C++ program,
 // so I hop to use that symbols as well on Linux.
 
 // Note on Linux/Unix, I do not implement wchar_t version of snTprintf, bcz stupid C99 swprintf()
