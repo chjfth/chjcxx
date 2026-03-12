@@ -1,5 +1,5 @@
-#ifndef CHHI__Editbox_EnableKbdAdjustNumber_h_20250326_20260309_
-#define CHHI__Editbox_EnableKbdAdjustNumber_h_20250326_20260309_
+#ifndef __CHHI__Editbox_EnableKbdAdjustIntnum_h_20250326_20260309_
+#define __CHHI__Editbox_EnableKbdAdjustIntnum_h_20250326_20260309_
 
 #include <windows.h>
 
@@ -19,16 +19,16 @@ enum EditboxKAN_err
 };
 
 // Purpose: Add extra keyboard functionality to a standard editbox.
-// When the caret is on a digit char, user pressing Up will increase the number,
-// pressing Down will decrease the number. This is convenient for adjusting
-// date/time value on an editbox.
+// When the caret is on a digit char, user pressing Up will increase the integer number,
+// pressing Down will decrease the integer number. This is convenient for adjusting
+// date/time value on an editbox etc.
 
-EditboxKAN_err Editbox_EnableKbdAdjustNumber(HWND hEdit,
+EditboxKAN_err Editbox_EnableKbdAdjustIntnum(HWND hEdit,
 	int min_val, int max_val, unsigned int step_val, bool is_wrap_around, 
 	unsigned int pad_zeros_to_width=0);
 
-EditboxKAN_err Editbox_DisableKbdAdjustNumber(HWND hEdit);
-// -- optional, Editbox's WM_NCDESTROY will call this automatically
+EditboxKAN_err Editbox_DisableKbdAdjustIntnum(HWND hEdit);
+// -- optional, Editbox's WM_NCDESTROY will call this automatically, or you do it explicitly.
 
 
 
@@ -44,7 +44,7 @@ EditboxKAN_err Editbox_DisableKbdAdjustNumber(HWND hEdit);
 */
 // ++++++++++++++++++ Implementation Below ++++++++++++++++++
 
-#if defined(Editbox_EnableKbdAdjustNumber_IMPL) || (defined CHHI_ALL_IMPL && !defined CHHI_ALL_IMPL_HIDE_Editbox_EnableKbdAdjustNumber) // [IMPL]
+#if defined(Editbox_EnableKbdAdjustIntnum_IMPL) || (defined CHHI_ALL_IMPL && !defined CHHI_ALL_IMPL_HIDE_Editbox_EnableKbdAdjustIntnum) // [IMPL]
 
 // >>> Include headers required by this lib's implementation
 #include <assert.h>
@@ -58,7 +58,7 @@ EditboxKAN_err Editbox_DisableKbdAdjustNumber(HWND hEdit);
 // <<< Include headers required by this lib's implementation
 
 
-#ifndef Editbox_EnableKbdAdjustNumber_DEBUG
+#ifndef Editbox_EnableKbdAdjustIntnum_DEBUG
 #include <CHHI_vaDBG_hide.h>
 #endif
 
@@ -471,7 +471,7 @@ EditboxPeeker::Edit_OnMouseMove(HWND hEdit, int x, int y, UINT keyFlags)
 MsgRelay_et
 EditboxPeeker::Edit_OnNCDestroy(HWND hEdit)
 {
-	EditboxKAN_err err = Editbox_DisableKbdAdjustNumber(hEdit);
+	EditboxKAN_err err = Editbox_DisableKbdAdjustIntnum(hEdit);
     assert(!err);
 
 	return Relay_yes;
@@ -500,7 +500,7 @@ EditboxPeeker::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 }
 
 
-EditboxKAN_err _Editbox_EnableKbdAdjustNumber(HWND hEdit,
+EditboxKAN_err _Editbox_EnableKbdAdjustIntnum(HWND hEdit,
 	int min_val, int max_val, unsigned int step_val, bool is_wrap_around, 
 	unsigned int pad_zeros)
 {
@@ -527,7 +527,7 @@ EditboxKAN_err _Editbox_EnableKbdAdjustNumber(HWND hEdit,
 	return EditboxKAN_Succ;
 }
 
-EditboxKAN_err _Editbox_DisableKbdAdjustNumber(HWND hEdit)
+EditboxKAN_err _Editbox_DisableKbdAdjustIntnum(HWND hEdit)
 {
 	if(!IsWindow(hEdit))
 		return EditboxKAN_BadParam;
@@ -562,22 +562,22 @@ EditboxKAN_err _Editbox_DisableKbdAdjustNumber(HWND hEdit)
 
 // Global space API implementation wrapper:
 
-EditboxKAN_err Editbox_EnableKbdAdjustNumber(HWND hEdit,
+EditboxKAN_err Editbox_EnableKbdAdjustIntnum(HWND hEdit,
 	int min_val, int max_val, unsigned int step_val, bool is_wrap_around, 
 	unsigned int pad_zeros_to_width)
 {
-	return EditboxKAN::_Editbox_EnableKbdAdjustNumber(hEdit,
+	return EditboxKAN::_Editbox_EnableKbdAdjustIntnum(hEdit,
 		min_val, max_val, step_val, is_wrap_around, pad_zeros_to_width);
 }
 
-EditboxKAN_err Editbox_DisableKbdAdjustNumber(HWND hEdit)
+EditboxKAN_err Editbox_DisableKbdAdjustIntnum(HWND hEdit)
 {
-	return EditboxKAN::_Editbox_DisableKbdAdjustNumber(hEdit);
+	return EditboxKAN::_Editbox_DisableKbdAdjustIntnum(hEdit);
 }
 
 
 
-#ifndef Editbox_EnableKbdAdjustNumber_DEBUG
+#ifndef Editbox_EnableKbdAdjustIntnum_DEBUG
 #include <CHHI_vaDBG_show.h>
 #endif
 
