@@ -1,5 +1,5 @@
-#ifndef __Combobox_EnableWideDrop_h_20250708_
-#define __Combobox_EnableWideDrop_h_20250708_
+#ifndef __Combobox_EnableWideDrop_h_20250708_20260311_
+#define __Combobox_EnableWideDrop_h_20250708_20260311_
 
 #include <windows.h>
 
@@ -22,21 +22,30 @@ DlgboxCbw_err Dlgbox_EnableComboboxWideDrop(HWND hdlg);
 
 DlgboxCbw_err Dlgbox_DisableComboboxWideDrop(HWND hdlg);
 
-///////////////////////////////////////////////////////////////
-// Implementation Below:
-///////////////////////////////////////////////////////////////
+/*
+////////////////////////////////////////////////////////////////////////////
+ ___                 _                           _        _   _             
+|_ _|_ __ ___  _ __ | | ___ _ __ ___   ___ _ __ | |_ __ _| |_(_) ___  _ __  
+ | || '_ ` _ \| '_ \| |/ _ \ '_ ` _ \ / _ \ '_ \| __/ _` | __| |/ _ \| '_ \ 
+ | || | | | | | |_) | |  __/ | | | | |  __/ | | | || (_| | |_| | (_) | | | |
+|___|_| |_| |_| .__/|_|\___|_| |_| |_|\___|_| |_|\__\__,_|\__|_|\___/|_| |_|
+              |_|                                                           
+////////////////////////////////////////////////////////////////////////////
+*/
+// ++++++++++++++++++ Implementation Below ++++++++++++++++++
 
-#ifdef Combobox_EnableWideDrop_IMPL
+#if defined(Combobox_EnableWideDrop_IMPL) || (defined CHHI_ALL_IMPL && !defined CHHI_ALL_IMPL_HIDE_Combobox_EnableWideDrop) // [IMPL]
 
+// >>> Include headers required by this lib's implementation
 #include <assert.h>
 #include <stdarg.h>
 #include <tchar.h>
 #include <WindowsX.h>
 #include <mswin/WindowsX2.h> // chj: for SUBCLASS_FILTER_MSG0()
+//
 #include <_MINMAX_.h>
-
-#define CxxWindowSubclass_IMPL
 #include <mswin/CxxWindowSubclass.h>
+// <<< Include headers required by this lib's implementation
 
 
 #ifndef Combobox_EnableWideDrop_DEBUG
@@ -44,8 +53,20 @@ DlgboxCbw_err Dlgbox_DisableComboboxWideDrop(HWND hdlg);
 #endif
 
 
-namespace ComboboxEWD
-{
+/*
+    ____       _             __                                                                
+   / __ \_____(_)   ______ _/ /____       ____  ____ _____ ___  ___  _________  ____ _________ 
+  / /_/ / ___/ / | / / __ `/ __/ _ \     / __ \/ __ `/ __ `__ \/ _ \/ ___/ __ \/ __ `/ ___/ _ \
+ / ____/ /  / /| |/ / /_/ / /_/  __/    / / / / /_/ / / / / / /  __(__  ) /_/ / /_/ / /__/  __/
+/_/   /_/  /_/ |___/\__,_/\__/\___/    /_/ /_/\__,_/_/ /_/ /_/\___/____/ .___/\__,_/\___/\___/ 
+                                                                      /_/                      
+*/
+// We should enclose this lib's implementation into private namespace.
+
+////////////////////////////////////////////////////////////////////////////
+namespace ComboboxEWD {
+////////////////////////////////////////////////////////////////////////////
+
 
 const TCHAR *s_sigSubclass = _T("sig_ComboboxEWD");
 
@@ -318,10 +339,23 @@ DlgboxCbw_err _Dlgbox_DisableComboboxWideDrop(HWND hdlg)
 }
 
 
-} // namespace
+////////////////////////////////////////////////////////////////////////////
+} // namespace ComboboxEWD
+////////////////////////////////////////////////////////////////////////////
 
-// non-namespace wrapper:
-//
+
+
+
+/*
+ ,-. .     .       .                          ,.  ;-.  ,
+/    |     |       |                         /  \ |  ) |
+| -. | ,-. |-. ,-: |   ,-. ;-. ,-: ,-. ,-.   |--| |-'  |
+\  | | | | | | | | |   `-. | | | | |   |-'   |  | |    |
+ `-' ' `-' `-' `-` '   `-' |-' `-` `-' `-'   '  ' '    '
+*/
+
+// Global space API implementation wrapper:
+
 DlgboxCbw_err Dlgbox_EnableComboboxWideDrop(HWND hdlg)
 {
 	return ComboboxEWD::_Dlgbox_EnableComboboxWideDrop(hdlg);
@@ -336,6 +370,6 @@ DlgboxCbw_err Dlgbox_DisableComboboxWideDrop(HWND hdlg)
 #include <CHHI_vaDBG_show.h>
 #endif
 
-#endif // Combobox_EnableWideDrop_IMPL
+#endif // [IMPL]
 
 #endif

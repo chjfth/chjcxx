@@ -20,6 +20,8 @@ BOOL Is_UserAnAdmin();
 
 const TCHAR* GetExeFilename();
 
+const TCHAR *GetExeStemname(); // the exe filename without .exe suffix
+
 const TCHAR* env_GetCpuArch();
 
 TCHAR *parse_cmdparam_HEXRR(
@@ -132,6 +134,21 @@ const TCHAR* GetExeFilename()
 		pfilename = exepath;
 
 	return pfilename;
+}
+
+
+const TCHAR *GetExeStemname() // the exe filename without .exe suffix
+{
+	static TCHAR s_exestem[MAX_PATH] = _T("");
+	if(!s_exestem[0])
+	{
+		_tcscpy_s(s_exestem, GetExeFilename());
+
+		int slen = (int)_tcslen(s_exestem);
+		if(_tcsicmp(s_exestem+slen-4, _T(".exe"))==0)
+			s_exestem[slen-4] = '\0';
+	}
+	return s_exestem;
 }
 
 

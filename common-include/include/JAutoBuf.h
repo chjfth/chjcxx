@@ -1,5 +1,5 @@
-#ifndef __JAutoBuf_h_20250703_
-#define __JAutoBuf_h_20250703_
+#ifndef __CHHI_JAutoBuf_h_20250703_20260312_
+#define __CHHI_JAutoBuf_h_20250703_20260312_
 /******************************************************************************
 Module:  JAutoBuf.h
 Notices: Copyright (c) 2000 Jeffrey Richter
@@ -257,8 +257,6 @@ private:
 };
 
 
-///////////////////////////////////////////////////////////////////////////////
-
 
 #define GROWUNTIL(fail, func)                        \
    do {                                              \
@@ -268,19 +266,51 @@ private:
             (GetLastError() == ERROR_INSUFFICIENT_BUFFER));
 
 
-///////////////////////////////////////////////////////////////////////////////
+
+typedef JAutoBuf<TCHAR, sizeof(TCHAR), 1>     AutoTCHARs; // stramphibian
+typedef JAutoBuf<wchar_t, sizeof(wchar_t), 1> AutoWCHARs; // explicit
+typedef JAutoBuf<char, sizeof(char), 1>       AutoACHARs; // explicit
+
+typedef JAutoBuf<wchar_t, sizeof(wchar_t), 1>  CWstring_autobuf; // old name?
+typedef JAutoBuf<char, sizeof(char), 1>        CAstring_autobuf; // old name?
+
+typedef JAutoBuf<unsigned char>   Jautobuf; // to store byte stream (void* buffer)
+
+
+template<typename TAutobuf>
+bool abIsEmptyString(const TAutobuf &ab)
+{
+	if( (void*)ab==NULL || ab[0]==0 )
+		return true;
+	else 
+		return false;
+}
 
 
 
-#ifdef JAUTOBUF_IMPL // allow for old macro name JAUTOBUF_IMPL
-#define JAutoBuf_IMPL
-#endif
 
 
-#ifdef JAutoBuf_IMPL // only one .cpp should define this to get the implementation code
 
+
+/*
+////////////////////////////////////////////////////////////////////////////
+ ___                 _                           _        _   _             
+|_ _|_ __ ___  _ __ | | ___ _ __ ___   ___ _ __ | |_ __ _| |_(_) ___  _ __  
+ | || '_ ` _ \| '_ \| |/ _ \ '_ ` _ \ / _ \ '_ \| __/ _` | __| |/ _ \| '_ \ 
+ | || | | | | | |_) | |  __/ | | | | |  __/ | | | || (_| | |_| | (_) | | | |
+|___|_| |_| |_| .__/|_|\___|_| |_| |_|\___|_| |_|\__\__,_|\__|_|\___/|_| |_|
+              |_|                                                           
+////////////////////////////////////////////////////////////////////////////
+*/
+// ++++++++++++++++++ Implementation Below ++++++++++++++++++
+
+#if defined(JAutoBuf_IMPL_IMPL) || (defined CHHI_ALL_IMPL && !defined CHHI_ALL_IMPL_HIDE_JAutoBuf_IMPL) // [IMPL]
+
+// >>> Include headers required by this lib's implementation
 #include <assert.h>
 #include <utility>
+// <<< Include headers required by this lib's implementation
+
 
 #ifndef JAutoBuf_DEBUG
 #include <CHHI_vaDBG_hide.h>
@@ -400,28 +430,7 @@ void JAutoBufBase::_base_move_assignment(JAutoBufBase& old)
 #include <CHHI_vaDBG_show.h>
 #endif
 
-#endif   // JAutoBuf_IMPL
-
-
-
-typedef JAutoBuf<wchar_t, sizeof(wchar_t), 1>  CWstring_autobuf;
-typedef JAutoBuf<char, sizeof(char), 1>        CAstring_autobuf;
-
-typedef JAutoBuf<unsigned char>   Jautobuf; // to store byte stream (void* buffer)
-
-// Suggestion on Windows for TCHAR buffer:
-// typedef JAutoBuf<TCHAR, sizeof(TCHAR), 1> AutoTCHARs;
-
-
-
-template<typename TAutobuf>
-bool abIsEmptyString(const TAutobuf &ab)
-{
-	if( (void*)ab==NULL || ab[0]==0 )
-		return true;
-	else 
-		return false;
-}
+#endif   // [IMPL]
 
 
 #endif // include once guard
