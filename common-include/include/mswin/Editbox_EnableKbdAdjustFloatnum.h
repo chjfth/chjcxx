@@ -328,32 +328,31 @@ EditboxPeeker::Edit_OnKey(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT flag
 	}
 
 	// Looking left-side:
-	while(startVB>0 && Is_decidigit(szOldText[startVB-1]))
-		startVB--;
-
-	if(want_neg) 
+	if(szOldText[startVB]!='-')
 	{
-		// try to include an extra minus sign at left-side
-		if(startVB>0 && szOldText[startVB-1]=='-')
+		while(startVB>0 && Is_decidigit(szOldText[startVB-1]))
 			startVB--;
+
+		if(want_neg) 
+		{
+			// try to include an extra minus sign at left-side
+			if(startVB>0 && szOldText[startVB-1]=='-')
+				startVB--;
+		}
 	}
 
 	// Looking right-size:
 	while(endVB_<textlen && Is_decidigit(szOldText[endVB_]))
 		endVB_++;
 
-	int lenVB = endVB_-startVB;
+	int lenVB = endVB_ - startVB;
+	int lenSel = endSel_ - startSel;
 
-	if(startVB==endVB_)
+	if(lenVB==0)
 	{
+		// no number-string around caret or text-selection
 		vaDBG2(_T("Caret pos NOT on valid numeric string, do editbox default."));
 		return Relay_yes;
-	}
-	else if(!Is_valid_decimal(szOldText+startVB, lenVB, want_neg))
-	{
-		vaDBG2(_T("Caret selection '%.*s' NOT a valid numeric string, do nothing."), 
-			lenVB, szOldText+startVB);
-		return Relay_no; // Relay_no so that user text-selection is preserved.
 	}
 
 	if(startSel==endSel_)
@@ -363,7 +362,7 @@ EditboxPeeker::Edit_OnKey(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT flag
 	}
 	else
 	{
-		if(endSel_-startSel == lenVB)
+		if(lenSel == lenVB)
 		{
 			// Case[2.1], do the same as Case[1]
 			as_int_ring = false;
@@ -371,20 +370,33 @@ EditboxPeeker::Edit_OnKey(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT flag
 		else
 		{
 			// Case[2.2]
-			as_int_ring = true;
-		
-			if(!Is_all_0_9(szOldText+startSel, endSel_-startSel))
-			{
-				vaDBG2(_T("Partial selection '%.*s' contains non 0-9 chars, do nothing."), 
-					endSel_-startSel, szOldText+startSel);
-				return Relay_no;
-			}
-			
-			// Tweak VB's meaning to be user's text-selection
-			startVB = startSel; endVB_ = endSel_;
-			lenVB = endVB_-startVB;
+			as_int_ring = true;			
 		}
 	}
+
+	if(!as_int_ring)
+	{
+		if( !Is_valid_decimal(szOldText+startVB, lenVB, want_neg) )
+		{
+			vaDBG2(_T("Around caret '%.*s' NOT a valid numeric string, do nothing."), 
+				lenVB, szOldText+startVB); // "1.23.45" etc
+			return Relay_no; // Relay_no so that user text-selection is preserved.
+		}
+	}
+	else 
+	{
+		if( !Is_all_0_9(szOldText+startSel, lenSel) )
+		{
+			vaDBG2(_T("Partial selection '%.*s' contains non 0-9 chars, do nothing."), 
+				lenSel, szOldText+startSel); // For "1.234", user select only ".2"
+			return Relay_no;
+		}
+
+		// Tweak VB's meaning to be user's text-selection
+		startVB = startSel; endVB_ = endSel_;
+		lenVB = endVB_-startVB;
+	}
+
 
 	TCHAR szOldHot[TBUFSIZE] = {};
 	_sntprintf_s(szOldHot, _TRUNCATE, _T("%.*s"), lenVB, szOldText+startVB);

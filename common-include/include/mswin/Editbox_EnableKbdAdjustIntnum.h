@@ -1,5 +1,5 @@
-#ifndef __CHHI__Editbox_EnableKbdAdjustIntnum_h_20250326_20260309_
-#define __CHHI__Editbox_EnableKbdAdjustIntnum_h_20250326_20260309_
+#ifndef __CHHI__Editbox_EnableKbdAdjustIntnum_h_20250326_20260312_
+#define __CHHI__Editbox_EnableKbdAdjustIntnum_h_20250326_20260312_
 
 #include <windows.h>
 
@@ -276,40 +276,45 @@ EditboxPeeker::Edit_OnKey(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT flag
 
 	// Special for edge-case of pure caret(=no text-selection) at VB's end_ :
 	// We consider the caret is within VB by startVB-- .
-	if( startVB==endVB_ && startVB>0)
+	if( startVB==endVB_ && startVB>0 )
 	{
 		if( !Is_0_9(szOldText[startVB]) && Is_0_9(szOldText[startVB-1]) )
 			startVB--;
 	}
 
 	// Looking left-side:
-	while(startVB>0 && Is_0_9(szOldText[startVB-1]))
-		startVB--;
-
-	if(want_neg) 
+	if(szOldText[startVB]!='-')
 	{
-		// try to include an extra minus sign at left-side
-		if(startVB>0 && szOldText[startVB-1]=='-')
+		while(startVB>0 && Is_0_9(szOldText[startVB-1]))
 			startVB--;
+
+		if(want_neg) 
+		{
+			// try to include an extra minus sign at left-side
+			if(startVB>0 && szOldText[startVB-1]=='-')
+				startVB--;
+		}
 	}
 
 	// Looking right-size:
 	while(endVB_<textlen && Is_0_9(szOldText[endVB_]))
 		endVB_++;
 
-	int lenVB = endVB_-startVB;
+	int lenVB = endVB_ - startVB;
+	int lenSel = endSel_ - startSel;
 
-	if(startVB==endVB_)
+	if(lenVB==0)
 	{
+		// no number-string around caret or text-selection
 		vaDBG2(_T("Caret pos NOT on valid integer string, do editbox default."));
 		return Relay_yes;
 	}
-	else if(!Is_valid_integer(szOldText+startVB, lenVB, want_neg))
-	{
-		vaDBG2(_T("Caret selection '%.*s' NOT a valid integer string, do nothing."), 
-			lenVB, szOldText+startVB);
-		return Relay_no; // Relay_no so that user text-selection is preserved.
-	}
+// 	else if(!Is_valid_integer(szOldText+startVB, lenVB, want_neg))
+// 	{
+// 		vaDBG2(_T("Caret selection '%.*s' NOT a valid integer string, do nothing."), 
+// 			lenVB, szOldText+startVB);
+// 		return Relay_no; // Relay_no so that user text-selection is preserved.
+// 	}
 
 	if(startSel==endSel_)
 	{
@@ -318,7 +323,7 @@ EditboxPeeker::Edit_OnKey(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT flag
 	}
 	else
 	{
-		if(endSel_-startSel == lenVB)
+		if(lenSel == lenVB)
 		{
 			// Case[2.1], do the same as Case[1]
 			as_int_ring = false;
