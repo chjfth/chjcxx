@@ -41,10 +41,10 @@ public:
 	CFooWndPeeker *peeker = CxxWindowSubclass::FetchCxxobjFromHwnd<CFooWndPeeker>(
 		hwnd_toSubclass, _T("sig_EasyTooltipMan"), TRUE, &err);
 
-	When to delete `peeker` object?
+	When to C++-delete `peeker` object?
 	
-	- If you call peeker->DetachHwnd(true) explicitly, or when hwnd_toSubclass destroys, 
-	`delete peeker` is done automatically -- no need to manually delete it.
+	- When you call peeker->DetachHwnd(true) explicitly, or when hwnd_toSubclass destroys, 
+	  `delete peeker` is done automatically -- no need to manually delete it.
 	
 	- Only when you do peeker->DetachHwnd(false), you should `delete peeker` explicitly.
 	*/
