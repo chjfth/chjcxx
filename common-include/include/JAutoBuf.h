@@ -49,6 +49,7 @@ Note: To use this lib, pick one and only one of your xxx.cpp, write at its start
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <assert.h>
+#include <ps_TCHAR.h>
 
 // This class is only ever used as a base class of the JAutoBuf template class.
 // The base class exists so that all instances of the template class share

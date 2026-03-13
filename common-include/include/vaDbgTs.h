@@ -65,6 +65,7 @@ void vlDbgTsl(vaDbg_level_et lvl, const TCHAR *fmt, va_list args);
 
 
 enum vaDbg_opt_et {
+	vaDbg_hms = 0,      // always give hour:minute:second
 	vaDbg_seq = 1,      // leading sequence number
 	vaDbg_ymd = 2,      // show year, month, date
 	vaDbg_millisec = 4, // show millisecond
@@ -109,6 +110,7 @@ unsigned int va_millisec(); // va: vaDbgTs prefix -OR- very accurate
 
 enum VaNowtime_et
 {
+	VaNowtime_hms      = vaDbg_hms,
 	VaNowtime_ymd      = vaDbg_ymd,      // show year, month, date
 	VaNowtime_millisec = vaDbg_millisec, // show millisecond
 	VaNowtime_diff     = vaDbg_diff,     // show diff seconds to previous(hint, not accurate)
@@ -116,6 +118,16 @@ enum VaNowtime_et
 
 TCHAR *va_now_timestr(VaNowtime_et timefmt, TCHAR buf[], int bufchars);
 // -- return input buf[]
+
+inline TCHAR *va_now_hms(TCHAR buf[], int bufchars)
+{
+	return va_now_timestr(VaNowtime_hms, buf, bufchars);
+}
+
+inline TCHAR *va_now_ymdhms(TCHAR buf[], int bufchars)
+{
+	return va_now_timestr(VaNowtime_ymd, buf, bufchars);
+}
 
 
 #ifdef __cplusplus
