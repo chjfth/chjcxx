@@ -41,6 +41,7 @@ void util_SetDlgDefaultButton(HWND hwndDlg, UINT idDefault);
   // beyond that of windowsx.h's HANDLE_MSG(). This HANDLE_dlgMSG() applies that further step.
   // Ref: Raymond Chen https://devblogs.microsoft.com/oldnewthing/20031107-00/?p=41923
 
+int getCheckedRadioButton(HWND hDlg, int nIDFirst, int nIDLast);
 
 
 
@@ -215,7 +216,19 @@ void util_SetDlgDefaultButton(HWND hwndDlg, UINT idDefault)
 }
 
 
-#endif // utils_wingui_IMPL
+int getCheckedRadioButton(HWND hDlg, int nIDFirst, int nIDLast)
+{
+    for (int nID = nIDFirst; nID <= nIDLast; nID++)
+    {
+        if (IsDlgButtonChecked(hDlg, nID) == BST_CHECKED)
+        {
+            return nID;  // Return the ID of the checked button
+        }
+    }
+    return 0;  // No button checked
+}
+
+#endif // [IMPL]
 
 
 #endif
