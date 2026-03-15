@@ -4,6 +4,7 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <tchar.h>
+#include <assert.h>
 
 
 //
@@ -42,6 +43,13 @@ void util_SetDlgDefaultButton(HWND hwndDlg, UINT idDefault);
   // Ref: Raymond Chen https://devblogs.microsoft.com/oldnewthing/20031107-00/?p=41923
 
 int getCheckedRadioButton(HWND hDlg, int nIDFirst, int nIDLast);
+
+inline int enableDlgItem(HWND hDlg, int uic, BOOL isEnable) 
+{
+	HWND hUic = GetDlgItem(hDlg, uic);
+	assert(IsWindow(hUic));
+	return EnableWindow(hUic, isEnable);
+}
 
 
 

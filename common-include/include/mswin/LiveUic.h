@@ -93,13 +93,13 @@ public:
 		DataToUic();
 	}
 
-	void SetData(T new_val)
+	void SetValue(T new_val)
 	{
 		m_val = _MID_(m_min_val, new_val, m_max_val);
 		DataToUic();
 	}
 
-	T GetData()
+	T GetValue()
 	{
 		return m_val;
 	}
@@ -160,6 +160,11 @@ public:
 	int GetState()
 	{
 		return m_chkstate;
+	}
+
+	bool IsChecked()
+	{
+		return m_chkstate ? true: false;
 	}
 
 	virtual void Reset()
