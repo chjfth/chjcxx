@@ -262,8 +262,7 @@ EditboxPeeker::Edit_OnKey(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT flag
 	// If current caret is on a number, we will increase/decrease the number,
 	// otherwise, do nothing and relay the message(to its old wndproc).
 	
-	if(!fDown)
-		return Relay_yes;
+	assert(fDown); // bcz our SubclsProc process only WM_KEYDOWN, not WM_KEYUP
 
 	bool is_inc = false;
 	if(vk==VK_UP)

@@ -1,5 +1,5 @@
-#ifndef CHHI__CxxWindowSubclass_h_20250606_20260314_
-#define CHHI__CxxWindowSubclass_h_20250606_20260314_
+#ifndef CHHI__CxxWindowSubclass_h_20250606_20260315_
+#define CHHI__CxxWindowSubclass_h_20250606_20260315_
 
 // From Jimm Chen's chjcxx repo.
 // Modification date at first line as version number.
@@ -68,6 +68,13 @@ public:
 	- Only when you do peeker->DetachHwnd(false), you should `delete peeker` explicitly.
 	*/
 
+	static ReCode_et FetchCxxobjFromHwnd_as_partial(HWND hwnd, const TCHAR *sigstr, BOOL is_create,
+		CxxWindowSubclass *inplace);
+	// -- Similar to FetchCxxobjFromHwnd(), but user provides the already created object space.
+	//    This is useful if user creates TChild as part of multiple-inheritance class.
+	//    Example (TChild is CEditValue): 
+	//        class CEditValue : public LiveUic, public CxxWindowSubclass { ... }
+
 public:
 	CxxWindowSubclass();
 	virtual ~CxxWindowSubclass();
@@ -78,6 +85,10 @@ public:
 	bool IsAttached() {
 		return m_hwnd ? true : false;
 	}
+
+private:
+	static ReCode_et FetchCxxobj_precheck(HWND hwnd, const TCHAR *sigstr, BOOL is_create,
+		PVOID *ppobj_output);
 
 protected:
 	virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -94,6 +105,8 @@ private:
 
 	// This TCHAR string signifies a concrete subclass instance, MUST be the 2nd member.
 	TCHAR *m_signature; // with s_winprop_prefix
+
+	bool m_as_partial_cxxobj;
 	///////////////////////////////////////////////////////////////////////////
 
 private:
@@ -120,33 +133,14 @@ CxxWindowSubclass::FetchCxxobjFromHwnd(HWND hwnd, const TCHAR *sigstr, BOOL is_c
 {
 	SETTLE_OUTPUT_PTR(ReCode_et, pErr, E_Fail);
 
-	if(sigstr && sigstr[0])
-	{
-		// Check whether old subclass-instance exists.
+	TChild *pOldobj = nullptr;
 
-		TCHAR signature[80] = {};
-		_sntprintf_s(signature, _TRUNCATE, _T("%s%s"), s_winprop_prefix, sigstr);
-
-		*pErr = CheckHwnd(hwnd, signature);
-
-		if(*pErr == E_Existed)
-		{
-			return (TChild*)GetProp(hwnd, signature);
-		}
-
-		if( ! (*pErr==E_NotExist && is_create) )
-			return nullptr; // something wrong
-	}
-	else
-	{
-		// empty sigstr input
-
-		if(!is_create)
-		{
-			*pErr = E_BadParam;
-			return nullptr;
-		}
-	}
+	*pErr = FetchCxxobj_precheck(hwnd, sigstr, is_create, (PVOID*)&pOldobj);
+	
+	if(*pErr == E_Existed)
+		return pOldobj;
+	else if(*pErr)
+		return nullptr;
 	
 	// Create a new subclass-instance.
 
@@ -165,6 +159,8 @@ CxxWindowSubclass::FetchCxxobjFromHwnd(HWND hwnd, const TCHAR *sigstr, BOOL is_c
 
 	return nullptr;
 }
+
+
 
 
 /*
@@ -204,6 +200,7 @@ CxxWindowSubclass::CxxWindowSubclass()
 
 	m_magic = const_magic;
 	m_signature = nullptr;
+	m_as_partial_cxxobj = false;
 
 	m_hwnd = NULL;
 }
@@ -359,7 +356,7 @@ CxxWindowSubclass::DetachHwnd(bool delete_cxxobj)
 
 	m_hwnd = NULL;
 
-	if(delete_cxxobj)
+	if(delete_cxxobj && !m_as_partial_cxxobj)
 		dth.MarkDelete();
 
 	return E_Success;
@@ -395,11 +392,74 @@ CxxWindowSubclass::StockWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 		vaDBG2(_T("CxxWindowSubclass@%p sees WM_NCDESTROY, now detach."), this);
 
 		this->DetachHwnd(true);
+
+		vaDBG2(_T("hedit WM_NCDESTROY done"));
 	}
 
 	return lre;
 }
 
+
+CxxWindowSubclass::ReCode_et 
+CxxWindowSubclass::FetchCxxobj_precheck(HWND hwnd, const TCHAR *sigstr, BOOL is_create,
+	PVOID *ppobj)
+{
+	ReCode_et err = E_Fail;
+	if(sigstr && sigstr[0])
+	{
+		// Check whether old subclass-instance exists.
+
+		TCHAR signature[80] = {};
+		_sntprintf_s(signature, _TRUNCATE, _T("%s%s"), s_winprop_prefix, sigstr);
+
+		err = CheckHwnd(hwnd, signature);
+		assert(err); // deliberate not get E_Success.
+
+		if(err == E_Existed)
+		{
+			assert(ppobj);
+			*ppobj = GetProp(hwnd, signature);
+			return err;
+		}
+
+		if( ! (err==E_NotExist && is_create) )
+		{
+			return err; // something wrong
+		}
+	}
+	else
+	{
+		// empty sigstr input
+
+		if(!is_create)
+		{
+			return E_BadParam;
+		}
+	}
+
+	return E_Success;
+}
+
+
+CxxWindowSubclass::ReCode_et
+CxxWindowSubclass::FetchCxxobjFromHwnd_as_partial(HWND hwnd, const TCHAR *sigstr, BOOL is_create,
+	CxxWindowSubclass *input_partial_cxxobj)
+{
+	void *pOldobj = nullptr;
+	ReCode_et err = FetchCxxobj_precheck(hwnd, sigstr, is_create, &pOldobj);
+	if(err == E_Existed)
+	{
+		assert(pOldobj==input_partial_cxxobj);
+		return E_Existed;
+	}
+	else if(err)
+		return err;
+	
+	// Initialize the object in-place
+	err = input_partial_cxxobj->AttachHwnd(hwnd, sigstr);
+	input_partial_cxxobj->m_as_partial_cxxobj = true;
+	return err;
+}
 
 
 

@@ -7,7 +7,10 @@
 #include <assert.h>
 
 #include <_MINMAX_.h>
+#include <vaDbgTs.h>
+#include <mswin/WinUser.itc.h>
 #include <mswin/utils_wingui.h>
+#include <mswin/CxxWindowSubclass.h>
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -28,8 +31,7 @@ public:
 };
 
 
-template<typename T>
-struct Convert;
+template<typename T> struct Convert;   // type conversion helper
 
 template<>
 struct Convert<int>
@@ -59,9 +61,8 @@ struct Convert<float>
 };
 
 
-
 template<typename T> // T as user data type in the editbox
-class CEditValue : public LiveUic
+class CEditValue : public LiveUic, public CxxWindowSubclass
 {
 	T m_val;
 
@@ -79,6 +80,8 @@ public:
 
 	void Init(HWND hedit, T default_val, T min_val, T max_val)
 	{
+		assert(!m_hedit); // blame on twice Init()
+
 		assert(IsWindow(hedit));
 		assert(max_val>=min_val);
 		assert(default_val>=min_val && default_val<=max_val);
@@ -91,6 +94,11 @@ public:
 		m_max_val = max_val;
 
 		DataToUic();
+
+		auto err = CxxWindowSubclass::FetchCxxobjFromHwnd_as_partial(m_hedit,
+			_T("liveuic_CEditValue"), TRUE, this);
+		assert(!err);
+		// vaDbgTs(_T("hedit = 0x%08X , this=%p"), m_hedit, this);
 	}
 
 	void SetValue(T new_val)
@@ -123,6 +131,21 @@ public:
 		GetWindowText(m_hedit, buf, ARRAYSIZE(buf));
 		m_val = Convert<T>::FromString(buf);
 	}
+
+protected: // from CxxWindowSubclass
+	virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+	{
+		LRESULT lret = DefSubclassProc(hwnd, uMsg, wParam, lParam);
+
+		// vaDbgTs(_T("CEditValue peek: uMsg=%s"), ITCSvn(uMsg, itc::EM_xxx));
+		if(uMsg==WM_SETTEXT)
+		{
+			// User type-in or delete new text.
+			DataFromUic();
+		}
+
+		return lret;
+	}
 };
 
 
@@ -138,10 +161,13 @@ public:
 	CCheckbox()
 	{
 		m_chkstate = m_default_state = BST_UNCHECKED;
+		m_hbutton = NULL;
 	}
 
 	void Init(HWND hbutton, int default_state)
 	{
+		assert(!m_hbutton); // blame on twice Init()
+
 		assert(IsWindow(hbutton));
 		m_hbutton = hbutton;
 		
@@ -192,7 +218,6 @@ class CRadioGroup : public LiveUic
 	int m_uicDefault;
 
 	int m_uicStart, m_uicEnd;
-//	TScalableArray<HWND> m_saHbuttons;
 	HWND m_hParent;
 
 public:
@@ -206,7 +231,6 @@ public:
 	void Init(HWND hwndParent, int uicStart, int uicEnd, int uicDefault=0)
 	{
 		assert(m_hParent==NULL); // blame on twice Init()
-		//assert(m_saHbuttons.CurrentEles()==0); // blame on twice Init()
 		int nUic = uicEnd - uicStart + 1;
 		if(uicDefault<=0)
 			uicDefault = uicStart;
@@ -225,8 +249,6 @@ public:
 
 			DWORD btnstyle = GetWindowStyle(hbtn) & BS_TYPEMASK;
 			assert(btnstyle==BS_RADIOBUTTON || btnstyle==BS_AUTORADIOBUTTON);
-
-//			m_saHbuttons.AppendTail(hbtn);
 		}
 
 		m_uicStart = uicStart; m_uicEnd = uicEnd;

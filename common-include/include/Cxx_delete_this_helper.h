@@ -1,5 +1,5 @@
-#ifndef __Cxx_delete_this_helper_h_20260310_
-#define __Cxx_delete_this_helper_h_20260310_
+#ifndef __Cxx_delete_this_helper_h_20260310_20260315_
+#define __Cxx_delete_this_helper_h_20260310_20260315_
 
 class Cxx_delete_this_base
 {
@@ -25,10 +25,12 @@ private:
 class Cxx_delete_this_helper
 {
 public:
-	Cxx_delete_this_helper(Cxx_delete_this_base *pCxxBase)
+	Cxx_delete_this_helper(Cxx_delete_this_base *pCxxBase, bool is_inplace=false)
 	{
 		m_pbase = pCxxBase;
 		m_pbase->m_recurse_count++;
+
+		m_is_inplace = is_inplace;
 	}
 
 	~Cxx_delete_this_helper()
@@ -37,7 +39,10 @@ public:
 
 		if(m_pbase->m_recurse_count==0 && m_pbase->m_mark_deletes>0)
 		{
-			delete m_pbase;
+			if(!m_is_inplace)
+				delete m_pbase;
+			else
+				m_pbase->~Cxx_delete_this_base();
 		}
 	}
 
@@ -49,6 +54,7 @@ public:
 
 private:
 	Cxx_delete_this_base *m_pbase;
+	bool m_is_inplace;
 };
 
 #endif
