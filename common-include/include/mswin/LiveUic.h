@@ -136,20 +136,18 @@ protected: // from CxxWindowSubclass
 	virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 		LRESULT lret = DefSubclassProc(hwnd, uMsg, wParam, lParam);
-
-		// vaDbgTs(_T("CEditValue peek: uMsg=%s"), ITCSvn(uMsg, itc::EM_xxx));
-		if(uMsg==WM_SETTEXT)
+		//vaDbgTs(_T("CEditValue peek: uMsg=%s"), ITCSvn(uMsg, itc::EM_xxx));
+		if(uMsg==WM_CHAR || uMsg==WM_SETTEXT )
 		{
-			// User type-in or delete new text.
+			// User type-in or delete new text || EXE code set text via API.
 			DataFromUic();
 		}
-
 		return lret;
 	}
 };
 
 
-class CCheckbox : public LiveUic
+class CCheckbox : public LiveUic, public CxxWindowSubclass
 {
 	int m_chkstate; // BST_UNCHECKED=0, BST_CHECKED=1, BST_INDETERMINATE=2
 
@@ -175,6 +173,10 @@ public:
 		m_chkstate = m_default_state;
 
 		DataToUic();
+
+		auto err = CxxWindowSubclass::FetchCxxobjFromHwnd_as_partial(m_hbutton,
+			_T("liveuic_CCheckbox"), TRUE, this);
+		assert(!err);
 	}
 
 	void SetState(int new_state)
@@ -207,6 +209,18 @@ public:
 	virtual void DataFromUic()
 	{
 		m_chkstate = Button_GetCheck(m_hbutton);
+	}
+
+protected: // from CxxWindowSubclass
+	virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+	{
+		LRESULT lret = DefSubclassProc(hwnd, uMsg, wParam, lParam);
+		//vaDbgTs(_T("CCheckbox peek: uMsg=%s"), ITCSvn(uMsg, itc::BM_xxx));
+		if(uMsg==BM_SETCHECK)
+		{
+			DataFromUic();
+		}
+		return lret;
 	}
 };
 
