@@ -1,5 +1,5 @@
-#ifndef CHHI__CxxWindowSubclass_h_20250606_20260310_
-#define CHHI__CxxWindowSubclass_h_20250606_20260310_
+#ifndef CHHI__CxxWindowSubclass_h_20250606_20260314_
+#define CHHI__CxxWindowSubclass_h_20250606_20260314_
 
 // From Jimm Chen's chjcxx repo.
 // Modification date at first line as version number.
@@ -31,15 +31,34 @@ public:
 		E_WinapiSubclass = -10,
 	};
 
-	// User starts here, passing is_create=true .
+	// User starts with FetchCxxobjFromHwnd(), passing is_create=true .
+	//
 	template<typename TChild>
 	static TChild* FetchCxxobjFromHwnd(HWND hwnd, const TCHAR *sigstr, BOOL is_create,
 		ReCode_et *pErr=nullptr);
+
 	/* Example:
 
+	class FooWndPeeker : public CxxWindowSubclass
+	{
+	protected:
+		virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+		{
+			// ... do some pre-processing ...
+			
+			LRESULT lret = DefSubclassProc(hwnd, uMsg, wParam, lParam);
+			
+			// ... do some post-processing ...
+			
+			return lret;
+		}
+	}
+	
+	...
+
 	CxxWindowSubclass::ReCode_et err = CxxWindowSubclass::E_Fail;
-	CFooWndPeeker *peeker = CxxWindowSubclass::FetchCxxobjFromHwnd<CFooWndPeeker>(
-		hwnd_toSubclass, _T("sig_EasyTooltipMan"), TRUE, &err);
+	FooWndPeeker *peeker = CxxWindowSubclass::FetchCxxobjFromHwnd<FooWndPeeker>(
+		hwnd_toSubclass, _T("sig_FooWndPeeker"), TRUE, &err);
 
 	When to C++-delete `peeker` object?
 	
@@ -92,6 +111,60 @@ private:
 	static const UINT const_magic = 0x20250606;
 	static const TCHAR s_winprop_prefix[];
 };
+
+
+template<typename TChild> // TChild should be child class of CxxWindowSubclass
+TChild* 
+CxxWindowSubclass::FetchCxxobjFromHwnd(HWND hwnd, const TCHAR *sigstr, BOOL is_create,
+	ReCode_et *pErr)
+{
+	SETTLE_OUTPUT_PTR(ReCode_et, pErr, E_Fail);
+
+	if(sigstr && sigstr[0])
+	{
+		// Check whether old subclass-instance exists.
+
+		TCHAR signature[80] = {};
+		_sntprintf_s(signature, _TRUNCATE, _T("%s%s"), s_winprop_prefix, sigstr);
+
+		*pErr = CheckHwnd(hwnd, signature);
+
+		if(*pErr == E_Existed)
+		{
+			return (TChild*)GetProp(hwnd, signature);
+		}
+
+		if( ! (*pErr==E_NotExist && is_create) )
+			return nullptr; // something wrong
+	}
+	else
+	{
+		// empty sigstr input
+
+		if(!is_create)
+		{
+			*pErr = E_BadParam;
+			return nullptr;
+		}
+	}
+	
+	// Create a new subclass-instance.
+
+	CxxWindowSubclass *pobj = new TChild;
+	*pErr = pobj->AttachHwnd(hwnd, sigstr);
+
+	if (*pErr == E_Success)
+	{
+		return reinterpret_cast<TChild*>(pobj);
+	}
+	else 
+	{
+		delete pobj;
+		return nullptr;
+	}
+
+	return nullptr;
+}
 
 
 /*
@@ -325,60 +398,6 @@ CxxWindowSubclass::StockWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 	}
 
 	return lre;
-}
-
-
-template<typename TChild> // TChild should be child class of CxxWindowSubclass
-TChild* 
-CxxWindowSubclass::FetchCxxobjFromHwnd(HWND hwnd, const TCHAR *sigstr, BOOL is_create,
-	ReCode_et *pErr)
-{
-	SETTLE_OUTPUT_PTR(ReCode_et, pErr, E_Fail);
-
-	if(sigstr && sigstr[0])
-	{
-		// Check whether old subclass-instance exists.
-
-		TCHAR signature[80] = {};
-		_sntprintf_s(signature, _TRUNCATE, _T("%s%s"), s_winprop_prefix, sigstr);
-
-		*pErr = CheckHwnd(hwnd, signature);
-
-		if(*pErr == E_Existed)
-		{
-			return (TChild*)GetProp(hwnd, signature);
-		}
-
-		if( ! (*pErr==E_NotExist && is_create) )
-			return nullptr; // something wrong
-	}
-	else
-	{
-		// empty sigstr input
-
-		if(!is_create)
-		{
-			*pErr = E_BadParam;
-			return nullptr;
-		}
-	}
-	
-	// Create a new subclass-instance.
-
-	CxxWindowSubclass *pobj = new TChild;
-	*pErr = pobj->AttachHwnd(hwnd, sigstr);
-
-	if (*pErr == E_Success)
-	{
-		return reinterpret_cast<TChild*>(pobj);
-	}
-	else 
-	{
-		delete pobj;
-		return nullptr;
-	}
-
-	return nullptr;
 }
 
 
