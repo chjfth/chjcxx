@@ -73,13 +73,16 @@ class CEditValue : public LiveUic, public CxxWindowSubclass
 	T m_default_val, m_min_val, m_max_val;
 
 	HWND m_hedit;
+	int m_uic;
 
 public:
 	CEditValue()
 	{
 		m_val = 0;
 		m_default_val = m_min_val = m_max_val = 0;
+		
 		m_hedit = NULL;
+		m_uic = 0;
 	}
 
 	void Init(HWND hedit, T default_val, T min_val, T max_val)
@@ -91,6 +94,7 @@ public:
 		assert(default_val>=min_val && default_val<=max_val);
 
 		m_hedit = hedit;
+		m_uic = GetDlgCtrlID(hedit);
 
 		m_val = default_val;
 		m_default_val = default_val;
@@ -134,6 +138,10 @@ public:
 		TCHAR buf[32] = {};
 		GetWindowText(m_hedit, buf, ARRAYSIZE(buf));
 		m_val = Convert<T>::FromString(buf);
+
+		assert(wmDataChanged);
+		HWND hdlg = GetParent(m_hedit);
+		::SendMessage(hdlg, wmDataChanged, m_uic, 0);
 	}
 
 protected: // from CxxWindowSubclass
@@ -158,12 +166,14 @@ class CCheckbox : public LiveUic, public CxxWindowSubclass
 	int m_default_state;
 
 	HWND m_hbutton;
+	int m_uic;
 
 public:
 	CCheckbox()
 	{
 		m_chkstate = m_default_state = BST_UNCHECKED;
 		m_hbutton = NULL;
+		m_uic = 0;
 	}
 
 	void Init(HWND hbutton, int default_state)
@@ -172,6 +182,7 @@ public:
 
 		assert(IsWindow(hbutton));
 		m_hbutton = hbutton;
+		m_uic = GetDlgCtrlID(hbutton);
 		
 		m_default_state = _MID_(BST_UNCHECKED, default_state, BST_INDETERMINATE);
 		m_chkstate = m_default_state;
@@ -213,6 +224,10 @@ public:
 	virtual void DataFromUic()
 	{
 		m_chkstate = Button_GetCheck(m_hbutton);
+
+		assert(wmDataChanged);
+		HWND hdlg = GetParent(m_hbutton);
+		::SendMessage(hdlg, wmDataChanged, m_uic, 0);
 	}
 
 protected: // from CxxWindowSubclass
@@ -229,7 +244,7 @@ protected: // from CxxWindowSubclass
 };
 
 
-class CRadioGroup : public LiveUic//, public CxxWindowSubclass
+class CRadioGroup : public LiveUic
 {
 	int m_uicActive; // 0, 1, 2 ...
 
@@ -260,7 +275,7 @@ class CRadioGroup : public LiveUic//, public CxxWindowSubclass
 			vaDbgTs(_T("RadioBtnPeeker: uMsg=%s , hUic=0x%08X , uic=%d"), 
 				ITCSvn(uMsg, itc::BM_xxx), hwnd, uic);
 
-			if( uMsg==BM_CLICK || uMsg==BM_SETCHECK ) // || uMsg==WM_SETFOCUS || uMsg==WM_KILLFOCUS)
+			if( uMsg==BM_CLICK || uMsg==BM_SETCHECK )
 			{
 				assert(m_pOuter);
 				m_pOuter->DataFromUic();
@@ -361,7 +376,7 @@ public:
 		assert(m_uicActive>0);
 
 		assert(wmDataChanged);
-		::PostMessage(m_hParent, wmDataChanged, m_uicStart, m_uicEnd);
+		::SendMessage(m_hParent, wmDataChanged, m_uicActive, 0);
 	}
 };
 
