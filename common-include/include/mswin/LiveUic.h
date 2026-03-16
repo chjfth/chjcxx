@@ -7,6 +7,7 @@
 #include <assert.h>
 
 #include <_MINMAX_.h>
+#include <EnsureClnup.h>
 #include <vaDbgTs.h>
 #include <mswin/WinUser.itc.h>
 #include <mswin/utils_wingui.h>
@@ -17,6 +18,9 @@
 namespace liveuic { 
 ////////////////////////////////////////////////////////////////////////////
 // Place API function declarations in this namespace.
+
+static const TCHAR *sigwmDataChanged = _T("LiveUic-DataChanged"); // pass to RegisterWindowMessage ()
+extern const UINT wmDataChanged;
 
 class LiveUic      // abstract base-class
 {
@@ -96,7 +100,7 @@ public:
 		DataToUic();
 
 		auto err = CxxWindowSubclass::FetchCxxobjFromHwnd_as_partial(m_hedit,
-			_T("liveuic_CEditValue"), TRUE, this);
+			_T("liveuic::CEditValue"), this);
 		assert(!err);
 		// vaDbgTs(_T("hedit = 0x%08X , this=%p"), m_hedit, this);
 	}
@@ -175,7 +179,7 @@ public:
 		DataToUic();
 
 		auto err = CxxWindowSubclass::FetchCxxobjFromHwnd_as_partial(m_hbutton,
-			_T("liveuic_CCheckbox"), TRUE, this);
+			_T("liveuic::CCheckbox"), this);
 		assert(!err);
 	}
 
@@ -225,7 +229,7 @@ protected: // from CxxWindowSubclass
 };
 
 
-class CRadioGroup : public LiveUic
+class CRadioGroup : public LiveUic//, public CxxWindowSubclass
 {
 	int m_uicActive; // 0, 1, 2 ...
 
@@ -233,6 +237,43 @@ class CRadioGroup : public LiveUic
 
 	int m_uicStart, m_uicEnd;
 	HWND m_hParent;
+
+////
+	
+	// Define an inner class
+	class RadioBtnPeeker : public CxxWindowSubclass
+	{
+	public:
+		RadioBtnPeeker() {}
+		void Init(CRadioGroup *pOuter, int uic, int idxInGroup)
+		{
+			m_pOuter = pOuter;
+			m_uic = uic; m_idxInGroup = idxInGroup;
+		}
+
+	protected:
+		virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+		{
+			LRESULT lret = DefSubclassProc(hwnd, uMsg, wParam, lParam);
+
+			int uic = GetDlgCtrlID(hwnd);
+			vaDbgTs(_T("RadioBtnPeeker: uMsg=%s , hUic=0x%08X , uic=%d"), 
+				ITCSvn(uMsg, itc::BM_xxx), hwnd, uic);
+
+			if( uMsg==BM_CLICK || uMsg==BM_SETCHECK ) // || uMsg==WM_SETFOCUS || uMsg==WM_KILLFOCUS)
+			{
+				assert(m_pOuter);
+				m_pOuter->DataFromUic();
+			}
+
+			return lret;
+		}
+	private:
+		CRadioGroup *m_pOuter;
+		int m_uic, m_idxInGroup;
+	};
+
+	cleanupArrayDelega<RadioBtnPeeker*>::type m_cecPeekers; //CEC_raw_delete m_cecPeekers;
 
 public:
 	CRadioGroup()
@@ -270,6 +311,24 @@ public:
 		m_hParent = hwndParent;
 
 		DataToUic();
+
+		// Subclass each radio button in the group
+
+		m_cecPeekers = new RadioBtnPeeker*[nUic];
+
+		for(int i=0; i<nUic; i++)
+		{
+			HWND hbtn = GetDlgItem(hwndParent, uicStart+i);
+
+			TCHAR sig[40];
+			_sntprintf_s(sig, _TRUNCATE, _T("liveuic::CRadioGroup[%d]"), i);
+
+			CxxWindowSubclass::ReCode_et err = CxxWindowSubclass::E_Fail;
+			m_cecPeekers[i] = CxxWindowSubclass::FetchCxxobjFromHwnd<RadioBtnPeeker>(hbtn, 
+				sig, TRUE, &err);
+			assert(!err);
+			m_cecPeekers[i]->Init(this, uicStart+i, i);
+		}
 	}
 
 	void SetActive(int uicActive)
@@ -300,6 +359,9 @@ public:
 	{
 		m_uicActive = getCheckedRadioButton(m_hParent, m_uicStart, m_uicEnd);
 		assert(m_uicActive>0);
+
+		assert(wmDataChanged);
+		::PostMessage(m_hParent, wmDataChanged, m_uicStart, m_uicEnd);
 	}
 };
 
@@ -324,12 +386,9 @@ public:
 
 #if defined(LiveUic_IMPL) || (defined CHHI_ALL_IMPL && !defined CHHI_ALL_IMPL_HIDE_LiveUic) // [IMPL]
 
-
 // >>> Include headers required by this lib's implementation
 #include <commdefs.h> // for Uint, Uint64, enum bitwise-OR etc
 // <<< Include headers required by this lib's implementation
-
-
 
 
 #ifndef LiveUic_DEBUG
@@ -343,6 +402,7 @@ namespace liveuic {
 // Place API function Implementation in this namespace.
 
 
+const UINT wmDataChanged = RegisterWindowMessage(sigwmDataChanged);
 
 
 

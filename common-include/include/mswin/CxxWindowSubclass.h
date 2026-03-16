@@ -1,5 +1,5 @@
-#ifndef CHHI__CxxWindowSubclass_h_20250606_20260315_
-#define CHHI__CxxWindowSubclass_h_20250606_20260315_
+#ifndef CHHI__CxxWindowSubclass_h_20250606_20260316_
+#define CHHI__CxxWindowSubclass_h_20250606_20260316_
 
 // From Jimm Chen's chjcxx repo.
 // Modification date at first line as version number.
@@ -62,15 +62,22 @@ public:
 
 	When to C++-delete `peeker` object?
 	
-	- When you call peeker->DetachHwnd(true) explicitly, or when hwnd_toSubclass destroys, 
-	  `delete peeker` is done automatically -- no need to manually delete it.
+	- When hwnd_toSubclass is destroyed by GUI system, `delete peeker` is done automatically,
+	  then, you do NOT need to(and must not further do) `delete peeker`.
+
+	- When you call `peeker->DetachHwnd(true)` explicitly, `delete peeker` is done internally.
+
+	- `delete peeker` is a wrapper for `peeker->DetachHwnd(true)`.
 	
-	- Only when you do peeker->DetachHwnd(false), you should `delete peeker` explicitly.
+	- Only when you do `peeker->DetachHwnd(false)`, you should/futher call `delete peeker` to
+	  destroy the C++ object. This is not recommended, bcz `peeker->DetachHwnd(false)` is 
+	  CxxWindowSubclass's internal action.
 	*/
 
-	static ReCode_et FetchCxxobjFromHwnd_as_partial(HWND hwnd, const TCHAR *sigstr, BOOL is_create,
+	static ReCode_et FetchCxxobjFromHwnd_as_partial(HWND hwnd, const TCHAR *sigstr,
 		CxxWindowSubclass *inplace);
-	// -- Similar to FetchCxxobjFromHwnd(), but user provides the already created object space.
+	// -- Similar to FetchCxxobjFromHwnd(), but user provides the already existing object space.
+	//    (imply is_create=yes)
 	//    This is useful if user creates TChild as part of multiple-inheritance class.
 	//    Example (TChild is CEditValue): 
 	//        class CEditValue : public LiveUic, public CxxWindowSubclass { ... }
@@ -442,11 +449,11 @@ CxxWindowSubclass::FetchCxxobj_precheck(HWND hwnd, const TCHAR *sigstr, BOOL is_
 
 
 CxxWindowSubclass::ReCode_et
-CxxWindowSubclass::FetchCxxobjFromHwnd_as_partial(HWND hwnd, const TCHAR *sigstr, BOOL is_create,
+CxxWindowSubclass::FetchCxxobjFromHwnd_as_partial(HWND hwnd, const TCHAR *sigstr,
 	CxxWindowSubclass *input_partial_cxxobj)
 {
 	void *pOldobj = nullptr;
-	ReCode_et err = FetchCxxobj_precheck(hwnd, sigstr, is_create, &pOldobj);
+	ReCode_et err = FetchCxxobj_precheck(hwnd, sigstr, TRUE, &pOldobj);
 	if(err == E_Existed)
 	{
 		assert(pOldobj==input_partial_cxxobj);
