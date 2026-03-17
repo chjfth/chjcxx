@@ -137,6 +137,19 @@ d:\ws\common-include\autotest\mytest-ci\test_tscalablearray.cpp(408): error C259
 	{
 		DeleteEles(0, m_nCurEle);
 	}
+	
+	bool DeleteMatch(const T& match)
+	{
+		int eles = CurrentEles();
+		for(int i=0; i<eles; i++)
+		{
+			if(mar_Ele[i]==match)
+			{
+				DeleteEle(i);
+			}
+		}
+		return false;
+	}
 
 	void DeleteAllStorage();
 

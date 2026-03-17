@@ -12,6 +12,7 @@
 #include <mswin/WinUser.itc.h>
 #include <mswin/utils_wingui.h>
 #include <mswin/CxxWindowSubclass.h>
+#include <TScalableArray.h>
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -33,6 +34,45 @@ public:
 	virtual void DataToUic() = 0;
 	virtual void DataFromUic() = 0;
 };
+
+
+class DlgboxPeeker : public CxxWindowSubclass
+{
+//	HWND m_hdlg;
+	TScalableArray<LiveUic*> m_saLiveUics;
+
+public:
+//	DlgboxPeeker() { m_hdlg=NULL; }
+
+	static bool AddUic(HWND hUic, LiveUic* plu);
+
+	static bool AddUic(HWND hdlg, int uic, LiveUic* plu) {
+		return AddUic(GetDlgItem(hdlg, uic), plu);
+	}
+	
+	static bool DelUic(HWND hUic, LiveUic* plu);
+
+	static bool DelUic(HWND hdlg, int uic, LiveUic* plu) {
+		return DelUic(GetDlgItem(hdlg, uic), plu);
+	}
+
+	void ResetAllUicContent();
+};
+
+static const TCHAR *sigDlgboxPeeker = _T("liveuic::DlgboxPeeker");
+
+inline DlgboxPeeker* GetDlgboxPeeker(HWND hdlg, BOOL is_create=FALSE, 
+	CxxWindowSubclass::ReCode_et *pErr=nullptr)
+{
+	DlgboxPeeker *peeker = CxxWindowSubclass::FetchCxxobjFromHwnd<DlgboxPeeker>(
+		hdlg, sigDlgboxPeeker, is_create, pErr);
+	return peeker;
+}
+
+
+////////////////////////////////////////////////////////////////////////////
+//              LiveUic classes for various Window controls               //
+////////////////////////////////////////////////////////////////////////////
 
 
 template<typename T> struct Convert;   // type conversion helper
@@ -107,6 +147,8 @@ public:
 			_T("liveuic::CEditValue"), this);
 		assert(!err);
 		// vaDbgTs(_T("hedit = 0x%08X , this=%p"), m_hedit, this);
+
+		DlgboxPeeker::AddUic(hedit, this);
 	}
 
 	void SetValue(T new_val)
@@ -192,6 +234,8 @@ public:
 		auto err = CxxWindowSubclass::FetchCxxobjFromHwnd_as_partial(m_hbutton,
 			_T("liveuic::CCheckbox"), this);
 		assert(!err);
+
+		DlgboxPeeker::AddUic(hbutton, this);
 	}
 
 	void SetState(int new_state)
@@ -272,8 +316,7 @@ class CRadioGroup : public LiveUic
 			LRESULT lret = DefSubclassProc(hwnd, uMsg, wParam, lParam);
 
 			int uic = GetDlgCtrlID(hwnd);
-			vaDbgTs(_T("RadioBtnPeeker: uMsg=%s , hUic=0x%08X , uic=%d"), 
-				ITCSvn(uMsg, itc::BM_xxx), hwnd, uic);
+			//vaDbgTs(_T("RadioBtnPeeker: uMsg=%s , hUic=0x%08X , uic=%d"), ITCSvn(uMsg, itc::BM_xxx), hwnd, uic);
 
 			if( uMsg==BM_CLICK || uMsg==BM_SETCHECK )
 			{
@@ -308,6 +351,7 @@ public:
 		assert(nUic>1);
 		assert(uicStart<=uicDefault && uicDefault<=uicEnd);
 
+		// Check parameter validity
 		for(int i=0; i<nUic; i++)
 		{
 			HWND hbtn = GetDlgItem(hwndParent, uicStart+i);
@@ -343,6 +387,8 @@ public:
 				sig, TRUE, &err);
 			assert(!err);
 			m_cecPeekers[i]->Init(this, uicStart+i, i);
+
+			DlgboxPeeker::AddUic(hbtn, this);
 		}
 	}
 
@@ -419,7 +465,65 @@ namespace liveuic {
 
 const UINT wmDataChanged = RegisterWindowMessage(sigwmDataChanged);
 
+bool DlgboxPeeker::AddUic(HWND hUic, LiveUic* plu) // static
+{
+	assert(IsWindow(hUic));
+	if(!hUic)
+		return false;
 
+	HWND hdlg = GetParent(hUic);
+
+	CxxWindowSubclass::ReCode_et err = CxxWindowSubclass::E_Fail;
+	DlgboxPeeker *peeker = GetDlgboxPeeker(hdlg, TRUE, &err);
+	if(err && err!=E_Existed)
+		return false;
+
+// 	if(m_hdlg)
+// 		assert(m_hdlg == hdlg);
+// 	else
+// 		m_hdlg = hdlg
+
+	auto serr = peeker->m_saLiveUics.AppendTail(plu);
+	assert(!serr);
+	if(serr)
+		return false;
+
+	return true;
+}
+
+bool DlgboxPeeker::DelUic(HWND hUic, LiveUic* plu) // static
+{
+	assert(IsWindow(hUic));
+	if(!hUic)
+		return false;
+
+	HWND hdlg = GetParent(hUic);
+
+	CxxWindowSubclass::ReCode_et err = CxxWindowSubclass::E_Fail;
+	DlgboxPeeker *peeker = GetDlgboxPeeker(hdlg, FALSE, &err);
+	assert(err);
+	if(err)
+		return false;
+
+	auto serr = peeker->m_saLiveUics.DeleteMatch(plu);
+	if(serr)
+		return false; // maybe hUic not found
+	else
+		return true;
+}
+
+
+
+void DlgboxPeeker::ResetAllUicContent()
+{
+// 	if(!m_hdlg)
+// 		return;
+
+	for(int i=0; i<m_saLiveUics.CurrentEles(); i++)
+	{
+		m_saLiveUics[i]->Reset();
+	}
+}
 
 ////////////////////////////////////////////////////////////////////////////
 } // namespace liveuic
