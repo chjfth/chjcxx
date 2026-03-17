@@ -397,13 +397,22 @@ public:
 	{
 		assert(m_uicStart<=uicActive && uicActive<=m_uicEnd);
 		m_uicActive = _MID_(m_uicStart, uicActive, m_uicEnd);
-
 		DataToUic();
+	}
+
+	void SetActiveIndex(int idx)
+	{
+		SetActive(m_uicStart + idx);
 	}
 
 	int GetActive()
 	{
 		return m_uicActive;
+	}
+
+	int GetActiveIndex()
+	{
+		return GetActive() - m_uicStart;
 	}
 
 	virtual void Reset()
