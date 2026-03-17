@@ -1,5 +1,5 @@
-#ifndef __DlgTooltipEasy_h_20250707_20260310_
-#define __DlgTooltipEasy_h_20250707_20260310_
+#ifndef __DlgTooltipEasy_h_20250707_20260317_
+#define __DlgTooltipEasy_h_20250707_20260317_
 
 #include <tchar.h>
 #include <windows.h>
@@ -174,10 +174,10 @@ public:
 	CHottoolSubsi();
 	virtual ~CHottoolSubsi();
 
-	virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+	virtual LRESULT SubWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) cxx11_override
 	{
 		bool MsgDone = false;
-		LRESULT lre = in_WndProc(hwnd, uMsg, wParam, lParam, &MsgDone);
+		LRESULT lre = in_SubWndProc(hwnd, uMsg, wParam, lParam, &MsgDone);
 		
 		if (MsgDone)
 			return lre;
@@ -244,7 +244,7 @@ public:
 
 
 private:
-	LRESULT in_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, bool *pMsgDone);
+	LRESULT in_SubWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, bool *pMsgDone);
 
 	enum { OffScreenPosX = -32001, OffScreenPosY = -32001 };
 
@@ -351,7 +351,7 @@ public:
 
 	ReCode_et DelUic(HWND hwndUic);
 
-	virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual LRESULT SubWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) cxx11_override;
 
 	CHottoolSubsi* FindHottoolByHwnd(HWND hwndUic);
 
@@ -589,7 +589,7 @@ CHottoolSubsi::ReActivateContentTooltip()
 }
 
 LRESULT 
-CHottoolSubsi::in_WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, bool *pMsgDone)
+CHottoolSubsi::in_SubWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam, bool *pMsgDone)
 {
 	assert(m_hwnd==hwnd);
 
@@ -746,7 +746,7 @@ CTooltipMan::AddUic(HWND hwndUic, const GetTextCallbacks_st &gtcb)
 }
 
 LRESULT 
-CTooltipMan::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+CTooltipMan::SubWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	if (uMsg == WM_NOTIFY)
 	{
@@ -853,7 +853,7 @@ CTooltipMan::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	else if (uMsg == WM_KILLFOCUS)
 	{
 		// Seems we cannot see this on a standard dialogbox.
-		vaDBG2(_T("CTooltipMan::WndProc() sees WM_KILLFOCUS"));
+		vaDBG2(_T("CTooltipMan::SubWndProc() sees WM_KILLFOCUS"));
 	}
  	else if (uMsg == s_MSG_GetSubclassCxxObj)
  	{
@@ -1006,7 +1006,7 @@ FAIL_FREE_HMEM:
 class CContentTooltipPeeker : public CxxWindowSubclass
 {
 public:
-	virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+	virtual LRESULT SubWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) cxx11_override
 	{
 		HWND hwndTooltip = hwnd;
 

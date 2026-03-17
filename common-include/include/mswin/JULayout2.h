@@ -1,5 +1,5 @@
-#ifndef __JULayout2_h_20260223_
-#define __JULayout2_h_20260223_
+#ifndef __JULayout2_h_20260223_20260317_
+#define __JULayout2_h_20260223_20260317_
 
 /******************************************************************************
 Original: UILayout.h
@@ -145,7 +145,7 @@ private:
 private:
 //	static LRESULT CALLBACK JulWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 	
-	virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual LRESULT SubWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) cxx11_override;
 
 	static LRESULT CALLBACK PrshtWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -275,7 +275,7 @@ JULayout* JULayout::EnableJULayout(HWND hwndParent,
 	return jul;
 }
 
-LRESULT JULayout::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT JULayout::SubWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	// User overrides this WndProc() to hook into hwnd's message processing.
 
@@ -301,7 +301,7 @@ public:
 		xdiff = ydiff = 0;
 	}
 
-	virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual LRESULT SubWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) cxx11_override;
 
 	static bool PropSheetPrepare(HWND hwndPrsht);
 
@@ -393,7 +393,7 @@ bool JULPrsht::PropSheetPrepare(HWND hwndPrsht)
 	return true;
 }
 
-LRESULT JULPrsht::WndProc(HWND hwndPrsht, UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT JULPrsht::SubWndProc(HWND hwndPrsht, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	if (uMsg == s_WM_JULPrsht_DO_INIT)
 	{

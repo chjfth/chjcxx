@@ -1,5 +1,5 @@
-#ifndef __CHHI__Editbox_EnableKbdAdjustIntnum_h_20250326_20260312_
-#define __CHHI__Editbox_EnableKbdAdjustIntnum_h_20250326_20260312_
+#ifndef __CHHI__Editbox_EnableKbdAdjustIntnum_h_20250326_20260317_
+#define __CHHI__Editbox_EnableKbdAdjustIntnum_h_20250326_20260317_
 
 #include <windows.h>
 
@@ -91,7 +91,7 @@ public:
 	EditboxKAN_err ctor_params(int min_val, int max_val, unsigned int step_val,
 		bool is_wrap_around, unsigned int pad_zeros);
 
-	virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual LRESULT SubWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) cxx11_override;
 
 private:
 	void HideMouse()
@@ -309,12 +309,6 @@ EditboxPeeker::Edit_OnKey(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT flag
 		vaDBG2(_T("Caret pos NOT on valid integer string, do editbox default."));
 		return Relay_yes;
 	}
-// 	else if(!Is_valid_integer(szOldText+startVB, lenVB, want_neg))
-// 	{
-// 		vaDBG2(_T("Caret selection '%.*s' NOT a valid integer string, do nothing."), 
-// 			lenVB, szOldText+startVB);
-// 		return Relay_no; // Relay_no so that user text-selection is preserved.
-// 	}
 
 	if(startSel==endSel_)
 	{
@@ -332,18 +326,30 @@ EditboxPeeker::Edit_OnKey(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT flag
 		{
 			// Case[2.2]
 			as_int_ring = true;
-
-			if(!Is_all_0_9(szOldText+startSel, endSel_-startSel))
-			{
-				vaDBG2(_T("Partial selection '%.*s' contains non 0-9 chars, do nothing."), 
-					endSel_-startSel, szOldText+startSel);
-				return Relay_no;
-			}
-
-			// Tweak VB's meaning to be user's text-selection
-			startVB = startSel; endVB_ = endSel_;
-			lenVB = endVB_-startVB;
 		}
+	}
+
+	if (!as_int_ring)
+	{
+		if( !Is_valid_integer(szOldText+startVB, lenVB, want_neg))
+		{
+			vaDBG2(_T("Around caret '%.*s' NOT a valid integer string, do nothing."),
+				lenVB, szOldText+startVB);
+			return Relay_no; // Relay_no so that user text-selection is preserved.
+		}
+	}
+	else
+	{
+		if( !Is_all_0_9(szOldText+startSel, lenSel) )
+		{
+			vaDBG2(_T("Partial selection '%.*s' contains non 0-9 chars, do nothing."),
+				lenSel, szOldText+startSel);
+			return Relay_no;
+		}
+
+		// Tweak VB's meaning to be user's text-selection
+		startVB = startSel; endVB_ = endSel_;
+		lenVB = endVB_ - startVB;
 	}
 
 	TCHAR szOldHot[TBUFSIZE] = {};
@@ -484,7 +490,7 @@ EditboxPeeker::Edit_OnNCDestroy(HWND hEdit)
 
 // Custom window procedure for the edit control
 LRESULT 
-EditboxPeeker::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+EditboxPeeker::SubWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	HWND hEdit = hwnd;
 	

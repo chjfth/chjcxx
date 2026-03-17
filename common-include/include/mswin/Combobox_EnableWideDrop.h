@@ -85,7 +85,7 @@ public:
 		this->msecTimerStart = 0;
 	}
 
-	virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual LRESULT SubWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) cxx11_override;
 
 private:
 	MsgRelay_et Dlg_OnCommand(HWND hdlg, int id, HWND hwndCtl, UINT codeNotify);
@@ -283,7 +283,7 @@ CbxPeeker::Dlg_OnCommand(HWND hdlg, int id, HWND hwndCtl, UINT codeNotify)
 }
 
 LRESULT  
-CbxPeeker::WndProc(HWND hdlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
+CbxPeeker::SubWndProc(HWND hdlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch(uMsg)
 	{

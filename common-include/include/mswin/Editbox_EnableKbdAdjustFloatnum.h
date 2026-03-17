@@ -1,5 +1,5 @@
-#ifndef __CHHI__Editbox_EnableKbdAdjustFloatnum_h_20260312_
-#define __CHHI__Editbox_EnableKbdAdjustFloatnum_h_20260312_
+#ifndef __CHHI__Editbox_EnableKbdAdjustFloatnum_h_20260317_
+#define __CHHI__Editbox_EnableKbdAdjustFloatnum_h_20260317_
 
 // This file is modified from Editbox_EnableKbdAdjustNumber.h
 
@@ -99,7 +99,7 @@ public:
 	EditboxKAF_err ctor_params(double min_val, double max_val, double step_val, 
 		const TCHAR *fmt, bool is_wrap_around, const TCHAR *szHelpText);
 
-	virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+	virtual LRESULT SubWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) cxx11_override;
 
 	const TCHAR* GetTooltipText();
 
@@ -504,7 +504,7 @@ EditboxPeeker::Edit_OnNCDestroy(HWND hEdit)
 
 // Custom window procedure for the edit control
 LRESULT 
-EditboxPeeker::WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+EditboxPeeker::SubWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	HWND hEdit = hwnd;
 	

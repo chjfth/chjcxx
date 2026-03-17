@@ -1,5 +1,5 @@
-#ifndef CHHI__CxxWindowSubclass_h_20250606_20260316_
-#define CHHI__CxxWindowSubclass_h_20250606_20260316_
+#ifndef CHHI__CxxWindowSubclass_h_20250606_20260317_
+#define CHHI__CxxWindowSubclass_h_20250606_20260317_
 
 // From Jimm Chen's chjcxx repo.
 // Modification date at first line as version number.
@@ -9,7 +9,10 @@
 #include <tchar.h>
 #include <windows.h>
 #include <CommCtrl.h> // DefSubclassProc
+
+#include <CxxVerCheck.h>
 #include <Cxx_delete_this_helper.h>
+
 
 class CxxWindowSubclass : public Cxx_delete_this_base
 {
@@ -42,7 +45,7 @@ public:
 	class FooWndPeeker : public CxxWindowSubclass
 	{
 	protected:
-		virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+		virtual LRESULT SubWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) cxx11_override
 		{
 			// ... do some pre-processing ...
 			
@@ -98,9 +101,9 @@ private:
 		PVOID *ppobj_output);
 
 protected:
-	virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+	virtual LRESULT SubWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
-		// User's TChild overrides this WndProc() to hook into hwnd's message processing.
+		// User's TChild overrides this SubWndProc() to hook into hwnd's message processing.
 
 		return DefSubclassProc(hwnd, uMsg, wParam, lParam);
 	}
@@ -392,7 +395,7 @@ CxxWindowSubclass::StockWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPar
 	Cxx_delete_this_helper dth(this); // due to DetachHwnd() internally may `delete this`
 
 	// Call child-class virtual function
-	LRESULT lre = this->WndProc(hwnd, uMsg, wParam, lParam);
+	LRESULT lre = this->SubWndProc(hwnd, uMsg, wParam, lParam);
 
 	if(uMsg==WM_NCDESTROY)
 	{
