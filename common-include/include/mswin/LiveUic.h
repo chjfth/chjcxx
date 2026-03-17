@@ -1,14 +1,17 @@
-#ifndef __CHHI__LiveUic_h_20260313_
-#define __CHHI__LiveUic_h_20260313_
+#ifndef __CHHI__LiveUic_h_20260313_20260317_
+#define __CHHI__LiveUic_h_20260313_20260317_
 
 
 #include <windows.h>
 #include <windowsx.h>
 #include <assert.h>
+#include <stdarg.h>
+#include <xutility> // for std::move()
 
 #include <_MINMAX_.h>
 #include <EnsureClnup.h>
 #include <vaDbgTs.h>
+#include <sdring.h>
 #include <mswin/WinUser.itc.h>
 #include <mswin/utils_wingui.h>
 #include <mswin/CxxWindowSubclass.h>
@@ -74,6 +77,92 @@ inline DlgboxPeeker* GetDlgboxPeeker(HWND hdlg, BOOL is_create=FALSE,
 ////////////////////////////////////////////////////////////////////////////
 //              LiveUic classes for various Window controls               //
 ////////////////////////////////////////////////////////////////////////////
+
+
+class CEditStr : public LiveUic, public CxxWindowSubclass
+{
+	Sdring m_str, m_default_str;
+	int m_uic;
+	HWND m_hedit;
+
+public:
+	CEditStr(){ m_hedit = NULL; m_uic = 0; }
+
+	void Init(HWND hedit, const TCHAR *default_str)
+	{
+		assert(!m_hedit); // blame on twice Init()
+		assert(IsWindow(hedit));
+
+		m_hedit = hedit;
+		m_uic = GetDlgCtrlID(hedit);
+
+		m_str = m_default_str = default_str;
+
+		DataToUic();
+
+		auto err = CxxWindowSubclass::FetchCxxobjFromHwnd_as_partial(m_hedit,
+			_T("liveuic::CEditStr"), this);
+		assert(!err);
+
+		DlgboxPeeker::AddUic(hedit, this);
+	}
+
+	void vlSetStr(const TCHAR *fmt, va_list args)
+	{
+		int slen = _vsctprintf(fmt, args);
+		Sdring str(slen);
+		_vsntprintf_s(str, slen+1, _TRUNCATE, fmt, args);
+		m_str = std::move(str);
+
+		SetWindowText(m_hedit, m_str);
+	}
+
+	void vaSetStr(const TCHAR *fmt, ...)
+	{
+		va_list args;
+		va_start(args, fmt);
+		vlSetStr(fmt, args);
+		va_end(args);
+	}
+
+	void SetStr(const TCHAR *str)
+	{
+		m_str = str;
+		DataToUic();
+	}
+
+	const TCHAR* GetStr()
+	{
+		return m_str;
+	}
+
+	virtual void Reset() cxx11_override
+	{
+		m_str = m_default_str;
+		DataToUic();
+	}
+
+	virtual void DataToUic() cxx11_override
+	{
+		SetWindowText(m_hedit, m_str);
+	}
+
+	virtual void DataFromUic() cxx11_override
+	{
+		int slen = GetWindowTextLength(m_hedit);
+		assert(slen>=0);
+
+		Sdring str(slen+1);
+		GetWindowText(m_hedit, str, slen+1);
+		str[slen] = '\0';
+
+		m_str = std::move(str);
+
+		assert(wmDataChanged);
+		HWND hdlg = GetParent(m_hedit);
+		::SendMessage(hdlg, wmDataChanged, m_uic, 0);
+	}
+};
 
 
 template<typename T> struct Convert;   // type conversion helper
