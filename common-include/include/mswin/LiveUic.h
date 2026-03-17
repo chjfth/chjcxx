@@ -20,7 +20,7 @@ namespace liveuic {
 ////////////////////////////////////////////////////////////////////////////
 // Place API function declarations in this namespace.
 
-static const TCHAR *sigwmDataChanged = _T("LiveUic-DataChanged"); // pass to RegisterWindowMessage ()
+static const TCHAR *sigwmDataChanged = _T("LiveUic-DataChanged"); // pass to RegisterWindowMessage()
 extern const UINT wmDataChanged;
 
 class LiveUic      // abstract base-class
@@ -38,11 +38,12 @@ public:
 
 class DlgboxPeeker : public CxxWindowSubclass
 {
-//	HWND m_hdlg;
+	// 'Degraded'(=clever) using of CxxWindowSubclass to merely attach this class object
+	// to a Dlgbox HWND.
+
 	TScalableArray<LiveUic*> m_saLiveUics;
 
 public:
-//	DlgboxPeeker() { m_hdlg=NULL; }
 
 	static bool AddUic(HWND hUic, LiveUic* plu);
 
@@ -187,7 +188,7 @@ public:
 	}
 
 protected: // from CxxWindowSubclass
-	virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+	virtual LRESULT SubWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) cxx11_override
 	{
 		LRESULT lret = DefSubclassProc(hwnd, uMsg, wParam, lParam);
 		//vaDbgTs(_T("CEditValue peek: uMsg=%s"), ITCSvn(uMsg, itc::EM_xxx));
@@ -275,7 +276,7 @@ public:
 	}
 
 protected: // from CxxWindowSubclass
-	virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+	virtual LRESULT SubWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) cxx11_override
 	{
 		LRESULT lret = DefSubclassProc(hwnd, uMsg, wParam, lParam);
 		//vaDbgTs(_T("CCheckbox peek: uMsg=%s"), ITCSvn(uMsg, itc::BM_xxx));
@@ -311,7 +312,7 @@ class CRadioGroup : public LiveUic
 		}
 
 	protected:
-		virtual LRESULT WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+		virtual LRESULT SubWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) cxx11_override
 		{
 			LRESULT lret = DefSubclassProc(hwnd, uMsg, wParam, lParam);
 
