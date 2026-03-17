@@ -518,10 +518,20 @@ public:
 	virtual void DataFromUic()
 	{
 		m_uicActive = getCheckedRadioButton(m_hParent, m_uicStart, m_uicEnd);
-		assert(m_uicActive>0);
-
-		assert(wmDataChanged);
-		::SendMessage(m_hParent, wmDataChanged, m_uicActive, 0);
+		if(m_uicActive==0)
+		{
+			// [2026-03-17] Subtle WinGUI gotcha: We can actually get this.
+			// For [Radio1, Radio2, Radio3] group, if Init() sets Radio3 as default,
+			// then, user selects Radio1 and call 
+			//    GetDlgboxPeeker(hdlg)->ResetAllUicContent();
+			// We bump into this. Look like this case can be safely ignored.
+			assert(wmDataChanged);
+		}
+		else
+		{
+			assert(wmDataChanged);
+			::SendMessage(m_hParent, wmDataChanged, m_uicActive, 0);
+		}
 	}
 };
 
