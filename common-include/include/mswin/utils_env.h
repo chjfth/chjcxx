@@ -42,6 +42,16 @@ inline int com_GetRefCount(IUnknown *piu)
 }
 #endif
 
+typedef int int_Minute;
+int_Minute util_GetTimeZoneOffset(void);
+	//!< Query local time zone.
+	/*!< Return time difference(in minutes) of local time to UTC.
+	 Example, for time zone of China(UTC+8), this function returns 480 .
+	 On a system not supporting timezone, it should return 0.
+	 On a system supporting timezone but it fails, it should return -1.
+	*/
+
+
 /*
 ////////////////////////////////////////////////////////////////////////////
  ___                 _                           _        _   _             
@@ -286,8 +296,16 @@ TCHAR *parse_cmdparam_HEXRR(
 }
 
 
+int_Minute util_GetTimeZoneOffset(void)
+{
+	TIME_ZONE_INFORMATION tzi = {0};
+	GetTimeZoneInformation(&tzi);
 
-#endif // utils_env_IMPL
+	return -tzi.Bias;
+}
 
+
+
+#endif // [IMPL]
 
 #endif
