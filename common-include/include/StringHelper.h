@@ -11,12 +11,17 @@ inline bool StringSplitter_TrimSpacechar(int charval)
 	return (charval == ' ') ? true : false;
 }
 
+inline bool StringSplitter_TrimSpaceTab(int charval)
+{
+	return (charval == ' ' || charval == '\t') ? true : false;
+}
+
 inline bool StringSplitter_TrimNone(int)
 {
 	return false;
 }
 
-template<typename TString, 
+template<typename TString, // TString can be char or wchar_t
 	bool IsSplitterChar(int charval) = StringSplitter_IsCrlf,
 	bool IsTrimChar(int charval) = StringSplitter_TrimNone>
 class StringSplitter
@@ -36,7 +41,7 @@ public:
 			m_endpos_ = m_nowpos;
 			while( m_str[m_endpos_] )
 				m_endpos_++;
-		}		
+		}
 	}
 
 	void reset()
