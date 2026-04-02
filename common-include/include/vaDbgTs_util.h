@@ -9,26 +9,29 @@ namespace vaDbgTs_util {
 
 //enum { vaDbgTs_util_nothing = 0 };
 
-template<int Lv>
-class DbgEnterExit
+class DbgEnterExit3
 {
 	// Print debug message on function Enter/Exit.
-	// For Visual C++, write this line as function's first statement:
+	// For Visual C++, just write this line as function's first statement:
 	//
-	//	vaDbgTs_util::DbgEnterExit(_T(__FUNCTION__));
+	//	vaDbgTs_util::DbgEnterExit3 objDbgEnterExit(_T(__FUNCTION__));
+	// 
+	// or use macro:
+	//
+	//	vaDBG3_DbgEnterExit;
 	//
 	// and you get the Enter/Exit message.
 
 public:
-	DbgEnterExit(const TCHAR *funcname)
+	DbgEnterExit3(const TCHAR *funcname)
 	{
 		m_funcname = funcname;
-		vaDbgTsl(_T("%s() >>>"), m_funcname);
+		vaDBG3(_T("%s() >>>"), m_funcname);
 	}
 
-	~DbgEnterExit()
+	~DbgEnterExit3()
 	{
-		vaDbgTs(_T("%s() <<<"), m_funcname);
+		vaDBG3(_T("%s() <<<"), m_funcname);
 	}
 
 private:
@@ -36,12 +39,11 @@ private:
 };
 
 
-
-
-
 //////////////////////////////////////////////////////////////////////////
 
 } // namespace
+
+#define vaDBG3_DbgEnterExit vaDbgTs_util::DbgEnterExit3 objDbgEnterExit(_T(__FUNCTION__));
 
 #endif
 
