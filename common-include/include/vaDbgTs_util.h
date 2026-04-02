@@ -1,5 +1,5 @@
-#ifndef __vaDbgTs_util_h_20251117_
-#define __vaDbgTs_util_h_20251117_
+#ifndef __vaDbgTs_util_h_20251117_20260402_
+#define __vaDbgTs_util_h_20251117_20260402_
 
 #include <vaDbgTs.h>
 
@@ -7,8 +7,9 @@ namespace vaDbgTs_util {
 
 //////////////////////////////////////////////////////////////////////////
 
-enum { vaDbgTs_util_nothing = 0 };
+//enum { vaDbgTs_util_nothing = 0 };
 
+template<int Lv>
 class DbgEnterExit
 {
 	// Print debug message on function Enter/Exit.
@@ -19,71 +20,22 @@ class DbgEnterExit
 	// and you get the Enter/Exit message.
 
 public:
-	DbgEnterExit(const TCHAR *msg)
+	DbgEnterExit(const TCHAR *funcname)
 	{
-		m_msg = msg;
-		vaDbgTs(_T("%s() >>>"), m_msg);
+		m_funcname = funcname;
+		vaDbgTsl(_T("%s() >>>"), m_funcname);
 	}
 
 	~DbgEnterExit()
 	{
-		vaDbgTs(_T("%s() <<<"), m_msg);
+		vaDbgTs(_T("%s() <<<"), m_funcname);
 	}
 
 private:
-	const TCHAR *m_msg;
+	const TCHAR *m_funcname;
 };
 
 
-inline BOOL vaSetWindowText(HWND hwnd, const TCHAR *fmt, ...)
-{
-	va_list args;
-	va_start(args, fmt);
-
-	TCHAR buf[1000] = {0};
-	_vsntprintf_s(buf, _TRUNCATE, fmt, args);
-
-	BOOL succ = SetWindowText(hwnd, buf);
-
-	va_end(args);
-	return succ;
-}
-
-
-inline BOOL vaSetDlgItemText(HWND hdlg, int ctrlid, const TCHAR *fmt, ...)
-{
-	va_list args;
-	va_start(args, fmt);
-
-	TCHAR buf[1000] = {0};
-	_vsntprintf_s(buf, _TRUNCATE, fmt, args);
-
-	BOOL succ = SetDlgItemText(hdlg, ctrlid, buf);
-
-	va_end(args);
-	return succ;
-}
-
-
-inline int vaMsgBox(HWND hwnd, UINT utype, const TCHAR *szTitle, const TCHAR *szfmt, ...)
-{
-	va_list args;
-	va_start(args, szfmt);
-
-	TCHAR msgtext[4000] = {};
-	_vsntprintf_s(msgtext, _TRUNCATE, szfmt, args);
-
-	if(!hwnd)
-		hwnd = GetActiveWindow();
-
-	if(!szTitle)
-		szTitle = _T("Info"); // maybe show current exe name?
-
-	int ret = MessageBox(hwnd, msgtext, szTitle, utype);
-
-	va_end(args);
-	return ret;
-}
 
 
 

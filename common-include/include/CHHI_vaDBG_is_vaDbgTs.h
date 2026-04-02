@@ -1,5 +1,5 @@
-#ifndef __CHHI_vaDBG_is_vaDbgTs_h_20251208_
-#define __CHHI_vaDBG_is_vaDbgTs_h_20251208_
+#ifndef __CHHI_vaDBG_is_vaDbgTs_h_20251208_20260402_
+#define __CHHI_vaDBG_is_vaDbgTs_h_20251208_20260402_
 
 // If your CHHI.cpp wants to see debug-messages from various CHHI library modules
 // (for XXX module, XXX_DEBUG defined as a premise), you need to:
@@ -19,14 +19,11 @@
 
 #define vaDbg_ALL vaDbg_VERBOSE
 
+#ifndef vaDBG_MAX_LEVEL
+#define vaDBG_MAX_LEVEL 3 // =vaDbg_VERBOSE
+#endif
 
 #ifdef CXX11_OR_NEWER
-
-template<typename... Args>
-void vaDBG(Args&&... args) // forwards all arguments
-{
-	vaDbgTsl(vaDbg_ALL, std::forward<Args>(args)...);
-}
 
 template<typename... Args>
 void vaDBG0(Args&&... args) // forwards all arguments
@@ -37,19 +34,33 @@ void vaDBG0(Args&&... args) // forwards all arguments
 template<typename... Args>
 void vaDBG1(Args&&... args) // forwards all arguments
 {
+#if vaDBG_MAX_LEVEL >= 1
 	vaDbgTsl(vaDbg_WARN, std::forward<Args>(args)...);
+#endif
 }
 
 template<typename... Args>
 void vaDBG2(Args&&... args) // forwards all arguments
 {
+#if vaDBG_MAX_LEVEL >= 2
 	vaDbgTsl(vaDbg_INFO, std::forward<Args>(args)...);
+#endif
 }
 
 template<typename... Args>
 void vaDBG3(Args&&... args) // forwards all arguments
 {
+#if vaDBG_MAX_LEVEL >= 3
 	vaDbgTsl(vaDbg_VERBOSE, std::forward<Args>(args)...);
+#endif
+}
+
+template<typename... Args>
+void vaDBG(Args&&... args) // forwards all arguments
+{
+#if vaDBG_MAX_LEVEL >= 3
+	vaDbgTsl(vaDbg_ALL, std::forward<Args>(args)...);
+#endif
 }
 
 
@@ -58,14 +69,6 @@ void vaDBG3(Args&&... args) // forwards all arguments
 
 #include <stdarg.h>
 #include <ps_TCHAR.h>
-
-void vaDBG(const TCHAR *fmt, ...)
-{
-	va_list args;
-	va_start(args, fmt);
-	vlDbgTsl(vaDbg_ALL, fmt, args);
-	va_end(args);
-};
 
 void vaDBG0(const TCHAR *fmt, ...)
 {
@@ -77,27 +80,44 @@ void vaDBG0(const TCHAR *fmt, ...)
 
 void vaDBG1(const TCHAR *fmt, ...)
 {
+#if vaDBG_MAX_LEVEL >= 1
 	va_list args;
 	va_start(args, fmt);
 	vlDbgTsl(vaDbg_WARN, fmt, args);
 	va_end(args);
+#endif
 };
 
 void vaDBG2(const TCHAR *fmt, ...)
 {
+#if vaDBG_MAX_LEVEL >= 2
 	va_list args;
 	va_start(args, fmt);
 	vlDbgTsl(vaDbg_INFO, fmt, args);
 	va_end(args);
+#endif
 };
 
 void vaDBG3(const TCHAR *fmt, ...)
 {
+#if vaDBG_MAX_LEVEL >= 3
 	va_list args;
 	va_start(args, fmt);
 	vlDbgTsl(vaDbg_VERBOSE, fmt, args);
 	va_end(args);
+#endif
 };
+
+void vaDBG(const TCHAR *fmt, ...)
+{
+#if vaDBG_MAX_LEVEL >= 3
+	va_list args;
+	va_start(args, fmt);
+	vlDbgTsl(vaDbg_ALL, fmt, args);
+	va_end(args);
+#endif
+};
+
 
 #endif // CXX11_OR_NEWER/else
 
