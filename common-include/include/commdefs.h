@@ -122,6 +122,17 @@ typedef int YorN;
 #define __rb__ }
 
 
+template<typename T>
+inline T int_pow(T base, Uint power)
+{
+	T ret = 1;
+	for(Uint i=0; i<power; i++)
+		ret *= base;
+
+	return ret;
+}
+
+
 #ifdef __cplusplus
 // Using this simple template to define an overloaded bitwise-or operator, so that
 // bitwise-or of two or more enum values will result in the same enum type.

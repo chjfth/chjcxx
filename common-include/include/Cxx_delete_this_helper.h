@@ -1,6 +1,8 @@
 #ifndef __Cxx_delete_this_helper_h_20260310_20260315_
 #define __Cxx_delete_this_helper_h_20260310_20260315_
 
+// Used in: CxxWindowSubclass
+
 class Cxx_delete_this_base
 {
 public:

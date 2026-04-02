@@ -53,7 +53,7 @@ private:
 
 public:
 	TScalableArray() {
-		_init0(); 
+		_ctor(); 
 	}
 	
 	TScalableArray(int MaxEle, int IncSize=DEF_INCSIZE, int DecSize=DEF_DECSIZE,
@@ -189,7 +189,7 @@ d:\ws\common-include\autotest\mytest-ci\test_tscalablearray.cpp(408): error C259
 	}
 
 protected:
-	void _init0();
+	void _ctor();
 		// reset the non-class-object members
 
 	void ShiftDownEles(int pos, int n);
@@ -232,7 +232,7 @@ bool IsTsaErr(T err)
 
 template<typename T>
 void 
-TScalableArray<T>::_init0()
+TScalableArray<T>::_ctor()
 {
 	mar_Ele = NULL;
 	m_nCurEle = m_nCurStorage = 0;
@@ -248,12 +248,12 @@ TScalableArray<T>::_init0()
 template<typename T>
 TScalableArray<T>::TScalableArray(int MaxEle, int IncSize, int DecSize, int DecThres)
 {
-	_init0();
+	_ctor();
 
 	ReCode_t err = SetTrait(MaxEle, IncSize, DecSize, DecThres);
 	if(err) {
 		assert(err<=E_InvalidParam);
-		_init0();
+		_ctor();
 	}
 }
 
