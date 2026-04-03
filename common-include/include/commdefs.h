@@ -171,12 +171,12 @@ inline enum_type operator & (enum_type a, enum_type b)
 
 // [2025-05-14]
 
-#define SETTLE_OUTPUT_PTR(Datatype, outptr, default_val) \
-	Datatype outptr##_to_localvar; \
+#define SETTLE_OUTPUT_PTR(OutputDataType, outptr, default_val) \
+	OutputDataType outptr##_to_localvar; \
 	if(!outptr) \
 		outptr = &outptr##_to_localvar; \
 	*outptr = default_val; 
-
+// -- Example: For `void foo(int* pi){...}`,  OutputDataType is `int`, outptr is `pi`.
 
 
 

@@ -100,6 +100,16 @@ public:
 		return m_buf;
 	}
 
+	bool operator==(const TCHAR *instr)
+	{
+		return str_match( this->c_str(), instr );
+	}
+
+	bool operator==(const sdring& ins)
+	{
+		return str_match( this->c_str(), ins.c_str() );
+	}
+
 private:
 	void _ctor(const T_CHAR *instr)
 	{
@@ -139,11 +149,29 @@ private:
 
 	static int str_cpy(T_CHAR dst[], const T_CHAR src[])
 	{
-		int i = 0;
+		int i=0;
 		for(; src[i]; i++)
 			dst[i] = src[i];
 		dst[i] = '\0'; // append NUL char
 		return i; // i is string len
+	}
+
+	static bool str_match(const T_CHAR *s1, const T_CHAR *s2)
+	{
+		bool s1null = !s1 || !s1[0];
+		bool s2null = !s2 || !s2[0];
+		
+		if(s1null && s2null)
+			return true;
+		if(s1null || s2null)
+			return false;
+
+		for(int i=0; s1[i] || s2[i]; i++)
+		{
+			if(s1[i]!=s2[i])
+				return false;
+		}
+		return true;
 	}
 
 private:

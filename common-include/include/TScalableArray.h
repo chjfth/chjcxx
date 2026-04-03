@@ -153,11 +153,16 @@ d:\ws\common-include\autotest\mytest-ci\test_tscalablearray.cpp(408): error C259
 
 	void DeleteAllStorage();
 
-	void ZeroEles(int pos, int n)
+	void ZeroEles(int pos=0, int n=-1)
 	{
+		if(n<0)
+			n = CurrentEles();
+		
 		pos = _MID_(0, pos, CurrentEles());
 		n = _MID_(0, n, CurrentEles()-pos);
-		if(n>0) memset(mar_Ele+pos, 0, n*sizeof(T));
+		
+		if(n>0) 
+			memset(mar_Ele+pos, 0, n*sizeof(T));
 	}
 
 	ReCode_t SetEleQuan(int nNewEle, bool isZeroContent=false);
