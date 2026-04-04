@@ -1,5 +1,5 @@
-#ifndef __msvc_extras_h_20251113_
-#define __msvc_extras_h_20251113_
+#ifndef __msvc_extras_h_20251113_20260404_
+#define __msvc_extras_h_20251113_20260404_
 
 // This file brings those useful MSVC header stuff onto Linux.
 
@@ -15,6 +15,14 @@ char (*
 
 #define ARRAYSIZE(arr)  ( sizeof(*RtlpNumberOf(arr)) )
 
+/////////////////////////////////////////////////////////////////////////////
+// Override some MSVC stramphibian CRT function names. (wrapped in !_UNOCODE)
+/////////////////////////////////////////////////////////////////////////////
+#if !defined(_UNICODE)
+
+#define _tprintf     printf
+
+#endif // !defined(_UNICODE)
 
 
 #endif

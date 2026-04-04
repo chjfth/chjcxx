@@ -1,5 +1,5 @@
-#ifndef __CHHI__hashdict_h_20260326_
-#define __CHHI__hashdict_h_20260326_
+#ifndef __CHHI__hashdict_h_20260404_
+#define __CHHI__hashdict_h_20260404_
 
 #include <ps_TCHAR.h>
 #include <commdefs.h>
@@ -62,7 +62,7 @@ template<typename TU> // TU is user's datatype(should support delete), key is al
 class hashdict
 {
 public:
-	hashdict(const TCHAR *dbgsig) { _ctor(dbgsig); }
+	hashdict(const TCHAR *dbgsig=nullptr) { _ctor(dbgsig); }
 
 	virtual ~hashdict() { _dtor(); }
 
@@ -90,6 +90,8 @@ public:
 	}
 
 	TU* get(const TCHAR *key);
+
+	int keycount() { return m_slots_active; }
 
 	bool del(const TCHAR *key, TU** ppValue=nullptr); 
 	// -- ppValue==NULL: Value-object is C++ deleted internally.
@@ -228,14 +230,15 @@ private:
 	int m_enuming_sessions;	// if >0, someone is enumerating this dict, that locks the dict.
 
 	Sdring m_dbgsig;
+	const TCHAR* dbgsig() { return m_dbgsig ? m_dbgsig.c_str() : _T(""); }
 };
 
 
 template<typename TU> 
-void hashdict<TU>::_ctor(const TCHAR *dbgsig)
+void hashdict<TU>::_ctor(const TCHAR *in_dbgsig)
 {
-	m_dbgsig = dbgsig;
-	vaDBG3(_T("hashdict('%s') ctor. this@<%p>."), m_dbgsig.c_str(), this);
+	m_dbgsig = in_dbgsig;
+	vaDBG3(_T("{%s}hashdict() ctor. this@<%p>."), dbgsig(), this);
 
 	m_dict_width = 3;
 	m_slots_capacity = int_pow(2, m_dict_width);
@@ -257,8 +260,8 @@ void hashdict<TU>::_ctor(const TCHAR *dbgsig)
 template<typename TU> 
 void hashdict<TU>::_dtor()
 {
-	vaDBG3(_T("hashdict('%s') dtor. this@<%p>. Remnant keys: %d"), 
-		m_dbgsig.c_str(), this,	m_slots_active);
+	vaDBG3(_T("{%s}hashdict() dtor. this@<%p>. Remnant keys: %d"), 
+		dbgsig(), this,	m_slots_active);
 	
 	m_dbgsig = nullptr;
 
@@ -286,7 +289,8 @@ TU* hashdict<TU>::SetKey(const TCHAR *in_key, TU&& in_value, bool is_overwrite)
 {
 	if(m_enuming_sessions>0)
 	{
-		vaDBG1(_T("hashdict::SetKey() NOT allowed when m_enuming_sessions(%d)>0"), m_enuming_sessions);
+		vaDBG1(_T("{%s}hashdict::SetKey() NOT allowed when m_enuming_sessions(%d)>0"), dbgsig(),
+			m_enuming_sessions);
 		return nullptr;
 	}
 
@@ -299,7 +303,7 @@ TU* hashdict<TU>::SetKey(const TCHAR *in_key, TU&& in_value, bool is_overwrite)
 	bool succ = CheckToIncreaseSlots(); // resize(increase) slots if needed.
 	if(!succ)
 	{
-		vaDBG0(_T("hashdict::SetKey() failed due to no-mem!"));
+		vaDBG0(_T("{%s}hashdict::SetKey() failed due to no-mem!"), dbgsig());
 		return nullptr;
 	}
 
@@ -308,7 +312,7 @@ TU* hashdict<TU>::SetKey(const TCHAR *in_key, TU&& in_value, bool is_overwrite)
 
 	assert((int)in_hashtail < m_slots_capacity);
 
-	vaDBG3(_T("hashdict::SetKey(\"%s\", @<%p>, overwrite=%s); keyhash=0x%llX(0x%0*X)"), 
+	vaDBG3(_T("{%s}hashdict::SetKey(\"%s\", @<%p>, overwrite=%s); keyhash=0x%llX(0x%0*X)"), dbgsig(),
 		in_key,     // %s
 		&in_value,  // @%p
 		is_overwrite ? _T("yes") : _T("no"), 
@@ -331,14 +335,15 @@ TU* hashdict<TU>::SetKey(const TCHAR *in_key, TU&& in_value, bool is_overwrite)
 
 		if(slot.state==SlotEmpty)
 		{
-			vaDBG3(_T("  probe#%d, land at idxSlot=%d, SlotEmpty."), probes, idxSlot);
+			vaDBG3(_T("{%s}  probe#%d, land at idxSlot=%d, SlotEmpty."), dbgsig(),
+				probes, idxSlot);
 
 			// Determine: Use this slot, or, reuse the first-seen dummy slot.
 
 			slot_st *pUseSlot = &msa_slots[idxSlot];
 			if(idxFirstDummy!=DummyNotSeen)
 			{
-				vaDBG3(_T("  [optimize1] Use first-seen dummy idxSlot=%d"), idxFirstDummy);
+				vaDBG3(_T("{%s}  [optimize1] Use first-seen dummy idxSlot=%d"), dbgsig(), idxFirstDummy);
 				pUseSlot = &msa_slots[idxFirstDummy];
 				m_slots_dummy--;
 			}
@@ -355,14 +360,14 @@ TU* hashdict<TU>::SetKey(const TCHAR *in_key, TU&& in_value, bool is_overwrite)
 			pUseSlot->idx_trove = idxTrove;
 			m_slots_active++;
 
-			vaDBG3(_T("hashdict::SetKey() new key added: idxSlot=%d, idxTrove=%d, value@<%p>"), 
+			vaDBG3(_T("{%s}hashdict::SetKey() new key added: idxSlot=%d, idxTrove=%d, value@<%p>"), dbgsig(),
 				pUseSlot-msa_slots.GetElePtr(0), idxTrove, trovent.pvalue);
 
 			return trovent.pvalue;
 		}
 		else if(slot.state==SlotInUse)
 		{
-			vaDBG3(_T("  probe#%d, land at idxSlot=%d, SlotInUse."), probes, idxSlot);
+			vaDBG3(_T("{%s}  probe#%d, land at idxSlot=%d, SlotInUse."), dbgsig(), probes, idxSlot);
 
 			trove_entry_st *pte = IsKeyFoundAtSlot(idxSlot, in_hashfull, in_key);
 			if(pte) // found key-match
@@ -371,7 +376,7 @@ TU* hashdict<TU>::SetKey(const TCHAR *in_key, TU&& in_value, bool is_overwrite)
 				{
 					TU *pnewvalue = new TU( std::move(in_value) );
 
-					vaDBG3(_T("hashdict::SetKey() overwrite old key: idxSlot=%d, idxTrove=%d ; value@<%p> => value@<%p>"), 
+					vaDBG3(_T("{%s}hashdict::SetKey() overwrite old key: idxSlot=%d, idxTrove=%d ; value@<%p> => value@<%p>"), dbgsig(),
 						idxSlot, pte-msa_trove.GetElePtr(0),  pte->pvalue, pnewvalue);
 
 					delete pte->pvalue;
@@ -381,7 +386,7 @@ TU* hashdict<TU>::SetKey(const TCHAR *in_key, TU&& in_value, bool is_overwrite)
 				}
 				else
 				{
-					vaDBG3(_T("hashdict::SetKey() found and keep old key: idxSlot=%d, idxTrove=%d, value=@<%p>"),
+					vaDBG3(_T("{%s}hashdict::SetKey() found and keep old key: idxSlot=%d, idxTrove=%d, value=@<%p>"), dbgsig(),
 						idxSlot, pte-msa_trove.GetElePtr(0), pte->pvalue);
 
 					return pte->pvalue;
@@ -394,7 +399,7 @@ TU* hashdict<TU>::SetKey(const TCHAR *in_key, TU&& in_value, bool is_overwrite)
 		}
 		else if(slot.state==SlotDummy)
 		{
-			vaDBG3(_T("  probe#%d, land at idxSlot=%d, SlotDummy."), probes, idxSlot);
+			vaDBG3(_T("{%s}  probe#%d, land at idxSlot=%d, SlotDummy."), dbgsig(), probes, idxSlot);
 
 			if(idxFirstDummy==DummyNotSeen)
 				idxFirstDummy = idxSlot;
@@ -407,7 +412,7 @@ TU* hashdict<TU>::SetKey(const TCHAR *in_key, TU&& in_value, bool is_overwrite)
 		if(probes>(64/PerturbShift+2) && idxSlot==firstSlot)
 		{
 			// idxSlot wraps around, can SlotDummy flooding cause this?
-			vaDBG3(_T("BUG! hashdict::SetKey() see all slots exhausted. Devguy forgot to extend msa_slots."), firstSlot);
+			vaDBG3(_T("{%s}BUG! hashdict::SetKey() see all slots exhausted. Devguy forgot to extend msa_slots."), dbgsig(), firstSlot);
 			assert(0);
 			return nullptr;
 		}
@@ -442,7 +447,7 @@ TU* hashdict<TU>::get(const TCHAR *in_key)
 
 		if(slot.state==SlotEmpty)
 		{
-			vaDBG3(_T("hashdict:get(\"%s\") NOT found after %d probes"), in_key, probes+1);
+			vaDBG3(_T("{%s}hashdict:get(\"%s\") NOT found after %d probes"), dbgsig(), in_key, probes+1);
 			return nullptr;
 		}
 		else if(slot.state==SlotInUse)
@@ -450,7 +455,7 @@ TU* hashdict<TU>::get(const TCHAR *in_key)
 			trove_entry_st *pte = IsKeyFoundAtSlot(idxSlot, in_hashfull, in_key);
 			if(pte)
 			{
-				vaDBG3(_T("hashdict:get(\"%s\") found after %d probes"), in_key, probes+1);
+				vaDBG3(_T("{%s}hashdict:get(\"%s\") found after %d probes"), dbgsig(), in_key, probes+1);
 				return pte->pvalue;
 			}
 			else; // fall down
@@ -468,7 +473,7 @@ TU* hashdict<TU>::get(const TCHAR *in_key)
 		if(probes>(64/PerturbShift+2) && idxSlot==firstSlot)
 		{
 			// idxSlot wraps around, can SlotDummy flooding cause this?
-			vaDBG2(_T("Weird! hashdict::get() see idxSlot(%d) wraps around."), firstSlot);
+			vaDBG2(_T("{%s}Weird! hashdict::get() see idxSlot(%d) wraps around."), dbgsig(), firstSlot);
 			return nullptr; // not found
 		}
 	}
@@ -486,7 +491,7 @@ bool hashdict<TU>::del(const TCHAR *in_key, TU** ppValue)
 	int dummypct = m_trove_dummies*100/m_trove_dirties;
 	if(dummypct >= PctDummyToCompact)
 	{
-		vaDBG3(_T("  Triggering trove compact, bcz dummy pct reaches %d%% (%d/%d=%d)"),
+		vaDBG3(_T("{%s}  Triggering trove compact, bcz dummy pct reaches %d%% (%d/%d=%d)"), dbgsig(), 
 			PctDummyToCompact,  m_trove_dummies, m_trove_dirties, dummypct);
 		CompactTrove();
 	}
@@ -499,7 +504,7 @@ bool hashdict<TU>::in_del(const TCHAR *in_key, TU** ppValue)
 {
 	if(m_enuming_sessions>0)
 	{
-		vaDBG1(_T("hashdict::in_del() NOT allowed when m_enuming_sessions(%d)>0"), m_enuming_sessions);
+		vaDBG1(_T("{%s}hashdict::in_del() NOT allowed when m_enuming_sessions(%d)>0"), dbgsig(), m_enuming_sessions);
 		return false;
 	}
 
@@ -511,7 +516,7 @@ bool hashdict<TU>::in_del(const TCHAR *in_key, TU** ppValue)
 
 	assert((int)in_hashtail < m_slots_capacity);
 
-	vaDBG3(_T("hashdict::in_del(\"%s\"); keyhash=0x%llX(0x%0*X)"), 
+	vaDBG3(_T("{%s}hashdict::in_del(\"%s\"); keyhash=0x%llX(0x%0*X)"), dbgsig(), 
 		in_key,     // %s
 		in_hashfull, (m_dict_width+1)/4, in_hashtail  // keyhash
 		);
@@ -528,7 +533,7 @@ bool hashdict<TU>::in_del(const TCHAR *in_key, TU** ppValue)
 
 		if(slot.state==SlotEmpty)
 		{
-			vaDBG3(_T("  key not found after %d probes."), probes+1);
+			vaDBG3(_T("{%s}  key not found after %d probes."), dbgsig(), probes+1);
 			return false; // key not found
 		}
 		else if(slot.state==SlotInUse)
@@ -536,7 +541,7 @@ bool hashdict<TU>::in_del(const TCHAR *in_key, TU** ppValue)
 			trove_entry_st *pte = IsKeyFoundAtSlot(idxSlot, in_hashfull, in_key);
 			if(pte)
 			{
-				vaDBG3(_T("  key found after %d probes, idxSlot=%d, idxTrove=%d, value@<%p>"), 
+				vaDBG3(_T("{%s}  key found after %d probes, idxSlot=%d, idxTrove=%d, value@<%p>"), dbgsig(), 
 					probes+1, idxSlot, pte-msa_trove.GetElePtr(0), pte->pvalue);
 				
 				if(is_retvalue)
@@ -598,7 +603,7 @@ int hashdict<TU>::RequestTroveEntry() // request a new trove entry to use
 
 	if(m_trove_dirties>0 && msa_trove[m_trove_dirties-1].state==TroventDummy)
 	{	// a bit optimize, re-used tail dummy entry
-		vaDBG3(_T("  [optimize2] Reuse tail dummy trovent at idxTrove=%d"), m_trove_dirties-1);
+		vaDBG3(_T("{%s}  [optimize2] Reuse tail dummy trovent at idxTrove=%d"), dbgsig(), m_trove_dirties-1);
 		m_trove_dirties--;
 		m_trove_dummies--;
 	}
@@ -666,7 +671,7 @@ bool hashdict<TU>::RebuildSlotsFromTrove(int new_dict_width)
 
 	if(new_dict_width > m_dict_width)
 	{
-		vaDBG3(_T("  hashdict: Increasing slots from %d(%d bits) to %d(%d bits)"), 
+		vaDBG3(_T("{%s}  hashdict: Increasing slots from %d(%d bits) to %d(%d bits)"), dbgsig(), 
 			int_pow(2, m_dict_width), m_dict_width,  int_pow(2, m_dict_width+1), m_dict_width+1);
 
 		m_dict_width = new_dict_width;
@@ -676,7 +681,7 @@ bool hashdict<TU>::RebuildSlotsFromTrove(int new_dict_width)
 		auto err = msa_slots.SetEleQuan(m_slots_capacity);
 		if(err)
 		{
-			vaDBG0(_T("  [ERROR] msa_slots.SetEleQuan(%d) fail, no mem!"), m_slots_capacity);
+			vaDBG0(_T("{%s}  [ERROR] msa_slots.SetEleQuan(%d) fail, no mem!"), dbgsig(), m_slots_capacity);
 			return false;
 		}
 	}
@@ -722,7 +727,7 @@ bool hashdict<TU>::RebuildSlotsFromTrove(int new_dict_width)
 template<typename TU> 
 bool hashdict<TU>::CompactTrove()
 {
-	vaDBG3(_T("hashdict::CompactTrove() capacity/dirty/dummy was %d/%d/%d, will compat to dirties=%d"), 
+	vaDBG3(_T("{%s}hashdict::CompactTrove() capacity/dirty/dummy was %d/%d/%d, will compat to dirties=%d"), dbgsig(), 
 		m_trove_capacity, m_trove_dirties, m_trove_dummies, m_trove_dirties-m_trove_dummies);
 
 	// Purge all dummy trove-entries, then rebuild slots from the fresh trove.

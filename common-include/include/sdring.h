@@ -100,6 +100,10 @@ public:
 		return m_buf;
 	}
 
+	operator bool() const {
+		return (m_buf && m_buf[0]) ? true : false;
+	}
+
 	bool operator==(const TCHAR *instr)
 	{
 		return str_match( this->c_str(), instr );
