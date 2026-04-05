@@ -7,7 +7,9 @@ namespace vaDbgTs_util {
 
 //////////////////////////////////////////////////////////////////////////
 
-//enum { vaDbgTs_util_nothing = 0 };
+#				ifndef hashdict_DEBUG
+#				include <CHHI_vaDBG_hide.h> // Suppress/invalidate vaDBG macro, from now on
+#				endif
 
 class DbgEnterExit3
 {
@@ -38,6 +40,9 @@ private:
 	const TCHAR *m_funcname;
 };
 
+#				ifndef hashdict_DEBUG
+#				include <CHHI_vaDBG_show.h> // Now restore vaDBG macros
+#				endif
 
 //////////////////////////////////////////////////////////////////////////
 

@@ -14,17 +14,10 @@ namespace chjds {
 ////////////////////////////////////////////////////////////////////////////
 // Place API function declarations in this namespace.
 
-Uint64 cal_hashfull(const TCHAR *str)
-{
-	if(!(str && str[0]))
-		return 0;
+#				ifndef hashdict_DEBUG
+#				include <CHHI_vaDBG_hide.h> // Suppress/invalidate vaDBG macros, from now on
+#				endif
 
-	Uint64 hash = 0;
-	for(int i=0; str[i]; i++)
-		hash = hash * 31 + str[i];
-
-	return hash;
-}
 
 struct LCGen // Linear Congruential Generator
 {
@@ -195,6 +188,18 @@ private:
 
 	int slots_non_empty() { return m_slots_active+m_slots_dummy; }
 	bool CheckToIncreaseSlots();
+
+	Uint64 cal_hashfull(const TCHAR *str)
+	{
+		if(!(str && str[0]))
+			return 0;
+
+		Uint64 hash = 0;
+		for(int i=0; str[i]; i++)
+			hash = hash * 31 + str[i];
+
+		return hash;
+	}
 
 public: // debugging purpose
 	void SetDbgParams(int resize_pct) {
@@ -825,6 +830,11 @@ void hashdict<TU>::enumer::reset()
 }
 
 
+#				ifndef hashdict_DEBUG
+#				include <CHHI_vaDBG_show.h> // Now restore vaDBG macros
+#				endif
+
+
 ////////////////////////////////////////////////////////////////////////////
 } // namespace chjds
 ////////////////////////////////////////////////////////////////////////////
@@ -867,10 +877,10 @@ namespace chjds {
 // Place API function Implementation in this namespace.
 
 
-int getversion()
-{
-	return 1;
-}
+// int getversion()
+// {
+// 	return 1;
+// }
 
 
 ////////////////////////////////////////////////////////////////////////////

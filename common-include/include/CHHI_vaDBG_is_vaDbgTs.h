@@ -70,7 +70,7 @@ void vaDBG(Args&&... args) // forwards all arguments
 #include <stdarg.h>
 #include <ps_TCHAR.h>
 
-void vaDBG0(const TCHAR *fmt, ...)
+inline void vaDBG0(const TCHAR *fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
@@ -78,7 +78,7 @@ void vaDBG0(const TCHAR *fmt, ...)
 	va_end(args);
 };
 
-void vaDBG1(const TCHAR *fmt, ...)
+inline void vaDBG1(const TCHAR *fmt, ...)
 {
 #if vaDBG_MAX_LEVEL >= 1
 	va_list args;
@@ -88,7 +88,7 @@ void vaDBG1(const TCHAR *fmt, ...)
 #endif
 };
 
-void vaDBG2(const TCHAR *fmt, ...)
+inline void vaDBG2(const TCHAR *fmt, ...)
 {
 #if vaDBG_MAX_LEVEL >= 2
 	va_list args;
@@ -98,7 +98,7 @@ void vaDBG2(const TCHAR *fmt, ...)
 #endif
 };
 
-void vaDBG3(const TCHAR *fmt, ...)
+inline void vaDBG3(const TCHAR *fmt, ...)
 {
 #if vaDBG_MAX_LEVEL >= 3
 	va_list args;
@@ -108,7 +108,7 @@ void vaDBG3(const TCHAR *fmt, ...)
 #endif
 };
 
-void vaDBG(const TCHAR *fmt, ...)
+inline void vaDBG(const TCHAR *fmt, ...)
 {
 #if vaDBG_MAX_LEVEL >= 3
 	va_list args;
