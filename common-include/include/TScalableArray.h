@@ -1,5 +1,5 @@
-#ifndef __TScalableArray_h
-#define __TScalableArray_h
+#ifndef __TScalableArray_h_2005xxxx_20260405_
+#define __TScalableArray_h_2005xxxx_20260405_
 
 #include <assert.h>
 #include <stdio.h>
@@ -9,18 +9,16 @@
 #include <commdefs.h>
 #include <_MINMAX_.h>
 
-//#ifndef OLDC_NO_NAMESPACE_SUPPORT
-//using namespace NsNeCode;
-//#endif
-
 // [2005-10-08] The name TScalableArray starts with a 'T', which indicates it's a template class.
 
 // [2008-08-26] NOTE: This template class is not aware of class ctor, dtor or copy-ctor.
 // If using this template class to hold objects who needs special destruction process,
 // users have to do it themselves!
+// -- [2026-04-05] TScalableArray deals with only plain-old-data(POD).
+//    Although you can use Complex C++ class as T, you should always consider memory block
+//    allocated by TScalableArray containing *un-initialized* data.
 //
 // [2018-04-15] Important interface rationale fix. Unit-tests added with Google Test framework.
-
 
 
 template<typename T>

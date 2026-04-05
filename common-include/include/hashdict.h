@@ -1,6 +1,7 @@
-#ifndef __CHHI__hashdict_h_20260404_
-#define __CHHI__hashdict_h_20260404_
+#ifndef __CHHI__hashdict_h_20260404_20260405_
+#define __CHHI__hashdict_h_20260404_20260405_
 
+#include <new>
 #include <ps_TCHAR.h>
 #include <commdefs.h>
 #include <sdring.h>
@@ -79,16 +80,16 @@ public:
 	TU* setdefault(const TCHAR *key, const TU& defvalue)
 	{
 		TU copy = defvalue;
-		return SetKey(key, std::move(copy), true);
+		return SetKey(key, std::move(copy), false);
 	}
 
 	TU* get(const TCHAR *key);
 
 	int keycount() { return m_slots_active; }
 
-	bool del(const TCHAR *key, TU** ppValue=nullptr); 
-	// -- ppValue==NULL: Value-object is C++ deleted internally.
-	// -- ppValue!=NULL: Value-object's pointer is returned to caller.
+	bool del(const TCHAR *key);
+
+	bool del(const TCHAR *key, TU& recv_old_value);
 
 	class enumer // dict-key enumerator
 	{
@@ -156,16 +157,16 @@ private:
 		TroventState_et state;
 		Uint64 hashfull;
 		Sdring key;
-		TU* pvalue;
+		TU uvalue;
 
 		trove_entry_st& operator=(trove_entry_st&& old) // move-assign
 		{
 			if (this != &old) 
 			{
-				this->state = old.state;
+				this->state    = old.state;
 				this->hashfull = old.hashfull;
-				this->key = std::move(old.key);
-				this->pvalue = old.pvalue;
+				this->key      = std::move(old.key);
+				this->uvalue   = std::move(old.uvalue);
 			}
 			return *this;
 		}
@@ -178,16 +179,16 @@ private:
 	void _dtor();
 
 	int RequestTroveEntry(); // Return idx of the "new" trove, may cause trove compact
-	// int TroveCapacity() { return msa_trove.CurrentEles(); } // use m_trove_capacity instead
 
 	trove_entry_st* IsKeyFoundAtSlot(int idxSlot, Uint64 in_keyhash, const TCHAR *in_key);
 
 	TU* SetKey(const TCHAR *key, TU&& value, bool is_overwrite);
 
-	bool in_del(const TCHAR *key, TU** ppValue); 
+	bool in_del(const TCHAR *key, bool is_recv_old, TU& recv_old_value);
 
 	int slots_non_empty() { return m_slots_active+m_slots_dummy; }
 	bool CheckToIncreaseSlots();
+	void CheckToCompactTrove();
 
 	Uint64 cal_hashfull(const TCHAR *str)
 	{
@@ -282,10 +283,10 @@ void hashdict<TU>::_dtor()
 		assert(trovent.state==TroventInUse);
 
 		vaDBG3(_T("  [idxTrove#%d]Freeing key \"%s\", value@<%p>"), 
-			i, trovent.key.c_str(), trovent.pvalue);
+			i, trovent.key.c_str(), &trovent.uvalue);
 
 		trovent.key = nullptr;
-		delete trovent.pvalue;
+		trovent.uvalue.~TU();
 	}
 }
 
@@ -359,16 +360,16 @@ TU* hashdict<TU>::SetKey(const TCHAR *in_key, TU&& in_value, bool is_overwrite)
 			trove_entry_st &trovent = msa_trove[idxTrove];
 			trovent.hashfull = in_hashfull;
 			trovent.key = in_key;
-			trovent.pvalue = new TU( std::move(in_value) );
+			new(&trovent.uvalue) TU( std::move(in_value) ); // placement new() for the in-dict uvalue
 
 			pUseSlot->state = SlotInUse;
 			pUseSlot->idx_trove = idxTrove;
 			m_slots_active++;
 
 			vaDBG3(_T("{%s}hashdict::SetKey() new key added: idxSlot=%d, idxTrove=%d, value@<%p>"), dbgsig(),
-				pUseSlot-msa_slots.GetElePtr(0), idxTrove, trovent.pvalue);
+				pUseSlot-msa_slots.GetElePtr(0), idxTrove, &trovent.uvalue);
 
-			return trovent.pvalue;
+			return &trovent.uvalue;
 		}
 		else if(slot.state==SlotInUse)
 		{
@@ -377,24 +378,25 @@ TU* hashdict<TU>::SetKey(const TCHAR *in_key, TU&& in_value, bool is_overwrite)
 			trove_entry_st *pte = IsKeyFoundAtSlot(idxSlot, in_hashfull, in_key);
 			if(pte) // found key-match
 			{
+				assert(pte == &msa_trove[ msa_slots[idxSlot].idx_trove ]);
+				trove_entry_st &trovent = *pte;
+
 				if(is_overwrite)
 				{
-					TU *pnewvalue = new TU( std::move(in_value) );
+					vaDBG3(_T("{%s}hashdict::SetKey() overwrite old value: idxSlot=%d, idxTrove=%d ; value@<%p>"), dbgsig(),
+						idxSlot, pte-msa_trove.GetElePtr(0), &trovent.uvalue);
 
-					vaDBG3(_T("{%s}hashdict::SetKey() overwrite old key: idxSlot=%d, idxTrove=%d ; value@<%p> => value@<%p>"), dbgsig(),
-						idxSlot, pte-msa_trove.GetElePtr(0),  pte->pvalue, pnewvalue);
+					trovent.uvalue.~TU(); // call dtor on old value
+					new(&trovent.uvalue) TU( std::move(in_value) ); // re-construct new value in-place
 
-					delete pte->pvalue;
-					pte->pvalue = pnewvalue;
-
-					return pnewvalue;
+					return &trovent.uvalue;
 				}
 				else
 				{
-					vaDBG3(_T("{%s}hashdict::SetKey() found and keep old key: idxSlot=%d, idxTrove=%d, value=@<%p>"), dbgsig(),
-						idxSlot, pte-msa_trove.GetElePtr(0), pte->pvalue);
+					vaDBG3(_T("{%s}hashdict::SetKey() found and keep old value: idxSlot=%d, idxTrove=%d, value=@<%p>"), dbgsig(),
+						idxSlot, pte-msa_trove.GetElePtr(0), &trovent.uvalue);
 
-					return pte->pvalue;
+					return &trovent.uvalue;
 				}
 			}
 			else // not key-match yet 
@@ -452,7 +454,8 @@ TU* hashdict<TU>::get(const TCHAR *in_key)
 
 		if(slot.state==SlotEmpty)
 		{
-			vaDBG3(_T("{%s}hashdict:get(\"%s\") NOT found after %d probes"), dbgsig(), in_key, probes+1);
+			vaDBG3(_T("{%s}hashdict:get(\"%s\") NOT found after %d probes"), dbgsig(), 
+				in_key, probes+1);
 			return nullptr;
 		}
 		else if(slot.state==SlotInUse)
@@ -460,8 +463,9 @@ TU* hashdict<TU>::get(const TCHAR *in_key)
 			trove_entry_st *pte = IsKeyFoundAtSlot(idxSlot, in_hashfull, in_key);
 			if(pte)
 			{
-				vaDBG3(_T("{%s}hashdict:get(\"%s\") found after %d probes"), dbgsig(), in_key, probes+1);
-				return pte->pvalue;
+				vaDBG3(_T("{%s}hashdict:get(\"%s\") found after %d probes, value@<%p>"), dbgsig(), 
+					in_key, probes+1, &pte->uvalue);
+				return &pte->uvalue;
 			}
 			else; // fall down
 			
@@ -484,15 +488,10 @@ TU* hashdict<TU>::get(const TCHAR *in_key)
 	}
 }
 
+
 template<typename TU> 
-bool hashdict<TU>::del(const TCHAR *in_key, TU** ppValue)
+void hashdict<TU>::CheckToCompactTrove()
 {
-	vaDBG3_DbgEnterExit;
-
-	bool succ = in_del(in_key, ppValue);
-	if(!succ)
-		return false;
-
 	int dummypct = m_trove_dummies*100/m_trove_dirties;
 	if(dummypct >= PctDummyToCompact)
 	{
@@ -500,21 +499,45 @@ bool hashdict<TU>::del(const TCHAR *in_key, TU** ppValue)
 			PctDummyToCompact,  m_trove_dummies, m_trove_dirties, dummypct);
 		CompactTrove();
 	}
+}
 
+template<typename TU> 
+bool hashdict<TU>::del(const TCHAR *in_key)
+{
+	vaDBG3_DbgEnterExit;
+
+	TU tempobj;
+	bool succ = in_del(in_key, false, tempobj);
+	if(!succ)
+		return false;
+
+	CheckToCompactTrove();
 	return true;
 }
 
 template<typename TU> 
-bool hashdict<TU>::in_del(const TCHAR *in_key, TU** ppValue)
+bool hashdict<TU>::del(const TCHAR *in_key, TU& recv_old_value)
 {
+	vaDBG3_DbgEnterExit;
+
+	bool succ = in_del(in_key, true, recv_old_value);
+	if(!succ)
+		return false;
+
+	CheckToCompactTrove();
+	return true;
+}
+
+template<typename TU> 
+bool hashdict<TU>::in_del(const TCHAR *in_key, bool is_recv_old, TU& recv_old_value)
+{
+	// Return: If in_key is found and deleted.
+
 	if(m_enuming_sessions>0)
 	{
 		vaDBG1(_T("{%s}hashdict::in_del() NOT allowed when m_enuming_sessions(%d)>0"), dbgsig(), m_enuming_sessions);
 		return false;
 	}
-
-	bool is_retvalue = ppValue ? true : false;
-	SETTLE_OUTPUT_PTR(TU*, ppValue, nullptr)
 
 	Uint64 in_hashfull = cal_hashfull(in_key);
 	Uint32 in_hashtail = (Uint32)in_hashfull & m_hashmask;
@@ -546,19 +569,22 @@ bool hashdict<TU>::in_del(const TCHAR *in_key, TU** ppValue)
 			trove_entry_st *pte = IsKeyFoundAtSlot(idxSlot, in_hashfull, in_key);
 			if(pte)
 			{
-				vaDBG3(_T("{%s}  key found after %d probes, idxSlot=%d, idxTrove=%d, value@<%p>"), dbgsig(), 
-					probes+1, idxSlot, pte-msa_trove.GetElePtr(0), pte->pvalue);
-				
-				if(is_retvalue)
-					*ppValue = pte->pvalue;
-				else
-					delete pte->pvalue;
+				assert(pte == &msa_trove[ msa_slots[idxSlot].idx_trove ]);
+				trove_entry_st &trovent = *pte;
 
-				pte->pvalue = nullptr;
-				pte->key = nullptr;
-				// pte->hashfull = 0; // just leave it as is
+				vaDBG3(_T("{%s}  key found after %d probes, idxSlot=%d, idxTrove=%d, value@<%p>"), dbgsig(), 
+					probes+1, idxSlot, pte-msa_trove.GetElePtr(0), &trovent.uvalue);
 				
-				pte->state = TroventDummy;
+				if(is_recv_old)
+				{
+					recv_old_value = std::move(trovent.uvalue);
+				}
+				trovent.uvalue.~TU();
+
+				trovent.state = TroventDummy;
+				trovent.hashfull = InvalidHash64;
+				trovent.key = nullptr;
+				
 				m_trove_dummies++;
 
 				slot.state = SlotDummy;
@@ -638,10 +664,11 @@ int hashdict<TU>::RequestTroveEntry() // request a new trove entry to use
 		trovend.hashfull = InvalidHash64; // debug purpose
 	}
 
-	msa_trove[m_trove_dirties].state = TroventInUse;
+	const int idx_new_trovent = m_trove_dirties++;
+	msa_trove[idx_new_trovent].state = TroventInUse;
+//	new TU(&msa_trove[idx_new_trovent].uvalue);  // do it outside
 
-	m_trove_dirties++;
-	return m_trove_dirties - 1;
+	return idx_new_trovent;
 }
 
 template<typename TU> 
@@ -764,7 +791,7 @@ bool hashdict<TU>::CompactTrove()
 			msa_trove[idst] = std::move(msa_trove[isrc]);
 			
 			msa_trove[isrc].state = TroventEmpty;
-			msa_trove[isrc].pvalue = nullptr;
+			msa_trove[isrc].uvalue.~TU();
 			
 			idst++, isrc++;
 		}
@@ -795,7 +822,7 @@ const TCHAR* hashdict<TU>::enumer::next(TU **ppValue)
 		hashdict::trove_entry_st &trovent = m_dict.msa_trove[m_next_trovent];
 		if(trovent.state == TroventInUse)
 		{
-			*ppValue = trovent.pvalue;
+			*ppValue = &trovent.uvalue;
 
 			m_next_trovent++;
 

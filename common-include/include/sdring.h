@@ -26,11 +26,35 @@ public:
 		_ctor(instr);
 	}
 
-	sdring(const sdring& ins) {
+	sdring(const sdring& ins)            // copy-ctor
+	{
 		_ctor(ins.get());
 	}
+	
+	sdring& operator=(const TCHAR *instr)
+	{
+		delete m_buf;
+		_ctor(instr);
+		return *this;
+	}
 
-	sdring(sdring&& old) // move-ctor
+	sdring& operator=(const sdring& ins) // copy-assign
+	{
+		delete m_buf;
+		_ctor(ins);
+		return *this;
+	}
+
+	void _steal_from_old(sdring& old)
+	{
+		this->m_buf = old.m_buf;
+		this->m_nchars = old.m_nchars;
+
+		old.m_buf = nullptr;
+		old.m_nchars = 0;
+	}
+
+	sdring(sdring&& old)            // move-ctor
 	{
 		_steal_from_old(old);
 	}
@@ -68,20 +92,6 @@ public:
 			return 0;
 		else
 			return str_len(m_buf);
-	}
-
-	sdring& operator=(const TCHAR *instr)
-	{
-		delete m_buf;
-		_ctor(instr);
-		return *this;
-	}
-
-	sdring& operator=(const sdring& ins)
-	{
-		delete m_buf;
-		_ctor(ins);
-		return *this;
 	}
 
 	T_CHAR& operator[](int pos) {
@@ -132,15 +142,6 @@ private:
 			m_buf = new T_CHAR[bufSize_(m_nchars)];
 			str_cpy(m_buf, instr);
 		}
-	}
-
-	void _steal_from_old(sdring& old)
-	{
-		this->m_buf = old.m_buf;
-		this->m_nchars = old.m_nchars;
-
-		old.m_buf = nullptr;
-		old.m_nchars = 0;
 	}
 
 	static int str_len(const T_CHAR s[])
