@@ -14,9 +14,13 @@
 // [2008-08-26] NOTE: This template class is not aware of class ctor, dtor or copy-ctor.
 // If using this template class to hold objects who needs special destruction process,
 // users have to do it themselves!
+//
 // -- [2026-04-05] TScalableArray deals with only plain-old-data(POD).
 //    Although you can use Complex C++ class as T, you should always consider memory block
 //    allocated by TScalableArray containing *un-initialized* data.
+//    So, remember to call ctor after you get new memblock and call dtor before you discard it.
+//    .
+//    This has been applied on chjds::hashdict template class successfully.
 //
 // [2018-04-15] Important interface rationale fix. Unit-tests added with Google Test framework.
 

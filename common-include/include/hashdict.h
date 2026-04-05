@@ -285,7 +285,7 @@ void hashdict<TU>::_dtor()
 		vaDBG3(_T("  [idxTrove#%d]Freeing key \"%s\", value@<%p>"), 
 			i, trovent.key.c_str(), &trovent.uvalue);
 
-		trovent.key = nullptr;
+		trovent.key.~sdring();
 		trovent.uvalue.~TU();
 	}
 }
@@ -359,7 +359,7 @@ TU* hashdict<TU>::SetKey(const TCHAR *in_key, TU&& in_value, bool is_overwrite)
 
 			trove_entry_st &trovent = msa_trove[idxTrove];
 			trovent.hashfull = in_hashfull;
-			trovent.key = in_key;
+			new(&trovent.key) Sdring(in_key);
 			new(&trovent.uvalue) TU( std::move(in_value) ); // placement new() for the in-dict uvalue
 
 			pUseSlot->state = SlotInUse;
