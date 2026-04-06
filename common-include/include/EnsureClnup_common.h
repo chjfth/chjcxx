@@ -1,7 +1,7 @@
 #ifndef __EnsureClnup_common_h_
 #define __EnsureClnup_common_h_
 
-// [2025-03-05] This file is almost deprectated.
+// [2025-03-05] This file is almost deprecated.
 
 #include <stdio.h>
 #include <stdlib.h>

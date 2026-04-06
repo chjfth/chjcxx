@@ -1,7 +1,10 @@
-#ifndef __sdring_h_20251225_
-#define __sdring_h_20251225_
+#ifndef __sdring_h_
+#define __sdring_h_
+#define __sdring_h_created_ 20251225_
+#define __sdring_h_updated_ 20260406_
 
-//#include <ps_TCHAR.h>
+
+// Hint: Extra helper: makeTstring.h
 
 template<typename T_CHAR>
 class sdring
@@ -16,10 +19,7 @@ public:
 		m_buf = nullptr;
 
 		if(nchars>0)
-		{
-			m_buf = new T_CHAR[bufSize_(nchars)];
-			m_buf[0] = '\0';
-		}
+			setbufsize(nchars);
 	}
 
 	sdring(const T_CHAR* instr)	{
@@ -31,7 +31,7 @@ public:
 		_ctor(ins.get());
 	}
 	
-	sdring& operator=(const TCHAR *instr)
+	sdring& operator=(const T_CHAR *instr)
 	{
 		delete m_buf;
 		_ctor(instr);
@@ -80,6 +80,52 @@ public:
 	}
 
 	T_CHAR* getbuf() {
+		return m_buf;
+	}
+
+	const T_CHAR* takeover(T_CHAR *buf, int nchars)
+	{
+		// [2026-04-06] Used by makeTstring.h
+
+		if(m_buf)
+			delete m_buf;
+
+		m_buf = buf;
+		if(nchars>=0)
+			m_nchars = nchars;
+		else
+			m_nchars = str_len(m_buf);
+
+		return m_buf;
+	}
+
+	T_CHAR* setbufsize(int nchars) // to-test
+	{
+		if(nchars<=0)
+			nchars = 0;
+
+		T_CHAR *newbuf = new T_CHAR[bufSize_(nchars)];
+		newbuf[0] = newbuf[nchars] = '\0';
+
+		if(m_buf)
+		{
+			// copy old string to newbuf
+			int nchars_to_copy = m_nchars<=nchars ? m_nchars : nchars;
+			for(int i=0; i<nchars_to_copy; i++)
+				newbuf[i] = m_buf[i];
+			
+			newbuf[nchars_to_copy] = '\0';
+
+			delete m_buf;
+			m_buf = newbuf;
+			m_nchars = nchars_to_copy;
+		}
+		else
+		{
+			m_buf = newbuf;
+			m_nchars = nchars;
+		}
+
 		return m_buf;
 	}
 

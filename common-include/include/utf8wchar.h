@@ -1,5 +1,7 @@
-#ifndef CHHI__utf8wchar_h_20260113_
-#define CHHI__utf8wchar_h_20260113_
+#ifndef __CHHI__utf8wchar_h_
+#define __CHHI__utf8wchar_h_
+#define __CHHI__utf8wchar_h_created_ 20260113
+#define __CHHI__utf8wchar_h_updated_ 20260406
 
 // Code from:
 // D:\gitw\bookcode-mswin\__chjcxx\gadgetlib\libsrc\charenccvt-utf8.cpp
