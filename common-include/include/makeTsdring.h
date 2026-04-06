@@ -66,7 +66,7 @@ sdring<wchar_t> makeWsdring(const TCHAR *instr, int codepage=0);
 #include "linux/makeTsdring.CHHI.h"
 #endif
 
-#include <xutility> // for std::move()
+#include <utility> // for std::move()
 
 //
 // sdring<TCHAR> from char* (Note: the pair of makeTsdring() code seems to be C++ code consistent, can be templatized?)
