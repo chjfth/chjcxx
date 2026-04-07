@@ -33,14 +33,14 @@ public:
 	
 	sdring& operator=(const T_CHAR *instr)
 	{
-		delete m_buf;
+		delete[] m_buf;
 		_ctor(instr);
 		return *this;
 	}
 
 	sdring& operator=(const sdring& ins) // copy-assign
 	{
-		delete m_buf;
+		delete[] m_buf;
 		_ctor(ins);
 		return *this;
 	}
@@ -62,7 +62,7 @@ public:
 	sdring& operator=(sdring&& old) // move-assign
 	{
 		if (this != &old) {
-			delete this->m_buf;
+			delete[] this->m_buf;
 			_steal_from_old(old);
 		}
 		return *this;
@@ -70,7 +70,7 @@ public:
 
 	~sdring() 
 	{
-		delete m_buf;
+		delete[] m_buf;
 		m_buf = nullptr;
 		m_nchars = 0;
 	}
@@ -115,7 +115,7 @@ public:
 		// [2026-04-06] Used by makeTstring.h
 
 		if(m_buf)
-			delete m_buf;
+			delete[] m_buf;
 
 		m_buf = buf;
 		if(nchars>=0)
@@ -143,7 +143,7 @@ public:
 			
 			newbuf[nchars_to_copy] = '\0';
 
-			delete m_buf;
+			delete[] m_buf;
 			m_buf = newbuf;
 			m_nchars = nchars_to_copy;
 		}
