@@ -74,40 +74,20 @@ public:
 		m_buf = nullptr;
 		m_nchars = 0;
 	}
-//
-	const T_CHAR*& get() const { 
-		//vaDbgTs(_T("const T_CHAR*& get()"));
+
+	const T_CHAR* getptr() const {
 		return m_buf;
 	}
 
-	const T_CHAR*  getptr() const {
-		//vaDbgTs(_T("const T_CHAR* getptr()"));
-		return m_buf;
-	}
-//
-	T_CHAR*& getbuf() {
-		//vaDbgTs(_T("T_CHAR*& getbuf()"));
-		return m_buf;
+	T_CHAR* const& getbuf() const {
+		// Note: returns a reference(not T_CHAR*'s value)
+		// For function prototype, put a `const` exactly before `&` is vital.
+
+		return m_buf; 
 	}
 
-	T_CHAR*  getbufptr() {
-		//vaDbgTs(_T("T_CHAR* getbufptr()"));
-		return m_buf;
-	}
-//
-
-// 	operator T_CHAR* () { // Don't use this.
-// 		return m_buf;
-// 	}
-	operator T_CHAR*&() {
-		return m_buf;
-	}
-
-// 	operator const T_CHAR* () const { // Don't use this.
-// 		return m_buf;
-// 	}
-	operator const T_CHAR*&() const {
-		return m_buf;
+	operator T_CHAR* const& () const { 
+		return getbuf();
 	}
 
 	const T_CHAR* takeover(T_CHAR *buf, int nchars)
