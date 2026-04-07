@@ -10,7 +10,6 @@ template<typename T_CHAR>
 class sdring
 {
 public:
-
 	static int bufSize_(int nchars){ return nchars+1; }
 
 	sdring(int nchars=0)
@@ -28,7 +27,7 @@ public:
 
 	sdring(const sdring& ins)            // copy-ctor
 	{
-		_ctor(ins.get());
+		_ctor(ins.getptr());
 	}
 	
 	sdring& operator=(const T_CHAR *instr)
@@ -159,7 +158,7 @@ public:
 		return (m_buf && m_buf[0]) ? true : false;
 	}
 
-	bool operator==(const TCHAR *instr)
+	bool operator==(const T_CHAR *instr)
 	{
 		return str_match( this->c_str(), instr );
 	}
@@ -243,7 +242,12 @@ private:
 };
 
 
-typedef sdring<TCHAR> Sdring;
+#if defined(UNICODE) || defined(_UNICODE)
+typedef sdring<wchar_t> Sdring;
+#else
+typedef sdring<char> Sdring;
+#endif
+
 
 
 #endif
