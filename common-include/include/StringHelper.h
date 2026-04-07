@@ -1,6 +1,8 @@
 #ifndef __StringHelper_h_20250426_
 #define __StringHelper_h_20250426_
 
+//#include <vaDbgTs.h>
+
 inline bool StringSplitter_IsCrlf(int charval)
 {
 	return (charval == '\r' || charval == '\n') ? true : false;
@@ -21,9 +23,11 @@ inline bool StringSplitter_TrimNone(int)
 	return false;
 }
 
-template<typename TString, // TString can be char or wchar_t
+template<
+	typename TString, // can be char* or wchar_t*, or any type that supports operator[] 
 	bool IsSplitterChar(int charval) = StringSplitter_IsCrlf,
-	bool IsTrimChar(int charval) = StringSplitter_TrimNone>
+	bool IsTrimChar(int charval) = StringSplitter_TrimNone
+	>
 class StringSplitter
 {
 public:
@@ -31,6 +35,7 @@ public:
 		: m_str(s), m_startpos(startpos)
 	{
 		m_nowpos = m_startpos;
+		//vaDbgTs(_T("StringSplitter.ctor(), &s=<%p>"), &s);
 
 		if(scanlen>=0)
 		{

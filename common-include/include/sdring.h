@@ -1,7 +1,7 @@
 #ifndef __sdring_h_
 #define __sdring_h_
 #define __sdring_h_created_ 20251225_
-#define __sdring_h_updated_ 20260406_
+#define __sdring_h_updated_ 20260407_
 
 
 // Hint: Extra helper: makeTstring.h
@@ -74,12 +74,39 @@ public:
 		m_buf = nullptr;
 		m_nchars = 0;
 	}
-
-	const T_CHAR* get() const { 
+//
+	const T_CHAR*& get() const { 
+		//vaDbgTs(_T("const T_CHAR*& get()"));
 		return m_buf;
 	}
 
-	T_CHAR* getbuf() {
+	const T_CHAR*  getptr() const {
+		//vaDbgTs(_T("const T_CHAR* getptr()"));
+		return m_buf;
+	}
+//
+	T_CHAR*& getbuf() {
+		//vaDbgTs(_T("T_CHAR*& getbuf()"));
+		return m_buf;
+	}
+
+	T_CHAR*  getbufptr() {
+		//vaDbgTs(_T("T_CHAR* getbufptr()"));
+		return m_buf;
+	}
+//
+
+// 	operator T_CHAR* () { // Don't use this.
+// 		return m_buf;
+// 	}
+	operator T_CHAR*&() {
+		return m_buf;
+	}
+
+// 	operator const T_CHAR* () const { // Don't use this.
+// 		return m_buf;
+// 	}
+	operator const T_CHAR*&() const {
 		return m_buf;
 	}
 
@@ -148,14 +175,6 @@ public:
 		return m_buf[pos];
 	}
 
-	operator T_CHAR*() {
-		return m_buf;
-	}
-
-	operator const T_CHAR*() const {
-		return m_buf;
-	}
-
 	operator bool() const {
 		return (m_buf && m_buf[0]) ? true : false;
 	}
@@ -190,6 +209,7 @@ private:
 		}
 	}
 
+public:
 	static int str_len(const T_CHAR s[])
 	{
 		int slen = 0;
@@ -205,6 +225,18 @@ private:
 			dst[i] = src[i];
 		dst[i] = '\0'; // append NUL char
 		return i; // i is string len
+	}
+
+	static int str_ncpy(T_CHAR dst[], const T_CHAR src[], int maxlen)
+	{
+		// dst[] buffer should be maxlen+1
+		if(maxlen<0)
+			maxlen = 0;
+		int i=0;
+		for(; src[i] && i<maxlen; i++)
+			dst[i] = src[i];
+		dst[i] = '\0';
+		return i;
 	}
 
 	static bool str_match(const T_CHAR *s1, const T_CHAR *s2)
