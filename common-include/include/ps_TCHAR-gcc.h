@@ -41,9 +41,9 @@
 #endif
 
 
-//#ifndef _tmain
-//# define _tmain main
-//#endif
+#ifndef _tmain
+# define _tmain main
+#endif
 
 
 #endif 

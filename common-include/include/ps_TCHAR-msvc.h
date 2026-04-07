@@ -4,7 +4,7 @@
   // NOTE: If you're writing platform-independent code, you should #include <ps_TCHAR.h> instead.
 
   #ifndef _MSC_VER
-  	[[This file must be included Visual C++ compiler, but you are using a different compiler.]]
+  #error This file must be included by Visual C++ compiler, but you are using a different compiler.
   #endif
 
 #ifndef _INC_TCHAR // <tchar.h> defines it. If <tchar.h> has been included, no need to have the code here.

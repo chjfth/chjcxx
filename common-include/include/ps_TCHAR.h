@@ -19,7 +19,7 @@ Characteristics of this ps_TCHAR.h file:
 	1. For source files who use(#include) it, ps_TCHAR.h appears to be 
  compiler independent and target-platform-independent. It achieves this by
  checking compiler-vendor macros(_MSC_VER, __GNUC__ etc) and target-OS macros 
- (_WIN32 inside _MSC_VER, __linux__ inside __GNUC__ etc).
+ (_WIN32 inside _MSC_VER, __unix__/__linux__ inside __GNUC__ etc).
 
 	2. This header will try to introduce no pollution to its user, which means:
  although a ps_TCHAR.h itself is platform-specific, the ps_TCHAR.h should not 
@@ -36,7 +36,7 @@ Characteristics of this ps_TCHAR.h file:
 	#define _PC     char *
 	</pre>
 	Of course, ``#include <windows.h>`` will introduce further mass pollution.
-	The user of ps_TCHAR.h must not be force to receive those pollution!
+	The user of ps_TCHAR.h must not be forced to receive those pollution!
 	There may be a misunderstanding that goes: Since the user knows his code
  is to be compiled into a Windows EXE file(using Visual C++), he should be 
  ready to define his symbols(#defines, typedefs, functions) carefully 
@@ -54,7 +54,7 @@ Characteristics of this ps_TCHAR.h file:
  pollution.
 
 	3. Although ps_TCHAR.h is not dependent on platform-specific headers(called
- system headers as well), it should coexist with them. For the implementation
+ system headers as well), it should *coexist* with them. For the implementation
  source file of a [ (platform independent) API which needs ps_TCHAR.h to have 
  TCHAR type defined ], this is required, because the implementation file will
  have to include ps_TCHAR.h as well as system's headers to accomplish the
