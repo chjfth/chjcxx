@@ -1,7 +1,7 @@
 #ifndef __sdring_h_
 #define __sdring_h_
 #define __sdring_h_created_ 20251225_
-#define __sdring_h_updated_ 20260407_
+#define __sdring_h_updated_ 20260408_
 
 
 // Hint: Extra helper: makeTstring.h
@@ -74,18 +74,25 @@ public:
 		m_nchars = 0;
 	}
 
-	const T_CHAR* getptr() const {
+	const T_CHAR* c_str() const {
 		return m_buf;
 	}
 
-	T_CHAR* const& getbuf() const {
+	T_CHAR* getptr() {
+		return m_buf;
+	}
+//  operator T_CHAR* () {
+//		// I don't use this in favor of `operator T_CHAR* & ()`.
+//		// Enable both will cause ambiguity in many user cases.
+//		return getptr();
+//  }
+
+	T_CHAR* & getbuf() {
 		// Note: returns a reference(not T_CHAR*'s value)
 		// For function prototype, put a `const` exactly before `&` is vital.
-
 		return m_buf; 
 	}
-
-	operator T_CHAR* const& () const { 
+	operator T_CHAR* & () { 
 		return getbuf();
 	}
 
@@ -132,10 +139,6 @@ public:
 			m_nchars = nchars;
 		}
 
-		return m_buf;
-	}
-
-	T_CHAR* c_str() {
 		return m_buf;
 	}
 
