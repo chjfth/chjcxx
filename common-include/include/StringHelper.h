@@ -1,6 +1,10 @@
 #ifndef __StringHelper_h_20250426_
 #define __StringHelper_h_20250426_
+#define __StringHelper_h_updated_ 20260409
 
+#include <assert.h>
+#include <CxxVerCheck.h>
+#include <commdefs.h>
 //#include <vaDbgTs.h>
 
 inline bool StringSplitter_IsCrlf(int charval)
@@ -28,6 +32,9 @@ template<
 	bool IsSplitterChar(int charval) = StringSplitter_IsCrlf,
 	bool IsTrimChar(int charval) = StringSplitter_TrimNone
 	>
+	// Difference of splitter-char and trim-char: If trim-char appears inside a substring,
+	// for example, a space-char inside " United States ", it will not be trimmed. 
+	// So the produced substring is "United States".
 class StringSplitter
 {
 public:
@@ -44,66 +51,52 @@ public:
 		else 
 		{	// m_endpos determined by NUL char
 			m_endpos_ = m_nowpos;
-			while( m_str[m_endpos_] )
+			while( m_str[m_endpos_] != '\0' )
 				m_endpos_++;
 		}
+
+		SkipSpiltterTrimChars();
 	}
 
 	void reset()
 	{
 		m_nowpos = m_startpos;
+		SkipSpiltterTrimChars();
 	}
 
 	int next(int *p_nowlen=nullptr)
 	{
+		SETTLE_OUTPUT_PTR(int, p_nowlen, 0)
+
 		// Returns an offset value that points to the next sub-string.
 		// *p_nowlen tells the length of the sub-string.
 
-		// Skip consecutive splitter-chars and trim-chars.
-		//
-		for(;;)
-		{
-			if(m_nowpos == m_endpos_)
-			{
-				if(p_nowlen)
-					*p_nowlen = 0;
-
-				return -1; // scan ended
-			}
-
-			if( IsSplitterChar(m_str[m_nowpos]) || IsTrimChar(m_str[m_nowpos]))
-				m_nowpos++;
-			else
-				break;
-		}
-
-		// Check if scan end.
-		//
-		if (m_nowpos == m_endpos_)
-		{
-			if (*p_nowlen)
-				*p_nowlen = 0;
-
+		if (IsEnd())
 			return -1;
-		}
 
-		// Seen a word start, Scan for word length.
+		assert(!IsSplitterChar(m_str[m_nowpos]) && !IsTrimChar(m_str[m_nowpos]));
+
+		// We're at a substring start, now scan for word length.
 
 		int word_at_pos = m_nowpos;
 
 		for(;;)
 		{
-			if( m_nowpos==m_endpos_ || IsSplitterChar(m_str[m_nowpos]) )
+			if( IsEnd() || IsSplitterChar(m_str[m_nowpos]) )
 			{
-				// Scan backward and drop those consecutive trim-chars.
+				// Meet substring end.
+				// Scan backward and drop those trailing trim-chars.
 
 				int tailpos = m_nowpos;
 				while (IsTrimChar(m_str[tailpos - 1]))
 					tailpos--;
 
-				if(p_nowlen)
-					*p_nowlen = tailpos - word_at_pos;
-				
+				*p_nowlen = tailpos - word_at_pos;
+
+				// Hint: We do early rescan for next substring, so that user can have the freedom
+				// to NUL-terminate the current substring.
+				SkipSpiltterTrimChars();
+
 				return word_at_pos;
 			}
 			else
@@ -111,7 +104,6 @@ public:
 				m_nowpos++;
 			}
 		}
-
 	}
 
 	int count()
@@ -125,7 +117,7 @@ public:
 		return n;
 	}
 
-#if (__cplusplus>=201402L) || (_MSC_VER>=1900) 	// C++14 or VC2015+
+#ifdef CXX14_OR_NEWER
 	decltype(auto) operator[](size_t index) {
 		return m_str[index];
 	}
@@ -133,6 +125,23 @@ public:
 		return m_str[index];
 	}
 #endif
+
+private:
+	bool IsEnd() { return m_nowpos == m_endpos_; }
+
+	void SkipSpiltterTrimChars() // changes m_nowpos
+	{
+		for(;;)
+		{
+			if(IsEnd())
+				return;
+
+			if( IsSplitterChar(m_str[m_nowpos]) || IsTrimChar(m_str[m_nowpos]))
+				m_nowpos++;
+			else
+				return;
+		}
+	}
 
 private:
 	const TString &m_str;

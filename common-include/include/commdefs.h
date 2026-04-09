@@ -176,7 +176,12 @@ inline enum_type operator & (enum_type a, enum_type b)
 	if(!outptr) \
 		outptr = &outptr##_to_localvar; \
 	*outptr = default_val; 
-// -- Example: For `void foo(int* pi){...}`,  OutputDataType is `int`, outptr is `pi`.
+// -- Example: 
+//	void foo(int* pout=nullptr)
+//	{
+//		SETTLE_OUTPUT_PTR(int, pout, 0) // Let *pout default to 0.
+//		...
+//	}
 
 
 
