@@ -301,6 +301,8 @@ void hashdict<TU>::_ctor(const TCHAR *in_dbgsig)
 
 	m_enuming_sessions = 0;
 	m_dictflags = DF_none;
+
+	assert(ShrinkLowMark <= int_pow(2, InitialDictWidth));
 }
 
 template<typename TU> 
@@ -538,9 +540,9 @@ template<typename TU>
 void hashdict<TU>::CheckToCompactTrove()
 {
 	int dummypct = m_trove_dummies*100/m_trove_dirties;
-	if(dummypct >= PctDummyToCompact)
+	if(m_trove_dirties>TroveInitSize && dummypct>PctDummyToCompact)
 	{
-		vaDBG3(_T("{%s}  Triggering trove compact, bcz dummy pct reaches %d%% (%d/%d=%d)"), dbgsig(), 
+		vaDBG3(_T("{%s}  Triggering trove compact, bcz dummy pct rise above %d%% (%d/%d=%d%%)"), dbgsig(), 
 			PctDummyToCompact,  m_trove_dummies, m_trove_dirties, dummypct);
 		CompactTrove();
 	}
@@ -555,7 +557,7 @@ void hashdict<TU>::CheckToCompactSlotAndTrove()
 
 		if(m_slots_highmark>=ShrinkHighMark && m_slots_active<=ShrinkLowMark)
 		{
-			int slots_after_shrink = m_slots_active * 2;
+			int slots_after_shrink = int_pow(2, InitialDictWidth);
 
 			// Compact Slots
 
@@ -855,8 +857,8 @@ bool hashdict<TU>::CompactTrove()
 
 	assert(m_trove_dirties < m_trove_capacity);
 	assert(m_trove_dummies <= m_trove_dirties);
-	assert(msa_trove[m_trove_capacity-1].state==TroventEmpty
-		&& msa_trove[m_trove_capacity-1].hashfull==InvalidHash64);
+	assert(msa_trove[m_trove_capacity-1].state==TroventEmpty);
+	assert(msa_trove[m_trove_capacity-1].hashfull==InvalidHash64);
 
 	int isrc=0, idst=0;
 
@@ -887,6 +889,11 @@ bool hashdict<TU>::CompactTrove()
 
 	m_trove_dirties -= m_trove_dummies;
 	m_trove_dummies = 0;
+
+	m_trove_capacity = m_trove_dirties+1;
+	msa_trove.SetEleQuan(m_trove_capacity, true); // need to align to power-of-2 ?
+	msa_trove[m_trove_dirties].state = TroventEmpty;
+	msa_trove[m_trove_dirties].hashfull = InvalidHash64;
 
 	bool succ = RebuildSlotsFromTrove(m_dict_width);
 	return succ;
