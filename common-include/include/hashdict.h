@@ -271,8 +271,11 @@ void hashdict<TU>::_dtor()
 	
 	m_dbgsig = nullptr;
 
-	assert(msa_trove[m_trove_capacity-1].state==TroventEmpty
-		&& msa_trove[m_trove_capacity-1].hashfull==InvalidHash64);
+	if(m_trove_capacity>0)
+	{
+		assert(msa_trove[m_trove_capacity-1].state==TroventEmpty
+			&& msa_trove[m_trove_capacity-1].hashfull==InvalidHash64);
+	}
 
 	for(int i=0; i<m_trove_dirties; i++)
 	{
