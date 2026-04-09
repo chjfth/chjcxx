@@ -1,5 +1,6 @@
-#ifndef __CHHI__hashdict_h_20260404_20260405_
-#define __CHHI__hashdict_h_20260404_20260405_
+#ifndef __CHHI__hashdict_h_
+#define __CHHI__hashdict_h_created_ 20260404
+#define __CHHI__hashdict_h_updated_ 20260409
 
 #include <new>
 #include <ps_TCHAR.h>
@@ -55,12 +56,21 @@ public:
 template<typename TU> // TU is user's datatype(should support delete), key is always string
 class hashdict
 {
+#ifdef CXX11_OR_NEWER
+	static_assert(std::is_copy_constructible<TU>::value,
+		"hashdict: TU must be copy constructible");
+
+	static_assert(std::is_move_constructible<TU>::value,
+		"hashdict: TU must be move constructible");
+#endif
+
 public:
 	hashdict(const TCHAR *dbgsig=nullptr) { _ctor(dbgsig); }
 
 	virtual ~hashdict() { _dtor(); }
 
-	// set(): Return the object(pointer) of the TU object managed by hashdict, different than the input pointer.
+	// set(): Return the object(pointer) of the TU object managed by hashdict, 
+	// different than the input object.
 	TU* set(const TCHAR *key, TU&& value)
 	{
 		return SetKey(key, std::move(value), true);
@@ -90,6 +100,8 @@ public:
 	bool del(const TCHAR *key);
 
 	bool del(const TCHAR *key, TU& recv_old_value);
+	// -- Note: recv_old_value is a reference, not `TU** ppOldValue`,
+	//          This eliminate user's hassle of `delete *ppOldValue` later.
 
 	class enumer // dict-key enumerator
 	{
@@ -105,7 +117,12 @@ public:
 		}
 
 		const TCHAR *next(TU **ppValue=nullptr);
+		// -- On return, *ppValue points dict-managed TU object, user must not `delete *ppValue`.
+
 		void reset(); // after reset(), user can start a new next() round.
+
+	private:
+		void DecreaseSessionCount();
 
 	private:
 		hashdict &m_dict;
@@ -114,9 +131,16 @@ public:
 	};
 
 private:
+	enum DictFlag_et 
+	{ 
+		DF_none = 0x0,
+		DF_PendingShrink = 0x1,
+	};
+
 	enum 
 	{
 		// Hash slots constants:
+		InitialDictWidth = 3,   // initial 2^3 = 8 slots
 		PerturbShift = 5,
 		PctFullToResize = 66,	// when slots gets 66% full, increase it size
 		DummyNotSeen = -1, // must be negative
@@ -128,8 +152,11 @@ private:
 		OneEmptyAtTroveEnd = 1, // must
 		InvalidHash64 = (__int64)(-1),
 
-		// Misc
-		ShrinkWhenLessThan = 4, // todo
+		// Shrink[Low/High]Mark:
+		// Normally, the dict's slots and trove keep increasing, but, if keys drop
+		// from highmark to lowmark, I will shrink them to hardcoded initial.
+		ShrinkLowMark  = 4,
+		ShrinkHighMark = 1000,
 	};
 	
 	enum SlotState_et // represent a hash slot
@@ -188,6 +215,7 @@ private:
 
 	int slots_non_empty() { return m_slots_active+m_slots_dummy; }
 	bool CheckToIncreaseSlots();
+	void CheckToCompactSlotAndTrove();
 	void CheckToCompactTrove();
 
 	Uint64 cal_hashfull(const TCHAR *str)
@@ -206,7 +234,16 @@ public: // debugging purpose
 	void SetDbgParams(int resize_pct) {
 		m_resize_pct = resize_pct;
 	}
+
+	void SetDictWidth(int width) {
+		m_dict_width = width;
+		m_slots_capacity = int_pow(2, m_dict_width);
+		m_hashmask = m_slots_capacity - 1;
+		assert(m_slots_active<=m_slots_capacity);
+	}
+
 	bool IsResizeByPct() { return m_resize_pct>0; }
+
 	bool RebuildSlotsFromTrove(int new_dict_width);
 	bool CompactTrove();
 
@@ -217,6 +254,7 @@ private:
 
 	int m_slots_active;		// < m_slots_total
 	int m_slots_dummy;		// used then deleted slot count
+	int m_slots_highmark;
 
 	union 
 	{
@@ -231,9 +269,11 @@ private:
 	int m_trove_capacity;
 	int m_trove_dirties;	// how many trovents touched, max=m_trove_capacity-1, can > m_slots_active.
 							// CompactTrove() will shrink it(=remove dummies).
-	int m_trove_dummies;
+	int m_trove_dummies;	// a deleted trovent is not actually deleted by marked as dummy.
 
 	int m_enuming_sessions;	// if >0, someone is enumerating this dict, that locks the dict.
+
+	DictFlag_et m_dictflags;
 
 	Sdring m_dbgsig;
 	const TCHAR* dbgsig() { return m_dbgsig ? m_dbgsig.c_str() : _T(""); }
@@ -244,13 +284,12 @@ template<typename TU>
 void hashdict<TU>::_ctor(const TCHAR *in_dbgsig)
 {
 	m_dbgsig = in_dbgsig;
-	vaDBG3(_T("{%s}hashdict() ctor. this@<%p>."), dbgsig(), this);
+	vaDBG2(_T("{%s}hashdict() ctor. this@<%p>."), dbgsig(), this);
 
-	m_dict_width = 3;
-	m_slots_capacity = int_pow(2, m_dict_width);
-	m_hashmask = m_slots_capacity -1 ;
 	m_slots_active = 0;
+	SetDictWidth(InitialDictWidth);
 	m_slots_dummy = 0;
+	m_slots_highmark = 0;
 
 	m_resize_pct = PctFullToResize;
 
@@ -261,12 +300,13 @@ void hashdict<TU>::_ctor(const TCHAR *in_dbgsig)
 	m_trove_capacity = m_trove_dirties = m_trove_dummies = 0;
 
 	m_enuming_sessions = 0;
+	m_dictflags = DF_none;
 }
 
 template<typename TU> 
 void hashdict<TU>::_dtor()
 {
-	vaDBG3(_T("{%s}hashdict() dtor. this@<%p>. Remnant keys: %d"), 
+	vaDBG2(_T("{%s}hashdict() dtor. this@<%p>. Remnant keys: %d"), 
 		dbgsig(), this,	m_slots_active);
 	
 	m_dbgsig = nullptr;
@@ -296,13 +336,6 @@ void hashdict<TU>::_dtor()
 template<typename TU> 
 TU* hashdict<TU>::SetKey(const TCHAR *in_key, TU&& in_value, bool is_overwrite)
 {
-	if(m_enuming_sessions>0)
-	{
-		vaDBG1(_T("{%s}hashdict::SetKey() NOT allowed when m_enuming_sessions(%d)>0"), dbgsig(),
-			m_enuming_sessions);
-		return nullptr;
-	}
-
 	vaDBG3_DbgEnterExit;
 
 	assert(in_key && in_key[0]);
@@ -347,6 +380,12 @@ TU* hashdict<TU>::SetKey(const TCHAR *in_key, TU&& in_value, bool is_overwrite)
 			vaDBG3(_T("{%s}  probe#%d, land at idxSlot=%d, SlotEmpty."), dbgsig(),
 				probes, idxSlot);
 
+			if(m_enuming_sessions>0)
+			{
+				vaDBG1(_T("{%s}hashdict::SetKey() adding new key is NOT allowed when m_enuming_sessions(%d)>0"), dbgsig(), m_enuming_sessions);
+				return nullptr;
+			}
+
 			// Determine: Use this slot, or, reuse the first-seen dummy slot.
 
 			slot_st *pUseSlot = &msa_slots[idxSlot];
@@ -368,6 +407,9 @@ TU* hashdict<TU>::SetKey(const TCHAR *in_key, TU&& in_value, bool is_overwrite)
 			pUseSlot->state = SlotInUse;
 			pUseSlot->idx_trove = idxTrove;
 			m_slots_active++;
+
+			if(m_slots_active > m_slots_highmark)
+				m_slots_highmark = m_slots_active;
 
 			vaDBG3(_T("{%s}hashdict::SetKey() new key added: idxSlot=%d, idxTrove=%d, value@<%p>"), dbgsig(),
 				pUseSlot-msa_slots.GetElePtr(0), idxTrove, &trovent.uvalue);
@@ -419,7 +461,7 @@ TU* hashdict<TU>::SetKey(const TCHAR *in_key, TU&& in_value, bool is_overwrite)
 
 		idxSlot = lcg.next();
 
-		if(probes>(64/PerturbShift+2) && idxSlot==firstSlot)
+		if(probes>(64/PerturbShift+2 + m_slots_capacity) && idxSlot==firstSlot) // 64 is fullhash bit-width
 		{
 			// idxSlot wraps around, can SlotDummy flooding cause this?
 			vaDBG3(_T("{%s}BUG! hashdict::SetKey() see all slots exhausted. Devguy forgot to extend msa_slots."), dbgsig(), firstSlot);
@@ -485,7 +527,7 @@ TU* hashdict<TU>::get(const TCHAR *in_key)
 		if(probes>(64/PerturbShift+2) && idxSlot==firstSlot)
 		{
 			// idxSlot wraps around, can SlotDummy flooding cause this?
-			vaDBG2(_T("{%s}Weird! hashdict::get() see idxSlot(%d) wraps around."), dbgsig(), firstSlot);
+			vaDBG1(_T("{%s}Weird! hashdict::get() see idxSlot(%d) wraps around."), dbgsig(), firstSlot);
 			return nullptr; // not found
 		}
 	}
@@ -505,6 +547,45 @@ void hashdict<TU>::CheckToCompactTrove()
 }
 
 template<typename TU> 
+void hashdict<TU>::CheckToCompactSlotAndTrove()
+{
+	if(m_enuming_sessions==0)
+	{
+		// No one is enumerating the dict, we can safely re-arrange internal layout.
+
+		if(m_slots_highmark>=ShrinkHighMark && m_slots_active<=ShrinkLowMark)
+		{
+			int slots_after_shrink = m_slots_active * 2;
+
+			// Compact Slots
+
+			vaDBG2(_T("{%s}  Slots dropped from %d to %d, now shrinking the slots to %d."), dbgsig(), 
+				m_slots_highmark, m_slots_active, slots_after_shrink);
+
+			SetDictWidth(InitialDictWidth);
+
+			// Compact Trove
+
+			CompactTrove();
+
+			m_slots_highmark = m_slots_active;
+		}
+		else
+		{
+			CheckToCompactTrove();
+		}
+
+		Bitfields_TurnOff(m_dictflags, DF_PendingShrink);
+	}
+	else // m_enuming_sessions>0
+	{
+		vaDBG3(_T("{%s}hashdict::CheckToCompactSlotAndTrove() called but postponed, due to m_enuming_sessions(%d)>0"), dbgsig(), m_enuming_sessions);
+		
+		Bitfields_TurnOn(m_dictflags, DF_PendingShrink);
+	}
+}
+
+template<typename TU> 
 bool hashdict<TU>::del(const TCHAR *in_key)
 {
 	vaDBG3_DbgEnterExit;
@@ -514,7 +595,7 @@ bool hashdict<TU>::del(const TCHAR *in_key)
 	if(!succ)
 		return false;
 
-	CheckToCompactTrove();
+	CheckToCompactSlotAndTrove();
 	return true;
 }
 
@@ -527,7 +608,7 @@ bool hashdict<TU>::del(const TCHAR *in_key, TU& recv_old_value)
 	if(!succ)
 		return false;
 
-	CheckToCompactTrove();
+	CheckToCompactSlotAndTrove();
 	return true;
 }
 
@@ -535,12 +616,6 @@ template<typename TU>
 bool hashdict<TU>::in_del(const TCHAR *in_key, bool is_recv_old, TU& recv_old_value)
 {
 	// Return: If in_key is found and deleted.
-
-	if(m_enuming_sessions>0)
-	{
-		vaDBG1(_T("{%s}hashdict::in_del() NOT allowed when m_enuming_sessions(%d)>0"), dbgsig(), m_enuming_sessions);
-		return false;
-	}
 
 	Uint64 in_hashfull = cal_hashfull(in_key);
 	Uint32 in_hashtail = (Uint32)in_hashfull & m_hashmask;
@@ -586,7 +661,8 @@ bool hashdict<TU>::in_del(const TCHAR *in_key, bool is_recv_old, TU& recv_old_va
 
 				trovent.state = TroventDummy;
 				trovent.hashfull = InvalidHash64;
-				trovent.key = nullptr;
+				trovent.key[0] = '\0'; // optional, settle with a clean empty string (less panic for user doing enum+del)
+				trovent.key = nullptr; // free Sdring-attached data
 				
 				m_trove_dummies++;
 
@@ -692,7 +768,10 @@ bool hashdict<TU>::CheckToIncreaseSlots()
 		return true;
 
 	// Now increase the slots
+	int newwidth = m_dict_width+1;
 	bool succ = RebuildSlotsFromTrove(m_dict_width+1);
+	
+	assert(newwidth==m_dict_width);
 
 	return succ ? true : false;
 }
@@ -700,18 +779,19 @@ bool hashdict<TU>::CheckToIncreaseSlots()
 template<typename TU> 
 bool hashdict<TU>::RebuildSlotsFromTrove(int new_dict_width)
 {
-	assert(new_dict_width>=m_dict_width);
+	assert(int_pow(2, new_dict_width) >= m_slots_active);
 
-	// Increase slots capacity if requested.
+	// Increase/Decrease slots capacity if requested.
 
-	if(new_dict_width > m_dict_width)
+	if(new_dict_width != m_dict_width)
 	{
-		vaDBG3(_T("{%s}  hashdict: Increasing slots from %d(%d bits) to %d(%d bits)"), dbgsig(), 
-			int_pow(2, m_dict_width), m_dict_width,  int_pow(2, m_dict_width+1), m_dict_width+1);
+		vaDBG3(_T("{%s}  hashdict: %s slots from %d(%d bits) to %d(%d bits)"), dbgsig(), 
+			new_dict_width>m_dict_width ? _T("Increasing") : _T("Decreasing"), 
+			int_pow(2, m_dict_width), m_dict_width,    // from %d(%d bits)
+			int_pow(2, new_dict_width), new_dict_width //   to %d(%d bits)
+			);
 
-		m_dict_width = new_dict_width;
-		m_slots_capacity = int_pow(2, m_dict_width);
-		m_hashmask = m_slots_capacity -1 ;
+		SetDictWidth(new_dict_width);
 
 		auto err = msa_slots.SetEleQuan(m_slots_capacity);
 		if(err)
@@ -724,6 +804,7 @@ bool hashdict<TU>::RebuildSlotsFromTrove(int new_dict_width)
 	msa_slots.ZeroEles();
 
 	// Rebuild the slots' content from trove.
+	int nTrovent = 0;
 
 	for(int i=0; i<m_trove_dirties; i++)
 	{
@@ -754,6 +835,10 @@ bool hashdict<TU>::RebuildSlotsFromTrove(int new_dict_width)
 			assert(slot.state==SlotInUse);
 			assert(probes<=m_slots_capacity);
 		}
+
+		nTrovent++;
+		assert(nTrovent<=m_slots_capacity);
+
 	} // for each trove-entry
 
 	return true;
@@ -838,7 +923,7 @@ const TCHAR* hashdict<TU>::enumer::next(TU **ppValue)
 	*ppValue = nullptr;
 
 	m_is_end = true;
-	m_dict.m_enuming_sessions--;
+	DecreaseSessionCount();
 
 	return nullptr;
 }
@@ -853,10 +938,20 @@ void hashdict<TU>::enumer::reset()
 	else
 	{
 		if(m_next_trovent>0)
-			m_dict.m_enuming_sessions--;
+			DecreaseSessionCount();
 	}
 
 	m_next_trovent = 0;
+}
+
+template<typename TU> 
+void hashdict<TU>::enumer::DecreaseSessionCount()
+{
+	int done_sessions = --m_dict.m_enuming_sessions;
+	if(done_sessions==0 && Bitfields_IsBitOn(m_dict.m_dictflags, DF_PendingShrink))
+	{
+		m_dict.CheckToCompactSlotAndTrove();
+	}
 }
 
 

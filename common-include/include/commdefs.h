@@ -184,6 +184,39 @@ inline enum_type operator & (enum_type a, enum_type b)
 //	}
 
 
+// [2026-04-09] 
 
+template<typename T>
+T Bitfields_TurnOn(T& num, T bits_to_turn_on)
+{
+	num = static_cast<T>(num | bits_to_turn_on);
+	return num;
+}
+template<typename T>
+T Bitfields_TurnOff(T& num, T bits_to_turn_off)
+{
+	num = static_cast<T>(num & ~bits_to_turn_off);
+	return num;
+}
+template<typename T>
+bool Bitfields_IsAllBitsOn(T num, T bits_to_test)
+{
+	return (num & bits_to_test)==bits_to_test ? true : false;
+}
+template<typename T>
+bool Bitfields_IsBitOn(T num, T bit_to_test)
+{
+	return Bitfields_IsAllBitsOn(num, bit_to_test);
+}
+template<typename T>
+bool Bitfields_IsAllBitsOff(T num, T bits_to_test)
+{
+	return (num & ~bits_to_test)==0 ? true : false;
+}
+template<typename T>
+bool Bitfields_IsBitOff(T num, T bit_to_test)
+{
+	return Bitfields_IsAllBitsOff(num, bit_to_test);
+}
 
 #endif
