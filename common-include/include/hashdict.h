@@ -103,15 +103,15 @@ public:
 	// -- Note: recv_old_value is a reference, not `TU** ppOldValue`,
 	//          This eliminate user's hassle of `delete *ppOldValue` later.
 
-	class enumer // dict-key enumerator
+	class enumor // dict-key enumorator
 	{
 	public:
-		enumer(hashdict &dict) : m_dict(dict) 
+		enumor(hashdict &dict) : m_dict(dict) 
 		{
 			m_next_trovent = 0;
 			m_is_end = false;
 		}
-		~enumer()
+		~enumor()
 		{ 
 			reset(); 
 		}
@@ -267,11 +267,11 @@ private:
 	TScalableArray<trove_entry_st> msa_trove;
 
 	int m_trove_capacity;
-	int m_trove_dirties;	// how many trovents touched, max=m_trove_capacity-1, can > m_slots_active.
+	int m_trove_ploughs;	// how many trovents in use, max=m_trove_capacity-1, can > m_slots_active.
 							// CompactTrove() will shrink it(=remove dummies).
 	int m_trove_dummies;	// a deleted trovent is not actually deleted by marked as dummy.
 
-	int m_enuming_sessions;	// if >0, someone is enumerating this dict, that locks the dict.
+	int m_enuming_sessions;	// if >0, someone is enumorating this dict, that locks the dict.
 
 	DictFlag_et m_dictflags;
 
@@ -297,7 +297,7 @@ void hashdict<TU>::_ctor(const TCHAR *in_dbgsig)
 	msa_slots.SetEleQuan(m_slots_capacity, true);
 
 	msa_trove.SetTrait(0x7FFFffff, 1, 1, 0);
-	m_trove_capacity = m_trove_dirties = m_trove_dummies = 0;
+	m_trove_capacity = m_trove_ploughs = m_trove_dummies = 0;
 
 	m_enuming_sessions = 0;
 	m_dictflags = DF_none;
@@ -319,7 +319,7 @@ void hashdict<TU>::_dtor()
 			&& msa_trove[m_trove_capacity-1].hashfull==InvalidHash64);
 	}
 
-	for(int i=0; i<m_trove_dirties; i++)
+	for(int i=0; i<m_trove_ploughs; i++)
 	{
 		trove_entry_st &trovent = msa_trove[i];
 		if(trovent.state==TroventDummy)
@@ -539,11 +539,11 @@ TU* hashdict<TU>::get(const TCHAR *in_key)
 template<typename TU> 
 void hashdict<TU>::CheckToCompactTrove()
 {
-	int dummypct = m_trove_dummies*100/m_trove_dirties;
-	if(m_trove_dirties>TroveInitSize && dummypct>PctDummyToCompact)
+	int dummypct = m_trove_dummies*100/m_trove_ploughs;
+	if(m_trove_ploughs>TroveInitSize && dummypct>PctDummyToCompact)
 	{
 		vaDBG3(_T("{%s}  Triggering trove compact, bcz dummy pct rise above %d%% (%d/%d=%d%%)"), dbgsig(), 
-			PctDummyToCompact,  m_trove_dummies, m_trove_dirties, dummypct);
+			PctDummyToCompact,  m_trove_dummies, m_trove_ploughs, dummypct);
 		CompactTrove();
 	}
 }
@@ -553,7 +553,7 @@ void hashdict<TU>::CheckToCompactSlotAndTrove()
 {
 	if(m_enuming_sessions==0)
 	{
-		// No one is enumerating the dict, we can safely re-arrange internal layout.
+		// No one is enumorating the dict, we can safely re-arrange internal layout.
 
 		if(m_slots_highmark>=ShrinkHighMark && m_slots_active<=ShrinkLowMark)
 		{
@@ -711,17 +711,17 @@ hashdict<TU>::IsKeyFoundAtSlot(int idxSlot, Uint64 in_keyhash, const TCHAR *in_k
 template<typename TU> 
 int hashdict<TU>::RequestTroveEntry() // request a new trove entry to use
 {
-	assert(m_trove_dirties <= m_trove_capacity);
+	assert(m_trove_ploughs <= m_trove_capacity);
 
-	if(m_trove_dirties>0 && msa_trove[m_trove_dirties-1].state==TroventDummy)
+	if(m_trove_ploughs>0 && msa_trove[m_trove_ploughs-1].state==TroventDummy)
 	{	// a bit optimize, re-used tail dummy entry
-		vaDBG3(_T("{%s}  [optimize2] Reuse tail dummy trovent at idxTrove=%d"), dbgsig(), m_trove_dirties-1);
-		m_trove_dirties--;
+		vaDBG3(_T("{%s}  [optimize2] Reuse tail dummy trovent at idxTrove=%d"), dbgsig(), m_trove_ploughs-1);
+		m_trove_ploughs--;
 		m_trove_dummies--;
 	}
 
 	if( m_trove_capacity==0 ||
-		m_trove_dirties == m_trove_capacity-OneEmptyAtTroveEnd )
+		m_trove_ploughs == m_trove_capacity-OneEmptyAtTroveEnd )
 	{
 		if(m_trove_capacity>0)
 		{
@@ -745,7 +745,7 @@ int hashdict<TU>::RequestTroveEntry() // request a new trove entry to use
 		trovend.hashfull = InvalidHash64; // debug purpose
 	}
 
-	const int idx_new_trovent = m_trove_dirties++;
+	const int idx_new_trovent = m_trove_ploughs++;
 	msa_trove[idx_new_trovent].state = TroventInUse;
 //	new TU(&msa_trove[idx_new_trovent].uvalue);  // do it outside
 
@@ -808,7 +808,7 @@ bool hashdict<TU>::RebuildSlotsFromTrove(int new_dict_width)
 	// Rebuild the slots' content from trove.
 	int nTrovent = 0;
 
-	for(int i=0; i<m_trove_dirties; i++)
+	for(int i=0; i<m_trove_ploughs; i++)
 	{
 		trove_entry_st &trovent = msa_trove[i];
 		if(trovent.state!=TroventInUse)
@@ -850,13 +850,13 @@ template<typename TU>
 bool hashdict<TU>::CompactTrove()
 {
 	vaDBG3(_T("{%s}hashdict::CompactTrove() capacity/dirty/dummy was %d/%d/%d, will compat to dirties=%d"), dbgsig(), 
-		m_trove_capacity, m_trove_dirties, m_trove_dummies, m_trove_dirties-m_trove_dummies);
+		m_trove_capacity, m_trove_ploughs, m_trove_dummies, m_trove_ploughs-m_trove_dummies);
 
 	// Purge all dummy trove-entries, then rebuild slots from the fresh trove.
 	// This function runs unconditionally. When to call it is determined by caller.
 
-	assert(m_trove_dirties < m_trove_capacity);
-	assert(m_trove_dummies <= m_trove_dirties);
+	assert(m_trove_ploughs < m_trove_capacity);
+	assert(m_trove_dummies <= m_trove_ploughs);
 	assert(msa_trove[m_trove_capacity-1].state==TroventEmpty);
 	assert(msa_trove[m_trove_capacity-1].hashfull==InvalidHash64);
 
@@ -887,13 +887,13 @@ bool hashdict<TU>::CompactTrove()
 		}
 	}
 
-	m_trove_dirties -= m_trove_dummies;
+	m_trove_ploughs -= m_trove_dummies;
 	m_trove_dummies = 0;
 
-	m_trove_capacity = m_trove_dirties+1;
+	m_trove_capacity = m_trove_ploughs+1;
 	msa_trove.SetEleQuan(m_trove_capacity, true); // need to align to power-of-2 ?
-	msa_trove[m_trove_dirties].state = TroventEmpty;
-	msa_trove[m_trove_dirties].hashfull = InvalidHash64;
+	msa_trove[m_trove_ploughs].state = TroventEmpty;
+	msa_trove[m_trove_ploughs].hashfull = InvalidHash64;
 
 	bool succ = RebuildSlotsFromTrove(m_dict_width);
 	return succ;
@@ -902,7 +902,7 @@ bool hashdict<TU>::CompactTrove()
 ////\\\\////\\\\////\\\\////\\\\////\\\\////\\\\////\\\\
 
 template<typename TU> 
-const TCHAR* hashdict<TU>::enumer::next(TU **ppValue)
+const TCHAR* hashdict<TU>::enumor::next(TU **ppValue)
 {
 	SETTLE_OUTPUT_PTR(TU*, ppValue, nullptr)
 
@@ -912,7 +912,7 @@ const TCHAR* hashdict<TU>::enumer::next(TU **ppValue)
 	if(m_next_trovent == 0)
 		m_dict.m_enuming_sessions++;
 
-	for(; m_next_trovent<m_dict.m_trove_dirties; m_next_trovent++)
+	for(; m_next_trovent<m_dict.m_trove_ploughs; m_next_trovent++)
 	{
 		hashdict::trove_entry_st &trovent = m_dict.msa_trove[m_next_trovent];
 		if(trovent.state == TroventInUse)
@@ -936,7 +936,7 @@ const TCHAR* hashdict<TU>::enumer::next(TU **ppValue)
 }
 
 template<typename TU> 
-void hashdict<TU>::enumer::reset()
+void hashdict<TU>::enumor::reset()
 {
 	if(m_is_end)
 	{
@@ -952,7 +952,7 @@ void hashdict<TU>::enumer::reset()
 }
 
 template<typename TU> 
-void hashdict<TU>::enumer::DecreaseSessionCount()
+void hashdict<TU>::enumor::DecreaseSessionCount()
 {
 	int done_sessions = --m_dict.m_enuming_sessions;
 	if(done_sessions==0 && Bitfields_IsBitOn(m_dict.m_dictflags, DF_PendingShrink))
