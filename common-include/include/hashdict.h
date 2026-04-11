@@ -1,6 +1,6 @@
 #ifndef __CHHI__hashdict_h_
 #define __CHHI__hashdict_h_created_ 20260404
-#define __CHHI__hashdict_h_updated_ 20260409
+#define __CHHI__hashdict_h_updated_ 20260411
 
 #include <new>
 #include <ps_TCHAR.h>
@@ -53,7 +53,8 @@ public:
 };
 
 
-template<typename TU> // TU is user's datatype(should support delete), key is always string
+template<typename TU> 
+	// TU is user's datatype(should support C++-delete), key is always string
 class hashdict
 {
 #ifdef CXX11_OR_NEWER
@@ -128,7 +129,28 @@ public:
 		hashdict &m_dict;
 		int m_next_trovent;
 		bool m_is_end;
+	}; // class enumor
+
+	struct ReportState_st
+	{
+		int StructSize; // struct ver identification, caller input
+
+		int slots_capacity;
+		int slots_active;  // actual dict-keys being managed now
+		int slots_dummy;
+		int slot_datasize;
+		__int64 slots_memuse64;
+
+		int trove_capacity;
+		int trove_active;
+		int trove_dummies;
+		int trovent_datasize;
+		__int64 trove_memuse64;
+
+		__int64 total_memuse64;
 	};
+
+	void ReportState(ReportState_st *pout);
 
 private:
 	enum DictFlag_et 
@@ -235,11 +257,13 @@ public: // debugging purpose
 		m_resize_pct = resize_pct;
 	}
 
-	void SetDictWidth(int width) {
+	void SetDictWidth(int width) { // change dict's slot-capacity
+		assert(width!=m_dict_width);
+		assert(m_slots_active<=int_pow(2, width));
 		m_dict_width = width;
 		m_slots_capacity = int_pow(2, m_dict_width);
 		m_hashmask = m_slots_capacity - 1;
-		assert(m_slots_active<=m_slots_capacity);
+		m_slots_dummy = 0;
 	}
 
 	bool IsResizeByPct() { return m_resize_pct>0; }
@@ -553,7 +577,7 @@ void hashdict<TU>::CheckToCompactSlotAndTrove()
 {
 	if(m_enuming_sessions==0)
 	{
-		// No one is enumorating the dict, we can safely re-arrange internal layout.
+		// No one is enumerating the dict, we can safely re-arrange internal layout.
 
 		if(m_slots_highmark>=ShrinkHighMark && m_slots_active<=ShrinkLowMark)
 		{
@@ -782,6 +806,7 @@ template<typename TU>
 bool hashdict<TU>::RebuildSlotsFromTrove(int new_dict_width)
 {
 	assert(int_pow(2, new_dict_width) >= m_slots_active);
+	assert(m_slots_active + m_slots_dummy <= m_slots_capacity);
 
 	// Increase/Decrease slots capacity if requested.
 
@@ -804,6 +829,7 @@ bool hashdict<TU>::RebuildSlotsFromTrove(int new_dict_width)
 	}
 
 	msa_slots.ZeroEles();
+	m_slots_dummy = 0;
 
 	// Rebuild the slots' content from trove.
 	int nTrovent = 0;
@@ -891,13 +917,36 @@ bool hashdict<TU>::CompactTrove()
 	m_trove_dummies = 0;
 
 	m_trove_capacity = m_trove_ploughs+1;
-	msa_trove.SetEleQuan(m_trove_capacity, true); // need to align to power-of-2 ?
+	msa_trove.SetEleQuan(m_trove_capacity, true); // better to align to power-of-2 ?
 	msa_trove[m_trove_ploughs].state = TroventEmpty;
 	msa_trove[m_trove_ploughs].hashfull = InvalidHash64;
 
 	bool succ = RebuildSlotsFromTrove(m_dict_width);
 	return succ;
 }
+
+
+template<typename TU> 
+void hashdict<TU>::ReportState(ReportState_st *pout)
+{
+	ReportState_st &st = *pout;
+	assert(st.StructSize == sizeof(ReportState_st));
+
+	st.slots_capacity = m_slots_capacity;
+	st.slots_active   = m_slots_active;
+	st.slots_dummy    = m_slots_dummy;
+	st.slot_datasize  = sizeof(slot_st);
+	st.slots_memuse64 = __int64(st.slots_capacity) * st.slot_datasize;
+
+	st.trove_capacity   = m_trove_capacity;
+	st.trove_active     = m_trove_capacity - m_trove_dummies;
+	st.trove_dummies    = m_trove_dummies;
+	st.trovent_datasize = sizeof(trove_entry_st);
+	st.trove_memuse64   = __int64(st.trove_capacity) * st.trovent_datasize;
+
+	st.total_memuse64 = st.slots_memuse64 + st.trove_memuse64 + sizeof(this);
+}
+
 
 ////\\\\////\\\\////\\\\////\\\\////\\\\////\\\\////\\\\
 
