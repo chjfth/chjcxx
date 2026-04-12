@@ -272,8 +272,8 @@ public: // debugging purpose
 	bool CompactTrove();
 
 private:
-	int m_dict_width;	   // start from 3, bits of current hash table
-	Uint m_hashmask;       // = m_slots_total-1
+	int m_dict_width;		// start from 3, bits of current hash table
+	Uint m_hashmask;		// = m_slots_total-1
 	int m_slots_capacity;	// = pow(2, m_dict_width)
 
 	int m_slots_active;		// < m_slots_total
