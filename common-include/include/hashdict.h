@@ -310,9 +310,10 @@ void hashdict<TU>::_ctor(const TCHAR *in_dbgsig)
 	m_dbgsig = in_dbgsig;
 	vaDBG2(_T("{%s}hashdict() ctor. this@<%p>."), dbgsig(), this);
 
-	m_slots_active = 0;
+	m_slots_capacity = 0;
+	m_slots_active = m_slots_dummy = 0;
+	m_dict_width = 0;
 	SetDictWidth(InitialDictWidth);
-	m_slots_dummy = 0;
 	m_slots_highmark = 0;
 
 	m_resize_pct = PctFullToResize;
