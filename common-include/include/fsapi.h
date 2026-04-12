@@ -69,11 +69,13 @@ enum { bad_filehandle = -1 }; // use it as invalid filehandle_t
 
 filehandle_t file_open(const TCHAR *filepath, open_for_et ofor, open_share_et oshare);
 // -- 
-// On success, return a 64bit handle.
-// On fail, a fserror_et error code.
+// On success, return a 64bit handle(always >=0).
+// On fail, an fserror_et error code.
 //
-// The flag open_for_write implies creating the file if not exist yet.
+// The flag `open_for_write` implies creating the file if not exist yet.
 // This function treats file content as binary stream, no idea of text-mode.
+
+inline bool is_bad_filehandle(filehandle_t fh) { return fh<0; }
 
 fserror_et file_close(filehandle_t fh);
 
