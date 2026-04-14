@@ -1,10 +1,13 @@
-#ifndef __TScalableArray_h_2005xxxx_20260405_
-#define __TScalableArray_h_2005xxxx_20260405_
+#ifndef __TScalableArray_h_
+#define __TScalableArray_h_
+#define __TScalableArray_h_created_ 20050101
+#define __TScalableArray_h_updated_ 20260414
 
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <new>
 
 #include <commdefs.h>
 #include <_MINMAX_.h>
@@ -54,17 +57,10 @@ private:
 	};
 
 public:
-	TScalableArray() {
-		_ctor(); 
-	}
-	
+
 	TScalableArray(int MaxEle, int IncSize=DEF_INCSIZE, int DecSize=DEF_DECSIZE,
 		int DecThres=DEF_DECTHRES);
 	
-	~TScalableArray() { 
-		DeleteAllStorage(); 
-	}
-
 	ReCode_t SetTrait(int MaxEle, int IncSize=DEF_INCSIZE, int DecSize=DEF_DECSIZE,
 		int DecThres=DEF_DECTHRES);
 
@@ -195,9 +191,46 @@ d:\ws\common-include\autotest\mytest-ci\test_tscalablearray.cpp(408): error C259
 		return st;
 	}
 
+public:
+	// boilerplate code, no need to modify >>>
+	TScalableArray() { _ct0r(); }
+	~TScalableArray() { _dtor(); }
+
+	TScalableArray(const TScalableArray& old)            // copy-ctor
+	{
+		_copy_from_old(old); 
+	}
+	TScalableArray& operator=(const TScalableArray& old) // copy-assign
+	{
+		if (this != &old) {
+			_dtor();
+			_copy_from_old(old);
+		}
+		return *this;
+	}
+	TScalableArray(TScalableArray&& old)            // move-ctor
+	{
+		_steal_from_old(old);
+		old._ct0r();
+	}
+	TScalableArray& operator=(TScalableArray&& old) // move-assign
+	{
+		if (this != &old) {
+			_dtor();
+			_steal_from_old(old);
+			old._ct0r();
+		}
+		return *this;
+	}
+	// boilerplate code, no need to modify <<<
+
 protected:
-	void _ctor();
-		// reset the non-class-object members
+	void _dtor() { 
+		DeleteAllStorage(); 
+	}
+
+	void _copy_from_old(const TScalableArray& old);
+	void _steal_from_old(TScalableArray& old);
 
 	void ShiftDownEles(int pos, int n);
 	void ShiftUpEles(int pos, int n);
@@ -208,7 +241,7 @@ protected:
 	ReCode_t ExtendEles(int nTotalEles);
 
 protected:
-	// Memory allocation/free functions, like those of CRTs.
+	// Memory allocation/free functions, like ANSI C's realloc() and free().
 //	static void *Malloc(size_t new_size);
 	static void *Realloc(void *oldbuf, size_t new_size);
 	static void Free(void *ptr);
@@ -225,6 +258,21 @@ protected:
 	int m_nDecThres; // storage decreasing threshold
 
 	Uint m_reallocs; // memory reallocation count, for self test
+
+protected:
+	void _ct0r()
+	{
+		mar_Ele = NULL;
+		m_nCurEle = 0;
+		m_nCurStorage = 0;
+
+		m_nMaxEle = 0x7FFFffff;
+		m_nIncSize = DEF_INCSIZE; 
+		m_nDecSize = DEF_DECSIZE;
+		m_nDecThres = DEF_DECTHRES;
+
+		m_reallocs = 0;
+	}
 };
 
 template<typename T>
@@ -238,29 +286,55 @@ bool IsTsaErr(T err)
 
 
 template<typename T>
-void 
-TScalableArray<T>::_ctor()
+void TScalableArray<T>::_copy_from_old(const TScalableArray& old)
 {
-	mar_Ele = NULL;
-	m_nCurEle = m_nCurStorage = 0;
-
-	m_nMaxEle = 0x7FFFffff;
-
-	m_nIncSize = DEF_INCSIZE; 
-	m_nDecSize = DEF_DECSIZE;
-	m_nDecThres = DEF_DECTHRES;
+	m_nMaxEle = old.m_nMaxEle;
+	m_nIncSize = old.m_nIncSize;
+	m_nDecSize = old.m_nDecSize;
+	m_nDecThres = old.m_nDecThres;
 	m_reallocs = 0;
+
+	m_nCurStorage = 0;
+	m_nCurEle = 0;
+	ReCode_et err = ExtendEles(old.m_nCurStorage);
+	assert(!err);
+	assert(m_nCurStorage==old.m_nCurStorage);
+	assert(m_nCurEle==old.m_nCurEle);
+
+	// We must use T's copy-ctor instead of raw memcpy();
+	for(int i=0; i<m_nCurStorage; i++)
+	{
+		new(mar_Ele+i) T( (const T&)old[i] );
+	}
 }
+
+template<typename T>
+void TScalableArray<T>::_steal_from_old(TScalableArray& old)
+{
+	m_nCurEle = old.m_nCurEle;
+	m_nCurStorage = old.m_nCurStorage;
+	mar_Ele = old.mar_Ele;
+
+	m_nMaxEle = old.m_nMaxEle;
+	m_nIncSize = old.m_nIncSize;
+	m_nDecSize = old.m_nDecSize;
+	m_nDecThres = old.m_nDecThres;
+	m_reallocs = old.m_reallocs;
+
+	old.mar_Ele = NULL;
+	old.m_nCurEle = old.m_nCurStorage = 0;
+}
+
 
 template<typename T>
 TScalableArray<T>::TScalableArray(int MaxEle, int IncSize, int DecSize, int DecThres)
 {
-	_ctor();
+	_ct0r();
 
 	ReCode_t err = SetTrait(MaxEle, IncSize, DecSize, DecThres);
 	if(err) {
 		assert(err<=E_InvalidParam);
-		_ctor();
+		_ct0r();
 	}
 }
 
@@ -387,7 +461,14 @@ TScalableArray<T>::InsertBefore(int pos, const T* array, int n)
 	ShiftDownEles(pos, n);
 
 	// copy the incoming eles
-	CopyInEles(pos, n, array);
+	if(array)
+	{
+		CopyInEles(pos, n, array); 
+	
+		// [2026-04-14] If user wants to explicitly deal with the newly inserted memblock
+		// (e.g. construct new C++ object within etc), he can pass array==NULL, so that
+		// the newly inserted memblock is considered uninitialized data.
+	}
 
 	return E_Success;
 }

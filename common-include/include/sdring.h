@@ -1,7 +1,7 @@
 #ifndef __sdring_h_
 #define __sdring_h_
 #define __sdring_h_created_ 20251225_
-#define __sdring_h_updated_ 20260408_
+#define __sdring_h_updated_ 20260414_
 
 
 // Hint: Extra helper: makeTstring.h
@@ -12,11 +12,9 @@ class sdring
 public:
 	static int bufSize_(int nchars){ return nchars+1; }
 
-	sdring(int nchars=0)
+	sdring(int nchars)
 	{
-		m_nchars = 0;
-		m_buf = nullptr;
-
+		_ct0r();
 		if(nchars>0)
 			setbufsize(nchars);
 	}
@@ -25,53 +23,59 @@ public:
 		_ctor(instr);
 	}
 
-	sdring(const sdring& ins)            // copy-ctor
+public:
+	// boilerplate code, no need to modify >>>
+	sdring() {	_ct0r(); }
+	~sdring()
 	{
-		_ctor(ins.getptr());
+		_dtor(); 
+		_ct0r();
 	}
-	
-	sdring& operator=(const T_CHAR *instr)
+	sdring(const sdring& old)            // copy-ctor
 	{
-		delete[] m_buf;
-		_ctor(instr);
-		return *this;
+		_copy_from_old(old); 
 	}
-
-	sdring& operator=(const sdring& ins) // copy-assign
-	{
-		delete[] m_buf;
-		_ctor(ins);
-		return *this;
-	}
-
-	void _steal_from_old(sdring& old)
-	{
-		this->m_buf = old.m_buf;
-		this->m_nchars = old.m_nchars;
-
-		old.m_buf = nullptr;
-		old.m_nchars = 0;
-	}
-
-	sdring(sdring&& old)            // move-ctor
-	{
-		_steal_from_old(old);
-	}
-
-	sdring& operator=(sdring&& old) // move-assign
+	sdring& operator=(const sdring& old) // copy-assign
 	{
 		if (this != &old) {
-			delete[] this->m_buf;
-			_steal_from_old(old);
+			_dtor();
+			_copy_from_old(old);
 		}
 		return *this;
 	}
-
-	~sdring() 
+	sdring(sdring&& old)            // move-ctor
 	{
-		delete[] m_buf;
-		m_buf = nullptr;
-		m_nchars = 0;
+		_steal_from_old(old);
+		old._ct0r();
+	}
+	sdring& operator=(sdring&& old) // move-assign
+	{
+		if (this != &old) {
+			_dtor();
+			_steal_from_old(old);
+			old._ct0r();
+		}
+		return *this;
+	}
+	// boilerplate code, no need to modify <<<
+
+private:
+	void _copy_from_old(const sdring& old) 
+	{
+		_ctor(old.m_buf);
+	}
+
+	void _steal_from_old(sdring& old) {
+		m_buf = old.m_buf;
+		m_nchars = old.m_nchars;
+	}
+
+public:
+	sdring& operator=(const T_CHAR *instr)
+	{
+		_dtor();
+		_ctor(instr);
+		return *this;
 	}
 
 	const T_CHAR* c_str() const {
@@ -179,8 +183,7 @@ private:
 		// and
 		//	instr[0]=='\0'
 
-		m_nchars = 0;
-		m_buf = nullptr;
+		_ct0r();
 
 		if (instr)
 		{
@@ -242,6 +245,17 @@ public:
 private:
 	int m_nchars;
 	T_CHAR* m_buf; // buffer size is m_nchars+1
+
+private:
+	void _ct0r() 
+	{
+		m_buf = nullptr;
+		m_nchars = 0;
+	}
+	void _dtor()
+	{
+		delete[] m_buf;
+	}
 };
 
 

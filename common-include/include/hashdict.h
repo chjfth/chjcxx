@@ -1,6 +1,7 @@
 #ifndef __CHHI__hashdict_h_
+#define __CHHI__hashdict_h_
 #define __CHHI__hashdict_h_created_ 20260404
-#define __CHHI__hashdict_h_updated_ 20260411
+#define __CHHI__hashdict_h_updated_ 20260414
 
 #include <new>
 #include <ps_TCHAR.h>
@@ -66,9 +67,10 @@ class hashdict
 #endif
 
 public:
-	hashdict(const TCHAR *dbgsig=nullptr) { _ctor(dbgsig); }
-
-	virtual ~hashdict() { _dtor(); }
+	hashdict(const TCHAR *dbgsig) { 
+		_ct0r();
+		m_dbgsig = dbgsig;
+	}
 
 	// set(): Return the object(pointer) of the TU object managed by hashdict, 
 	// different than the input object.
@@ -104,7 +106,14 @@ public:
 	// -- Note: recv_old_value is a reference, not `TU** ppOldValue`,
 	//          This eliminate user's hassle of `delete *ppOldValue` later.
 
-	class enumor // dict-key enumorator
+	bool compact(); // reduce memory consumed by hashdict, clearing out all dummies
+
+	void set_dbgsig(const TCHAR *dbgsig) { m_dbgsig = dbgsig; }
+	const TCHAR* dbgsig() { return m_dbgsig ? m_dbgsig.c_str() : _T(""); }
+
+	////////
+
+	class enumor // dict-key enumerator
 	{
 	public:
 		enumor(hashdict &dict) : m_dict(dict) 
@@ -151,6 +160,43 @@ public:
 	};
 
 	void ReportState(ReportState_st *pout);
+
+public:
+	// boilerplate code, no need to modify >>>
+	hashdict() { _ct0r(); }
+	virtual ~hashdict() { _dtor(); }
+	//
+	hashdict(const hashdict& old)            // copy-ctor
+	{
+		_copy_from_old(old); 
+	}
+	hashdict& operator=(const hashdict& old) // copy-assign
+	{
+		if (this != &old) {
+			_dtor();
+			_copy_from_old(old);
+		}
+		return *this;
+	}
+	hashdict(hashdict&& old)            // move-ctor
+	{
+		_steal_from_old(old);
+		old._ct0r();
+	}
+	hashdict& operator=(hashdict&& old) // move-assign
+	{
+		if (this != &old) {
+			_dtor();
+			_steal_from_old(old);
+			old._ct0r();
+		}
+		return *this;
+	}
+	// boilerplate code, no need to modify <<<
+
+private:
+	void _copy_from_old(const hashdict& old);
+	void _steal_from_old(hashdict& old);
 
 private:
 	enum DictFlag_et 
@@ -226,6 +272,9 @@ private:
 private:
 	void _ctor(const TCHAR *dbgsig);
 	void _dtor();
+	
+	bool is_dumb() { return m_dict_width==0; }
+	void init_if_dumb();
 
 	int RequestTroveEntry(); // Return idx of the "new" trove, may cause trove compact
 
@@ -258,7 +307,7 @@ public: // debugging purpose
 	}
 
 	void SetDictWidth(int width) { // change dict's slot-capacity
-		assert(width!=m_dict_width);
+//		assert(width!=m_dict_width);
 		assert(m_slots_active<=int_pow(2, width));
 		m_dict_width = width;
 		m_slots_capacity = int_pow(2, m_dict_width);
@@ -300,21 +349,33 @@ private:
 	DictFlag_et m_dictflags;
 
 	Sdring m_dbgsig;
-	const TCHAR* dbgsig() { return m_dbgsig ? m_dbgsig.c_str() : _T(""); }
-};
+
+private:
+	void _ct0r()
+	{
+		m_dict_width = m_hashmask = m_slots_capacity = 0;
+		m_slots_active = m_slots_dummy = m_slots_highmark = 0;
+		m_resize_pct = 0;
+		
+		m_trove_capacity = m_trove_ploughs = m_trove_dummies = 0;
+		m_enuming_sessions = 0;
+		m_dictflags = DF_none;
+
+		vaDBG2(_T("{%s}hashdict() ct0r. this@<%p>."), dbgsig(), this);
+	}
+
+}; // class hashdict
 
 
 template<typename TU> 
-void hashdict<TU>::_ctor(const TCHAR *in_dbgsig)
+void hashdict<TU>::init_if_dumb()
 {
-	m_dbgsig = in_dbgsig;
-	vaDBG2(_T("{%s}hashdict() ctor. this@<%p>."), dbgsig(), this);
+	// note: _ct0r() should have been called
 
-	m_slots_capacity = 0;
-	m_slots_active = m_slots_dummy = 0;
-	m_dict_width = 0;
-	SetDictWidth(InitialDictWidth);
-	m_slots_highmark = 0;
+	if(!is_dumb())
+		return; // already initialized
+
+	SetDictWidth(InitialDictWidth); // fill m_slots_capacity etc
 
 	m_resize_pct = PctFullToResize;
 
@@ -323,9 +384,6 @@ void hashdict<TU>::_ctor(const TCHAR *in_dbgsig)
 
 	msa_trove.SetTrait(0x7FFFffff, 1, 1, 0);
 	m_trove_capacity = m_trove_ploughs = m_trove_dummies = 0;
-
-	m_enuming_sessions = 0;
-	m_dictflags = DF_none;
 
 	assert(ShrinkLowMark <= int_pow(2, InitialDictWidth));
 }
@@ -359,6 +417,61 @@ void hashdict<TU>::_dtor()
 		trovent.uvalue.~TU();
 	}
 }
+
+template<typename TU> 
+void hashdict<TU>::_copy_from_old(const hashdict& old)
+{
+	m_dict_width = old.m_dict_width;
+	m_hashmask = old.m_hashmask;
+	m_slots_capacity = old.m_slots_capacity;
+
+	m_slots_active = old.m_slots_active;
+	m_slots_dummy = old.m_slots_dummy;
+	m_slots_highmark = m_slots_active;
+
+	m_resize_pct = old.m_resize_pct;
+
+	msa_slots = old.msa_slots;
+
+	msa_trove = old.msa_trove;
+
+	m_trove_capacity = old.m_trove_capacity;
+	m_trove_ploughs = old.m_trove_ploughs;
+	m_trove_dummies = old.m_trove_dummies;
+
+	m_enuming_sessions = 0; // Not copy from old
+	m_dictflags = DF_none;
+
+	m_dbgsig = old.m_dbgsig;
+}
+
+template<typename TU> 
+void hashdict<TU>::_steal_from_old(hashdict& old)
+{
+	m_dict_width = old.m_dict_width;
+	m_hashmask = old.m_hashmask;
+	m_slots_capacity = old.m_slots_capacity;
+
+	m_slots_active = old.m_slots_active;
+	m_slots_dummy = old.m_slots_dummy;
+	m_slots_highmark = m_slots_active;
+
+	m_resize_pct = old.m_resize_pct;
+
+	msa_slots = std::move(old.msa_slots);
+
+	msa_trove = std::move(old.msa_trove);
+
+	m_trove_capacity = old.m_trove_capacity;
+	m_trove_ploughs = old.m_trove_ploughs;
+	m_trove_dummies = old.m_trove_dummies;
+
+	m_enuming_sessions = 0; // Not copy from old
+	m_dictflags = DF_none;
+
+	m_dbgsig = std::move(old.m_dbgsig);
+}
+
 
 template<typename TU> 
 TU* hashdict<TU>::SetKey(const TCHAR *in_key, TU&& in_value, bool is_overwrite)
@@ -507,6 +620,9 @@ TU* hashdict<TU>::get(const TCHAR *in_key)
 	if(! (in_key && in_key[0]) )
 		return nullptr;
 
+	if(is_dumb())
+		return nullptr;
+
 	Uint64 in_hashfull = cal_hashfull(in_key);
 	Uint32 in_hashtail = (Uint32)in_hashfull & m_hashmask;
 
@@ -591,8 +707,6 @@ void hashdict<TU>::CheckToCompactSlotAndTrove()
 
 			SetDictWidth(InitialDictWidth);
 
-			// Compact Trove
-
 			CompactTrove();
 
 			m_slots_highmark = m_slots_active;
@@ -610,6 +724,28 @@ void hashdict<TU>::CheckToCompactSlotAndTrove()
 		
 		Bitfields_TurnOn(m_dictflags, DF_PendingShrink);
 	}
+}
+
+template<typename TU> 
+bool hashdict<TU>::compact() // [2026-04-14] untested yet
+{
+	if(is_dumb())
+		return true;
+
+	if(m_enuming_sessions>0)
+	{
+		vaDBG1(_T("hashdict::compact() cannot do compact now bcz someone is enumerating the dict."));
+		return false;
+	}
+
+	// check minimum dict_width 
+	int dict_width = InitialDictWidth;
+	while( (1<<dict_width) < m_slots_active )
+		dict_width++;
+
+	SetDictWidth(dict_width);
+	bool succ = CompactTrove();
+	return succ;
 }
 
 template<typename TU> 
@@ -642,6 +778,9 @@ bool hashdict<TU>::del(const TCHAR *in_key, TU& recv_old_value)
 template<typename TU> 
 bool hashdict<TU>::in_del(const TCHAR *in_key, bool is_recv_old, TU& recv_old_value)
 {
+	if(is_dumb())
+		return false;
+
 	// Return: If in_key is found and deleted.
 
 	Uint64 in_hashfull = cal_hashfull(in_key);
