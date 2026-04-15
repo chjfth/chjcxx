@@ -1,7 +1,14 @@
 #ifndef __CHHI__hashdict_h_
 #define __CHHI__hashdict_h_
 #define __CHHI__hashdict_h_created_ 20260404
-#define __CHHI__hashdict_h_updated_ 20260414
+#define __CHHI__hashdict_h_updated_ 20260415
+
+#include <CxxVerCheck.h>
+#ifdef _MSC_VER
+#ifndef VC2015_OR_NEWER
+#error This libcode needs VC2015 or newer. VC2010 has bug on move-assignment code generation.
+#endif
+#endif
 
 #include <new>
 #include <ps_TCHAR.h>
@@ -254,6 +261,7 @@ private:
 		Sdring key;
 		TU uvalue;
 
+/*
 		trove_entry_st& operator=(trove_entry_st&& old) // move-assign
 		{
 			if (this != &old) 
@@ -265,6 +273,7 @@ private:
 			}
 			return *this;
 		}
+*/
 	};
 
 	typedef unsigned int Uint32;
@@ -1015,7 +1024,7 @@ bool hashdict<TU>::RebuildSlotsFromTrove(int new_dict_width)
 template<typename TU> 
 bool hashdict<TU>::CompactTrove()
 {
-	vaDBG3(_T("{%s}hashdict::CompactTrove() capacity/dirty/dummy was %d/%d/%d, will compat to dirties=%d"), dbgsig(), 
+	vaDBG3(_T("{%s}hashdict::CompactTrove() capacity/ploughs/dummy was %d/%d/%d, will compat to ploughs-dummy=%d"), dbgsig(), 
 		m_trove_capacity, m_trove_ploughs, m_trove_dummies, m_trove_ploughs-m_trove_dummies);
 
 	// Purge all dummy trove-entries, then rebuild slots from the fresh trove.
@@ -1179,8 +1188,8 @@ void hashdict<TU>::enumor::DecreaseSessionCount()
 
 // >>> Include headers required by this lib's implementation
 
-#include <commdefs.h> // for Uint, Uint64, enum bitwise-OR etc
-#include <snTprintf.h>
+//#include <commdefs.h> // for Uint, Uint64, enum bitwise-OR etc
+//#include <snTprintf.h>
 
 // <<< Include headers required by this lib's implementation
 
