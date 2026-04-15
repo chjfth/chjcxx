@@ -1085,13 +1085,13 @@ void hashdict<TU>::ReportState(ReportState_st *pout)
 	st.slots_active   = m_slots_active;
 	st.slots_dummy    = m_slots_dummy;
 	st.slot_datasize  = sizeof(slot_st);
-	st.slots_memuse64 = __int64(st.slots_capacity) * st.slot_datasize;
+	st.slots_memuse64 = (__int64)(st.slots_capacity) * st.slot_datasize;
 
 	st.trove_capacity   = m_trove_capacity;
 	st.trove_active     = m_trove_capacity - m_trove_dummies;
 	st.trove_dummies    = m_trove_dummies;
 	st.trovent_datasize = sizeof(trove_entry_st);
-	st.trove_memuse64   = __int64(st.trove_capacity) * st.trovent_datasize;
+	st.trove_memuse64   = (__int64)(st.trove_capacity) * st.trovent_datasize;
 
 	st.total_memuse64 = st.slots_memuse64 + st.trove_memuse64 + sizeof(this);
 }

@@ -1,10 +1,10 @@
 // This is included by parent directory makeTsdring.h .
 // Do not compile this file alone.
 
-//#include <tchar.h>
 #include <assert.h>
 #include <stdio.h>
 #include <iconv.h> // Linux glibc
+#include <wchar.h> // wcslen()
 
 #include <commdefs.h>
 #include <linux/msvc_extras.h>

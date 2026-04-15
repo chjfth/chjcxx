@@ -1,1 +1,2 @@
-// [2026-04-07]  This file is deliberately empty for MSVC.
+
+#include <tchar.h> // to provide _tprintf() etc

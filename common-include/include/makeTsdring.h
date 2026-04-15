@@ -4,7 +4,7 @@
 #define __CHHI__makeTsdring_h_updated_ 20260406
 
 
-#include <tchar.h>
+#include <ps_TCHAR.h>
 #include <sdring.h>
 
 

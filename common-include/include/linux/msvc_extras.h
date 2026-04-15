@@ -3,8 +3,9 @@
 
 // This file brings those useful MSVC header stuff onto Linux.
 
-
+#ifndef __int64
 #define __int64 long long
+#endif
 
 
 extern"C++"
