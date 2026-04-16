@@ -147,6 +147,13 @@ public:
 		bool m_is_end;
 	}; // class enumor
 
+	enumor get_enumor()
+	{
+		return enumor(*this);
+	}
+
+	////////
+
 	struct ReportState_st
 	{
 		int StructSize; // struct ver identification, caller input
