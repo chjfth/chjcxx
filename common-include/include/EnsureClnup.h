@@ -1,5 +1,7 @@
-#ifndef __EnsureClnup_h_20250427_
-#define __EnsureClnup_h_20250427_
+#ifndef __EnsureClnup_h_
+#define __EnsureClnup_h_
+#define __EnsureClnup_h_created_ 20100101
+#define __EnsureClnup_h_updated_ 20260416
 
 /* Jimm Chen from around 2010:
  The idea comes from Jeffrey Richter's CEnsureCleanup template class, 
@@ -11,6 +13,8 @@
 
 	So I did the improvement, many many improvements.
 */
+
+#include <CxxVerCheck.h>
 
 #define ENSURECLNUP_PRESENT
 	// So that outer headers knows this header has been included.
@@ -128,10 +132,7 @@ public:
 		}
 	}
 
-private:
-	// Disable copy-ctor, assignment-ctor (use pre-C++11 syntax so to use in VC2010)
-	CEnsureCleanupPtr(const CEnsureCleanupPtr&);
-	CEnsureCleanupPtr& operator=(const CEnsureCleanupPtr&);
+	CXX_DISABLE_COPY_ASSIGN(CEnsureCleanupPtr)
 };
 
 
@@ -213,10 +214,7 @@ public:
 		}
 	}
 	
-private:
-	// Disable copy-ctor, assignment-ctor (use pre-C++11 syntax so to use in VC2010)
-	CEnsureCleanupData(const CEnsureCleanupData&);
-	CEnsureCleanupData& operator=(const CEnsureCleanupData&);
+	CXX_DISABLE_COPY_ASSIGN(CEnsureCleanupData)
 };
 
 
@@ -271,6 +269,8 @@ public:
 		}
 		delete m_ar;
 	}
+
+	CXX_DISABLE_COPY_ASSIGN(CEnsureCleanupPtrArray)
 };
 
 template<typename USER_TYPE, typename RET_TYPE, RET_TYPE (*pfn)(USER_TYPE), USER_TYPE valInvalid> 
@@ -311,6 +311,8 @@ public:
 		}
 		delete m_ar;
 	}
+
+	CXX_DISABLE_COPY_ASSIGN(CEnsureCleanupIntArray)
 };
 
 

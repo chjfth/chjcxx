@@ -20,17 +20,6 @@
 #endif // C++14
 
 
-// Some C++ keyword name alias for older vers
-#ifdef CXX11_OR_NEWER
-
-#define cxx11_override override
-
-#else
-
-#define cxx11_override
-
-#endif // CXX11_OR_NEWER
-
 
 /*
 	__     ___                 _    ____            
@@ -67,5 +56,35 @@
 
 #endif // _MSC_VER
 
+
+
+/*
+	 _   _   _     _   _   _   _           
+	| | | | | |_  (_) | | (_) | |_   _   _ 
+	| | | | | __| | | | | | | | __| | | | |
+	| |_| | | |_  | | | | | | | |_  | |_| |
+	 \___/   \__| |_| |_| |_|  \__|  \__, |
+									 |___/ 
+*/
+
+
+// Some C++ keyword name alias for older vers
+#ifdef CXX11_OR_NEWER
+	#define cxx11_override override
+#else
+	#define cxx11_override
+#endif // CXX11_OR_NEWER
+
+
+#ifdef CXX11_OR_NEWER
+	#define CXX_DISABLE_COPY_ASSIGN(ClassName) \
+		ClassName(const ClassName&) = delete; \
+		ClassName& operator=(const ClassName&) = delete; 
+#else
+	#define CXX_DISABLE_COPY_ASSIGN(ClassName) \
+	private: \
+		ClassName(const ClassName&); \
+		ClassName& operator=(const ClassName&); 
+#endif // CXX11_OR_NEWER
 
 #endif
