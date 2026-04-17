@@ -115,6 +115,8 @@ public:
 
 	bool compact(); // reduce memory consumed by hashdict, clearing out all dummies
 
+	bool clear(); // zero-out this dict
+
 	void set_dbgsig(const TCHAR *dbgsig) { m_dbgsig = dbgsig; }
 	const TCHAR* dbgsig() { return m_dbgsig ? m_dbgsig.c_str() : _T(""); }
 
@@ -289,6 +291,8 @@ private:
 	void _ctor(const TCHAR *dbgsig);
 	void _dtor();
 	
+	void _clear();
+	
 	bool is_dumb() { return m_dict_width==0; }
 	void init_if_dumb();
 
@@ -407,31 +411,53 @@ void hashdict<TU>::init_if_dumb()
 template<typename TU> 
 void hashdict<TU>::_dtor()
 {
-	vaDBG2(_T("{%s}hashdict() dtor. this@<%p>. Remnant keys: %d"), 
+	vaDBG2(_T("{%s}hashdict() _dtor. this@<%p>. Remnant keys: %d"), 
 		dbgsig(), this,	m_slots_active);
+
+	if(m_enuming_sessions>0)
+	{
+		vaDBG0(_T("hashdict::_dtor() PANIC! User deletes this object while enumerating is ongoing."));
+		// We must go on executing dtor, no return here.
+	}
 	
 	m_dbgsig = nullptr;
 
-	if(m_trove_capacity>0)
+	_clear();
+}
+
+template<typename TU>
+void hashdict<TU>::_clear()
+{
+	if (m_trove_capacity > 0)
 	{
-		assert(msa_trove[m_trove_capacity-1].state==TroventEmpty
-			&& msa_trove[m_trove_capacity-1].hashfull==InvalidHash64);
+		assert(msa_trove[m_trove_capacity - 1].state == TroventEmpty
+			&& msa_trove[m_trove_capacity - 1].hashfull == InvalidHash64);
 	}
 
-	for(int i=0; i<m_trove_ploughs; i++)
+	// cleanup trovent's alien resources
+
+	for (int i = 0; i < m_trove_ploughs; i++)
 	{
 		trove_entry_st &trovent = msa_trove[i];
-		if(trovent.state==TroventDummy)
+		if (trovent.state == TroventDummy)
 			continue;
 
-		assert(trovent.state==TroventInUse);
+		assert(trovent.state == TroventInUse);
 
-		vaDBG3(_T("  [idxTrove#%d]Freeing key \"%s\", value@<%p>"), 
+		vaDBG3(_T("  [idxTrove#%d]Freeing key \"%s\", value@<%p>"),
 			i, trovent.key.c_str(), &trovent.uvalue);
 
 		trovent.key.~sdring();
 		trovent.uvalue.~TU();
 	}
+
+	// cleanup the two TScalableArray
+	msa_trove.Cleanup();
+	msa_slots.Cleanup();
+
+	// reset the object to dumb state
+	_ct0r();
+	assert(is_dumb());
 }
 
 template<typename TU> 
@@ -750,7 +776,7 @@ bool hashdict<TU>::compact() // [2026-04-14] untested yet
 
 	if(m_enuming_sessions>0)
 	{
-		vaDBG1(_T("hashdict::compact() cannot do compact now bcz someone is enumerating the dict."));
+		vaDBG1(_T("hashdict::compact() cannot do it now bcz someone is enumerating the dict."));
 		return false;
 	}
 
@@ -762,6 +788,22 @@ bool hashdict<TU>::compact() // [2026-04-14] untested yet
 	SetDictWidth(dict_width);
 	bool succ = CompactTrove();
 	return succ;
+}
+
+template<typename TU>
+bool hashdict<TU>::clear()
+{
+	if (is_dumb())
+		return true;
+
+	if (m_enuming_sessions > 0)
+	{
+		vaDBG1(_T("hashdict::clear() cannot do it now bcz someone is enumerating the dict."));
+		return false;
+	}
+
+	_clear();
+	return true;
 }
 
 template<typename TU> 

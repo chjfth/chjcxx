@@ -34,8 +34,10 @@ namespace fsapi {
 ////////////////////////////////////////////////////////////////////////////
 // Place API function declarations in this namespace.
 
-enum fserror_et 
+enum fserror_et
 {
+	// Error code here MUST be negative.
+	
 	E_success = 0,
 	E_unknown = -1,
 	E_bad_param = -2,
@@ -96,6 +98,7 @@ fserror_et file_setsize(filehandle_t fh, __int64 newsize);
 // -- On success, seek pointer is placed at the newsize.
 
 __int64 file_getsize(filehandle_t fh);
+// -- Return fserror_et on error.
 
 
 

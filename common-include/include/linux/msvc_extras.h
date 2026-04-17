@@ -21,6 +21,7 @@ char (*
 /////////////////////////////////////////////////////////////////////////////
 #if !defined(_UNICODE)
 
+#define _tmain       main
 #define _tprintf     printf
 
 #endif // !defined(_UNICODE)

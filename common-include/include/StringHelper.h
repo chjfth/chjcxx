@@ -12,12 +12,12 @@ inline bool StringSplitter_IsCrlf(int charval)
 	return (charval == '\r' || charval == '\n') ? true : false;
 }
 
-inline bool StringSplitter_TrimSpacechar(int charval)
+inline bool StringSplitter_IsSpacechar(int charval)
 {
 	return (charval == ' ') ? true : false;
 }
 
-inline bool StringSplitter_TrimSpaceTab(int charval)
+inline bool StringSplitter_IsSpaceTab(int charval)
 {
 	return (charval == ' ' || charval == '\t') ? true : false;
 }

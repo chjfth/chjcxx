@@ -20,23 +20,23 @@ char* mTs_char_from_wchar(int codepage, const wchar_t* instr, int *p_outchars_=n
 
 wchar_t* mTs_wchar_from_char(int codepage, const char* instr, int *p_outwchars_=nullptr); // OS specific
 
-enum { mTs_UTF8 = 65001 };
+enum { mTs_SysDefault = 0, mTs_UTF8 = 65001 };
 
 
 // sdring<TCHAR> from char*
-sdring<TCHAR> makeTsdring(const char *instr, int codepage=0);
-sdring<TCHAR> makeTsdring(sdring<char>&& instr, int codepage=0);
+sdring<TCHAR> makeTsdring(const char *instr, int codepage=mTs_SysDefault);
+sdring<TCHAR> makeTsdring(sdring<char>&& instr, int codepage=mTs_SysDefault);
 
 // sdring<TCHAR> from wchar_t*
-sdring<TCHAR> makeTsdring(const wchar_t *instr, int codepage=0);
-sdring<TCHAR> makeTsdring(sdring<wchar_t>&& instr, int codepage=0);
+sdring<TCHAR> makeTsdring(const wchar_t *instr, int codepage=mTs_SysDefault);
+sdring<TCHAR> makeTsdring(sdring<wchar_t>&& instr, int codepage=mTs_SysDefault);
 
 // sdring<char> from TCHAR*
-sdring<char> makeAsdring(const TCHAR *instr, int codepage=0);
-sdring<char> makeAsdring(sdring<TCHAR>&& instr, int codepage=0);
+sdring<char> makeAsdring(const TCHAR *instr, int codepage=mTs_SysDefault);
+sdring<char> makeAsdring(sdring<TCHAR>&& instr, int codepage=mTs_SysDefault);
 
 // sdring<wchar_t> from TCHAR*
-sdring<wchar_t> makeWsdring(const TCHAR *instr, int codepage=0);
+sdring<wchar_t> makeWsdring(const TCHAR *instr, int codepage=mTs_SysDefault);
 
 
 #define makeTsdring_UTF8(s) makeTsdring(s, mTs_UTF8)
