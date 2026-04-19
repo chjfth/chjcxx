@@ -91,12 +91,12 @@ Sdring split(const TCHAR* inputpath, Sdring& outfilenam)
 #endif
 	if (pfilenam)
 	{
+		// found a \ .
 		pfilenam++;
-		// found a \ 
 
 		Sdring dirpart(inputpath, pfilenam-inputpath);
 
-		if (*pfilenam) // some char after the \ 
+		if (*pfilenam) // some char after the \ .
 		{
 			outfilenam = Sdring(pfilenam);
 		}
