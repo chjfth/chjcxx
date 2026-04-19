@@ -43,42 +43,15 @@ typedef int RE_CODE;
 #define BUFSIZE_0 0
 
 
-// 2002-9-24: Because I am fond of using "unsigned char" as default char type,
-//while some compiler(including VC) does not support "unsigned char" as default
-//"char" type, I have to explicitly define the two macros to deal with the
-//consequent conversion.
-# define _C(str) ((char*)(str))
-# define _UC(str) ((unsigned char*)(str))
-
 // Get the offset-value of `Member' in struct `Struct'
 #if defined REQUIRE_offsetof && !defined(offsetof)
 # define offsetof(Struct, Member) ( (int)& ((Struct*)0) -> Member )
 #endif
 // Note: VC++6 & ARM SDT have defined this in STDDEF.H
 
-// Get the element quantity of an array
-#define GetEleQuan(array) ( sizeof(array)/sizeof(array[0]) )
-	// Note that GetEleQuan() "returns" a unsigned int value !
-#define GetEleQuan_i(array) ((int)GetEleQuan(array))
-
-// Get the Index into a 2D array by giving `y', `countx', and `x'
-#define GI2D(y,countx,x) ((y)*(countx)+(x))
-#define GI2D_L(y,countx,x) ((long)(y)*(countx)+(x))
-
 # define SUCCESS_0 0 //for some lib-function return 0 on success
 # define NOERROR_0 0
 # define FAIL__1 (-1)
-
-typedef int SorF;	// SorF means Success or Fail.
-# define SUCCESS_1 1
-# define FAIL_0 0
-
-typedef int TorF;	// TorF means True or False
-#if !(defined FALSE) && !(defined TRUE)
-	// I think nobody will let TRUE=0 and FAIL=1
-# define FALSE 0
-# define TRUE 1
-#endif 
 
 typedef int YorN;
 #if !(defined YES) && !(defined NO)
@@ -89,7 +62,7 @@ typedef int YorN;
 
 #define FREE_MALLOCED(p) \
 	do{ if(p){free(p); p=0;} }while(0)
-#define FREE_MALLOCED_E FREE_MALLOCED
+
 
 #define CALL_IF_PRESENT(pFunc, ParamList) do{ if(pFunc) pFunc ParamList; }while(0)
 	// call the function pointed to by `pFunc' if `pFunc' is not NULL.
