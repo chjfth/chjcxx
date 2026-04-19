@@ -1,6 +1,7 @@
-#ifndef __StringHelper_h_20250426_
-#define __StringHelper_h_20250426_
-#define __StringHelper_h_updated_ 20260409
+#ifndef __StringHelper_h_
+#define __StringHelper_h_
+#define __StringHelper_h_created_ 20250426
+#define __StringHelper_h_updated_ 20260419
 
 #include <assert.h>
 #include <CxxVerCheck.h>
@@ -30,51 +31,52 @@ inline bool StringSplitter_TrimNone(int)
 template<
 	typename TString, // can be char* or wchar_t*, or any type that supports operator[] 
 	bool IsSplitterChar(int charval) = StringSplitter_IsCrlf,
-	bool IsTrimChar(int charval) = StringSplitter_TrimNone
+	bool IsTrimChar(int charval) = StringSplitter_TrimNone,
+	bool want_null_split = false
 	>
 	// Difference of splitter-char and trim-char: If trim-char appears inside a substring,
 	// for example, a space-char inside " United States ", it will not be trimmed. 
 	// So the produced substring is "United States".
+	// Note: If a char is splitter-char, it should NOT also be a trim-char.
 class StringSplitter
 {
 public:
 	StringSplitter(const TString &s, int startpos=0, int scanlen=-1)
 		: m_str(s), m_startpos(startpos)
 	{
-		m_nowpos = m_startpos;
-		//vaDbgTs(_T("StringSplitter.ctor(), &s=<%p>"), &s);
-
 		if(scanlen>=0)
 		{
-			m_endpos_ = m_nowpos + scanlen;
+			m_endpos_ = startpos + scanlen;
 		}
 		else 
 		{	// m_endpos determined by NUL char
-			m_endpos_ = m_nowpos;
+			m_endpos_ = startpos;
 			while( m_str[m_endpos_] != '\0' )
 				m_endpos_++;
 		}
 
-		SkipSpiltterTrimChars();
+		reset();
 	}
 
 	void reset()
 	{
 		m_nowpos = m_startpos;
-		SkipSpiltterTrimChars();
+		m_next_done = false;
 	}
 
 	int next(int *p_nowlen=nullptr)
 	{
 		SETTLE_OUTPUT_PTR(int, p_nowlen, 0)
 
-		// Returns an offset value that points to the next sub-string.
-		// *p_nowlen tells the length of the sub-string.
+		// Return an offset value that points to the next sub-string.
+		// *p_nowlen tells the length of this-return's sub-string.
 
-		if (IsEnd())
+		if (m_next_done)
 			return -1;
 
-		assert(!IsSplitterChar(m_str[m_nowpos]) && !IsTrimChar(m_str[m_nowpos]));
+// 		assert(!IsTrimChar(m_str[m_nowpos]));
+// 		if(!want_null_split)
+// 			assert(!IsSplitterChar(m_str[m_nowpos]));
 
 		// We're at a substring start, now scan for word length.
 
@@ -87,16 +89,38 @@ public:
 				// Meet substring end.
 				// Scan backward and drop those trailing trim-chars.
 
-				int tailpos = m_nowpos;
-				while (IsTrimChar(m_str[tailpos - 1]))
-					tailpos--;
+				int tailpos_ = m_nowpos;
 
-				*p_nowlen = tailpos - word_at_pos;
+				if(tailpos_ > word_at_pos)
+				{
+					while (IsTrimChar(m_str[tailpos_ - 1]))
+						tailpos_--;
+				}
+
+				*p_nowlen = tailpos_ - word_at_pos;
 
 				// Hint: We do early rescan for next substring, so that user can have the freedom
-				// to NUL-terminate the current substring.
-				SkipSpiltterTrimChars();
+				// to NUL-terminate the current substring @word_at_pos+nowlen .
 
+				if (IsEnd())
+				{
+					m_next_done = true;
+
+					if(!want_null_split && *p_nowlen==0)
+						return -1;
+				}
+				else
+				{
+					m_nowpos++;
+					SkipSpiltterTrimChars();
+				}
+
+				if(!want_null_split && *p_nowlen==0)
+				{
+					word_at_pos = m_nowpos;
+					continue;
+				}
+				
 				return word_at_pos;
 			}
 			else
@@ -131,12 +155,15 @@ private:
 
 	void SkipSpiltterTrimChars() // changes m_nowpos
 	{
-		for(;;)
+		for (;;)
 		{
-			if(IsEnd())
+			if (IsEnd())
 				return;
 
-			if( IsSplitterChar(m_str[m_nowpos]) || IsTrimChar(m_str[m_nowpos]))
+			if(want_null_split && IsSplitterChar(m_str[m_nowpos]))
+				return;
+
+			if (IsTrimChar(m_str[m_nowpos]) || IsSplitterChar(m_str[m_nowpos]))
 				m_nowpos++;
 			else
 				return;
@@ -149,6 +176,8 @@ private:
 	int m_startpos;
 	int m_nowpos;
 	int m_endpos_;
+
+	bool m_next_done;
 };
 
 /* Example usage:
