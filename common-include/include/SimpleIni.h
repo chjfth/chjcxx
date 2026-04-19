@@ -143,15 +143,15 @@ public:
 	// boilerplate code, no need to modify >>>
 	CIniOp() { _ct0r(); }            //////////////
 	virtual ~CIniOp()                //////////////
-	{                                 //////////////
-		_dtor();                      //////////////
-		_ct0r();                      //////////////
-	}                                 //////////////
-	CIniOp(const CIniOp& old)            // copy-ctor
+	{                                //////////////
+		_dtor();                     //////////////
+		_ct0r();                     //////////////
+	}                                //////////////
+	CIniOp(const CIniOp& old)              // copy-ctor
 	{                                      //////////////
 		_copy_from_old(old);               //////////////
 	}                                      //////////////
-	CIniOp& operator=(const CIniOp& old) // copy-assign
+	CIniOp& operator=(const CIniOp& old)   // copy-assign
 	{                                      //////////////
 		if (this != &old) {                //////////////
 			_dtor();                       //////////////
@@ -159,12 +159,12 @@ public:
 		}                                  //////////////
 		return *this;                      //////////////
 	}                                      //////////////
-	CIniOp(CIniOp&& old)            // move-ctor
+	CIniOp(CIniOp&& old)              // move-ctor
 	{                                 //////////////
 		_steal_from_old(old);         //////////////
 		old._ct0r();                  //////////////
 	}                                 //////////////
-	CIniOp& operator=(CIniOp&& old) // move-assign
+	CIniOp& operator=(CIniOp&& old)   // move-assign
 	{                                 //////////////
 		if (this != &old) {           //////////////
 			_dtor();                  //////////////
@@ -271,13 +271,23 @@ inline bool Is_equal_sign(int charval)
 	return charval=='=' ? true : false;
 }
 
+inline bool IsSplitLf(int charval)
+{
+	return charval=='\n' ? true : false;
+}
+
+inline bool IsTrimCr(int charval)
+{
+	return charval=='\r' ? true : false;
+}
+
 struct KVcontinue // KeyVal line continuation info
 {
 	bool is_prevline_keyval;
-	int vals; // extra value lines accumulated
-	int cmts; // extra comment lines accumulated
+//	int vals; // extra value lines accumulated
+//	int cmts; // extra comment lines accumulated
 
-	void reset() { is_prevline_keyval=false; vals=cmts=0; }
+	void reset() { is_prevline_keyval=false; /*vals=cmts=0;*/ }
 };
 
 using SdringVal = Sdring; // SdringVal imply this is for INI key's value.
@@ -292,22 +302,22 @@ CIniOp::read_initext(const TCHAR *initext, int inilen)
 	hashdict<SdringVal> dict_key_val; // an empty key-val dict
 	m_inidict.set(curSection, dict_key_val);
 
-
-	int comment_key_seq = 0; // virtual key for preserving comment-lines
 	KVcontinue kvc = {};
-
 
 	// Split initext into lines, process them line-by-line.
 
-	StringSplitter<const TCHAR*, StringSplitter_IsCrlf> spgline(initext, 0, inilen);
+	StringSplitter<const TCHAR*, IsSplitLf, IsTrimCr, true> 
+		spgline(initext, 0, inilen);
 	// -- spgline: split to get line(s)
 
-	for (int i=0;; i++)
+	for (int iline=0;;)
 	{
 		int linelen = 0;
 		int linepos = spgline.next(&linelen);
 		if(linepos==-1)
 			break;
+
+		iline++;
 
 		// First check if it is a key=val continuation line(start with a \t)
 
@@ -316,12 +326,12 @@ CIniOp::read_initext(const TCHAR *initext, int inilen)
 			assert(!curKey_fr.is_empty());
 			
 			TCHAR keysuffix[8];
-			snTprintf(keysuffix, _T("#%d"), ++kvc.vals);
+			snTprintf(keysuffix, _T("#%d"), iline);
 			Sdring cont(&initext[linepos+1], linelen-1);
 			
 			Sdring innerKey = curKey_fr + keysuffix;
 
-			vaDBG3(_T("{%s} See continuation line: '%s' = %s"), m_pfilenam, innerKey.c_str(), cont.c_str());
+			vaDBG3(_T("{%s}L#%d See continuation line: '%s' = %s"), m_pfilenam,iline, innerKey.c_str(), cont.c_str());
 
 			dict_key_val.set(innerKey, std::move(cont));
 
@@ -335,8 +345,18 @@ CIniOp::read_initext(const TCHAR *initext, int inilen)
 		while(indents<linelen && Is_leading_blank(initext[linepos+indents]))
 			indents++;
 
-		if(indents == linelen) // meet a empty line
+		if(indents == linelen) // meet an empty line
 		{
+			// To preserve user's empty line, we consider it a virtual empty comment line
+
+			TCHAR keysuffix[8] = {};
+			snTprintf(keysuffix, _T(";%d"), iline);
+			Sdring innerKey = curKey_fr + keysuffix;
+
+			vaDBG3(_T("{%s}L#%d Empty line: '%s' ="), m_pfilenam,iline, innerKey.c_str());
+
+			dict_key_val.set(innerKey, Sdring());
+
 			kvc.is_prevline_keyval = false;
 			continue; 
 		}
@@ -353,20 +373,19 @@ CIniOp::read_initext(const TCHAR *initext, int inilen)
 			if(kvc.is_prevline_keyval)
 			{
 				TCHAR keysuffix[8] = {};
-				snTprintf(keysuffix, _T(";%d"), ++kvc.cmts);
-
+				snTprintf(keysuffix, _T(";%d"), iline);
 				Sdring innerKey = curKey_fr + keysuffix;
 
-				vaDBG3(_T("{%s} See embedded comment line: '%s' = %s"), m_pfilenam, innerKey.c_str(), linetext.c_str());
+				vaDBG3(_T("{%s}L#%d See embedded comment line: '%s' = %s"), m_pfilenam,iline, innerKey.c_str(), linetext.c_str());
 
 				dict_key_val.set(innerKey, std::move(linetext));
 			}
 			else
 			{
 				TCHAR cmtkey[8] = {};
-				snTprintf(cmtkey, _T(";%d"), ++comment_key_seq);
+				snTprintf(cmtkey, _T(";%d"), iline);
 
-				vaDBG3(_T("{%s} See standalone comment line: '%s' = %s"), m_pfilenam, cmtkey, linetext.c_str());
+				vaDBG3(_T("{%s}L#%d See standalone comment line: '%s' = %s"), m_pfilenam,iline, cmtkey, linetext.c_str());
 				
 				dict_key_val.set(cmtkey, std::move(linetext));
 			}
@@ -383,7 +402,7 @@ CIniOp::read_initext(const TCHAR *initext, int inilen)
 			curSection = linetrimd.trim(_T("[]"), 2);
 			m_inidict.setdefault(curSection, hashdict<SdringVal>());
 
-			vaDBG3(_T("{%s} See section line: [%s]"), m_pfilenam, curSection.c_str());
+			vaDBG3(_T("{%s}L#%d See section line: [%s]"), m_pfilenam,iline, curSection.c_str());
 
 			curKey_fr = nullptr;
 			kvc.reset();
@@ -411,7 +430,7 @@ CIniOp::read_initext(const TCHAR *initext, int inilen)
 			
 			Sdring sd_val(&linetext[valpos], vallen);
 
-			vaDBG3(_T("{%s} See key-val line: '%s' = %s"), m_pfilenam, curKey_fr.c_str(), sd_val.c_str());
+			vaDBG3(_T("{%s}L#%d See key-val line: '%s' = %s"), m_pfilenam,iline, curKey_fr.c_str(), sd_val.c_str());
 
 			dict_key_val.set(&linetext[keypos], std::move(sd_val));
 
@@ -421,14 +440,12 @@ CIniOp::read_initext(const TCHAR *initext, int inilen)
 
 		// An invalid line is encountered, tap a log.
 
-		vaDBG1(_T("{%s} Meet invalid INI line: %s"), m_pfilenam, linetext.c_str());
+		vaDBG1(_T("{%s}L#%d Meet invalid INI line: %s"), m_pfilenam,iline, linetext.c_str());
 		kvc.reset();
 	}
 
 	return E_Success;
 }
-
-
 
 
 

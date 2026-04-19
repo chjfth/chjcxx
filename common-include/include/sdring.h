@@ -318,7 +318,7 @@ public:
 		return len;
 	}
 
-	static int findchar_in(T_CHAR c, const T_CHAR *in_what, int nwhats) // return c's offst
+	static int findchar_in(T_CHAR c, const T_CHAR *in_what, int nwhats) // return c's offset
 	{
 		for (int i = 0; i < nwhats; i++)
 		{
