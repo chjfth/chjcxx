@@ -94,7 +94,7 @@ Sdring split(const TCHAR* inputpath, Sdring& outfilenam)
 		// found a \ .
 		pfilenam++;
 
-		Sdring dirpart(inputpath, pfilenam-inputpath);
+		Sdring dirpart(inputpath, (int)(pfilenam-inputpath));
 
 		if (*pfilenam) // some char after the \ .
 		{
@@ -108,8 +108,7 @@ Sdring split(const TCHAR* inputpath, Sdring& outfilenam)
 		return dirpart;
 	}
 	else
-	{	// not found any \ 
-
+	{	// not found any \ .
 		outfilenam = inputpath;
 		return nullptr;
 	}

@@ -410,6 +410,7 @@ CIniOp::read_initext(const TCHAR *initext, int inilen)
 		}
 
 		// Check if it is key=value pair
+		vaDBG3(_T("&linetext = %p"), &linetext); // just debug
 
 		int eqs_pos = linetext.findchar('=');
 		if(eqs_pos>=0)
