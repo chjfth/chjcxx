@@ -4,6 +4,7 @@
 #define __CHHI__SimpleIni_h_updated_ 20260419
 
 #include <ps_TCHAR.h>
+#include <sdring.h>
 
 namespace iniop { class CIniOp; }
 
@@ -18,6 +19,15 @@ public:
 		E_FileNotFound = -5,
 		E_FileIo = -6, 
 	};
+
+	static int getversion();
+
+	ReCode_et read(const TCHAR *inifilename);
+
+	Sdrings sections();
+
+	bool has_section(const TCHAR *section_name);
+	Sdrings section_keys(const TCHAR *section_name);
 
 public:
 	// boilerplate code, no need to modify >>>
@@ -63,11 +73,6 @@ private:
 	}
 
 	bool _create_impl();
-
-public:
-	static int getversion();
-
-	ReCode_et read(const TCHAR *inifilename);
 
 	//
 	// Leave below at end of class body
@@ -137,6 +142,8 @@ using namespace chjds; // hashdict in `chjds`
 using namespace fsapi; // from fsapi.h
 using namespace ospath; // from ospath.h
 
+const TCHAR *VIRTUAL_SECTION_0 = _T("_start_");
+
 class CIniOp
 {
 public:
@@ -199,9 +206,16 @@ public:
 
 	ReCode_et read(const TCHAR *inifilepath);
 
+	Sdrings sections();
+
+	bool has_section(const TCHAR *section_name);
+	Sdrings section_keys(const TCHAR *section_name);
+
 private:
 	ReCode_et read_initext(const TCHAR *initext, int inilen);
 
+private:
+	using SdringVal = Sdring; // SdringVal imply this is for INI key's value.
 
 	//
 	// Leave below at end of class body
@@ -213,7 +227,7 @@ private: // data members
 	Sdring m_inifilenam;
 	const TCHAR *m_pfilenam;
 
-	hashdict< hashdict<Sdring> > m_inidict;
+	hashdict< hashdict<SdringVal> > m_inidict;
 
 private:
 	void _ct0r() {
@@ -290,18 +304,18 @@ struct KVcontinue // KeyVal line continuation info
 	void reset() { is_prevline_keyval=false; /*vals=cmts=0;*/ }
 };
 
-using SdringVal = Sdring; // SdringVal imply this is for INI key's value.
-
 CIniOp::ReCode_et
 CIniOp::read_initext(const TCHAR *initext, int inilen)
 {
 	// Prepare a virtual section("_start_" to hold comments at file start.
-	Sdring curSection = _T("_start_");
+
+	// create empty [_start_] kvdict.
+	Sdring curSection = VIRTUAL_SECTION_0;
+	m_inidict.set(VIRTUAL_SECTION_0, hashdict<SdringVal>());
+
+	hashdict<SdringVal> *pCurKvdict = m_inidict.get(VIRTUAL_SECTION_0);
+
 	Sdring curKey_fr; // fr: friendly key, not in form "keyfoo#1" or "keyfoo;1"
-
-	hashdict<SdringVal> dict_key_val; // an empty key-val dict
-	m_inidict.set(curSection, dict_key_val);
-
 	KVcontinue kvc = {};
 
 	// Split initext into lines, process them line-by-line.
@@ -319,6 +333,8 @@ CIniOp::read_initext(const TCHAR *initext, int inilen)
 
 		iline++;
 
+		hashdict<SdringVal> &kvdict = *pCurKvdict; // make a short name
+
 		// First check if it is a key=val continuation line(start with a \t)
 
 		if(kvc.is_prevline_keyval && initext[linepos]=='\t')
@@ -333,7 +349,7 @@ CIniOp::read_initext(const TCHAR *initext, int inilen)
 
 			vaDBG3(_T("{%s}L#%d See continuation line: '%s' = %s"), m_pfilenam,iline, innerKey.c_str(), cont.c_str());
 
-			dict_key_val.set(innerKey, std::move(cont));
+			kvdict.set(innerKey, std::move(cont));
 
 			kvc.is_prevline_keyval = true;
 			continue;
@@ -355,7 +371,7 @@ CIniOp::read_initext(const TCHAR *initext, int inilen)
 
 			vaDBG3(_T("{%s}L#%d Empty line: '%s' ="), m_pfilenam,iline, innerKey.c_str());
 
-			dict_key_val.set(innerKey, Sdring());
+			kvdict.set(innerKey, Sdring());
 
 			kvc.is_prevline_keyval = false;
 			continue; 
@@ -378,7 +394,7 @@ CIniOp::read_initext(const TCHAR *initext, int inilen)
 
 				vaDBG3(_T("{%s}L#%d See embedded comment line: '%s' = %s"), m_pfilenam,iline, innerKey.c_str(), linetext.c_str());
 
-				dict_key_val.set(innerKey, std::move(linetext));
+				kvdict.set(innerKey, std::move(linetext));
 			}
 			else
 			{
@@ -387,7 +403,7 @@ CIniOp::read_initext(const TCHAR *initext, int inilen)
 
 				vaDBG3(_T("{%s}L#%d See standalone comment line: '%s' = %s"), m_pfilenam,iline, cmtkey, linetext.c_str());
 				
-				dict_key_val.set(cmtkey, std::move(linetext));
+				kvdict.set(cmtkey, std::move(linetext));
 			}
 
 			// note: kvc.is_prevline_keyval no change
@@ -406,8 +422,12 @@ CIniOp::read_initext(const TCHAR *initext, int inilen)
 
 			curKey_fr = nullptr;
 			kvc.reset();
+			pCurKvdict = m_inidict.get(curSection);
+
 			continue;
 		}
+
+		// Now it is probably a new key=value line.
 
 		int eqs_pos = linetext.findchar('=');
 		if(eqs_pos>=0)
@@ -433,7 +453,7 @@ CIniOp::read_initext(const TCHAR *initext, int inilen)
 
 			vaDBG3(_T("{%s}L#%d See key-val line: '%s' = %s"), m_pfilenam,iline, curKey_fr.c_str(), sd_val.c_str());
 
-			dict_key_val.set(&linetext[keypos], std::move(sd_val));
+			kvdict.set(curKey_fr, std::move(sd_val));
 
 			kvc.is_prevline_keyval = true;
 			continue;
@@ -449,6 +469,126 @@ CIniOp::read_initext(const TCHAR *initext, int inilen)
 }
 
 
+Sdrings CIniOp::sections()
+{
+	int count = m_inidict.keycount() - 1;
+	// -1 to remove VIRTUAL_SECTION_0 [_start_]
+
+	assert(count>=0);
+	if(count==0)
+		return Sdrings();
+
+	Sdrings rets(count);
+
+	auto enumor = m_inidict.get_enumor();
+	const TCHAR *key = enumor.next();
+	assert(Sdring::str_match(key, VIRTUAL_SECTION_0));
+
+	int i=0;
+	for (;; i++)
+	{
+		assert(i<=count);
+
+		key = enumor.next();
+		if(!key)
+			break;
+
+		rets[i] = key;
+	}
+
+	assert(i==count);
+	return rets;
+}
+
+bool CIniOp::has_section(const TCHAR *secname)
+{
+	if (!secname || !secname[0])
+		return false;
+
+	hashdict<SdringVal> *p_kvdict = m_inidict.get(secname);
+	if(p_kvdict)
+		return true;
+	else
+		return false;
+}
+
+
+struct rawkey_st
+{
+	int frlen;      // friendly-key len
+	TCHAR splitter; // # or ; or \0
+	int numsuffix;
+
+	rawkey_st(const TCHAR* rawkey)
+	{
+		// sth like 'keym#21' will be split into 'keym', '#', 21 .
+
+		const TCHAR *psharp = _tcschr(rawkey, '#');
+		const TCHAR *psemco = _tcschr(rawkey, ';');
+		if (!psharp && !psemco)
+		{
+			frlen = -1;
+			splitter = '\0';
+			numsuffix = 0;
+			return;
+		}
+
+		if(psemco)
+		{
+			frlen = psemco - rawkey;
+			splitter = '#';
+			numsuffix = _ttoi(psemco+1);
+		}
+		else
+		{
+			frlen = psharp - rawkey;
+			splitter = ';';
+			numsuffix = _ttoi(psharp+1);
+		}
+	}
+};
+
+Sdrings CIniOp::section_keys(const TCHAR *secname)
+{
+	if(!has_section(secname))
+		return Sdrings();
+
+	hashdict<SdringVal> &kvdict = *m_inidict.get(secname);
+
+	auto enumor = kvdict.get_enumor();
+	const TCHAR *rawkey = nullptr;
+
+	int count_fr = 0; // count of friendly keys
+	for(;;)
+	{
+		rawkey = enumor.next();
+		if(!rawkey)
+			break;
+
+		rawkey_st rks(rawkey);
+		if (rks.numsuffix == '\0')
+			count_fr++;
+	}
+
+	if(count_fr==0)
+		return Sdrings();
+
+	Sdrings rets(count_fr);
+	enumor.reset();
+	int i=0;
+	for(;;)
+	{
+		rawkey = enumor.next();
+		if (!rawkey)
+			break;
+
+		rawkey_st rks(rawkey);
+		if (rks.numsuffix == '\0')
+			rets[i++] = rawkey;
+	}
+
+	return rets;
+}
 
 
 
@@ -507,6 +647,29 @@ SimpleIni::read(const TCHAR *inifilename)
 	return (ReCode_et)m_pi->read(inifilename);
 }
 
+Sdrings SimpleIni::sections()
+{
+	if (!_create_impl())
+		return E_Fail;
+
+	return m_pi->sections();
+}
+
+bool SimpleIni::has_section(const TCHAR *section_name)
+{
+	if (!_create_impl())
+		return false;
+
+	return m_pi->has_section(section_name);
+}
+
+Sdrings SimpleIni::section_keys(const TCHAR *section_name)
+{
+	if (!_create_impl())
+		return Sdrings();
+
+	return m_pi->section_keys(section_name);
+}
 
 //
 //

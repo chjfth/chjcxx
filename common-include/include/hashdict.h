@@ -1,7 +1,7 @@
 #ifndef __CHHI__hashdict_h_
 #define __CHHI__hashdict_h_
 #define __CHHI__hashdict_h_created_ 20260404
-#define __CHHI__hashdict_h_updated_ 20260415
+#define __CHHI__hashdict_h_updated_ 20260428
 
 #include <CxxVerCheck.h>
 #ifdef _MSC_VER
@@ -11,13 +11,15 @@
 #endif
 
 #include <new>
+#include <assert.h>
 #include <ps_TCHAR.h>
 #include <commdefs.h>
 #include <sdring.h>
+#include <enumor_helper.h> // since 2026-04-28
 #include <TScalableArray.h>
 #include <vaDbgTs_util.h>
 
-// Mimic Python 3.7's compact dict
+// Mimic Python 3.7's "compact dict"
 
 ////////////////////////////////////////////////////////////////////////////
 namespace chjds { 
@@ -117,8 +119,10 @@ public:
 
 	bool clear(); // zero-out this dict
 
+	Sdrings get_keys();
+
 	void set_dbgsig(const TCHAR *dbgsig) { m_dbgsig = dbgsig; }
-	const TCHAR* dbgsig() { return m_dbgsig ? m_dbgsig.c_str() : _T(""); }
+	const TCHAR* dbgsig() { return m_dbgsig.not_empty() ? m_dbgsig.c_str() : _T(""); }
 
 	////////
 
@@ -128,7 +132,6 @@ public:
 		enumor(hashdict &dict) : m_dict(dict) 
 		{
 			m_next_trovent = 0;
-			m_is_end = false;
 		}
 		~enumor()
 		{ 
@@ -146,7 +149,8 @@ public:
 	private:
 		hashdict &m_dict;
 		int m_next_trovent;
-		bool m_is_end;
+		enumor_helper_st m_eh;
+
 	}; // class enumor
 
 	enumor get_enumor()
@@ -270,7 +274,7 @@ private:
 		Sdring key;
 		TU uvalue;
 
-/*
+/*		// We don't need this, bcz we rely on compiler-generated move-ctor & move-assign.
 		trove_entry_st& operator=(trove_entry_st&& old) // move-assign
 		{
 			if (this != &old) 
@@ -364,7 +368,7 @@ private:
 							// CompactTrove() will shrink it(=remove dummies).
 	int m_trove_dummies;	// a deleted trovent is not actually deleted by marked as dummy.
 
-	int m_enuming_sessions;	// if >0, someone is enumorating this dict, that locks the dict.
+	int m_enuming_sessions;	// if >0, someone is enumerating this dict, that locks the dict.
 
 	DictFlag_et m_dictflags;
 
@@ -711,9 +715,13 @@ TU* hashdict<TU>::get(const TCHAR *in_key)
 
 		if(probes>(64/PerturbShift+2) && idxSlot==firstSlot)
 		{
-			// idxSlot wraps around, can SlotDummy flooding cause this?
-			vaDBG1(_T("{%s}Weird! hashdict::get() see idxSlot(%d) wraps around."), dbgsig(), firstSlot);
-			return nullptr; // not found
+			// idxSlot wraps around, looks SlotDummy flooding can cause this.
+
+			// Run test_hashdict.vcxproj, english-words-4600k.txt with resizepct=0 (Tight-loaded),
+			// we can see this produced.
+
+			vaDBG1(_T("{%s}INFO! hashdict::get() see idxSlot(%d) wraps around."), dbgsig(), firstSlot);
+			return nullptr; 
 		}
 	}
 }
@@ -1146,6 +1154,31 @@ void hashdict<TU>::ReportState(ReportState_st *pout)
 }
 
 
+template<typename TU>
+Sdrings hashdict<TU>::get_keys()
+{
+	int count = keycount();
+	Sdrings rets(count);
+
+	auto enumor = get_enumor();
+
+	int i = 0;
+	for (;; i++)
+	{
+		assert(i <= count);
+
+		const TCHAR *key = enumor.next();
+		if (!key)
+			break;
+
+		rets[i] = key;
+	}
+
+	assert(i == count);
+	return rets;
+}
+
+
 ////\\\\////\\\\////\\\\////\\\\////\\\\////\\\\////\\\\
 
 template<typename TU> 
@@ -1153,11 +1186,9 @@ const TCHAR* hashdict<TU>::enumor::next(TU **ppValue)
 {
 	SETTLE_OUTPUT_PTR(TU*, ppValue, nullptr)
 
-	if(m_is_end)
+	EH_GoOnAction_et goact = m_eh.ui_next();
+	if(goact==TellEnd)
 		return nullptr;
-
-	if(m_next_trovent == 0)
-		m_dict.m_enuming_sessions++;
 
 	for(; m_next_trovent<m_dict.m_trove_ploughs; m_next_trovent++)
 	{
@@ -1167,6 +1198,9 @@ const TCHAR* hashdict<TU>::enumor::next(TU **ppValue)
 			*ppValue = &trovent.uvalue;
 
 			m_next_trovent++;
+			
+			if(m_eh.uo_yes() == InProgress_TurnOn)
+				m_dict.m_enuming_sessions++;
 
 			return trovent.key.c_str();
 		}
@@ -1176,8 +1210,8 @@ const TCHAR* hashdict<TU>::enumor::next(TU **ppValue)
 
 	*ppValue = nullptr;
 
-	m_is_end = true;
-	DecreaseSessionCount();
+	if (m_eh.uo_end() == InProgress_TurnOff)
+		DecreaseSessionCount();
 
 	return nullptr;
 }
@@ -1185,14 +1219,9 @@ const TCHAR* hashdict<TU>::enumor::next(TU **ppValue)
 template<typename TU> 
 void hashdict<TU>::enumor::reset()
 {
-	if(m_is_end)
+	if(m_eh.ui_reset() == InProgress_TurnOff)
 	{
-		m_is_end = false;
-	}
-	else
-	{
-		if(m_next_trovent>0)
-			DecreaseSessionCount();
+		DecreaseSessionCount();
 	}
 
 	m_next_trovent = 0;
@@ -1207,6 +1236,7 @@ void hashdict<TU>::enumor::DecreaseSessionCount()
 		m_dict.CheckToCompactSlotAndTrove();
 	}
 }
+
 
 
 #				ifndef hashdict_DEBUG

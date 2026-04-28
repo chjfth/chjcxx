@@ -1,7 +1,9 @@
 #ifndef __sdring_h_
 #define __sdring_h_
 #define __sdring_h_created_ 20251225_
-#define __sdring_h_updated_ 20260421_
+#define __sdring_h_updated_ 20260428_
+
+#include <assert.h>
 
 /* Semantic:
 
@@ -189,6 +191,13 @@ public:
 			return false;
 	}
 
+	bool not_empty() const { return !is_empty(); }
+
+// 	operator bool() const {   // please use not_empty() instead
+// 		return (m_buf && m_buf[0]) ? true : false;
+// 	}
+
+
 	T_CHAR& operator[](int pos) {
 		if(pos<0)
 			pos = m_nchars + pos; // count from backward
@@ -199,10 +208,6 @@ public:
 		if (pos < 0)
 			pos = m_nchars + pos; // count from backward
 		return m_buf[pos];
-	}
-
-	operator bool() const {
-		return (m_buf && m_buf[0]) ? true : false;
 	}
 
 	bool operator==(const T_CHAR *instr) 
@@ -459,16 +464,128 @@ private:
 };
 
 
+//////////////////////////////////////////////////////////////////////////
+////////          sdrings (store multiple sdring inside)          ////////
+//////////////////////////////////////////////////////////////////////////
+
+template<typename T_CHAR>
+class sdrings
+{
+public:
+	sdrings(int count);
+
+public:
+	// boilerplate code, no need to modify >>>
+	sdrings() { _ct0r(); }            //////////////
+	virtual ~sdrings()                //////////////
+	{                                 //////////////
+		_dtor();                      //////////////
+		_ct0r();                      //////////////
+	}                                 //////////////
+	sdrings(const sdrings& old)            // copy-ctor
+	{                                      //////////////
+		_copy_from_old(old);               //////////////
+	}                                      //////////////
+	sdrings& operator=(const sdrings& old) // copy-assign
+	{                                      //////////////
+		if (this != &old) {                //////////////
+			_dtor();                       //////////////
+			_copy_from_old(old);           //////////////
+		}                                  //////////////
+		return *this;                      //////////////
+	}                                      //////////////
+	sdrings(sdrings&& old)            // move-ctor
+	{                                 //////////////
+		_steal_from_old(old);         //////////////
+		old._ct0r();                  //////////////
+	}                                 //////////////
+	sdrings& operator=(sdrings&& old) // move-assign
+	{                                 //////////////
+		if (this != &old) {           //////////////
+			_dtor();                  //////////////
+			_steal_from_old(old);     //////////////
+			old._ct0r();              //////////////
+		}                             //////////////
+		return *this;                 //////////////
+	}                                 //////////////
+	// boilerplate code, no need to modify <<<
+
+private:
+	void _copy_from_old(const sdrings& old) {
+		if (old.m_count>0)
+		{
+			m_count = old.m_count;
+			mar_sdring = new sdring[m_count];
+
+			for(int i=0; i<m_count; i++)
+			{
+				mar_sdring[i] = old.mar_sdring[i];
+			}
+		}
+		else
+		{
+			mar_sdring = nullptr;
+			m_count = 0;
+		}
+	}
+
+	void _steal_from_old(sdrings& old) {
+		mar_sdring = old.mar_sdring;
+		m_count = old.m_count;
+	}
+
+public:
+	int count(){ return m_count; }
+
+	sdring<T_CHAR>& operator[](int i)
+	{
+		assert(i>=0 && i<m_count);
+		return mar_sdring[i];
+	}
+
+	//
+	// Leave below at end of class body
+	//
+private: // data members
+	sdring<T_CHAR>* mar_sdring;
+	int m_count;
+
+private:
+	void _ct0r() {
+		mar_sdring = nullptr;
+		m_count = 0;
+	}
+
+	void _dtor() {
+		delete[] mar_sdring;
+	}
+};
+
+
+template<typename T_CHAR>
+sdrings<T_CHAR>::sdrings(int count)
+{
+	assert(count>=0);
+	_ct0r();
+
+	if(count==0)
+		return;
+
+	m_count = count;
+	mar_sdring = new sdring<T_CHAR>[count];
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+
 #if defined(UNICODE) || defined(_UNICODE)
-typedef sdring<wchar_t> Sdring;
+typedef sdring <wchar_t> Sdring;
+typedef sdrings<wchar_t> Sdrings;
 #else
-typedef sdring<char> Sdring;
+typedef sdring <char> Sdring;
+typedef sdrings<char> Sdrings;
 #endif
-
-
-//////////////////////////////
-//    Facility functions   >>>
-//////////////////////////////
 
 
 
