@@ -1,7 +1,7 @@
 #ifndef __TScalableArray_h_
 #define __TScalableArray_h_
 #define __TScalableArray_h_created_ 20050101
-#define __TScalableArray_h_updated_ 20260414
+#define __TScalableArray_h_updated_ 20260429
 
 #include <assert.h>
 #include <stdio.h>
@@ -332,8 +332,8 @@ TScalableArray<T>::TScalableArray(int MaxEle, int IncSize, int DecSize, int DecT
 	_ct0r();
 
 	ReCode_t err = SetTrait(MaxEle, IncSize, DecSize, DecThres);
+	assert(!err);
 	if(err) {
-		assert(err<=E_InvalidParam);
 		_ct0r();
 	}
 }

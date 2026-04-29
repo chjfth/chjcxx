@@ -1,7 +1,7 @@
 #ifndef __CHHI__enumor_helper_h_
 #define __CHHI__enumor_helper_h_
 #define __CHHI__enumor_helper_h_created_ 20260428
-#define __CHHI__enumor_helper_h_updated_ 20260428
+#define __CHHI__enumor_helper_h_updated_ 20260429
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -95,12 +95,13 @@ struct enumor_helper_st
 	{
 		// uo: user-output
 		// Enumor calls this if he finds that enumeration has ended.
+		bool was_in_progress = in_progress();
 		is_enum_end = true;
 		
-		if(enum_outputs==0)
-			return InProgress_NoChange; // still no-progress
+		if(was_in_progress)
+			return InProgress_TurnOff; // fresh end
 		else
-			return InProgress_TurnOff;
+			return InProgress_NoChange; // Enumor call uo_end() multi-times
 	}
 
 	bool in_progress() const

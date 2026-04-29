@@ -1,7 +1,7 @@
 #ifndef __CHHI__SimpleIni_h_
 #define __CHHI__SimpleIni_h_
 #define __CHHI__SimpleIni_h_created_ 20260416
-#define __CHHI__SimpleIni_h_updated_ 20260419
+#define __CHHI__SimpleIni_h_updated_ 20260429
 
 #include <ps_TCHAR.h>
 #include <sdring.h>
@@ -28,6 +28,10 @@ public:
 
 	bool has_section(const TCHAR *section_name);
 	Sdrings section_keys(const TCHAR *section_name);
+
+	bool has_key(const TCHAR *section_name, const TCHAR *keyname);
+	Sdring get(const TCHAR *section_name, const TCHAR *keyname);
+	// -- To distinguish {no-key} and {has-key with empty value}, user need to call has_key().
 
 public:
 	// boilerplate code, no need to modify >>>
@@ -115,6 +119,7 @@ private:
 #include <utf8utils.h>
 #include <makeTsdring.h>
 #include <StringHelper.h>
+#include <TScalableArray.h>
 
 // <<< Include headers required by this lib's implementation
 
@@ -143,6 +148,7 @@ using namespace fsapi; // from fsapi.h
 using namespace ospath; // from ospath.h
 
 const TCHAR *VIRTUAL_SECTION_0 = _T("_start_");
+const int KEYVAL_TSA_INC = 100;
 
 class CIniOp
 {
@@ -208,8 +214,12 @@ public:
 
 	Sdrings sections();
 
-	bool has_section(const TCHAR *section_name);
-	Sdrings section_keys(const TCHAR *section_name);
+	bool has_section(const TCHAR *secname);
+	Sdrings section_keys(const TCHAR *secname);
+
+	bool has_key(const TCHAR *secname, const TCHAR *keyname);
+	Sdring get(const TCHAR *secname, const TCHAR *keyname);
+	// -- To distinguish {no-key} and {has-key with empty value}, user need to call has_key().
 
 private:
 	ReCode_et read_initext(const TCHAR *initext, int inilen);
@@ -536,13 +546,13 @@ struct rawkey_st
 		if(psemco)
 		{
 			frlen = psemco - rawkey;
-			splitter = '#';
+			splitter = ';';
 			numsuffix = _ttoi(psemco+1);
 		}
 		else
 		{
 			frlen = psharp - rawkey;
-			splitter = ';';
+			splitter = '#';
 			numsuffix = _ttoi(psharp+1);
 		}
 	}
@@ -588,6 +598,98 @@ Sdrings CIniOp::section_keys(const TCHAR *secname)
 	}
 
 	return rets;
+}
+
+
+bool CIniOp::has_key(const TCHAR *secname, const TCHAR *keyname)
+{
+	hashdict<SdringVal> *psec = m_inidict.get(secname);
+	if(!psec)
+		return false;
+
+	Sdring *pval = psec->get(keyname);
+	if(!pval)
+		return false;
+
+	return true;
+}
+
+inline void EasyDebug_AppendNUL(TScalableArray<TCHAR>& sout)
+{
+	if (sout.CurrentEles() < sout.CurrentStorage())
+		sout.GetElePtr()[sout.CurrentEles()] = '\0';
+}
+
+Sdring CIniOp::get(const TCHAR *secname, const TCHAR *keyname)
+{
+	hashdict<SdringVal> *psec = m_inidict.get(secname);
+	if (!psec)
+		return Sdring();
+
+	/* Example: for an ini key like this(key='keym'):
+
+keym = 
+	val line one
+;	1st embedded comment line in key's value
+	val line two
+;	2nd embedded comment line in key's value
+	val line three
+
+	The enumor will see these raw keys (actual number suffix may vary):
+
+	keym    =
+	keym#17 = val line one
+	keym;18 = ;	1st embedded comment line in key's value
+	keym#19 = val line two
+	keym;20 = ;	2nd embedded comment line in key's value
+	keym#21 = val line three
+	keym;22 =
+	...
+	keyN    = ...
+
+	Only after we see keyN appears, we know that keym's value has ended.
+
+	*/
+
+	//	int val_lines_accum = 0;
+	TScalableArray<TCHAR> sout(INT32_MAX, KEYVAL_TSA_INC, KEYVAL_TSA_INC);
+
+	auto enumor = psec->get_enumor(keyname);
+
+	Sdring* pval = nullptr;
+	const TCHAR *rawkey = enumor.next(&pval);
+	if(!rawkey)
+		return Sdring();
+
+	sout.AppendTail(pval->getptr(), pval->rawlen());
+	EasyDebug_AppendNUL(sout);
+
+	int accu_lines = 1; // debug purpose
+
+	for(;; accu_lines++)
+	{
+		Sdring* pval = nullptr;
+		rawkey = enumor.next(&pval);
+		if(!rawkey)
+			break;
+
+		rawkey_st rks(rawkey);
+		
+		if(rks.splitter=='\0') // meet a different key
+			break;
+		else if(rks.splitter=='#')
+		{
+			sout.AppendTail('\n');
+			sout.AppendTail(pval->getptr(), pval->rawlen());
+			EasyDebug_AppendNUL(sout);
+		}
+		else
+			assert(rks.splitter==';');
+	}
+
+	const TCHAR *psz = sout.GetElePtr();
+	int szlen = sout.CurrentEles();
+	return Sdring(psz, szlen);
 }
 
 
@@ -669,6 +771,22 @@ Sdrings SimpleIni::section_keys(const TCHAR *section_name)
 		return Sdrings();
 
 	return m_pi->section_keys(section_name);
+}
+
+bool SimpleIni::has_key(const TCHAR *section_name, const TCHAR *keyname)
+{
+	if (!_create_impl())
+		return false;
+
+	return m_pi->has_key(section_name, keyname);
+}
+
+Sdring SimpleIni::get(const TCHAR *section_name, const TCHAR *keyname)
+{
+	if (!_create_impl())
+		return false;
+
+	return m_pi->get(section_name, keyname);
 }
 
 //

@@ -1,7 +1,7 @@
 #ifndef __CHHI__hashdict_h_
 #define __CHHI__hashdict_h_
 #define __CHHI__hashdict_h_created_ 20260404
-#define __CHHI__hashdict_h_updated_ 20260428
+#define __CHHI__hashdict_h_updated_ 20260429
 
 #include <CxxVerCheck.h>
 #ifdef _MSC_VER
@@ -124,12 +124,13 @@ public:
 	void set_dbgsig(const TCHAR *dbgsig) { m_dbgsig = dbgsig; }
 	const TCHAR* dbgsig() { return m_dbgsig.not_empty() ? m_dbgsig.c_str() : _T(""); }
 
-	////////
+	//////// enumerator ////////
 
 	class enumor // dict-key enumerator
 	{
 	public:
-		enumor(hashdict &dict) : m_dict(dict) 
+		enumor(hashdict &dict, const TCHAR* fromkey=nullptr) 
+			: m_dict(dict), m_fromkey(fromkey)
 		{
 			m_next_trovent = 0;
 		}
@@ -148,14 +149,15 @@ public:
 
 	private:
 		hashdict &m_dict;
-		int m_next_trovent;
+		
 		enumor_helper_st m_eh;
-
+		int m_next_trovent;
+		const TCHAR *m_fromkey;
 	}; // class enumor
 
-	enumor get_enumor()
+	enumor get_enumor(const TCHAR *fromkey=nullptr)
 	{
-		return enumor(*this);
+		return enumor(*this, fromkey);
 	}
 
 	////////
@@ -305,6 +307,8 @@ private:
 	trove_entry_st* IsKeyFoundAtSlot(int idxSlot, Uint64 in_keyhash, const TCHAR *in_key);
 
 	TU* SetKey(const TCHAR *key, TU&& value, bool is_overwrite);
+
+	int in_get(const TCHAR *key); // return index into trove, -1 if not found
 
 	bool in_del(const TCHAR *key, bool is_recv_old, TU& recv_old_value);
 
@@ -662,12 +666,29 @@ TU* hashdict<TU>::SetKey(const TCHAR *in_key, TU&& in_value, bool is_overwrite)
 template<typename TU> 
 TU* hashdict<TU>::get(const TCHAR *in_key)
 {
+	int idxTrove = in_get(in_key);
+	
+	if(idxTrove>=0)
+	{
+		assert(idxTrove<m_trove_ploughs);
+		return &msa_trove[idxTrove].uvalue;
+	}
+	else
+	{ 
+		assert(idxTrove==-1);
+		return nullptr;
+	}
+}
+
+template<typename TU>
+int hashdict<TU>::in_get(const TCHAR *in_key)
+{
 	assert(in_key && in_key[0]);
 	if(! (in_key && in_key[0]) )
-		return nullptr;
+		return -1;
 
 	if(is_dumb())
-		return nullptr;
+		return -1;
 
 	Uint64 in_hashfull = cal_hashfull(in_key);
 	Uint32 in_hashtail = (Uint32)in_hashfull & m_hashmask;
@@ -690,7 +711,7 @@ TU* hashdict<TU>::get(const TCHAR *in_key)
 		{
 			vaDBG3(_T("{%s}hashdict:get(\"%s\") NOT found after %d probes"), dbgsig(), 
 				in_key, probes+1);
-			return nullptr;
+			return -1;
 		}
 		else if(slot.state==SlotInUse)
 		{
@@ -699,7 +720,7 @@ TU* hashdict<TU>::get(const TCHAR *in_key)
 			{
 				vaDBG3(_T("{%s}hashdict:get(\"%s\") found after %d probes, value@<%p>"), dbgsig(), 
 					in_key, probes+1, &pte->uvalue);
-				return &pte->uvalue;
+				return pte - msa_trove.GetElePtr(0);
 			}
 			else; // fall down
 			
@@ -721,7 +742,7 @@ TU* hashdict<TU>::get(const TCHAR *in_key)
 			// we can see this produced.
 
 			vaDBG1(_T("{%s}INFO! hashdict::get() see idxSlot(%d) wraps around."), dbgsig(), firstSlot);
-			return nullptr; 
+			return -1; 
 		}
 	}
 }
@@ -1186,9 +1207,34 @@ const TCHAR* hashdict<TU>::enumor::next(TU **ppValue)
 {
 	SETTLE_OUTPUT_PTR(TU*, ppValue, nullptr)
 
+	// Note: Immediately before returning to user, we(Enumor code) should call
+	// uo_yes() or uo_end() to tell enum_helper the result.
+
 	EH_GoOnAction_et goact = m_eh.ui_next();
 	if(goact==TellEnd)
+	{
+		m_eh.uo_end(); // optional for TellEnd.
 		return nullptr;
+	}
+	else if(goact==GoOnFirst)
+	{
+		if(!m_fromkey)
+			m_next_trovent = 0; // enum from first trovent
+		else
+		{
+			m_next_trovent = m_dict.in_get(m_fromkey);
+			if(m_next_trovent == -1)
+			{
+				m_eh.uo_end();
+				return nullptr;
+			}
+		}
+	}
+	else
+	{
+		assert(goact==GoOnMore);
+		// Use m_next_trovent from previous time
+	}
 
 	for(; m_next_trovent<m_dict.m_trove_ploughs; m_next_trovent++)
 	{
