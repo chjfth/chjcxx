@@ -500,7 +500,7 @@ TScalableArray<T>::DeleteEles(int pos, int n)
 // 	}
 
 	int occn_orig = OCC_DIVIDE(m_nCurStorage, m_nDecSize);
-	int occn_new = OCC_DIVIDE(m_nCurEle+m_nDecThres, m_nDecSize);
+	int occn_new = OCC_DIVIDE(m_nCurEle+m_nDecThres, m_nDecSize); // [2026-05-01] suspitious!
 
 	assert(occn_new<=occn_orig);
 

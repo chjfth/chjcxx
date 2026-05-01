@@ -197,6 +197,10 @@ public:
 // 		return (m_buf && m_buf[0]) ? true : false;
 // 	}
 
+	void set_empty() {
+		_dtor();
+		_ct0r();
+	}
 
 	T_CHAR& operator[](int pos) {
 		if(pos<0)
@@ -287,7 +291,7 @@ public:
 		return i;
 	}
 
-	static bool str_match(const T_CHAR *s1, const T_CHAR *s2)
+	static bool str_match(const T_CHAR *s1, const T_CHAR *s2, int *pDiffAt)
 	{
 		bool s1null = !s1 || !s1[0];
 		bool s2null = !s2 || !s2[0];
@@ -300,9 +304,20 @@ public:
 		for(int i=0; s1[i] || s2[i]; i++)
 		{
 			if(s1[i]!=s2[i])
+			{
+				*pDiffAt = i;
 				return false;
+			}
 		}
+
+		*pDiffAt = -1;
 		return true;
+	}
+
+	static bool str_match(const T_CHAR *s1, const T_CHAR *s2)
+	{
+		int diffat;
+		return str_match(s1, s2, &diffat);
 	}
 
 	// Following nchars_xxx() function apply raw buffer logic.

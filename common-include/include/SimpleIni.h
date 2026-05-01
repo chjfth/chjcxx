@@ -1,7 +1,7 @@
 #ifndef __CHHI__SimpleIni_h_
 #define __CHHI__SimpleIni_h_
 #define __CHHI__SimpleIni_h_created_ 20260416
-#define __CHHI__SimpleIni_h_updated_ 20260429
+#define __CHHI__SimpleIni_h_updated_ 20260501
 
 #include <ps_TCHAR.h>
 #include <sdring.h>
@@ -109,6 +109,7 @@ private:
 
 // >>> Include headers required by this lib's implementation
 
+#include <CxxVerCheck.h>
 #include <commdefs.h> // for Uint, Uint64, enum bitwise-OR etc
 #include <snTprintf.h>
 #include <fsapi.h>
@@ -148,7 +149,90 @@ using namespace fsapi; // from fsapi.h
 using namespace ospath; // from ospath.h
 
 const TCHAR *VIRTUAL_SECTION_0 = _T("_start_");
-const int KEYVAL_TSA_INC = 100;
+const int KEYVAL_MULTILINE_MAX = 16000;
+const int KEYVAL_TSA_INC = 100; // roughly default to an INI line's text length
+const int KEYVAL_TSA_DEC = KEYVAL_MULTILINE_MAX; // never decrease TSA storage
+
+struct Keval_st  // represent a INI-key(or virtual-key)'s value
+{
+	enum Type { Comment=0, OneLine=1, _2Lines=2, _3Lines=3, _4Lines=4 };
+
+	union
+	{
+		Type type;
+		int totlines; // this keval occupies multiple lines(>=2)
+	};
+	Sdring  firstline; // used when type=Comment or type=OneLine
+	Sdring *ar_exlines; // array size indicated by `totlines-1`
+
+public:
+	// boilerplate code, no need to modify >>>
+	Keval_st() { _ct0r(); }           //////////////
+	virtual ~Keval_st()               //////////////
+	{                                 //////////////
+		_dtor();                      //////////////
+		_ct0r();                      //////////////
+	}                                 //////////////
+	Keval_st(const Keval_st& old)            // copy-ctor
+	{                                      //////////////
+		_copy_from_old(old);               //////////////
+	}                                      //////////////
+	Keval_st& operator=(const Keval_st& old) // copy-assign
+	{                                      //////////////
+		if (this != &old) {                //////////////
+			_dtor();                       //////////////
+			_copy_from_old(old);           //////////////
+		}                                  //////////////
+		return *this;                      //////////////
+	}                                      //////////////
+	Keval_st(Keval_st&& old)          // move-ctor
+	{                                 //////////////
+		_steal_from_old(old);         //////////////
+		old._ct0r();                  //////////////
+	}                                 //////////////
+	Keval_st& operator=(Keval_st&& old) // move-assign
+	{                                 //////////////
+		if (this != &old) {           //////////////
+			_dtor();                  //////////////
+			_steal_from_old(old);     //////////////
+			old._ct0r();              //////////////
+		}                             //////////////
+		return *this;                 //////////////
+	}                                 //////////////
+	// boilerplate code, no need to modify <<<
+
+private:
+	void _copy_from_old(const Keval_st& old) {
+		totlines = old.totlines;
+		firstline = old.firstline;
+		ar_exlines = nullptr;
+		if(old.ar_exlines)
+		{
+			ar_exlines = new Sdring[totlines];
+			for(int i=0; i<totlines; i++)
+			{
+				ar_exlines[i] = old.ar_exlines[i];
+			}
+		}
+	}
+
+	void _steal_from_old(Keval_st& old) {
+		totlines = old.totlines;
+		firstline = std::move(old.firstline);
+		ar_exlines = old.ar_exlines;
+	}
+
+private:
+	void _ct0r() {
+		totlines = 0;
+		ar_exlines = nullptr;
+	}
+
+	void _dtor() {
+		delete[] ar_exlines;
+	}
+};
+
 
 class CIniOp
 {
@@ -225,7 +309,7 @@ private:
 	ReCode_et read_initext(const TCHAR *initext, int inilen);
 
 private:
-	using SdringVal = Sdring; // SdringVal imply this is for INI key's value.
+//	using SdringVal = Sdring; // SdringVal imply this is for INI key's value.
 
 	//
 	// Leave below at end of class body
@@ -237,7 +321,7 @@ private: // data members
 	Sdring m_inifilenam;
 	const TCHAR *m_pfilenam;
 
-	hashdict< hashdict<SdringVal> > m_inidict;
+	hashdict< hashdict<Keval_st> > m_inidict;
 
 private:
 	void _ct0r() {
@@ -307,12 +391,209 @@ inline bool IsTrimCr(int charval)
 
 struct KVcontinue // KeyVal line continuation info
 {
-	bool is_prevline_keyval;
-//	int vals; // extra value lines accumulated
-//	int cmts; // extra comment lines accumulated
+	Sdring penkey;   // Pending INI key, for the key-value pair already seen, 
+	                 // but whose multi-line keval processing is not finished yet.
+	int ini_linestart;
+	int idxlastreal; // 0-based index of last-seen real keval(non-comment) line, -1 if none.
 
-	void reset() { is_prevline_keyval=false; /*vals=cmts=0;*/ }
+	TScalableArray<Sdring> saMixLines;
+
+	KVcontinue()
+	{
+		saMixLines.SetTrait(KEYVAL_MULTILINE_MAX, KEYVAL_TSA_INC, KEYVAL_TSA_DEC);
+		reset();
+	}
+
+	void reset()
+	{
+		this->penkey.set_empty();
+		this->ini_linestart = 0;
+		idxlastreal = -1;
+	}
+	void reset(Sdring&& penkey, int ini_linestart)
+	{ 
+		this->penkey = std::move(penkey);
+		this->ini_linestart = ini_linestart;
+		idxlastreal = -1; 
+	}
+
+	int accums()
+	{
+		return saMixLines.CurrentEles();
+	}
+
+	bool has_penkey()
+	{
+		return penkey.is_empty() ? false : true;
+	}
+
+	const TCHAR* get_penkey()
+	{
+		return penkey.is_empty() ? nullptr : penkey.c_str();
+	}
+
+	void AppendLine(Sdring&& linetext)
+	{
+		int nlines = saMixLines.CurrentEles();
+
+		assert(linetext[0]==';' || linetext[0]=='\t');
+
+		if(linetext[0]=='\t')
+			idxlastreal = nlines;
+
+		saMixLines.SetEleQuan(nlines+1, true);
+		saMixLines[nlines] = std::move(linetext);
+	}
+
+	void Converge(hashdict<Keval_st>& kvdict)
+	{
+		if(penkey.is_empty())
+			return;
+
+		int nMixLines = saMixLines.CurrentEles();
+
+		if(nMixLines==0)
+		{
+			reset();
+			return;
+		}
+
+		Keval_st *pKeval = kvdict.get(penkey);
+		assert(pKeval);
+		assert(pKeval->type==Keval_st::OneLine);
+		assert(pKeval->ar_exlines==nullptr);
+
+		int nReals = idxlastreal + 1;
+
+		if(nReals>0)
+		{
+			// Cope with real-value lines.
+
+			pKeval->totlines = 1 + nReals;
+			pKeval->ar_exlines = new Sdring[nReals];
+
+			for (int i = 0; i < nReals; i++)
+			{
+				pKeval->ar_exlines[i] = std::move(saMixLines[i]);
+			}
+		}
+
+		// Cope with trailing comment lines.
+
+		if(nReals<nMixLines)
+		{ 
+			vaDBG3(_T("Migrate previous %d comment lines(#%d~#%d) to standalone virtual-keys"), 
+				nMixLines-nReals, nReals+1, nMixLines);
+		}
+
+		for(int j=nReals; j<nMixLines; j++)
+		{
+			TCHAR vkey[10] = {};
+			snTprintf(vkey, _T(";%d"), ini_linestart+j);
+
+			Keval_st keval;
+			keval.type = Keval_st::Comment;
+			keval.firstline = std::move(saMixLines[j]);
+		}
+
+		saMixLines.SetEleQuan(0);
+
+		reset();
+	}
 };
+
+enum IniLineCat_et  // INI-line category
+{
+	ILC_empty = 0,    // empty line
+	ILC_comment = 1,  // a comment line
+	ILC_unknown = 2,  // unknown invalid line(just keep it like comment)
+	ILC_section = 3,  // section line [foo]
+	ILC_realkey = 4,  // a key=value line
+	ILC_keycont = 5,  // a key-continuation line(but not comment)
+};
+
+static IniLineCat_et CheckLineCategory(
+	bool has_pending_key,
+	const TCHAR *initext, int linepos, int linelen,
+	Sdring& newkey_real, // if ILC_realkey, outputs the new real key
+	Sdring& linetext // output current line content to process further
+	)
+{
+	// linepos: the byte-offset of this line into whole initext
+
+	newkey_real.set_empty();
+	linetext.set_empty();
+
+	// First check if it is a key=val continuation line(start with a \t)
+	// First check it, bcz it is NOT allowed to have extra leading spaces.
+
+	if (has_pending_key && initext[linepos] == '\t')
+	{
+		linetext = Sdring(initext+linepos, linelen);
+		return ILC_keycont;
+	}
+
+	// Skip blank chars(spaces,tabs) at line start.
+
+	int indents = 0;
+	while (indents < linelen && Is_leading_blank(initext[linepos + indents]))
+		indents;
+
+	if (indents == linelen)
+		return ILC_empty;
+
+	linetext = Sdring(initext + linepos + indents, linelen - indents);
+
+	// Check if it is comment line (lead by ;)
+
+	if(initext[linepos]==';')
+		return ILC_comment;
+
+	// Check if it is section name [some_section_name]
+		
+	Sdring linetrimd = linetext.trim(_T(" \t"), 2);
+	if(linetrimd[0]=='[' && linetrimd[-1]==']')
+	{
+		linetext = std::move(linetrimd);
+		return ILC_section;
+	}
+
+	// Now it is probably a new key=value line.
+	// Try to split linetext with '='
+
+	StringSplitter<
+		TCHAR* const, // MUST NOT write `TCHAR const*`, would crash on GCC (eg. gcc 9.4)
+		Is_equal_sign, StringSplitter_IsSpaceTab,
+		true> // want null-split
+		spgkeyval(linetext, 0, linetext.rawlen());
+			
+	int keylen = 0;
+	int keypos = spgkeyval.next(&keylen);
+	assert(keypos==0);
+
+	if(keylen==0) // starts with a '='
+		return ILC_unknown; 
+
+	int vallen = 0; // len2 just debug
+	int valpos = spgkeyval.next(&vallen);
+	if(valpos==-1) // no '=' found
+		return ILC_unknown;
+
+	newkey_real = Sdring(&linetext[keypos], keylen);
+
+	// In this case, linetext outputs the value part, not the whole INI line.
+	if(valpos>=0) // can be -1 if val is empty
+	{
+		int vallen = linetext.rawlen() - valpos;
+		linetext = Sdring(&linetext[valpos], vallen);
+	}
+	else
+	{
+		linetext = Sdring();
+	}
+	return ILC_realkey;
+}
+
 
 CIniOp::ReCode_et
 CIniOp::read_initext(const TCHAR *initext, int inilen)
@@ -321,12 +602,13 @@ CIniOp::read_initext(const TCHAR *initext, int inilen)
 
 	// create empty [_start_] kvdict.
 	Sdring curSection = VIRTUAL_SECTION_0;
-	m_inidict.set(VIRTUAL_SECTION_0, hashdict<SdringVal>());
+	m_inidict.set(VIRTUAL_SECTION_0, hashdict<Keval_st>());
 
-	hashdict<SdringVal> *pCurKvdict = m_inidict.get(VIRTUAL_SECTION_0);
+	// get back(ptr) the just created empty kvdict inside m_inidict.
+	hashdict<Keval_st> *pCurKvdict = m_inidict.get(VIRTUAL_SECTION_0);
 
-	Sdring curKey_fr; // fr: friendly key, not in form "keyfoo#1" or "keyfoo;1"
-	KVcontinue kvc = {};
+	KVcontinue kvc;
+	kvc.reset();
 
 	// Split initext into lines, process them line-by-line.
 
@@ -343,136 +625,80 @@ CIniOp::read_initext(const TCHAR *initext, int inilen)
 
 		iline++;
 
-		hashdict<SdringVal> &kvdict = *pCurKvdict; // make a short name
+		hashdict<Keval_st> &kvdict = *pCurKvdict; // make a short name
 
-		// First check if it is a key=val continuation line(start with a \t)
+		Sdring newkey_real, linetext;
 
-		if(kvc.is_prevline_keyval && initext[linepos]=='\t')
+		IniLineCat_et linecat = CheckLineCategory(kvc.has_penkey(), 
+			initext, linepos, linelen, 
+			newkey_real, linetext);
+		// -- curkey_real, linetext may have produced NEW content
+
+		// ..... Check each ILC_xxx .....
+
+		if(linecat==ILC_empty || linecat==ILC_comment || linecat==ILC_unknown)
 		{
-			assert(!curKey_fr.is_empty());
-			
-			TCHAR keysuffix[8];
-			snTprintf(keysuffix, _T("#%d"), iline);
-			Sdring cont(&initext[linepos+1], linelen-1);
-			
-			Sdring innerKey = curKey_fr + keysuffix;
+			const TCHAR *str_ilc = linecat==ILC_empty ? _T("ILC_empty") :
+				( linecat==ILC_comment ? _T("ILC_comment") : _T("ILC_unknown") );
+			vaDBG3(_T("{%s}L#%d <%s> '%s'"), m_pfilenam,iline, 
+				str_ilc,   // <%s>
+				linetext.is_empty() ? _T("") : linetext.c_str());
 
-			vaDBG3(_T("{%s}L#%d See continuation line: '%s' = %s"), m_pfilenam,iline, innerKey.c_str(), cont.c_str());
-
-			kvdict.set(innerKey, std::move(cont));
-
-			kvc.is_prevline_keyval = true;
-			continue;
-		}
-
-		// Skip blank chars at line start.
-
-		int indents = 0;
-		while(indents<linelen && Is_leading_blank(initext[linepos+indents]))
-			indents++;
-
-		if(indents == linelen) // meet an empty line
-		{
-			// To preserve user's empty line, we consider it a virtual empty comment line
-
-			TCHAR keysuffix[8] = {};
-			snTprintf(keysuffix, _T(";%d"), iline);
-			Sdring innerKey = curKey_fr + keysuffix;
-
-			vaDBG3(_T("{%s}L#%d Empty line: '%s' ="), m_pfilenam,iline, innerKey.c_str());
-
-			kvdict.set(innerKey, Sdring());
-
-			kvc.is_prevline_keyval = false;
-			continue; 
-		}
-
-		Sdring linetext(initext + linepos + indents, linelen - indents);
-
-		// Check if it is comment line (lead by ;)
-
-		if(linetext[0]==';')
-		{
-			// Meet a comment line.
-			// We add(assume) this as a virtual key-val pair into curSection.
-
-			if(kvc.is_prevline_keyval)
+			if(kvc.has_penkey() && linecat==ILC_comment)
 			{
-				TCHAR keysuffix[8] = {};
-				snTprintf(keysuffix, _T(";%d"), iline);
-				Sdring innerKey = curKey_fr + keysuffix;
-
-				vaDBG3(_T("{%s}L#%d See embedded comment line: '%s' = %s"), m_pfilenam,iline, innerKey.c_str(), linetext.c_str());
-
-				kvdict.set(innerKey, std::move(linetext));
+				vaDBG3(_T(".   '%s' #%d: embedded comment"), kvc.get_penkey(), kvc.accums()+1);
+				kvc.AppendLine(std::move(linetext));
 			}
 			else
 			{
-				TCHAR cmtkey[8] = {};
-				snTprintf(cmtkey, _T(";%d"), iline);
+				kvc.Converge(kvdict);
 
-				vaDBG3(_T("{%s}L#%d See standalone comment line: '%s' = %s"), m_pfilenam,iline, cmtkey, linetext.c_str());
+				// Add this line as kvdict's new virtual key
+				TCHAR vkey[10] = {};
+				snTprintf(vkey, _T(";%d"), iline);
+
+				vaDBG3(_T(".   Added as virtual-key '%s'"), vkey);
+
+				Keval_st keval;
+				keval.type = Keval_st::Comment;
+				keval.firstline = std::move(linetext);
 				
-				kvdict.set(cmtkey, std::move(linetext));
+				kvdict.set(vkey, std::move(keval));
 			}
-
-			// note: kvc.is_prevline_keyval no change
-			continue;
 		}
-
-		// Check if it is section name [some_section_name]
-		
-		Sdring linetrimd = linetext.trim(_T(" \t"), 2);
-		if(linetrimd[0]=='[' && linetrimd[-1]==']')
+		else if(linecat==ILC_section)
 		{
-			curSection = linetrimd.trim(_T("[]"), 2);
-			m_inidict.setdefault(curSection, hashdict<SdringVal>());
+			kvc.Converge(kvdict);
 
-			vaDBG3(_T("{%s}L#%d See section line: [%s]"), m_pfilenam,iline, curSection.c_str());
+			Sdring secname = linetext.trim(_T("[]"), 2);
+			pCurKvdict = m_inidict.setdefault(secname, hashdict<Keval_st>());
 
-			curKey_fr = nullptr;
-			kvc.reset();
-			pCurKvdict = m_inidict.get(curSection);
-
-			continue;
+			vaDBG3(_T("{%s}L#%d <ILC_section> [%s]"), m_pfilenam,iline, secname.c_str());
 		}
-
-		// Now it is probably a new key=value line.
-
-		int eqs_pos = linetext.findchar('=');
-		if(eqs_pos>=0)
+		else if(linecat==ILC_realkey)
 		{
-			StringSplitter<
-				TCHAR* const, // MUST NOT write `TCHAR const*`, would crash on GCC (eg. gcc 9.4)
-				Is_equal_sign, StringSplitter_IsSpaceTab
-				>
-				spgkeyval(linetext, 0, linetext.rawlen());
-			
-			int keylen = 0;
-			int keypos = spgkeyval.next(&keylen);
-			assert(keypos == 0);
-			curKey_fr = Sdring(&linetext[keypos], keylen);
+			kvc.Converge(kvdict); // settle pending key-value pair.
 
-			int len2 = 0;
-			int valpos = spgkeyval.next(&len2);
-			int vallen = 0;
-			if(valpos>=0) // can be -1 if val is empty
-				vallen = linetext.rawlen() - valpos;
-			
-			Sdring sd_val(&linetext[valpos], vallen);
+ 			vaDBG3(_T("{%s}L#%d <ILC_realkey> '%s' = '%s'"), m_pfilenam,iline, 
+				newkey_real.c_str(), linetext.c_str());
 
-			vaDBG3(_T("{%s}L#%d See key-val line: '%s' = %s"), m_pfilenam,iline, curKey_fr.c_str(), sd_val.c_str());
+			Keval_st keval;
+			keval.type = Keval_st::OneLine; // assume it one-line key-val at first seen
+			keval.firstline = std::move(linetext);
 
-			kvdict.set(curKey_fr, std::move(sd_val));
+			kvdict.set(newkey_real, keval); // todo: can be std::move
 
-			kvc.is_prevline_keyval = true;
-			continue;
+			kvc.reset(std::move(newkey_real), iline);
+		}
+		else
+		{
+			assert(linecat == ILC_keycont);
+			vaDBG3(_T("{%s}L#%d <ILC_keycont> '%s'"), m_pfilenam,iline, linetext.c_str());
+			vaDBG3(_T(".   '%s' #%d: keyval continuation"), kvc.get_penkey(), kvc.accums()+1);
+
+			kvc.AppendLine(std::move(linetext));
 		}
 
-		// An invalid line is encountered, tap a log.
-
-		vaDBG1(_T("{%s}L#%d Meet invalid INI line: %s"), m_pfilenam,iline, linetext.c_str());
-		kvc.reset();
 	}
 
 	return E_Success;
@@ -515,7 +741,7 @@ bool CIniOp::has_section(const TCHAR *secname)
 	if (!secname || !secname[0])
 		return false;
 
-	hashdict<SdringVal> *p_kvdict = m_inidict.get(secname);
+	hashdict<Keval_st> *p_kvdict = m_inidict.get(secname);
 	if(p_kvdict)
 		return true;
 	else
@@ -523,77 +749,43 @@ bool CIniOp::has_section(const TCHAR *secname)
 }
 
 
-struct rawkey_st
-{
-	int frlen;      // friendly-key len
-	TCHAR splitter; // # or ; or \0
-	int numsuffix;
-
-	rawkey_st(const TCHAR* rawkey)
-	{
-		// sth like 'keym#21' will be split into 'keym', '#', 21 .
-
-		const TCHAR *psharp = _tcschr(rawkey, '#');
-		const TCHAR *psemco = _tcschr(rawkey, ';');
-		if (!psharp && !psemco)
-		{
-			frlen = -1;
-			splitter = '\0';
-			numsuffix = 0;
-			return;
-		}
-
-		if(psemco)
-		{
-			frlen = psemco - rawkey;
-			splitter = ';';
-			numsuffix = _ttoi(psemco+1);
-		}
-		else
-		{
-			frlen = psharp - rawkey;
-			splitter = '#';
-			numsuffix = _ttoi(psharp+1);
-		}
-	}
-};
 
 Sdrings CIniOp::section_keys(const TCHAR *secname)
 {
 	if(!has_section(secname))
 		return Sdrings();
 
-	hashdict<SdringVal> &kvdict = *m_inidict.get(secname);
+	hashdict<Keval_st> &kvdict = *m_inidict.get(secname);
+
+	// Those rawkeys that do NOT start with ';' are real INI-keys.
 
 	auto enumor = kvdict.get_enumor();
 	const TCHAR *rawkey = nullptr;
 
-	int count_fr = 0; // count of friendly keys
+	int nreal = 0; // count of real keys
 	for(;;)
 	{
 		rawkey = enumor.next();
 		if(!rawkey)
 			break;
 
-		rawkey_st rks(rawkey);
-		if (rks.numsuffix == '\0')
-			count_fr++;
+		if (rawkey[0] != ';')
+			nreal++;
 	}
 
-	if(count_fr==0)
+	if(nreal==0) // to-test: pure comments section
 		return Sdrings();
 
-	Sdrings rets(count_fr);
+	Sdrings rets(nreal);
+
 	enumor.reset();
-	int i=0;
-	for(;;)
+	for(int i=0;;)
 	{
 		rawkey = enumor.next();
 		if (!rawkey)
 			break;
 
-		rawkey_st rks(rawkey);
-		if (rks.numsuffix == '\0')
+		if (rawkey[0] != ';')
 			rets[i++] = rawkey;
 	}
 
@@ -603,11 +795,13 @@ Sdrings CIniOp::section_keys(const TCHAR *secname)
 
 bool CIniOp::has_key(const TCHAR *secname, const TCHAR *keyname)
 {
-	hashdict<SdringVal> *psec = m_inidict.get(secname);
-	if(!psec)
+	hashdict<Keval_st> *p_kvdict = m_inidict.get(secname);
+	if(!p_kvdict)
 		return false;
 
-	Sdring *pval = psec->get(keyname);
+	// to-test: a 0-length Keval
+
+	Keval_st *pval = p_kvdict->get(keyname);
 	if(!pval)
 		return false;
 
@@ -622,11 +816,15 @@ inline void EasyDebug_AppendNUL(TScalableArray<TCHAR>& sout)
 
 Sdring CIniOp::get(const TCHAR *secname, const TCHAR *keyname)
 {
-	hashdict<SdringVal> *psec = m_inidict.get(secname);
-	if (!psec)
+	hashdict<Keval_st> *p_kvdict = m_inidict.get(secname);
+	if(!p_kvdict)
 		return Sdring();
 
-	/* Example: for an ini key like this(key='keym'):
+	Keval_st& keval = *p_kvdict->get(keyname);
+	if(&keval==nullptr)
+		return Sdring();
+
+	/* Example of an INI key-value pair:
 
 keym = 
 	val line one
@@ -635,56 +833,39 @@ keym =
 ;	2nd embedded comment line in key's value
 	val line three
 
-	The enumor will see these raw keys (actual number suffix may vary):
-
-	keym    =
-	keym#17 = val line one
-	keym;18 = ;	1st embedded comment line in key's value
-	keym#19 = val line two
-	keym;20 = ;	2nd embedded comment line in key's value
-	keym#21 = val line three
-	keym;22 =
-	...
-	keyN    = ...
-
-	Only after we see keyN appears, we know that keym's value has ended.
-
+	The keval's firstline can be any string(empty string is possible as in above example).
+	From second line on, it must starts with a Tab or a semicolon.
+	We only concatenate those lines leading by Tab(but strip off the Tab) for user output.
 	*/
 
-	//	int val_lines_accum = 0;
-	TScalableArray<TCHAR> sout(INT32_MAX, KEYVAL_TSA_INC, KEYVAL_TSA_INC);
+	if(keval.type==Keval_st::OneLine)
+	{
+		assert(keval.ar_exlines == nullptr);
+		return keval.firstline; // will call Sdring's copy-ctor, not move-ctor
+	}
 
-	auto enumor = psec->get_enumor(keyname);
+	// Below: Deal with multi-line keval case.
 
-	Sdring* pval = nullptr;
-	const TCHAR *rawkey = enumor.next(&pval);
-	if(!rawkey)
-		return Sdring();
+	TScalableArray<TCHAR> sout(INT32_MAX, KEYVAL_TSA_INC, KEYVAL_TSA_DEC);
 
-	sout.AppendTail(pval->getptr(), pval->rawlen());
+	// Get first line.
+
+	sout.AppendTail(keval.firstline.getptr(), keval.firstline.rawlen());
 	EasyDebug_AppendNUL(sout);
 
-	int accu_lines = 1; // debug purpose
+	assert(keval.totlines > 1);
+	assert(keval.ar_exlines!=nullptr);
 
-	for(;; accu_lines++)
+	// Get 2nd+ lines.
+
+	for(int i=0; i<keval.totlines-1; i++)
 	{
-		Sdring* pval = nullptr;
-		rawkey = enumor.next(&pval);
-		if(!rawkey)
-			break;
+		if(keval.ar_exlines[i][0] != '\t')
+			continue;
 
-		rawkey_st rks(rawkey);
-		
-		if(rks.splitter=='\0') // meet a different key
-			break;
-		else if(rks.splitter=='#')
-		{
-			sout.AppendTail('\n');
-			sout.AppendTail(pval->getptr(), pval->rawlen());
-			EasyDebug_AppendNUL(sout);
-		}
-		else
-			assert(rks.splitter==';');
+		sout.AppendTail('\n');
+		sout.AppendTail(keval.ar_exlines[i].getptr()+1, keval.ar_exlines[i].rawlen()-1);
+		EasyDebug_AppendNUL(sout);
 	}
 
 	const TCHAR *psz = sout.GetElePtr();
