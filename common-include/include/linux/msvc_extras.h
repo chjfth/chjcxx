@@ -24,6 +24,9 @@ char (*
 #define _tmain       main
 #define _tprintf     printf
 
+#define _tcscmp      strcmp
+
+
 #endif // !defined(_UNICODE)
 
 

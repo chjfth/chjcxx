@@ -109,7 +109,10 @@ private:
 
 // >>> Include headers required by this lib's implementation
 
+#include <string.h>
+
 #include <CxxVerCheck.h>
+#include <msvc_extras.h>
 #include <commdefs.h> // for Uint, Uint64, enum bitwise-OR etc
 #include <snTprintf.h>
 #include <fsapi.h>
