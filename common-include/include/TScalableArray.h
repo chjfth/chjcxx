@@ -1,7 +1,7 @@
 #ifndef __TScalableArray_h_
 #define __TScalableArray_h_
 #define __TScalableArray_h_created_ 20050101
-#define __TScalableArray_h_updated_ 20260429
+#define __TScalableArray_h_updated_ 20260502
 
 #include <assert.h>
 #include <stdio.h>
@@ -28,6 +28,9 @@
 // [2018-04-15] Important interface rationale fix. Unit-tests added with Google Test framework.
 
 
+const int TSA_no_decrease = 0; // use for DecSize param
+
+
 template<typename T>
 class TScalableArray
 {
@@ -44,7 +47,8 @@ public:
 		E_InvalidParam = -10,
 		E_IncSizeMustBeAtleast1 = -11,
 		E_DecSizeShouldBeMultipleOfIncSize = -12,
-		E_MaxEleLessthanCurEle = -13
+		E_MaxEleLessthanCurEle = -13,
+		E_MaxEleShouldBeMultipleOfIncSize = -14,
 	};
 	typedef ReCode_et ReCode_t;
 
@@ -347,8 +351,14 @@ TScalableArray<T>::SetTrait(int MaxEle, int IncSize, int DecSize, int DecThres)
 		return E_InvalidParam;
 	}
 
+	if(DecSize==TSA_no_decrease)
+		DecSize = MaxEle;
+
 	if(IncSize<=0)
 		return E_IncSizeMustBeAtleast1;
+
+	if(MaxEle%IncSize != 0)
+		return E_MaxEleShouldBeMultipleOfIncSize;
 
 	if(DecSize%IncSize!=0)
 		return E_DecSizeShouldBeMultipleOfIncSize;

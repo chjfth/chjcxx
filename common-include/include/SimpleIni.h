@@ -1,7 +1,7 @@
 #ifndef __CHHI__SimpleIni_h_
 #define __CHHI__SimpleIni_h_
 #define __CHHI__SimpleIni_h_created_ 20260416
-#define __CHHI__SimpleIni_h_updated_ 20260501
+#define __CHHI__SimpleIni_h_updated_ 20260502
 
 #include <ps_TCHAR.h>
 #include <sdring.h>
@@ -32,6 +32,14 @@ public:
 	bool has_key(const TCHAR *section_name, const TCHAR *keyname);
 	Sdring get(const TCHAR *section_name, const TCHAR *keyname);
 	// -- To distinguish {no-key} and {has-key with empty value}, user need to call has_key().
+
+	Sdring get_default(const TCHAR *section_name, const TCHAR *keyname,
+		const TCHAR *default_value);
+
+	ReCode_et set(const TCHAR *section_name, const TCHAR *keyname, const TCHAR *value);
+
+	Sdring save_ini_string(const TCHAR *crlf = _T("\n"));
+	// -- return whole INI string, as appear in INI file.
 
 public:
 	// boilerplate code, no need to modify >>>
@@ -152,9 +160,12 @@ using namespace fsapi; // from fsapi.h
 using namespace ospath; // from ospath.h
 
 const TCHAR *VIRTUAL_SECTION_0 = _T("_start_");
-const int KEYVAL_MULTILINE_MAX = 16000;
-const int KEYVAL_TSA_INC = 100; // roughly default to an INI line's text length
-const int KEYVAL_TSA_DEC = KEYVAL_MULTILINE_MAX; // never decrease TSA storage
+
+const int KEYVAL_MULTILINE_MAX = 64*1024*1024; // max continuation lines
+const int KEYVAL_MULTILINE_INC = 128; // roughly default to an INI line's text length
+
+const int INIWRITE_MAX = 256*1024*1024; // whole ini file size
+const int INIWRITE_INC = 32768; // each increase of write-ini buffer
 
 struct Keval_st  // represent a INI-key(or virtual-key)'s value
 {
@@ -308,6 +319,14 @@ public:
 	Sdring get(const TCHAR *secname, const TCHAR *keyname);
 	// -- To distinguish {no-key} and {has-key with empty value}, user need to call has_key().
 
+	Sdring get_default(const TCHAR *secname, const TCHAR *keyname, 
+		const TCHAR *default_value);
+
+	ReCode_et set(const TCHAR *secname, const TCHAR *keyname, const TCHAR *value);
+
+	Sdring save_ini_string(const TCHAR *crlf=_T("\n")); 
+	// -- return whole INI string, as appear in INI file.
+
 private:
 	ReCode_et read_initext(const TCHAR *initext, int inilen);
 
@@ -403,7 +422,7 @@ struct KVcontinue // KeyVal line continuation info
 
 	KVcontinue()
 	{
-		saMixLines.SetTrait(KEYVAL_MULTILINE_MAX, KEYVAL_TSA_INC, KEYVAL_TSA_DEC);
+		saMixLines.SetTrait(KEYVAL_MULTILINE_MAX, KEYVAL_MULTILINE_INC, TSA_no_decrease);
 		reset();
 	}
 
@@ -616,8 +635,8 @@ CIniOp::read_initext(const TCHAR *initext, int inilen)
 	// Split initext into lines, process them line-by-line.
 
 	StringSplitter<const TCHAR*, IsSplitLf, IsTrimCr, true> 
-		spgline(initext, 0, inilen);
-	// -- spgline: split to get line(s)
+		spgline(initext, 0, inilen); // spgline: split to get line(s)
+	
 
 	for (int iline=0;;)
 	{
@@ -689,7 +708,7 @@ CIniOp::read_initext(const TCHAR *initext, int inilen)
 			keval.type = Keval_st::OneLine; // assume it one-line key-val at first seen
 			keval.firstline = std::move(linetext);
 
-			kvdict.set(newkey_real, keval); // todo: can be std::move
+			kvdict.set(newkey_real, std::move(keval));
 
 			kvc.reset(std::move(newkey_real), iline);
 		}
@@ -802,8 +821,6 @@ bool CIniOp::has_key(const TCHAR *secname, const TCHAR *keyname)
 	if(!p_kvdict)
 		return false;
 
-	// to-test: a 0-length Keval
-
 	Keval_st *pval = p_kvdict->get(keyname);
 	if(!pval)
 		return false;
@@ -827,7 +844,7 @@ Sdring CIniOp::get(const TCHAR *secname, const TCHAR *keyname)
 	if(&keval==nullptr)
 		return Sdring();
 
-	/* Example of an INI key-value pair:
+	/* Example of a multiline INI key-value pair:
 
 keym = 
 	val line one
@@ -849,7 +866,7 @@ keym =
 
 	// Below: Deal with multi-line keval case.
 
-	TScalableArray<TCHAR> sout(INT32_MAX, KEYVAL_TSA_INC, KEYVAL_TSA_DEC);
+	TScalableArray<TCHAR> sout(KEYVAL_MULTILINE_MAX, KEYVAL_MULTILINE_INC, TSA_no_decrease);
 
 	// Get first line.
 
@@ -876,6 +893,183 @@ keym =
 	return Sdring(psz, szlen);
 }
 
+
+Sdring CIniOp::get_default(const TCHAR *secname, const TCHAR *keyname,
+	const TCHAR *default_value)
+{
+	if(!has_key(secname, keyname))
+		return Sdring(default_value);
+
+	return get(secname, keyname);
+}
+
+
+CIniOp::ReCode_et
+CIniOp::set(const TCHAR *secname, const TCHAR *keyname, const TCHAR *sz_val_lines)
+{
+	// Note: key_value can be any string, one-line or multi-line;
+	// any line can be started by Tabe or semicolon(;).
+	// But, If a line is started by semicolon(;), it will be considered actual content,
+	// not an embedded comment line.
+	// An embedded comment line can be introduced ONLY by manually editing the INI file. 
+
+	hashdict<Keval_st> *p_kvdict = m_inidict.get(secname);
+	if(!p_kvdict)
+	{
+		// Create a new kvdict for this secname.
+		p_kvdict = m_inidict.set(secname, hashdict<Keval_st>());
+	}
+
+	Keval_st keval;
+
+	StringSplitter<const TCHAR*, IsSplitLf, IsTrimCr, true> 
+		spgline(sz_val_lines, 0); // spgline: split to get line(s)
+
+	// Count how many lines in val_lines.
+	// * If there is no '\n'(including empty string), we count it one lines.
+	// * If there is one '\n'(event if val_lines[0]=='\n'), we count it two lines.
+
+	keval.totlines = spgline.count();
+	assert(keval.totlines > 0); // even for empty string
+
+	int linelen = 0;
+	int linepos = spgline.next(&linelen);
+
+	keval.firstline = std::move( Sdring(sz_val_lines+linepos, linelen) );
+
+	if(keval.totlines>1)
+	{
+		keval.ar_exlines = new Sdring[keval.totlines - 1];
+
+		int i = 0;
+		for (;; i++)
+		{
+			linepos = spgline.next(&linelen);
+			if (linepos == -1)
+				break;
+
+			// Need to add an extra Tab char at Sdring head.
+			Sdring text(linelen + 1);
+			text[0] = '\t';
+			Sdring::nchars_cpy(text.getptr() + 1, sz_val_lines + linepos, linelen);
+
+			keval.ar_exlines[i] = std::move(text);
+		}
+
+		assert(i == keval.totlines - 1);
+	}
+
+	p_kvdict->set(keyname, std::move(keval));
+
+	return E_Success;
+}
+
+
+static void TSA_append_line(TScalableArray<TCHAR>& sout, const Sdring& ins, 
+	const TCHAR *crlf, int crlflen)
+{
+	// Append one line( ins + crlf ) to sout.
+	// On input, sout's final element should be '\0'
+
+	int inslen = ins.rawlen();
+
+	int orig_len_ = sout.CurrentEles();
+	assert(sout[orig_len_-1]=='\0');
+
+	sout.SetEleQuan(orig_len_ + inslen + crlflen);
+	Sdring::str_ncpy(&sout[orig_len_-1], ins.c_str(), inslen);
+	Sdring::str_ncpy(&sout[orig_len_-1 + inslen], crlf, crlflen);
+	sout[orig_len_-1 + inslen + crlflen] = '\0';
+}
+
+Sdring CIniOp::save_ini_string(const TCHAR *crlf)
+{
+	assert(crlf && crlf[0]);
+	if(!(crlf && crlf[0]))
+		return Sdring();
+
+	int crlflen = (int)_tcslen(crlf);
+
+	TScalableArray<TCHAR> sout(INIWRITE_MAX, INIWRITE_INC, TSA_no_decrease);
+	sout.AppendTail('\0');
+
+	auto en_sections = m_inidict.get_enumor();
+	int sec_count = 0;
+
+	for(;; sec_count++)
+	{
+		hashdict<Keval_st> *p_kvdict = nullptr;
+		const TCHAR *secname = en_sections.next(&p_kvdict);
+		if(!secname)
+			break;
+
+		// Write [section name], but skip virtual [_start_] section
+
+		if(sec_count>0)
+		{
+			int seclen = (int)_tcslen(secname);
+			Sdring _secname_(seclen+2);
+			snTprintf(_secname_.getptr(), seclen+3, _T("[%s]"), secname);
+			TSA_append_line(sout, _secname_, crlf, crlflen);
+		}
+
+		// Write each key=value pair in this section.
+
+		auto en_kvdict = p_kvdict->get_enumor();
+
+		for(;;) // for each key=value pair
+		{
+			Keval_st *p_keval = nullptr; // todo: add dual const
+			const TCHAR *keyname = en_kvdict.next(&p_keval);
+			if(!keyname)
+				break;
+
+			const Keval_st& keval = *p_keval;
+
+			// Check whether it's virtual(;3=xxx) or real(foo=bar).
+
+			if(keyname[0]==';') // a virtual key
+			{
+				TSA_append_line(sout, keval.firstline, crlf, crlflen);
+				continue;
+			}
+
+			// Now it is a real key=value pair.
+
+			// Write key=value's first line.
+
+			int vallen = keval.firstline.rawlen();
+
+			int len_1st = (int)_tcslen(keyname) + 3 + vallen + crlflen;
+
+			int orig_len_ = sout.CurrentEles();
+
+			sout.SetEleQuan(orig_len_ + len_1st);
+
+			snTprintf(&sout[orig_len_-1], len_1st+1,
+				_T("%s = %s%s")
+				, 
+				keyname, 
+				vallen==0 ? _T("") : keval.firstline.c_str(),
+				crlf);
+
+			if(keval.totlines==0 || keval.totlines==1)
+				continue;
+
+			// Write key=value's remaining lines.
+
+			for(int i=0; i<keval.totlines-1; i++)
+			{
+				TSA_append_line(sout, keval.ar_exlines[i], crlf, crlflen);
+			}
+		}
+
+	}
+
+	// [2026-05-02] Here I have to do a string copy, bcz TSA & Sdring's heap pointers
+	// are not compatible.
+	return Sdring(sout.GetElePtr());
+}
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -972,6 +1166,33 @@ Sdring SimpleIni::get(const TCHAR *section_name, const TCHAR *keyname)
 
 	return m_pi->get(section_name, keyname);
 }
+
+Sdring SimpleIni::get_default(const TCHAR *section_name, const TCHAR *keyname,
+	const TCHAR *default_value)
+{
+	if (!_create_impl())
+		return false;
+
+	return m_pi->get_default(section_name, keyname, default_value);
+}
+
+SimpleIni::ReCode_et
+SimpleIni::set(const TCHAR *section_name, const TCHAR *keyname, const TCHAR *value)
+{
+	if (!_create_impl())
+		return E_Fail;
+
+	return (ReCode_et)m_pi->set(section_name, keyname, value);
+}
+
+Sdring SimpleIni::save_ini_string(const TCHAR *crlf)
+{
+	if (!_create_impl())
+		return E_Fail;
+
+	return m_pi->save_ini_string(crlf);
+}
+
 
 //
 //

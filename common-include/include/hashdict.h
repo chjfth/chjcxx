@@ -82,7 +82,7 @@ public:
 	}
 
 	// set(): Return the object(pointer) of the TU object managed by hashdict, 
-	// different than the input object.
+	// which points to the dict-managed internal object, different than the input object.
 	TU* set(const TCHAR *key, TU&& value)
 	{
 		return SetKey(key, std::move(value), true);
@@ -720,7 +720,7 @@ int hashdict<TU>::in_get(const TCHAR *in_key)
 			{
 				vaDBG3(_T("{%s}hashdict:get(\"%s\") found after %d probes, value@<%p>"), dbgsig(), 
 					in_key, probes+1, &pte->uvalue);
-				return pte - msa_trove.GetElePtr(0);
+				return int(pte - msa_trove.GetElePtr(0));
 			}
 			else; // fall down
 			

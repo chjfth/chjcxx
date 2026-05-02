@@ -1,7 +1,7 @@
 #ifndef __sdring_h_
 #define __sdring_h_
 #define __sdring_h_created_ 20251225_
-#define __sdring_h_updated_ 20260428_
+#define __sdring_h_updated_ 20260502_
 
 #include <assert.h>
 
@@ -99,11 +99,11 @@ public:
 		return *this;
 	}
 
-	const T_CHAR* c_str() const {
+	const T_CHAR* c_str() const { // this has dual const decoration
 		return m_buf;
 	}
 
-	T_CHAR* getptr() {
+	T_CHAR* getptr() { // this does not have const decoration
 		return m_buf;
 	}
 //  operator T_CHAR* () {
@@ -285,7 +285,7 @@ public:
 		if(maxlen<0)
 			maxlen = 0;
 		int i=0;
-		for(; src[i] && i<maxlen; i++)
+		for(; i<maxlen && src[i]; i++)
 			dst[i] = src[i];
 		dst[i] = '\0';
 		return i;
