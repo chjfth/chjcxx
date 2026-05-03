@@ -38,8 +38,10 @@ public:
 
 	ReCode_et set(const TCHAR *section_name, const TCHAR *keyname, const TCHAR *value);
 
-	Sdring save_ini_string(const TCHAR *crlf = _T("\n"));
+	Sdring save_ini_string(const TCHAR *crlf=nullptr);
 	// -- return whole INI string, as appear in INI file.
+
+	ReCode_et save(const TCHAR *savefilename=nullptr, const TCHAR *crlf=nullptr);
 
 public:
 	// boilerplate code, no need to modify >>>
@@ -121,6 +123,7 @@ private:
 
 #include <CxxVerCheck.h>
 #include <msvc_extras.h>
+#include <osdiff.h>
 #include <commdefs.h> // for Uint, Uint64, enum bitwise-OR etc
 #include <snTprintf.h>
 #include <fsapi.h>
@@ -324,14 +327,13 @@ public:
 
 	ReCode_et set(const TCHAR *secname, const TCHAR *keyname, const TCHAR *value);
 
-	Sdring save_ini_string(const TCHAR *crlf=_T("\n")); 
+	Sdring save_ini_string(const TCHAR *crlf=nullptr); 
 	// -- return whole INI string, as appear in INI file.
 
-private:
-	ReCode_et read_initext(const TCHAR *initext, int inilen);
+	ReCode_et save(const TCHAR *savefilename=nullptr, const TCHAR *crlf=nullptr);
 
 private:
-//	using SdringVal = Sdring; // SdringVal imply this is for INI key's value.
+	ReCode_et load_initext(const TCHAR *initext, int inilen);
 
 	//
 	// Leave below at end of class body
@@ -387,7 +389,7 @@ CIniOp::load(const TCHAR *inifilepath)
 	split(inifilepath, m_inifilenam);
 	m_pfilenam = m_inifilenam.c_str();
 
-	return read_initext(initext, initext.rawlen());
+	return load_initext(initext, initext.rawlen());
 }
 
 
@@ -618,7 +620,7 @@ static IniLineCat_et CheckLineCategory(
 
 
 CIniOp::ReCode_et
-CIniOp::read_initext(const TCHAR *initext, int inilen)
+CIniOp::load_initext(const TCHAR *initext, int inilen)
 {
 	// Prepare a virtual section("_start_" to hold comments at file start.
 
@@ -632,12 +634,14 @@ CIniOp::read_initext(const TCHAR *initext, int inilen)
 	KVcontinue kvc;
 	kvc.reset();
 
+	IniLineCat_et linecat = ILC_empty;
+	TCHAR vkey[10] = {};
+
 	// Split initext into lines, process them line-by-line.
 
 	StringSplitter<const TCHAR*, IsSplitLf, IsTrimCr, true> 
 		spgline(initext, 0, inilen); // spgline: split to get line(s)
 	
-
 	for (int iline=0;;)
 	{
 		int linelen = 0;
@@ -651,7 +655,7 @@ CIniOp::read_initext(const TCHAR *initext, int inilen)
 
 		Sdring newkey_real, linetext;
 
-		IniLineCat_et linecat = CheckLineCategory(kvc.has_penkey(), 
+		linecat = CheckLineCategory(kvc.has_penkey(), 
 			initext, linepos, linelen, 
 			newkey_real, linetext);
 		// -- curkey_real, linetext may have produced NEW content
@@ -676,7 +680,6 @@ CIniOp::read_initext(const TCHAR *initext, int inilen)
 				kvc.Converge(kvdict);
 
 				// Add this line as kvdict's new virtual key
-				TCHAR vkey[10] = {};
 				snTprintf(vkey, _T(";%d"), iline);
 
 				vaDBG3(_T(".   Added as virtual-key '%s'"), vkey);
@@ -721,6 +724,16 @@ CIniOp::read_initext(const TCHAR *initext, int inilen)
 			kvc.AppendLine(std::move(linetext));
 		}
 
+	}
+
+	// If final INI line is an empty line, remove it.
+	if(linecat==ILC_empty)
+	{
+		assert(vkey[0]==';');
+
+		Keval_st keval_empty;
+		bool succ = pCurKvdict->del(vkey, keval_empty);
+		assert(succ);
 	}
 
 	return E_Success;
@@ -984,9 +997,8 @@ static void TSA_append_line(TScalableArray<TCHAR>& sout, const Sdring& ins,
 
 Sdring CIniOp::save_ini_string(const TCHAR *crlf)
 {
-	assert(crlf && crlf[0]);
 	if(!(crlf && crlf[0]))
-		return Sdring();
+		crlf = os_crlf;
 
 	int crlflen = (int)_tcslen(crlf);
 
@@ -1072,6 +1084,34 @@ Sdring CIniOp::save_ini_string(const TCHAR *crlf)
 }
 
 
+CIniOp::ReCode_et 
+CIniOp::save(const TCHAR *savefilename, const TCHAR *crlf)
+{
+	const TCHAR *inipath = savefilename ? savefilename : m_inipath.c_str();
+
+	Sdring initext = save_ini_string(crlf);
+
+	sdring<char> initextA = makeAsdring(initext, m_isUtf8 ? mTs_UTF8 : mTs_SysDefault);
+
+	filehandle_t fh = file_open(inipath, open_for_write, open_share_none);
+	if(fh<0)
+		return E_FileIo;
+
+	CEC_filehandle_t cec_fh = fh;
+
+	fserror_et fserr = file_setsize(fh, 0); // empty the file
+	if(fserr)
+		return E_FileIo;
+
+	int bytes_to_write = initextA.rawlen();
+	int bytesWtn = file_write(fh, initextA.c_str(), bytes_to_write);
+	if(bytesWtn!=bytes_to_write)
+		return E_FileIo;
+
+	return E_Success;
+}
+
+
 ////////////////////////////////////////////////////////////////////////////
 } // namespace iniop
 ////////////////////////////////////////////////////////////////////////////
@@ -1130,7 +1170,7 @@ SimpleIni::load(const TCHAR *inifilename)
 Sdrings SimpleIni::sections()
 {
 	if (!_create_impl())
-		return E_Fail;
+		return Sdrings();
 
 	return m_pi->sections();
 }
@@ -1162,7 +1202,7 @@ bool SimpleIni::has_key(const TCHAR *section_name, const TCHAR *keyname)
 Sdring SimpleIni::get(const TCHAR *section_name, const TCHAR *keyname)
 {
 	if (!_create_impl())
-		return false;
+		return Sdring();
 
 	return m_pi->get(section_name, keyname);
 }
@@ -1171,7 +1211,7 @@ Sdring SimpleIni::get_default(const TCHAR *section_name, const TCHAR *keyname,
 	const TCHAR *default_value)
 {
 	if (!_create_impl())
-		return false;
+		return Sdring();
 
 	return m_pi->get_default(section_name, keyname, default_value);
 }
@@ -1188,11 +1228,19 @@ SimpleIni::set(const TCHAR *section_name, const TCHAR *keyname, const TCHAR *val
 Sdring SimpleIni::save_ini_string(const TCHAR *crlf)
 {
 	if (!_create_impl())
-		return E_Fail;
+		return Sdring();
 
 	return m_pi->save_ini_string(crlf);
 }
 
+SimpleIni::ReCode_et 
+SimpleIni::save(const TCHAR *savefilename, const TCHAR *crlf)
+{
+	if (!_create_impl())
+		return E_Fail;
+
+	return (ReCode_et)m_pi->save(savefilename, crlf);
+}
 
 //
 //
