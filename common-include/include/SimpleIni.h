@@ -1,7 +1,7 @@
 #ifndef __CHHI__SimpleIni_h_
 #define __CHHI__SimpleIni_h_
 #define __CHHI__SimpleIni_h_created_ 20260416
-#define __CHHI__SimpleIni_h_updated_ 20260502
+#define __CHHI__SimpleIni_h_updated_ 20260503
 
 #include <ps_TCHAR.h>
 #include <sdring.h>
@@ -22,7 +22,7 @@ public:
 
 	static int getversion();
 
-	ReCode_et read(const TCHAR *inifilename);
+	ReCode_et load(const TCHAR *inifilename);
 
 	Sdrings sections();
 
@@ -308,7 +308,7 @@ public:
 		COPY_SimpleIni_ReCode(E_FileIo),
 	};
 
-	ReCode_et read(const TCHAR *inifilepath);
+	ReCode_et load(const TCHAR *inifilepath);
 
 	Sdrings sections();
 
@@ -358,7 +358,7 @@ private:
 
 
 CIniOp::ReCode_et
-CIniOp::read(const TCHAR *inifilepath)
+CIniOp::load(const TCHAR *inifilepath)
 {
 	m_inidict.clear();
 
@@ -1119,12 +1119,12 @@ bool SimpleIni::_create_impl()
 }
 
 SimpleIni::ReCode_et 
-SimpleIni::read(const TCHAR *inifilename)
+SimpleIni::load(const TCHAR *inifilename)
 {
 	if(!_create_impl())
 		return E_Fail;
 
-	return (ReCode_et)m_pi->read(inifilename);
+	return (ReCode_et)m_pi->load(inifilename);
 }
 
 Sdrings SimpleIni::sections()
