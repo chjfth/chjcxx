@@ -26,34 +26,34 @@ public:
 
 	static int getversion();
 
-	ReCode_et load(const TCHAR *inifilename);
+	virtual ReCode_et load(const TCHAR *inifilename);
 	// -- Multiple load() calls accumulate INI content. To avoid accumulate, clear() first.
 
-	ReCode_et clear();
+	virtual ReCode_et clear();
 
-	Sdrings sections();
+	virtual Sdrings sections();
 
-	bool has_section(const TCHAR *section_name);
-	Sdrings section_keys(const TCHAR *section_name);
+	virtual bool has_section(const TCHAR *section_name);
+	virtual Sdrings section_keys(const TCHAR *section_name);
 
-	bool has_key(const TCHAR *section_name, const TCHAR *keyname);
-	Sdring get(const TCHAR *section_name, const TCHAR *keyname);
+	virtual bool has_key(const TCHAR *section_name, const TCHAR *keyname);
+	virtual Sdring get(const TCHAR *section_name, const TCHAR *keyname);
 	// -- To distinguish {no-key} and {has-key with empty value}, user need to call has_key().
 
-	Sdring get_default(const TCHAR *section_name, const TCHAR *keyname,
+	virtual Sdring get_default(const TCHAR *section_name, const TCHAR *keyname,
 		const TCHAR *default_value);
 
-	ReCode_et set(const TCHAR *section_name, const TCHAR *keyname, const TCHAR *value);
+	virtual ReCode_et set(const TCHAR *section_name, const TCHAR *keyname, const TCHAR *value);
 
-	Sdring save_ini_string(const TCHAR *crlf=nullptr);
+	virtual Sdring save_ini_string(const TCHAR *crlf=nullptr);
 	// -- return whole INI string, as appear in INI file.
 
-	ReCode_et save(const TCHAR *savefilename=nullptr, const TCHAR *crlf=nullptr);
+	virtual ReCode_et save(const TCHAR *savefilename=nullptr, const TCHAR *crlf=nullptr);
 
 public:
 	// boilerplate code, no need to modify >>>
 	SimpleIni() { _ct0r(); }          //////////////
-	~SimpleIni()                      //////////////
+	virtual ~SimpleIni()                      //////////////
 	{                                 //////////////
 		_dtor();                      //////////////
 		_ct0r();                      //////////////
