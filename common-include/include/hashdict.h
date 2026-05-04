@@ -1200,7 +1200,7 @@ Sdrings hashdict<TU>::get_keys()
 }
 
 
-////\\\\////\\\\////\\\\////\\\\////\\\\////\\\\////\\\\
+////\\\\////\\\\////\\\\////\\\\////\\\\////\\\\////\\\\////
 
 template<typename TU> 
 const TCHAR* hashdict<TU>::enumor::next(TU **ppValue)

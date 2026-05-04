@@ -614,7 +614,9 @@ static IniLineCat_et CheckLineCategory(
 	// Try to split linetext with '='
 
 	StringSplitter<
-		TCHAR* const, // MUST NOT write `TCHAR const*`, would crash on GCC (eg. gcc 9.4)
+		TCHAR* const // MUST NOT write `TCHAR const*`, would crash on GCC (eg. gcc 9.4).
+		             // Write decltype(linetext) would be safer.
+		,
 		Is_equal_sign, StringSplitter_IsSpaceTab,
 		true> // want null-split
 		spgkeyval(linetext, 0, linetext.rawlen());
