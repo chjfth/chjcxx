@@ -16,7 +16,7 @@ public:
 		E_Success = 0,
 		E_Fail = -1,
 		
-		E_FileNotFound = -5,
+		E_FileNotExist = -5,
 		E_FileIo = -6, 
 
 		// Internal errors:
@@ -314,7 +314,7 @@ public:
 		COPY_SimpleIni_ReCode(E_Success),
 		COPY_SimpleIni_ReCode(E_Fail),
 
-		COPY_SimpleIni_ReCode(E_FileNotFound),
+		COPY_SimpleIni_ReCode(E_FileNotExist),
 		COPY_SimpleIni_ReCode(E_FileIo),
 
 		COPY_SimpleIni_ReCode(E_ClearHashdict),
@@ -374,6 +374,9 @@ private:
 CIniOp::ReCode_et
 CIniOp::load(const TCHAR *inifilepath)
 {
+	if(!file_exists(inifilepath))
+		return E_FileNotExist;
+
 	CEC_filehandle_t fh = file_open(inifilepath, open_for_read, 
 		open_share_read|open_share_write);
 

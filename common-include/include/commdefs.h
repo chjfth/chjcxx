@@ -15,6 +15,8 @@
 
 #include <utility> // for std::remove_reference
 
+#include "CxxVerCheck.h"
+
 
 typedef signed char Schar;
 
@@ -99,6 +101,15 @@ typedef int YorN;
 #define __rb__ }
 
 
+// Clone of Visual C++ ARRAYSIZE(), but with a different name to use it on Linux as well.
+extern"C++"
+template <typename TElement, int N>
+char (*
+    RtlpNumberOf_commdefs( TElement (& rparam)[N] )
+)[N];
+#define ARRAY_SIZE(arr)  ( sizeof(*RtlpNumberOf_commdefs(arr)) )
+
+
 template<typename T>
 inline T int_pow(T base, Uint power)
 {
@@ -160,9 +171,10 @@ inline enum_type operator & (enum_type a, enum_type b)
 //	}
 // Suggestion: Use newer DEFAULT_PTR_OUTPUT() instead
 
+#ifdef CXX14_OR_NEWER
 // [2026-05-04]
 #define DEFAULT_PTR_OUTPUT(outptr, default_val) \
-	std::remove_reference<decltype(*outptr)>::type outptr##_to_localvar; \
+	std::remove_reference_t<decltype(*outptr)> outptr##_to_localvar; \
 	if(!outptr) \
 		outptr = &outptr##_to_localvar; \
 	*outptr = default_val; 
@@ -172,7 +184,7 @@ inline enum_type operator & (enum_type a, enum_type b)
 //		DEFAULT_PTR_OUTPUT(pout, true) // Let *pout default to true.
 //		...
 //	}
-
+#endif
 
 
 // [2026-04-09] 

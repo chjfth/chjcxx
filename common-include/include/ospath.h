@@ -28,6 +28,15 @@ inline Sdring split_filenam(const TCHAR* inputpath)
 	return filenam;
 }
 
+bool file_exists(const TCHAR* inputpath);
+
+bool dir_exists(const TCHAR* inputpath);
+
+Sdring fullpath_from_rela(const TCHAR* rela);
+
+bool file_mark_readonly(const TCHAR* inputpath);
+
+
 
 ////////////////////////////////////////////////////////////////////////////
 } // namespace ospath
@@ -52,6 +61,15 @@ inline Sdring split_filenam(const TCHAR* inputpath)
 
 // >>> Include headers required by this lib's implementation
 
+#include <CxxTargetCheck.h>
+#ifdef CXX_TARGET_WINDOWS
+#include "mswin\ospath.CHHI.h"
+#else 
+// Consider it Linux/GCC
+#include "linux/ospath.CHHI.h"
+#endif
+
+
 #include <commdefs.h> // for Uint, Uint64, enum bitwise-OR etc
 //#include <snTprintf.h>
 
@@ -61,6 +79,8 @@ inline Sdring split_filenam(const TCHAR* inputpath)
 #endif
 
 // <<< Include headers required by this lib's implementation
+
+
 
 
 

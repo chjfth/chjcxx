@@ -28,8 +28,8 @@ bool binfile_is_match(const TCHAR *filename1, const TCHAR *filename2, int *pDiff
 // >>> Include headers required by this lib's implementation
 
 #include <commdefs.h> // for Uint, Uint64, enum bitwise-OR etc
-#include <snTprintf.h>
 #include <fsapi.h>
+#include <EnsureClnup_misc.h>
 using namespace fsapi;
 
 // <<< Include headers required by this lib's implementation

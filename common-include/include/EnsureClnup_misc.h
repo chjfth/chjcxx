@@ -2,6 +2,8 @@
 #define __EnsureClnup_misc_h_
 #define __EnsureClnup_misc_h_created_ 20260406
 
+// This file relies on other chj includes, so please include it as late as you can.
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "EnsureClnup.h"

@@ -58,8 +58,8 @@ sdring<wchar_t> makeWsdring(const TCHAR *instr, int codepage=mTs_SysDefault);
 //
 #if defined(makeTsdring_IMPL) || (defined CHHI_ALL_IMPL && !defined CHHI_ALL_IMPL_HIDE_makeTsdring) // [IMPL]
 
-#ifdef _MSC_VER 
-// Using Microsoft Visual C++ as compiler
+#include <CxxTargetCheck.h>
+#ifdef CXX_TARGET_WINDOWS
 #include "mswin\makeTsdring.CHHI.h"
 #else 
 // Consider it Linux/GCC
