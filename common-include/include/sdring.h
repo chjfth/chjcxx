@@ -536,7 +536,8 @@ private:
 		if (old.m_count>0)
 		{
 			m_count = old.m_count;
-			mar_sdring = new sdring[m_count];
+			mar_sdring = new sdring<T_CHAR>[m_count];
+			// --? VC2015 & gcc 11.2 allow me to omit <T_CHAR> above, but gcc 9.4 not allow.
 
 			for(int i=0; i<m_count; i++)
 			{

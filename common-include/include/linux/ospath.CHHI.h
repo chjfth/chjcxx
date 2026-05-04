@@ -73,7 +73,7 @@ Sdring fullpath_from_rela(const TCHAR* rela)
 }
 
 
-bool file_mark_readonly(const TCHAR* inputpath)
+bool file_mark_readonly(const TCHAR* inputpath, bool is_readonly)
 {
 	// Get current permissions
 	struct stat st;
@@ -81,13 +81,30 @@ bool file_mark_readonly(const TCHAR* inputpath)
 		return false;
 	}
 	
-	// Remove write bits for all (owner, group, others)
-	mode_t newMode = st.st_mode & ~(S_IWUSR | S_IWGRP | S_IWOTH);
+	mode_t newMode = 0;
+	if(is_readonly)
+	{
+		// Remove write bits for all (owner, group, others)
+		newMode = st.st_mode & ~(S_IWUSR | S_IWGRP | S_IWOTH);
+	}
+	else
+	{
+		// Turn on write bit only for current user.
+		newMode = st.st_mode | S_IWUSR;
+	}
 	
 	return chmod(inputpath, newMode) == 0;
 }
 
 
+bool file_delete(const TCHAR* inputpath)
+{
+	int err = unlink(inputpath);
+	if(err)
+		return false;
+	else
+		return true;
+}
 
 
 ////////////////////////////////////////////////////////////////////////////

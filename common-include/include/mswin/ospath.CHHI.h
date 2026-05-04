@@ -63,10 +63,29 @@ Sdring fullpath_from_rela(const TCHAR* rela)
 }
 
 
-bool file_mark_readonly(const TCHAR* inputpath)
+bool file_mark_readonly(const TCHAR* inputpath, bool is_readonly)
 {
-	BOOL succ = SetFileAttributesW(inputpath, FILE_ATTRIBUTE_READONLY);
+	DWORD attr = GetFileAttributes(inputpath);
+	if(attr==INVALID_FILE_ATTRIBUTES)
+		return false;
+	
+	BOOL succ = FALSE;
+	if(is_readonly)
+		succ = SetFileAttributesW(inputpath, attr | FILE_ATTRIBUTE_READONLY);
+	else
+		succ = SetFileAttributesW(inputpath, attr & ~FILE_ATTRIBUTE_READONLY);
+	
 	return succ ? true : false;
+}
+
+
+bool file_delete(const TCHAR* inputpath)
+{
+	BOOL succ = DeleteFile(inputpath);
+	if(succ)
+		return true;
+	else
+		return false;
 }
 
 

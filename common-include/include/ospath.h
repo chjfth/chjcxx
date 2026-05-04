@@ -34,7 +34,9 @@ bool dir_exists(const TCHAR* inputpath);
 
 Sdring fullpath_from_rela(const TCHAR* rela);
 
-bool file_mark_readonly(const TCHAR* inputpath);
+bool file_mark_readonly(const TCHAR* inputpath, bool is_readonly);
+
+bool file_delete(const TCHAR* inputpath);
 
 
 

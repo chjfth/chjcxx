@@ -1123,7 +1123,10 @@ CIniOp::save(const TCHAR *savefilename, const TCHAR *crlf)
 
 	filehandle_t fh = file_open(inipath, open_for_write, open_share_none);
 	if(fh<0)
+	{
+		vaDBG1(_T("CIniOp::save() : Cannot open file for write: '%s' (fsapi-error:%d)"), inipath, (int)fh);
 		return E_FileIo;
+	}
 
 	CEC_filehandle_t cec_fh = fh;
 

@@ -133,6 +133,8 @@ bool SimpleIniEx::save_cascade(Sdring *p_out_inipath)
 		if(!err)
 		{ 
 			m_idxSave = i;
+
+			*p_out_inipath = m_inifiles[i];
 			return true;
 		}
 	}
