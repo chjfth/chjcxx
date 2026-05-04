@@ -1,5 +1,7 @@
-#ifndef __commdefs_h_20251208_
-#define __commdefs_h_20251208_
+#ifndef __commdefs_h_
+#define __commdefs_h_
+#define __commdefs_h_created_ 20021128
+#define __commdefs_h_updated_ 20260504
 
 /**************************************************************************
 
@@ -10,6 +12,8 @@
 **************************************************************************/
 
 // #include <stddef.h>
+
+#include <utility> // for std::remove_reference
 
 
 typedef signed char Schar;
@@ -23,13 +27,13 @@ typedef unsigned char Uint8;
 typedef unsigned long Ulong;
 typedef unsigned short Ushort;
 
-typedef unsigned __int64 Uint64; 
+typedef unsigned __int64 Uint64;
 	// for gcc, please add compiler flag -D__int64="long long" ,
 	// or, include my "ps_TypeDecl.h" first.
 
 typedef unsigned long WinErr_t;  // as Windows API error code
 
-typedef int RE_CODE;	
+typedef int RE_CODE;
 	// RE_CODE: result code, normally 0 as "no error" if using this type,
 	//some value other than 0 means an error code.
 
@@ -143,7 +147,6 @@ inline enum_type operator & (enum_type a, enum_type b)
 
 
 // [2025-05-14]
-
 #define SETTLE_OUTPUT_PTR(OutputDataType, outptr, default_val) \
 	OutputDataType outptr##_to_localvar; \
 	if(!outptr) \
@@ -155,6 +158,21 @@ inline enum_type operator & (enum_type a, enum_type b)
 //		SETTLE_OUTPUT_PTR(int, pout, 0) // Let *pout default to 0.
 //		...
 //	}
+// Suggestion: Use newer DEFAULT_PTR_OUTPUT() instead
+
+// [2026-05-04]
+#define DEFAULT_PTR_OUTPUT(outptr, default_val) \
+	std::remove_reference<decltype(*outptr)>::type outptr##_to_localvar; \
+	if(!outptr) \
+		outptr = &outptr##_to_localvar; \
+	*outptr = default_val; 
+// -- Example: 
+//	void foo(bool* pout=nullptr)
+//	{
+//		DEFAULT_PTR_OUTPUT(pout, true) // Let *pout default to true.
+//		...
+//	}
+
 
 
 // [2026-04-09] 

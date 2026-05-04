@@ -1,7 +1,7 @@
 #ifndef __sdring_h_
 #define __sdring_h_
 #define __sdring_h_created_ 20251225_
-#define __sdring_h_updated_ 20260502_
+#define __sdring_h_updated_ 20260504_
 
 #include <assert.h>
 
@@ -487,7 +487,13 @@ template<typename T_CHAR>
 class sdrings
 {
 public:
-	sdrings(int count);
+	sdrings(int count)
+	{
+		_ct0r();
+		reset(count);
+	}
+
+	bool reset(int count=0);
 
 public:
 	// boilerplate code, no need to modify >>>
@@ -578,18 +584,21 @@ private:
 
 
 template<typename T_CHAR>
-sdrings<T_CHAR>::sdrings(int count)
+bool sdrings<T_CHAR>::reset(int count)
 {
 	assert(count>=0);
+
+	_dtor();
 	_ct0r();
 
-	if(count==0)
-		return;
-
-	m_count = count;
 	mar_sdring = new sdring<T_CHAR>[count];
+	if(mar_sdring) {
+		m_count = count;
+		return true;
+	} else {
+		return false;
+	}
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////

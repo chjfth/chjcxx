@@ -1,7 +1,7 @@
 #ifndef __CHHI__SimpleIni_h_
 #define __CHHI__SimpleIni_h_
 #define __CHHI__SimpleIni_h_created_ 20260416
-#define __CHHI__SimpleIni_h_updated_ 20260503
+#define __CHHI__SimpleIni_h_updated_ 20260504
 
 #include <ps_TCHAR.h>
 #include <sdring.h>
@@ -18,11 +18,18 @@ public:
 		
 		E_FileNotFound = -5,
 		E_FileIo = -6, 
+
+		// Internal errors:
+
+		E_ClearHashdict = -11,
 	};
 
 	static int getversion();
 
 	ReCode_et load(const TCHAR *inifilename);
+	// -- Multiple load() calls accumulate INI content. To avoid accumulate, clear() first.
+
+	ReCode_et clear();
 
 	Sdrings sections();
 
@@ -309,9 +316,14 @@ public:
 
 		COPY_SimpleIni_ReCode(E_FileNotFound),
 		COPY_SimpleIni_ReCode(E_FileIo),
+
+		COPY_SimpleIni_ReCode(E_ClearHashdict),
 	};
 
-	ReCode_et load(const TCHAR *inifilepath);
+	ReCode_et load(const TCHAR *inifilepath); 
+	// -- Multiple load() calls accumulate INI content. To avoid accumulate, clear() first.
+
+	ReCode_et clear();
 
 	Sdrings sections();
 
@@ -362,8 +374,6 @@ private:
 CIniOp::ReCode_et
 CIniOp::load(const TCHAR *inifilepath)
 {
-	m_inidict.clear();
-
 	CEC_filehandle_t fh = file_open(inifilepath, open_for_read, 
 		open_share_read|open_share_write);
 
@@ -386,10 +396,25 @@ CIniOp::load(const TCHAR *inifilepath)
 	Sdring initext = makeTsdring(std::move(filebin), m_isUtf8 ? mTs_UTF8 : mTs_SysDefault);
 
 	m_inipath = inifilepath;
-	split(inifilepath, m_inifilenam);
+	ospath::split(inifilepath, m_inifilenam);
 	m_pfilenam = m_inifilenam.c_str();
 
 	return load_initext(initext, initext.rawlen());
+}
+
+CIniOp::ReCode_et
+CIniOp::clear()
+{
+	bool succ = m_inidict.clear();
+	if (!succ)
+		return E_ClearHashdict;
+
+	m_isUtf8 = false;
+	m_inipath.set_empty();
+	m_inifilenam.set_empty();
+	m_pfilenam = nullptr;
+
+	return E_Success;
 }
 
 
@@ -1031,7 +1056,7 @@ Sdring CIniOp::save_ini_string(const TCHAR *crlf)
 
 		for(;;) // for each key=value pair
 		{
-			Keval_st *p_keval = nullptr; // todo: add dual const
+			Keval_st * p_keval = nullptr; // notice: no-way to decorate const?
 			const TCHAR *keyname = en_kvdict.next(&p_keval);
 			if(!keyname)
 				break;
@@ -1165,6 +1190,15 @@ SimpleIni::load(const TCHAR *inifilename)
 		return E_Fail;
 
 	return (ReCode_et)m_pi->load(inifilename);
+}
+
+SimpleIni::ReCode_et
+SimpleIni::clear()
+{
+	if (!_create_impl())
+		return E_Fail;
+
+	return (ReCode_et)m_pi->clear();
 }
 
 Sdrings SimpleIni::sections()

@@ -1205,7 +1205,8 @@ Sdrings hashdict<TU>::get_keys()
 template<typename TU> 
 const TCHAR* hashdict<TU>::enumor::next(TU **ppValue)
 {
-	SETTLE_OUTPUT_PTR(TU*, ppValue, nullptr)
+//	std::remove_reference_t<decltype(*ppValue)> zz;
+	DEFAULT_PTR_OUTPUT(ppValue, nullptr)
 
 	// Note: Immediately before returning to user, we(Enumor code) should call
 	// uo_yes() or uo_end() to tell enum_helper the result.
