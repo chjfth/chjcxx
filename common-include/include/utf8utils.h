@@ -10,7 +10,7 @@ namespace utf8 {
 // Place API function declarations in this namespace.
 
 
-int find_invalid_utf8seq();
+__int64 find_invalid_utf8seq(const char* buffer, size_t length);
 
 
 ////////////////////////////////////////////////////////////////////////////
