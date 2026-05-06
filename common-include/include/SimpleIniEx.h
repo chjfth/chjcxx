@@ -1,7 +1,7 @@
 #ifndef __CHHI__SimpleIniEx_h_
 #define __CHHI__SimpleIniEx_h_
 #define __CHHI__SimpleIniEx_h_created_ 20260504
-#define __CHHI__SimpleIniEx_h_updated_ 20260504
+#define __CHHI__SimpleIniEx_h_updated_ 20260506
 
 #include <SimpleIni.h>
 
@@ -112,7 +112,10 @@ bool SimpleIniEx::load_cascade(const TCHAR* const ar_inifiles[], int nfiles)
 
 	for(int i=0; i<nfiles; i++)
 	{
-		m_inifiles[i] = std::move( ospath::fullpath_from_rela(ar_inifiles[i]) );
+		m_inifiles[i] = ospath::fullpath_from_rela(ar_inifiles[i]);
+
+		vaDBG2(_T("SimpleIniEx::load_cascade(), try loading from '%s'"), m_inifiles[i].c_str());
+		// TODO: vaDBG load result
 
 		auto err = load(ar_inifiles[i]);
 		if(!err)
@@ -129,6 +132,9 @@ bool SimpleIniEx::save_cascade(Sdring *p_out_inipath)
 	// Try from the file by `m_idxSave` then downstream, until save() success.
 	for(int i=m_idxSave; i<m_inifiles.count(); i++)
 	{
+		vaDBG2(_T("SimpleIniEx::save_cascade(), try saving to '%s'"), m_inifiles[i].c_str());
+		// TODO: vaDBG save result
+
 		SimpleIni::ReCode_et err = save(m_inifiles[i]);
 		if(!err)
 		{ 

@@ -132,7 +132,7 @@ public:
 		enumor(hashdict &dict, const TCHAR* fromkey=nullptr) 
 			: m_dict(dict), m_fromkey(fromkey)
 		{
-			m_next_trovent = 0;
+			m_next_trovent = -1; // casual ok
 		}
 		~enumor()
 		{ 
@@ -140,7 +140,7 @@ public:
 		}
 
 		const TCHAR *next(TU **ppValue=nullptr);
-		// -- On return, *ppValue points dict-managed TU object, user must not `delete *ppValue`.
+		// -- On return, *ppValue points to dict-managed TU object, user must not `delete *ppValue`.
 
 		void reset(); // after reset(), user can start a new next() round.
 
@@ -1205,7 +1205,6 @@ Sdrings hashdict<TU>::get_keys()
 template<typename TU> 
 const TCHAR* hashdict<TU>::enumor::next(TU **ppValue)
 {
-//	std::remove_reference_t<decltype(*ppValue)> zz;
 	DEFAULT_PTR_OUTPUT(ppValue, nullptr)
 
 	// Note: Immediately before returning to user, we(Enumor code) should call
@@ -1271,7 +1270,7 @@ void hashdict<TU>::enumor::reset()
 		DecreaseSessionCount();
 	}
 
-	m_next_trovent = 0;
+	m_next_trovent = -1;
 }
 
 template<typename TU> 

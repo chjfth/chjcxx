@@ -1,14 +1,15 @@
 // This is included by parent directory ospath.h .
 // Do not compile this file alone.
 
-// Last updated: 20260504
+// Last updated: 20260506
+
+#define _GNU_SOURCE // [2026-05-06] Q: even I define this, get_current_dir_name() is still not available on Cygwin Win7.
 
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
 #include <stdlib.h>
-
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -61,15 +62,24 @@ bool dir_exists(const TCHAR* inputpath)
 
 Sdring fullpath_from_rela(const TCHAR* rela)
 {
-	char* abspath = realpath(rela, nullptr);
+#if 0
+	char* cwd = get_current_dir_name();
+	if(!cwd)
+		return Sdring();
 	
-	if (abspath) {
-		Sdring result(abspath);
-		free(abspath);  // Must use free(), not `delete`
-		return result;
-	}
+	Sdrint sout = paths_join2(cwd, rela);
+	
+	free(cwd);
+#endif
 
-	return Sdring();
+	Sdring sout;
+	char cwd[4096] = "";
+	
+	getcwd(cwd, sizeof(cwd));
+	if(cwd[0])
+		sout = paths_join2(cwd, rela);
+
+	return sout;
 }
 
 

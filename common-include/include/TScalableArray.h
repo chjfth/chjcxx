@@ -1,7 +1,7 @@
 #ifndef __TScalableArray_h_
 #define __TScalableArray_h_
 #define __TScalableArray_h_created_ 20050101
-#define __TScalableArray_h_updated_ 20260502
+#define __TScalableArray_h_updated_ 20260506
 
 #include <assert.h>
 #include <stdio.h>
@@ -81,7 +81,14 @@ public:
 		// Note: Adding or deleting elements may cause the returned pointer to become invalid.
 		// [2008-08-27] Not returning const ptr, since user should be allowed to modify any element.
 
-	T& operator[](int pos) const ;
+	T& GetEleRef(int pos) const; // pos can be negative
+
+	T& operator[](int pos) { return GetEleRef(pos); }
+	const T& operator[](int pos) const { return GetEleRef(pos); }
+	// --
+	// [2026-05-06] or shall I define a single:
+	//   TU& operator[](int pos) const;
+	// instead of the above two?
 
 	operator T* ()
 	{
@@ -401,7 +408,7 @@ TScalableArray<T>::GetElePtr(int pos)
 
 template<typename T>
 T& 
-TScalableArray<T>::operator[](int pos) const 
+TScalableArray<T>::GetEleRef(int pos) const
 {
 	if(pos>=0 && pos<m_nCurEle)
 	{
