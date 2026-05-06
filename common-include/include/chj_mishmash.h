@@ -71,7 +71,7 @@ bool binfile_is_match(const TCHAR *filename1, const TCHAR *filename2, int *pDiff
 	file_read(fh1, s1.getptr(), fsize1);
 	file_read(fh2, s2.getptr(), fsize2);
 
-	return sdring<char>::str_match(s1, s2, pDiffAt);
+	return sdring<char>::str_match(s1.c_str(), s2.c_str(), pDiffAt);
 }
 
 

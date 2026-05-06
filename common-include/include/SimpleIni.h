@@ -129,6 +129,13 @@ private:
 #include <string.h>
 
 #include <CxxVerCheck.h>
+
+#ifdef USING_REAL_GCC
+#if __GNUC__ < 10
+#error This file needs at least GCC 10.0 to compile. GCC 9.4 "returning reference to temporary" bug would crash the generated program.
+#endif 
+#endif
+
 #include <msvc_extras.h>
 #include <osdiff.h>
 #include <commdefs.h> // for Uint, Uint64, enum bitwise-OR etc

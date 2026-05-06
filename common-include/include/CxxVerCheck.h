@@ -1,7 +1,7 @@
 #ifndef __CxxVerCheck_h_
 #define __CxxVerCheck_h_
 #define __CxxVerCheck_h_created_ 20250429
-#define __CxxVerCheck_h_updated_ 20260415
+#define __CxxVerCheck_h_updated_ 20260506
 
 /*
 	  ____              ____  _      _                  
@@ -55,6 +55,24 @@
 #endif
 
 #endif // _MSC_VER
+
+
+
+/*
+ ____            _    ____ _   _ _   _    ____  ____ ____ 
+|  _ \ ___  __ _| |  / ___| \ | | | | |  / ___|/ ___/ ___|
+| |_) / _ \/ _` | | | |  _|  \| | | | | | |  _  |  | |    
+|  _ <  __/ (_| | | | |_| | |\  | |_| | | |_| | |__| |___ 
+|_| \_\___|\__,_|_|  \____|_| \_|\___/   \____|\____\____|
+*/
+
+#if defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_COMPILER)
+#define USING_REAL_GCC
+// Then use __GNUC__ to check for gcc major version, 7, 9, 10, 12 etc
+// [2026-05-06] SimpleIni.h implementation need __GNUC__>=11 .
+#endif
+
+
 
 
 

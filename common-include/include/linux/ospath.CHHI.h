@@ -3,7 +3,9 @@
 
 // Last updated: 20260506
 
-#define _GNU_SOURCE // [2026-05-06] Q: even I define this, get_current_dir_name() is still not available on Cygwin Win7.
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE // [2026-05-06] Q: Even if I define this, get_current_dir_name() is still not available on Cygwin-gcc 13.4 Win7.
+#endif
 
 #include <unistd.h>
 #include <sys/types.h>
