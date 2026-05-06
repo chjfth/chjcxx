@@ -77,8 +77,8 @@ Sdring fullpath_from_rela(const TCHAR* rela)
 	Sdring sout;
 	char cwd[4096] = "";
 	
-	getcwd(cwd, sizeof(cwd));
-	if(cwd[0])
+	const char *p_cwd = getcwd(cwd, sizeof(cwd));
+	if(!p_cwd || cwd[0])
 		sout = paths_join2(cwd, rela);
 
 	return sout;
