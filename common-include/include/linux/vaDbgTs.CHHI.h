@@ -35,6 +35,7 @@ char* now_timestr(vaDbg_opt_et opts, char buf[], int bufchars)
 
 	struct tm tm;
 	struct tm *ptm = localtime_r(&tv_abs.tv_sec, &tm);
+	(void)ptm;
 
 	if (opts & vaDbg_ymd)
 	{

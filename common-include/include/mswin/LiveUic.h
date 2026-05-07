@@ -165,7 +165,7 @@ public:
 };
 
 
-template<typename T> struct Convert;   // type conversion helper
+template<typename T> struct Convert;   // type conversion helper, `T` can be omitted
 
 template<>
 struct Convert<int>

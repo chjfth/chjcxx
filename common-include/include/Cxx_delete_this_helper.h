@@ -1,5 +1,7 @@
-#ifndef __Cxx_delete_this_helper_h_20260310_20260315_
-#define __Cxx_delete_this_helper_h_20260310_20260315_
+#ifndef __Cxx_delete_this_helper_h_
+#define __Cxx_delete_this_helper_h_
+#define __Cxx_delete_this_helper_h_created_ 20260310 
+#define __Cxx_delete_this_helper_h_updated_ 20260315
 
 // Used in: CxxWindowSubclass
 
@@ -23,6 +25,10 @@ private:
 	friend class Cxx_delete_this_helper;
 };
 
+
+// Note: Cxx_delete_this_base is NOT used as the parent class of Cxx_delete_this_helper,
+// but, used as the parent class of [an alien class that needs delayed `delete this`].
+// So CxxWindowSubclass has Cxx_delete_this_base as a parent class.
 
 class Cxx_delete_this_helper
 {

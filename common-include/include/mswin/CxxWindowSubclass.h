@@ -1,5 +1,7 @@
-#ifndef CHHI__CxxWindowSubclass_h_20250606_20260317_
-#define CHHI__CxxWindowSubclass_h_20250606_20260317_
+#ifndef __CHHI__CxxWindowSubclass_h_
+#define __CHHI__CxxWindowSubclass_h_
+#define __CHHI__CxxWindowSubclass_h_created_ 20250606
+#define __CHHI__CxxWindowSubclass_h_updated_ 20260317
 
 // From Jimm Chen's chjcxx repo.
 // Modification date at first line as version number.
@@ -455,6 +457,12 @@ CxxWindowSubclass::ReCode_et
 CxxWindowSubclass::FetchCxxobjFromHwnd_as_partial(HWND hwnd, const TCHAR *sigstr,
 	CxxWindowSubclass *input_partial_cxxobj)
 {
+	// [2026-05-07] Supp comment: "As partial" means a CxxWindowSubclass's child class
+	// is NOT [a standalone object dealing with subclass messaging], but, is part of
+	// a larger COMPOSITE class. In this case, user should call this _as_partial 
+	// function so tell CxxWindowSubclass's code to NEVER delete user's composite object.
+	// That means, user should explicitly `delete` that composite object at proper time.
+
 	void *pOldobj = nullptr;
 	ReCode_et err = FetchCxxobj_precheck(hwnd, sigstr, TRUE, &pOldobj);
 	if(err == E_Existed)
@@ -465,7 +473,7 @@ CxxWindowSubclass::FetchCxxobjFromHwnd_as_partial(HWND hwnd, const TCHAR *sigstr
 	else if(err)
 		return err;
 	
-	// Initialize the object in-place
+	// Initialize the object in-place.
 	err = input_partial_cxxobj->AttachHwnd(hwnd, sigstr);
 	input_partial_cxxobj->m_as_partial_cxxobj = true;
 	return err;
