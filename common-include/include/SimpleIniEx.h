@@ -9,6 +9,7 @@ class SimpleIniEx : public SimpleIni
 {
 public:
 	bool load_cascade(const TCHAR* const ar_inifiles[], int nfiles);
+
 	bool save_cascade(Sdring *p_out_inipath=nullptr);
 
 public:

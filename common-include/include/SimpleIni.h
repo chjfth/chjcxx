@@ -1,7 +1,7 @@
 #ifndef __CHHI__SimpleIni_h_
 #define __CHHI__SimpleIni_h_
 #define __CHHI__SimpleIni_h_created_ 20260416
-#define __CHHI__SimpleIni_h_updated_ 20260504
+#define __CHHI__SimpleIni_h_updated_ 20260508
 
 #include <ps_TCHAR.h>
 #include <sdring.h>
@@ -133,6 +133,7 @@ private:
 #ifdef USING_REAL_GCC
 #if __GNUC__ < 10
 #error This file needs at least GCC 10.0 to compile. GCC 9.4 "returning reference to temporary" bug would crash the generated program.
+// Even if GCC 9.4 survive CheckLineCategory()'s `TCHAR* const` site. There are more problematic places. (Evclip 20260505.s1)
 #endif 
 #endif
 
@@ -346,13 +347,19 @@ public:
 
 	ReCode_et set(const TCHAR *secname, const TCHAR *keyname, const TCHAR *value);
 
+	ReCode_et load_initext(const TCHAR *initext, int inilen);
+
 	Sdring save_ini_string(const TCHAR *crlf=nullptr); 
 	// -- return whole INI string, as appear in INI file.
 
 	ReCode_et save(const TCHAR *savefilename=nullptr, const TCHAR *crlf=nullptr);
 
 private:
-	ReCode_et load_initext(const TCHAR *initext, int inilen);
+	void create_virtual_start_section()
+	{
+		// We require an empty [_start_] virtual section always exits.
+		m_inidict.setdefault(VIRTUAL_SECTION_0, hashdict<Keval_st>());
+	}
 
 	//
 	// Leave below at end of class body
@@ -661,9 +668,9 @@ CIniOp::load_initext(const TCHAR *initext, int inilen)
 {
 	// Prepare a virtual section("_start_" to hold comments at file start.
 
-	// create empty [_start_] kvdict.
+	create_virtual_start_section();
+	
 	Sdring curSection = VIRTUAL_SECTION_0;
-	m_inidict.set(VIRTUAL_SECTION_0, hashdict<Keval_st>());
 
 	// get back(ptr) the just created empty kvdict inside m_inidict.
 	hashdict<Keval_st> *pCurKvdict = m_inidict.get(VIRTUAL_SECTION_0);
@@ -963,6 +970,8 @@ CIniOp::set(const TCHAR *secname, const TCHAR *keyname, const TCHAR *sz_val_line
 	// not an embedded comment line.
 	// An embedded comment line can be introduced ONLY by manually editing the INI file. 
 
+	create_virtual_start_section();
+
 	hashdict<Keval_st> *p_kvdict = m_inidict.get(secname);
 	if(!p_kvdict)
 	{
@@ -1034,6 +1043,8 @@ static void TSA_append_line(TScalableArray<TCHAR>& sout, const Sdring& ins,
 
 Sdring CIniOp::save_ini_string(const TCHAR *crlf)
 {
+	create_virtual_start_section();
+
 	if(!(crlf && crlf[0]))
 		crlf = os_crlf;
 
@@ -1054,12 +1065,17 @@ Sdring CIniOp::save_ini_string(const TCHAR *crlf)
 
 		// Write [section name], but skip virtual [_start_] section
 
-		if(sec_count>0)
+		if(sec_count > 0)
 		{
 			int seclen = (int)_tcslen(secname);
 			Sdring _secname_(seclen+2);
 			snTprintf(_secname_.getptr(), seclen+3, _T("[%s]"), secname);
 			TSA_append_line(sout, _secname_, crlf, crlflen);
+		}
+		else
+		{
+			// first section MUST be virtual [_start_]
+			assert( _tcscmp(secname, VIRTUAL_SECTION_0)==0 );
 		}
 
 		// Write each key=value pair in this section.

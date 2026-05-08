@@ -1,12 +1,25 @@
-#ifndef __StringHelper_h_
-#define __StringHelper_h_
-#define __StringHelper_h_created_ 20250426
-#define __StringHelper_h_updated_ 20260419
+#ifndef __CHHI__StringHelper_h_
+#define __CHHI__StringHelper_h_
+#define __CHHI__StringHelper_h_created_ 20250426
+#define __CHHI__StringHelper_h_updated_ 20260508
+
 
 #include <assert.h>
 #include <CxxVerCheck.h>
+#include <ps_TCHAR.h>
 #include <commdefs.h>
-//#include <vaDbgTs.h>
+
+
+////////////////////////////////////////////////////////////////////////////
+//-- namespace nonamespace { 
+////////////////////////////////////////////////////////////////////////////
+// Place API function declarations in this namespace.
+
+
+int shp_stricmp(const TCHAR *s1, const TCHAR *s2);
+
+
+//////// StringSplitter template class ////////
 
 inline bool StringSplitter_IsCrlf(int charval)
 {
@@ -216,4 +229,88 @@ void test1()
 
 */
 
+
+
+
+
+////////////////////////////////////////////////////////////////////////////
+//-- } // namespace nonamespace
+////////////////////////////////////////////////////////////////////////////
+
+
+/*
+////////////////////////////////////////////////////////////////////////////
+ ___                 _                           _        _   _             
+|_ _|_ __ ___  _ __ | | ___ _ __ ___   ___ _ __ | |_ __ _| |_(_) ___  _ __  
+ | || '_ ` _ \| '_ \| |/ _ \ '_ ` _ \ / _ \ '_ \| __/ _` | __| |/ _ \| '_ \ 
+ | || | | | | | |_) | |  __/ | | | | |  __/ | | | || (_| | |_| | (_) | | | |
+|___|_| |_| |_| .__/|_|\___|_| |_| |_|\___|_| |_|\__\__,_|\__|_|\___/|_| |_|
+              |_|                                                           
+////////////////////////////////////////////////////////////////////////////
+*/
+// ++++++++++++++++++ Implementation Below ++++++++++++++++++
+
+
+#if defined(StringHelper_IMPL) || (defined CHHI_ALL_IMPL && !defined CHHI_ALL_IMPL_HIDE_StringHelper) // [IMPL]
+
+
+// >>> Include headers required by this lib's implementation
+
+//#include <commdefs.h> // for Uint, Uint64, enum bitwise-OR etc
+//#include <snTprintf.h>
+
+#include <ctype.h> // shp_stricmp
+
+// <<< Include headers required by this lib's implementation
+
+
+
+
+#ifndef StringHelper_DEBUG
+#include <CHHI_vaDBG_hide.h> // Suppress/invalidate vaDBG macros, from now on
 #endif
+
+
+////////////////////////////////////////////////////////////////////////////
+//-- namespace nonamespace {
+////////////////////////////////////////////////////////////////////////////
+// Place API function Implementation in this namespace.
+
+
+int shp_stricmp(const TCHAR *s1, const TCHAR *s2)
+{
+	bool s1null = !s1 || !s1[0];
+	bool s2null = !s2 || !s2[0];
+	
+	if(s1null && s2null)
+		return true;
+	if(s1null || s2null)
+		return false;
+		
+	for(int i=0; s1[i] || s2[i]; i++)
+	{
+		if(toupper(s1[i]) < toupper(s2[i]))
+			return -i;
+		else if(toupper(s1[i]) > toupper(s2[i]))
+			return i;
+	}
+	
+	return 0;
+}
+
+
+////////////////////////////////////////////////////////////////////////////
+//-- } // namespace nonamespace
+////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef StringHelper_DEBUG
+#include <CHHI_vaDBG_show.h> // Now restore vaDBG macros
+#endif
+
+
+#endif // [IMPL]
+
+
+#endif // include once guard

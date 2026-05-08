@@ -1,5 +1,7 @@
-#ifndef __utils_env_h_20250830_
-#define __utils_env_h_20250830_
+#ifndef __CHHI__utils_env_h_ 
+#define __CHHI__utils_env_h_
+#define __CHHI__utils_env_h_created_ 20250830
+#define __CHHI__utils_env_h_updated_ 20260509
 
 #include <windows.h>
 #include <windowsx.h>
@@ -19,8 +21,9 @@ inline const TCHAR *str_ANSIorUnicode()
 BOOL Is_UserAnAdmin();
 
 const TCHAR* GetExeFilename();
-
 const TCHAR *GetExeStemname(); // the exe filename without .exe suffix
+const TCHAR* GetExeDir();
+
 
 const TCHAR* env_GetCpuArch();
 
@@ -134,31 +137,57 @@ WinSDK 8.1 has fixed it.
 
 const TCHAR* GetExeFilename()
 {
-	static TCHAR exepath[MAX_PATH] = _T("Unknown exepath");
+	static TCHAR exepath[MAX_PATH] = _T("");
+	static const TCHAR* s_pfilename = NULL;
+
+	if(s_pfilename)
+		return s_pfilename;
+
 	GetModuleFileName(NULL, exepath, ARRAYSIZE(exepath));
 
 	const TCHAR *pfilename = StrRChr(exepath, NULL, _T('\\'));
 	if(pfilename && pfilename[1])
-		pfilename++;
+		return (s_pfilename = pfilename+1);
 	else
-		pfilename = exepath;
-
-	return pfilename;
+		return _T("Unknown exepath"); // not likely
 }
 
 
-const TCHAR *GetExeStemname() // the exe filename without .exe suffix
+const TCHAR* GetExeStemname() // the exe filename without .exe suffix
 {
 	static TCHAR s_exestem[MAX_PATH] = _T("");
-	if(!s_exestem[0])
-	{
-		_tcscpy_s(s_exestem, GetExeFilename());
 
-		int slen = (int)_tcslen(s_exestem);
-		if(_tcsicmp(s_exestem+slen-4, _T(".exe"))==0)
-			s_exestem[slen-4] = '\0';
+	if(s_exestem[0])
+		return s_exestem;
+
+	_tcscpy_s(s_exestem, GetExeFilename());
+
+	int slen = (int)_tcslen(s_exestem);
+	if( slen>4 && _tcsicmp(s_exestem+slen-4, _T(".exe"))==0 )
+		s_exestem[slen-4] = '\0';
+	else
+	{ 
+		// This executable name does not end with ".exe', so leave it alone.
 	}
 	return s_exestem;
+}
+
+const TCHAR* GetExeDir()
+{
+	static TCHAR exepath[MAX_PATH] = _T("");
+	static const TCHAR* s_pdir = NULL;
+
+	GetModuleFileName(NULL, exepath, ARRAYSIZE(exepath));
+
+	TCHAR *pLastSlash = StrRChr(exepath, NULL, _T('\\'));
+	if (pLastSlash)
+	{
+		*pLastSlash = '\0';
+		s_pdir = exepath;
+		return exepath;
+	}
+	else
+		return _T("");
 }
 
 
