@@ -1,5 +1,7 @@
-#ifndef __CHHI_vaDBG_is_vaDbgTs_h_20251208_20260402_
-#define __CHHI_vaDBG_is_vaDbgTs_h_20251208_20260402_
+#ifndef __CHHI_vaDBG_is_vaDbgTs_h_
+#define __CHHI_vaDBG_is_vaDbgTs_h_
+#define __CHHI_vaDBG_is_vaDbgTs_h_created_ 20251208
+#define __CHHI_vaDBG_is_vaDbgTs_h_updated_ 20260509
 
 // If your CHHI.cpp wants to see debug-messages from various CHHI library modules
 // (for XXX module, XXX_DEBUG defined as a premise), you need to:
@@ -58,9 +60,7 @@ void vaDBG3(Args&&... args) // forwards all arguments
 template<typename... Args>
 void vaDBG(Args&&... args) // forwards all arguments
 {
-#if vaDBG_MAX_LEVEL >= 3
 	vaDbgTsl(vaDbg_ALL, std::forward<Args>(args)...);
-#endif
 }
 
 
@@ -76,7 +76,7 @@ inline void vaDBG0(const TCHAR *fmt, ...)
 	va_start(args, fmt);
 	vlDbgTsl(vaDbg_ERROR, fmt, args);
 	va_end(args);
-};
+}
 
 inline void vaDBG1(const TCHAR *fmt, ...)
 {
@@ -86,7 +86,7 @@ inline void vaDBG1(const TCHAR *fmt, ...)
 	vlDbgTsl(vaDbg_WARN, fmt, args);
 	va_end(args);
 #endif
-};
+}
 
 inline void vaDBG2(const TCHAR *fmt, ...)
 {
@@ -96,7 +96,7 @@ inline void vaDBG2(const TCHAR *fmt, ...)
 	vlDbgTsl(vaDbg_INFO, fmt, args);
 	va_end(args);
 #endif
-};
+}
 
 inline void vaDBG3(const TCHAR *fmt, ...)
 {
@@ -106,17 +106,15 @@ inline void vaDBG3(const TCHAR *fmt, ...)
 	vlDbgTsl(vaDbg_VERBOSE, fmt, args);
 	va_end(args);
 #endif
-};
+}
 
 inline void vaDBG(const TCHAR *fmt, ...)
 {
-#if vaDBG_MAX_LEVEL >= 3
 	va_list args;
 	va_start(args, fmt);
 	vlDbgTsl(vaDbg_ALL, fmt, args);
 	va_end(args);
-#endif
-};
+}
 
 
 #endif // CXX11_OR_NEWER/else

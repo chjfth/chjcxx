@@ -389,7 +389,10 @@ CIniOp::ReCode_et
 CIniOp::load(const TCHAR *inifilepath)
 {
 	if(!file_exists(inifilepath))
+	{ 
+		vaDBG1(_T("CIniOp::load() : File not exist: '%s'"), inifilepath);
 		return E_FileNotExist;
+	}
 
 	CEC_filehandle_t fh = file_open(inifilepath, open_for_read, 
 		open_share_read|open_share_write);
@@ -398,13 +401,20 @@ CIniOp::load(const TCHAR *inifilepath)
 	if(filesize==0)
 		return E_Success; // consider it an empty INI file
 	else if(filesize<0)
+	{
+		vaDBG1(_T("CIniOp::load() : !!file_getsize()=%d: '%s'"), (int)filesize, inifilepath);
 		return E_FileIo;
+	}
 
 	sdring<char> filebin(filesize);
 
 	int bytesRed = file_read(fh, filebin.getptr(), filesize);
 	if(bytesRed!=filesize)
+	{
+		vaDBG1(_T("CIniOp::load() : !!file_read() get partial content (%d of %d) '%s'"), 
+			(int)bytesRed, (int)filesize, inifilepath);
 		return E_FileIo;
+	}
 
 	int invalid_offset = (int)utf8::find_invalid_utf8seq(filebin, filesize);
 

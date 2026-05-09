@@ -115,12 +115,16 @@ bool SimpleIniEx::load_cascade(const TCHAR* const ar_inifiles[], int nfiles)
 	{
 		m_inifiles[i] = ospath::fullpath_from_rela(ar_inifiles[i]);
 
-		vaDBG2(_T("SimpleIniEx::load_cascade(), try loading from '%s'"), m_inifiles[i].c_str());
-		// TODO: vaDBG load result
+		vaDBG2(_T("SimpleIniEx::load_cascade(), try loading from (%d/%d) '%s'"), 
+			i+1, nfiles, m_inifiles[i].c_str());
 
 		auto err = load(ar_inifiles[i]);
 		if(!err)
+		{
+			vaDBG2(_T(".   Load OK."));
 			m_idxSave = i;
+		}
+		// Error case message: Rely on vaDBG() inside load().
 	}
 
 	return true;
