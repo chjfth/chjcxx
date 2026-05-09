@@ -1,7 +1,7 @@
 #ifndef __CHHI__hashdict_h_
 #define __CHHI__hashdict_h_
 #define __CHHI__hashdict_h_created_ 20260404
-#define __CHHI__hashdict_h_updated_ 20260429
+#define __CHHI__hashdict_h_updated_ 20260509
 
 #include <CxxVerCheck.h>
 #ifdef _MSC_VER
@@ -360,7 +360,7 @@ private:
 	union 
 	{
 		int m_resize_pct;	// > 0 , normal behavior, 66 means: when 66% full, do resize
-		int m_hungry_slots;	// >=0 , for debugging, resize when if empty drops to (-m_hungry_slot)
+		int m_hungry_slots;	// <=0 , for debugging, resize when if empty drops to (-m_hungry_slot)
 	};
 
 	TScalableArray<slot_st> msa_slots; // the hash-slots
@@ -527,6 +527,8 @@ template<typename TU>
 TU* hashdict<TU>::SetKey(const TCHAR *in_key, TU&& in_value, bool is_overwrite)
 {
 	vaDBG3_DbgEnterExit;
+
+	init_if_dumb();
 
 	assert(in_key && in_key[0]);
 	if(! (in_key && in_key[0]) )
