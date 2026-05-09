@@ -1,7 +1,7 @@
 #ifndef __CHHI__DataXString_h_
 #define __CHHI__DataXString_h_
 #define __CHHI__DataXString_h_created_ 20260507
-#define __CHHI__DataXString_h_updated_ 20260508
+#define __CHHI__DataXString_h_updated_ 20260509
 
 // DataXString: C++ object Data eXchange via/by the form of a String.
 
@@ -58,27 +58,29 @@ class DataXString : public IDataXString
 #endif
 
 public:
-	DataXString() : DataXString(Sdring()) {}
-
-	DataXString(const Sdring &default)
+	DataXString(const TCHAR* default=nullptr)
 	{
 		m_default = default;
 		SetToDefault();
 	}
 
-	void SetValue(TU&& val)
+	enum SetValue_ret { NoChange = 0, SetNew = 1 };
+
+	virtual SetValue_ret SetValue(TU&& val)
 	{
 		if(val==m_val)
-			return;
+			return NoChange;
 
 		SetDirty(true);
 		m_val = std::move(val);
+		return SetNew;
 	}
 
-	void SetValue(const TU& val)
+	SetValue_ret SetValue(const TU& val)
 	{
+		// No need to make this virtual, bcz virtual SetValue(TU&& val) is enough.
 		TU copy = val;
-		this->SetValue( std::move(copy) );
+		return this->SetValue( std::move(copy) );
 	}
 
 	DataXString& operator= (const TU& val)
@@ -87,7 +89,7 @@ public:
 		return *this;
 	}
 
-	const TU& GetValue()
+	virtual const TU& GetValue()
 	{
 		return m_val;
 	}
@@ -108,7 +110,7 @@ public:
 		return DataXTraits<TU, FORMAT>::ToString(m_val);
 	}
 
-	virtual void SetToDefault()
+	virtual void SetToDefault() cxx11_override
 	{
 		m_val = DataXTraits<TU, FORMAT>::FromString(m_default.c_str());
 	}
@@ -117,6 +119,11 @@ private:
 	TU m_val;
 };
 
+
+
+//////////////////////////////////////////////////////////////////////////
+// Specialization for common C++ types(int, bool, float, etc)
+//////////////////////////////////////////////////////////////////////////
 
 template<>
 struct DataXTraits<int, XStringFormatDefault>

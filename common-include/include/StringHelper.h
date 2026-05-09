@@ -290,9 +290,9 @@ int shp_stricmp(const TCHAR *s1, const TCHAR *s2)
 	for(int i=0; s1[i] || s2[i]; i++)
 	{
 		if(toupper(s1[i]) < toupper(s2[i]))
-			return -i;
+			return -(i+1);
 		else if(toupper(s1[i]) > toupper(s2[i]))
-			return i;
+			return i+1;
 	}
 	
 	return 0;

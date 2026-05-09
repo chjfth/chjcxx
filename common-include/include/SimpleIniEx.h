@@ -130,21 +130,26 @@ bool SimpleIniEx::save_cascade(Sdring *p_out_inipath)
 {
 	DEFAULT_PTR_OUTPUT(p_out_inipath, nullptr)
 
+	int idxStart = m_idxSave;
+
 	// Try from the file by `m_idxSave` then downstream, until save() success.
 	for(int i=m_idxSave; i<m_inifiles.count(); i++)
 	{
 		vaDBG2(_T("SimpleIniEx::save_cascade(), try saving to '%s'"), m_inifiles[i].c_str());
-		// TODO: vaDBG save result
 
 		SimpleIni::ReCode_et err = save(m_inifiles[i]);
 		if(!err)
 		{ 
-			m_idxSave = i;
+			vaDBG2(_T(".   Success."));
+
+			m_idxSave = i; // update m_idxSave for next save() action.
 
 			*p_out_inipath = m_inifiles[i];
 			return true;
 		}
 	}
+
+	vaDBG2(_T(".   All above %d files fail to save."), m_idxSave-idxStart+1);
 
 	return false;
 }

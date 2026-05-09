@@ -148,10 +148,10 @@ Sdring DataXIni::SaveIni()
 
 		if (item.pdatax->IsDirty())
 		{
-			// todo: vaDBG2() 
-
 			Sdring itemval = item.pdatax->GetValueAsString();
 			m_ini.set(secname, item.keyname, itemval);
+
+			vaDBG2(_T("DataXIni::SaveIni() : Flush to INI dirty key '%s'='%s'"), item.keyname.c_str(), itemval.c_str());
 		}
 	}
 
@@ -170,6 +170,7 @@ Sdring DataXIni::SaveIni()
 
 	return outinipath;
 }
+
 
 
 ////////////////////////////////////////////////////////////////////////////
