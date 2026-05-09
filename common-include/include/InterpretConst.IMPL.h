@@ -625,7 +625,7 @@ inline bool IsPipeChar(int charval)
 
 CONSTVAL_t CInterpretConst::NamesToVal(const TCHAR *names, bool *p_is_err)
 {
-	StringSplitter<decltype(names), IsPipeChar, StringSplitter_TrimSpacechar> sp(names);
+	StringSplitter<decltype(names), IsPipeChar, StringSplitter_IsSpacechar> sp(names);
 	CONSTVAL_t retval = 0;
 
 	bool is_err = false;

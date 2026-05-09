@@ -101,7 +101,9 @@ public:
 
 	virtual void SetValueByString(const TCHAR *valsz, bool is_mark_dirty=true) cxx11_override
 	{
-		m_val = DataXTraits<TU, FORMAT>::FromString(valsz);
+		m_val = DataXTraits<TU, FORMAT>::FromString(
+			valsz==nullptr ? _T("") : valsz
+		);
 		SetDirty(is_mark_dirty);
 	}
 
@@ -112,7 +114,9 @@ public:
 
 	virtual void SetToDefault() cxx11_override
 	{
-		m_val = DataXTraits<TU, FORMAT>::FromString(m_default.c_str());
+		m_val = DataXTraits<TU, FORMAT>::FromString(
+			m_default.is_empty() ? _T("") : m_default.c_str()
+		);
 	}
 
 private:

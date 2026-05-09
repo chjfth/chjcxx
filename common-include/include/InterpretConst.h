@@ -1,5 +1,7 @@
-#ifndef __CHHI__InterpretConst_h_20251208_20260312_
-#define __CHHI__InterpretConst_h_20251208_20260312_
+#ifndef __CHHI__InterpretConst_h_
+#define __CHHI__InterpretConst_h_
+#define __CHHI__InterpretConst_h_created_ 20251208
+#define __CHHI__InterpretConst_h_updated_ 20260509
 
 
 // Note: The API interface code(not implementation code) should ONLY rely on 

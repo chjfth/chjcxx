@@ -1,6 +1,11 @@
 #ifndef __RECTxy_h_20170720_
 #define __RECTxy_h_20170720_
 
+#if defined(_WINDEF_) // from windef.h
+#define _RECT_STRUCT_DEFINED_
+#endif
+
+
 // The Rect_st struct here is described in .left .top .right .bottom .
 // The .right and .bottom value is not inclusive -- same as Windows API RECT.
 // So, rect.right-rect.left is the width, rect.bottom-rect.top is the height.
@@ -134,6 +139,18 @@ Rect_st::PaceToRect(const Rect_st &rBig)
 	return paceRet;
 }
 
+
+#ifdef _RECT_STRUCT_DEFINED_
+
+bool operator==(const RECT& r1, const RECT& r2)
+{
+	if(r1.left==r2.left && r1.top==r2.top && r1.right==r2.right && r1.bottom==r2.bottom)
+		return true;
+	else
+		return false;
+}
+
+#endif
 
 
 #define RECTcx(r) ((r).right-(r).left)

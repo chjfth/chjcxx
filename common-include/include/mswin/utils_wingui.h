@@ -1,5 +1,7 @@
-#ifndef __utils_wingui_h_20250822_
-#define __utils_wingui_h_20250822_
+#ifndef __CHHI__utils_wingui_h_
+#define __CHHI__utils_wingui_h_
+#define __CHHI__utils_wingui_h_created_ 20250822
+#define __CHHI__utils_wingui_h_updated_ 20260509
 
 #include <windows.h>
 #include <windowsx.h>
@@ -13,9 +15,9 @@
 #define HANDLE_dlgMSG(hwnd, message, fn) \
   case (message): \
   return SetDlgMsgResult( hwnd, message, HANDLE_##message((hwnd), (wParam), (lParam), (fn)) );
-// For message processing in a WinAPI user's dialog-procedure, we need a further step
-// beyond that of windowsx.h's HANDLE_MSG(). This HANDLE_dlgMSG() applies that further step.
-// Ref: Raymond Chen https://devblogs.microsoft.com/oldnewthing/20031107-00/?p=41923
+  // For message processing in a WinAPI user's dialog-procedure, we need a further step
+  // beyond that of windowsx.h's HANDLE_MSG(). This HANDLE_dlgMSG() applies that further step.
+  // Ref: Raymond Chen https://devblogs.microsoft.com/oldnewthing/20031107-00/?p=41923
 
 
 int vaMsgBox(HWND hwnd, UINT utype, const TCHAR *szTitle, const TCHAR *szfmt, ...);
@@ -35,13 +37,6 @@ bool WM_TIMER_call_once(HWND hwnd, int delay_millisec, PROC_WM_TIMER_call_once *
 void util_SetDlgDefaultButton(HWND hwndDlg, UINT idDefault);
 
 
-#define HANDLE_dlgMSG(hwnd, message, fn) \
-  case (message): \
-  return SetDlgMsgResult( hwnd, message, HANDLE_##message((hwnd), (wParam), (lParam), (fn)) );
-  // For message processing in a WinAPI user's dialog-procedure, we need a further step
-  // beyond that of windowsx.h's HANDLE_MSG(). This HANDLE_dlgMSG() applies that further step.
-  // Ref: Raymond Chen https://devblogs.microsoft.com/oldnewthing/20031107-00/?p=41923
-
 int getCheckedRadioButton(HWND hDlg, int nIDFirst, int nIDLast);
 
 inline int enableDlgItem(HWND hDlg, int uic, BOOL isEnable) 
@@ -55,6 +50,17 @@ HDC BeginPaint_NoFlicker(HWND hwnd, PAINTSTRUCT *lpPaint);
 
 BOOL EndPaint_NoFlicker(HWND hwnd, PAINTSTRUCT *lpPaint);
 
+BOOL GetClientRect_ScreenPos(HWND hwnd, RECT *pRect);
+
+BOOL Hwnd_GetBorderWidths(HWND hwnd, RECT *pWidths, UINT new_style=0, UINT new_style_ex=0);
+
+BOOL MoveWindow_byClientRect(HWND hwnd, const RECT *prcClientScreen=NULL,
+	UINT new_style=0, UINT new_style_ex=0);
+
+UINT Hwnd_TuneWinStyleBits  (HWND hwnd, UINT bits_on, UINT bits_off, bool is_tune_now=false);
+UINT Hwnd_TuneWinStyleExBits(HWND hwnd, UINT bits_on, UINT bits_off, bool is_tune_now=false);
+
+HMENU FindSubMenu_byText(HMENU hMenu, const TCHAR* menutext);
 
 
 /*
@@ -310,6 +316,150 @@ BOOL EndPaint_NoFlicker(HWND hwnd, PAINTSTRUCT *lpPaint)
 	g_pdbdc = NULL;
 	return succ;
 }
+
+
+BOOL GetClientRect_ScreenPos(HWND hwnd, RECT *pRect)
+{
+	// The returned RECT is in screen-coordinate.
+	if(!GetClientRect(hwnd, pRect))
+		return FALSE;
+
+	SetLastError(0);
+	int mret = MapWindowPoints(hwnd, HWND_DESKTOP, (POINT*)pRect, 2);
+	if(GetLastError())
+		return FALSE;
+
+	return TRUE;
+}
+
+
+BOOL Hwnd_GetBorderWidths(HWND hwnd, RECT *pWidths, UINT new_style, UINT new_style_ex)
+{
+	// Return window border pixels in *pWidth(all positive, at least 0).
+	// User can change window styles(really change) before querying the width.
+	// [2026-05-09] Used in DigClock2 v2.0
+
+	if(!IsWindow(hwnd))
+		return FALSE;
+
+	if(new_style!=0)
+		SetWindowLongPtr(hwnd, GWL_STYLE, new_style);
+
+	if(new_style_ex!=0)
+		SetWindowLongPtr(hwnd, GWL_EXSTYLE, new_style_ex);
+
+	// (must) Repaint the window frame, so that we can calculate its *new* border size.
+	SetWindowPos(hwnd, NULL, 0, 0, 0, 0,
+		SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+
+	RECT r1 = {}, r0 = {};
+	GetWindowRect(hwnd, &r1);
+	GetClientRect_ScreenPos(hwnd, &r0);
+
+	RECT &ret = *pWidths;
+	ret.left = r0.left - r1.left;
+	assert(ret.left>=0);
+	ret.right = r1.right - r0.right;
+	assert(ret.right>=0);
+	ret.top = r0.top - r1.top;
+	assert(ret.top>=0);
+	ret.bottom = r1.bottom - r0.bottom;
+	assert(ret.bottom>=0);
+
+	return TRUE;
+}
+
+BOOL MoveWindow_byClientRect(HWND hwnd, const RECT *prcClientScreen, 
+	UINT new_style, UINT new_style_ex)
+{
+	// MoveWindow according to user-assigned client-area position.
+	// [2026-05-09] Used in DigClock2 v2.0
+
+	RECT rcClientAbs = {};
+	if(! GetClientRect_ScreenPos(hwnd, &rcClientAbs))
+		return FALSE;
+
+	if(prcClientScreen)
+	{
+		// Use user-assigned client-area pos.
+		rcClientAbs = *prcClientScreen;
+	}
+
+	RECT bdw = {};
+	Hwnd_GetBorderWidths(hwnd, &bdw, new_style, new_style_ex); // change winstyle inside!
+
+	RECT rcFrame = { rcClientAbs.left - bdw.left , rcClientAbs.top - bdw.top,
+		rcClientAbs.right + bdw.right , rcClientAbs.bottom + bdw.bottom };
+
+	SetWindowPos(hwnd, NULL,
+		rcFrame.left, rcFrame.top,
+		rcFrame.right-rcFrame.left, rcFrame.bottom-rcFrame.top,
+		SWP_NOZORDER | SWP_FRAMECHANGED);
+
+	// [2026-05-09] Need this two lines to take effect?
+	InvalidateRect(hwnd, NULL, TRUE);
+	UpdateWindow(hwnd);
+
+	return TRUE;
+}
+
+
+UINT Hwnd_TuneWinStyleBits(HWND hwnd, UINT bits_on, UINT bits_off, bool is_tune_now)
+{
+	// [2026-05-09] Used in DigClock2 v2.0
+
+	UINT winstyle = (UINT)GetWindowLongPtr(hwnd, GWL_STYLE);
+	
+	// Important: first do turn-off, then turn-on
+	winstyle &= ~bits_off;
+	winstyle |= bits_on;
+
+	if(is_tune_now)
+		SetWindowLongPtr(hwnd, GWL_STYLE, winstyle);
+
+	return winstyle;
+}
+
+UINT Hwnd_TuneWinStyleExBits(HWND hwnd, UINT bits_on, UINT bits_off, bool is_tune_now)
+{
+	// [2026-05-09] Used in DigClock2 v2.0
+
+	UINT exstyle = (UINT)GetWindowLongPtr(hwnd, GWL_EXSTYLE);
+
+	// Important: first do turn-off, then turn-on
+	exstyle &= ~bits_off;
+	exstyle |= bits_on;
+
+	if (is_tune_now)
+		SetWindowLongPtr(hwnd, GWL_EXSTYLE, exstyle);
+
+	return exstyle;
+}
+
+
+HMENU FindSubMenu_byText(HMENU hMenu, const TCHAR* menutext)
+{
+	int ncount = GetMenuItemCount(hMenu);
+	for (int i = 0; i < ncount; i++)
+	{
+		TCHAR buffer[256];
+		MENUITEMINFOW mii = { sizeof(mii) };
+		mii.fMask = MIIM_STRING | MIIM_SUBMENU;
+		mii.dwTypeData = buffer;
+		mii.cch = ARRAYSIZE(buffer);
+
+		if (GetMenuItemInfo(hMenu, i, TRUE, &mii))
+		{
+			if (mii.hSubMenu)
+			{
+				if (_tcscmp(buffer, menutext) == 0)
+					return mii.hSubMenu;
+			}
+		}
+	}
+	return NULL;
+}
+
 
 
 #endif // [IMPL]
