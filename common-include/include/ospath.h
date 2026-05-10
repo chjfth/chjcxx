@@ -1,7 +1,7 @@
 #ifndef __CHHI__ospath_h_
 #define __CHHI__ospath_h_
 #define __CHHI__ospath_h_created_ 20260418
-#define __CHHI__ospath_h_updated_ 20260418
+#define __CHHI__ospath_h_updated_ 20260506
 
 #include <ps_TCHAR.h>
 #include <sdring.h>

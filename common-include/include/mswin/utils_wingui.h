@@ -60,7 +60,8 @@ BOOL MoveWindow_byClientRect(HWND hwnd, const RECT *prcClientScreen=NULL,
 UINT Hwnd_TuneWinStyleBits  (HWND hwnd, UINT bits_on, UINT bits_off, bool is_tune_now=false);
 UINT Hwnd_TuneWinStyleExBits(HWND hwnd, UINT bits_on, UINT bits_off, bool is_tune_now=false);
 
-HMENU FindSubMenu_byText(HMENU hMenu, const TCHAR* menutext);
+HMENU FindSubMenu_byText(HMENU hMenu, const TCHAR* menutext, int *pPos=nullptr);
+int FindMenuitemPos_byText(HMENU hMenu, const TCHAR* menutext);
 
 
 /*
@@ -437,8 +438,10 @@ UINT Hwnd_TuneWinStyleExBits(HWND hwnd, UINT bits_on, UINT bits_off, bool is_tun
 }
 
 
-HMENU FindSubMenu_byText(HMENU hMenu, const TCHAR* menutext)
+HMENU FindSubMenu_byText(HMENU hMenu, const TCHAR* menutext, int *pPos)
 {
+	SETTLE_OUTPUT_PTR(int, pPos, -1)
+
 	int ncount = GetMenuItemCount(hMenu);
 	for (int i = 0; i < ncount; i++)
 	{
@@ -453,11 +456,40 @@ HMENU FindSubMenu_byText(HMENU hMenu, const TCHAR* menutext)
 			if (mii.hSubMenu)
 			{
 				if (_tcscmp(buffer, menutext) == 0)
+				{ 
+					*pPos = i;
 					return mii.hSubMenu;
+				}
 			}
 		}
 	}
 	return NULL;
+}
+//
+// TODO: Add a function to recurse into root hMenu to find out an array of
+// menu handles for user request submenu text strings. So that, user can grab them all
+// when processing WM_INITMENUPOPUP.
+
+
+int FindMenuitemPos_byText(HMENU hMenu, const TCHAR* menutext)
+{
+	// Return menuitem's position, -1 if not found.
+	int ncount = GetMenuItemCount(hMenu);
+	for (int i = 0; i < ncount; i++)
+	{
+		TCHAR buffer[256];
+		MENUITEMINFOW mii = { sizeof(mii) };
+		mii.fMask = MIIM_STRING;
+		mii.dwTypeData = buffer;
+		mii.cch = ARRAYSIZE(buffer);
+
+		if (GetMenuItemInfo(hMenu, i, TRUE, &mii))
+		{
+			if (_tcscmp(buffer, menutext) == 0)
+				return i;
+		}
+	}
+	return -1;
 }
 
 
