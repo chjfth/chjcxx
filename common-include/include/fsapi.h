@@ -109,6 +109,7 @@ bool file_mark_readonly(const TCHAR* inputpath, bool is_readonly);
 
 bool file_delete(const TCHAR* inputpath);
 
+bool file_copy(const TCHAR* srcpath, const TCHAR *dstpath, bool is_overwrite);
 
 
 

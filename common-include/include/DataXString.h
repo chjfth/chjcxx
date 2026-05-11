@@ -10,6 +10,7 @@
 #include <CxxVerCheck.h>
 #include <ps_TCHAR.h>
 #include <sdring.h>
+#include <snTprintf.h>
 #include <StringHelper.h>
 
 ////////////////////////////////////////////////////////////////////////////

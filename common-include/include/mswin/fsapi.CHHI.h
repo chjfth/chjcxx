@@ -231,7 +231,11 @@ bool file_delete(const TCHAR* inputpath)
 }
 
 
-
+bool file_copy(const TCHAR* srcpath, const TCHAR *dstpath, bool is_overwrite)
+{
+	BOOL succ = CopyFile(srcpath, dstpath, !is_overwrite);
+	return succ ? true : false;
+}
 
 
 
