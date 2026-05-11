@@ -724,8 +724,10 @@ int hashdict<TU>::in_get(const TCHAR *in_key)
 					in_key, probes+1, &pte->uvalue);
 				return int(pte - msa_trove.GetElePtr(0));
 			}
-			else; // fall down
-			
+			else
+			{
+				// fall down
+			}
 		}
 		else if(slot.state==SlotDummy)
 		{

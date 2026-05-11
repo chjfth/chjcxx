@@ -1,7 +1,7 @@
 #ifndef __CHHI__DataXIni_h_
 #define __CHHI__DataXIni_h_
 #define __CHHI__DataXIni_h_created_ 20260508
-#define __CHHI__DataXIni_h_updated_ 20260508
+#define __CHHI__DataXIni_h_updated_ 20260511
 
 
 #include <hashdict.h>
@@ -43,6 +43,46 @@ private:
 	chjds::hashdict<int> m_sec2idx; // query section-name for its idx into msa_sections[]
 
 	TScalableArray<IniItem_st> msa_items;
+};
+
+
+template<typename TU, typename FORMAT = XStringFormatDefault>
+class DataXString_AutoSaveIni : public DataXString<TU, FORMAT>
+{
+	// When assigning TU value to this object, INI save() is automatically called.
+private:
+	DataXIni& m_xini;
+
+	DataXString_AutoSaveIni(const DataXString_AutoSaveIni&) = delete;
+	DataXString_AutoSaveIni(DataXString_AutoSaveIni&&) = delete;
+
+public:
+	using Base = DataXString<TU, FORMAT>;
+
+public:
+	DataXString_AutoSaveIni(
+		DataXIni& xini, const TCHAR *secname, const TCHAR *keyname,
+		const TCHAR* default_val) 
+		: 
+		m_xini(xini), 
+		Base(default_val) // the value to use if missing from INI 
+	{
+		m_xini.AddItem(secname, keyname, this);
+	}
+
+	using Base::operator=;
+
+	virtual SetValue_ret SetValue(TU&& val) cxx11_override
+	{
+		SetValue_ret svret = Base::SetValue(std::move(val));
+
+		if (svret == SetNew)
+		{
+			m_xini.SaveIni();
+		}
+
+		return svret;
+	}
 };
 
 
@@ -111,6 +151,7 @@ void DataXIni::AddItem(const TCHAR *secname, const TCHAR *keyname, IDataXString 
 	msa_items.SetEleQuan(nitems+1, true);
 	new(&msa_items[nitems]) IniItem_st(std::move(item));
 
+	// todo: Use has_key() instead, to avoid cycle writing.
 	Sdring itemval = m_ini.get_default(secname, keyname, pdatax->GetDefault());
 
 	pdatax->SetValueByString(itemval, false);
