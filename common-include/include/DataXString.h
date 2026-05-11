@@ -40,6 +40,8 @@ public:
 
 	const TCHAR* GetDefault() { return m_default.c_str(); }
 
+	void SetDefault(){ SetValueByString(m_default, false); }
+
 private:
 	bool m_is_dirty;
 protected:

@@ -1,7 +1,7 @@
 #ifndef __CHHI__SimpleIni_h_
 #define __CHHI__SimpleIni_h_
 #define __CHHI__SimpleIni_h_created_ 20260416
-#define __CHHI__SimpleIni_h_updated_ 20260508
+#define __CHHI__SimpleIni_h_updated_ 20260511
 
 #include <ps_TCHAR.h>
 #include <sdring.h>
@@ -18,6 +18,7 @@ public:
 		
 		E_FileNotExist = -5,
 		E_FileIo = -6, 
+		E_NoSuchKey = -7,
 
 		// Internal errors:
 
@@ -45,7 +46,11 @@ public:
 
 	virtual ReCode_et set(const TCHAR *section_name, const TCHAR *keyname, const TCHAR *value);
 
-	virtual Sdring save_ini_string(const TCHAR *crlf=nullptr);
+	virtual ReCode_et del_key(const TCHAR *section_name, const TCHAR *keyname);
+
+	ReCode_et load_initext(const TCHAR *initext, int inilen);
+
+	virtual Sdring save_ini_string(const TCHAR *crlf=nullptr); // todo: rename to better name?
 	// -- return whole INI string, as appear in INI file.
 
 	virtual ReCode_et save(const TCHAR *savefilename=nullptr, const TCHAR *crlf=nullptr);
@@ -324,6 +329,7 @@ public:
 
 		COPY_SimpleIni_ReCode(E_FileNotExist),
 		COPY_SimpleIni_ReCode(E_FileIo),
+		COPY_SimpleIni_ReCode(E_NoSuchKey),
 
 		COPY_SimpleIni_ReCode(E_ClearHashdict),
 	};
@@ -346,6 +352,8 @@ public:
 		const TCHAR *default_value);
 
 	ReCode_et set(const TCHAR *secname, const TCHAR *keyname, const TCHAR *value);
+
+	ReCode_et del_key(const TCHAR *secname, const TCHAR *keyname);
 
 	ReCode_et load_initext(const TCHAR *initext, int inilen);
 
@@ -1034,6 +1042,27 @@ CIniOp::set(const TCHAR *secname, const TCHAR *keyname, const TCHAR *sz_val_line
 }
 
 
+CIniOp::ReCode_et
+CIniOp::del_key(const TCHAR *secname, const TCHAR *keyname)
+{
+	create_virtual_start_section();
+
+	hashdict<Keval_st> *p_kvdict = m_inidict.get(secname);
+	if (p_kvdict)
+	{
+		bool succ = p_kvdict->del(keyname);
+		if(succ)
+			return E_Success;
+		else
+			return E_NoSuchKey;
+	}
+	else
+	{
+		return E_NoSuchKey;
+	}
+}
+
+
 static void TSA_append_line(TScalableArray<TCHAR>& sout, const Sdring& ins, 
 	const TCHAR *crlf, int crlflen)
 {
@@ -1298,6 +1327,24 @@ SimpleIni::set(const TCHAR *section_name, const TCHAR *keyname, const TCHAR *val
 		return E_Fail;
 
 	return (ReCode_et)m_pi->set(section_name, keyname, value);
+}
+
+SimpleIni::ReCode_et
+SimpleIni::del_key(const TCHAR *section_name, const TCHAR *keyname)
+{
+	if (!_create_impl())
+		return E_Fail;
+
+	return (ReCode_et)m_pi->del_key(section_name, keyname);
+}
+
+SimpleIni::ReCode_et
+SimpleIni::load_initext(const TCHAR *initext, int inilen)
+{
+	if (!_create_impl())
+		return E_Fail;
+	
+	return (ReCode_et)m_pi->load_initext(initext, inilen);
 }
 
 Sdring SimpleIni::save_ini_string(const TCHAR *crlf)

@@ -28,6 +28,8 @@ public:
 	
 	Sdring SaveIni(); // return the INI filepath saved(would be one of ar_inifiles[])
 
+	void ResetDefault();
+
 private:
 	struct IniItem_st
 	{
@@ -232,6 +234,28 @@ Sdring DataXIni::SaveIni()
 	return outinipath;
 }
 
+
+void DataXIni::ResetDefault()
+{
+	// Cycle through existing items, reset each to program Default.
+	// INI content is cleared, to indicate that everything is from program Default.
+	// Yes, I choose NOT to write default values to INI file. 
+	// Benefit of user having an empty INI: 
+	// Running new-version of a program will automatically receive new Defaults.
+
+	int nitems = msa_items.CurrentEles();
+	for(int i=0; i<nitems; i++)
+	{
+		IniItem_st &item = msa_items[i];
+		const TCHAR *secname = msa_sections[item.idx_secname].c_str();
+
+		item.pdatax->SetDefault(); // dirty cleared internally
+
+		m_ini.del_key(secname, item.keyname);
+	}
+
+	m_ini.save_cascade();
+}
 
 
 ////////////////////////////////////////////////////////////////////////////
