@@ -59,9 +59,9 @@ class DataXString : public IDataXString
 #endif
 
 public:
-	DataXString(const TCHAR* default=nullptr)
+	DataXString(const TCHAR* default_val=nullptr)
 	{
-		m_default = default;
+		m_default = default_val;
 		SetToDefault();
 	}
 
