@@ -71,7 +71,7 @@ private:
 
 // >>> Include headers required by this lib's implementation
 
-#include <new.h>
+#include <new>
 #include <assert.h>
 //#include <commdefs.h> // for Uint, Uint64, enum bitwise-OR etc
 //#include <snTprintf.h>

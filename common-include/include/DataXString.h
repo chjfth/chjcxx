@@ -6,6 +6,7 @@
 // DataXString: C++ object Data eXchange via/by the form of a String.
 
 #include <utility>
+#include <stdlib.h>
 
 #include <CxxVerCheck.h>
 #include <ps_TCHAR.h>

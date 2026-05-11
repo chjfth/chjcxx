@@ -8,6 +8,8 @@
 #include <errno.h>
 #include <string.h>
 
+#include <EnsureClnup_misc.h>
+
 
 ////////////////////////////////////////////////////////////////////////////
 namespace fsapi { 
@@ -276,6 +278,47 @@ bool file_delete(const TCHAR* inputpath)
 		return false;
 	else
 		return true;
+}
+
+
+bool file_copy(const TCHAR* srcpath, const TCHAR *dstpath, bool is_overwrite)
+{
+	if(!is_overwrite && file_exists(dstpath))
+		return false;
+	
+	filehandle_t dstfh = file_open(dstpath, open_for_write|open_for_append, open_share_none);
+	if(dstfh < 0)
+		return false;
+	
+	filehandle_t srcfh = file_open(srcpath, open_for_read, open_share_read|open_share_write);
+	if(srcfh < 0) {
+		file_close(dstfh);
+		return false;
+	}
+	
+	fserror_et err = file_setsize(dstfh, 0);
+	if(err)
+		return false;
+	
+	CEC_filehandle_t cec_srcfh = srcfh;
+	CEC_filehandle_t cec_dstfh = dstfh;
+
+	unsigned char buf[8192];
+	for(;;)
+	{
+		int nRed = file_read(srcfh, buf, sizeof(buf));
+		if(nRed==0) // file end
+			return true;
+		
+		if(nRed<0)
+			return false;
+		
+		int nWtn = file_write(dstfh, buf, nRed);
+		if(nWtn!=nRed)
+			return false;
+	}
+	
+	return true;
 }
 
 

@@ -25,6 +25,9 @@ char (*
 #define _tprintf     printf
 
 #define _tcscmp      strcmp
+#define _tcstol      strtol
+#define _tcstoul     strtoul
+#define _ttof        atof
 
 
 #endif // !defined(_UNICODE)
