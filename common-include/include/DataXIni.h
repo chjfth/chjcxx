@@ -22,8 +22,10 @@ public:
 
 	void AddItem(const TCHAR *secname, const TCHAR *keyname, IDataXString *pdatax);
 
-	void LoadIni(const TCHAR* const ar_inifiles[], int nfiles);
+	enum LoadSemantic_et { LoadFresh=0, LoadIncrement=1 };
 
+	void LoadIni(const TCHAR* const ar_inifiles[], int nfiles, LoadSemantic_et how=LoadFresh);
+	
 	Sdring SaveIni(); // return the INI filepath saved(would be one of ar_inifiles[])
 
 private:
@@ -151,14 +153,13 @@ void DataXIni::AddItem(const TCHAR *secname, const TCHAR *keyname, IDataXString 
 	msa_items.SetEleQuan(nitems+1, true);
 	new(&msa_items[nitems]) IniItem_st(std::move(item));
 
-	// todo: Use has_key() instead, to avoid cycle writing.
 	Sdring itemval = m_ini.get_default(secname, keyname, pdatax->GetDefault());
 
 	pdatax->SetValueByString(itemval, false);
 }
 
 
-void DataXIni::LoadIni(const TCHAR* const ar_inifiles[], int nfiles)
+void DataXIni::LoadIni(const TCHAR* const ar_inifiles[], int nfiles, LoadSemantic_et how)
 {
 	m_ini.load_cascade(ar_inifiles, nfiles);
 
@@ -170,10 +171,29 @@ void DataXIni::LoadIni(const TCHAR* const ar_inifiles[], int nfiles)
 	{
 		IniItem_st &item = msa_items[i];
 		const TCHAR *secname = msa_sections[item.idx_secname].c_str();
+		Sdring itemval;
 
-		Sdring itemval = m_ini.get_default(secname, item.keyname, item.pdatax->GetDefault());
-		item.pdatax->SetValueByString(itemval, false);
-	}
+		if(how==LoadFresh)
+		{
+			// LoadFresh means: If some option is not provided by INI, 
+			// we should restore its runtime value to hard-coded default.
+
+			itemval = m_ini.get_default(secname, item.keyname, item.pdatax->GetDefault());
+			item.pdatax->SetValueByString(itemval, false);
+		}
+		else
+		{
+			assert(how==LoadIncrement);
+			// LoadIncrement means: If some option is not provided by INI,
+			// we should keep it current runtime value(in `item.pdatax`).
+
+			if (m_ini.has_key(secname, item.keyname))
+			{
+				Sdring itemval = m_ini.get(secname, item.keyname);
+				item.pdatax->SetValueByString(itemval, false);
+			}
+		}
+	} // for
 }
 
 

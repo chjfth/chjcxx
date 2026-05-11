@@ -22,6 +22,10 @@
 
 class IDataXString
 {
+	// Note: This class is pure interface.
+	// User should create some derived class to hold actual Data.
+	// Some demonstration classes are defined below, DataXString<int>, DataXString<bool> etc.
+
 public:
 	IDataXString() { m_is_dirty = false; }
 	virtual ~IDataXString() {}
