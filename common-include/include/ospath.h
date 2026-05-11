@@ -28,9 +28,6 @@ inline Sdring split_filenam(const TCHAR* inputpath)
 	return filenam;
 }
 
-bool file_exists(const TCHAR* inputpath);
-
-bool dir_exists(const TCHAR* inputpath);
 
 Sdring fullpath_from_rela(const TCHAR* rela);
 
@@ -43,12 +40,6 @@ inline Sdring paths_join2(const TCHAR* path1, const TCHAR* path2, TCHAR sepchar=
 	TCHAR const* const paths[2] = {path1, path2};
 	return paths_join_sop(paths, 2, sepchar);
 }
-
-
-bool file_mark_readonly(const TCHAR* inputpath, bool is_readonly);
-
-bool file_delete(const TCHAR* inputpath);
-
 
 
 ////////////////////////////////////////////////////////////////////////////

@@ -101,6 +101,14 @@ __int64 file_getsize(filehandle_t fh);
 // -- Return fserror_et on error.
 
 
+bool file_exists(const TCHAR* inputpath);
+
+bool dir_exists(const TCHAR* inputpath);
+
+bool file_mark_readonly(const TCHAR* inputpath, bool is_readonly);
+
+bool file_delete(const TCHAR* inputpath);
+
 
 
 
