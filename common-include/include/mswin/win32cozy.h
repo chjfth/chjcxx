@@ -32,31 +32,6 @@ void CMyClass::FlushBuffer()
 
 */
 
-// [2025-05-17] 
-
-inline TCHAR* RECTtext(const RECT &r, TCHAR textbuf[], int buflen)
-{
-	// buflen suggestion: 60
-	_sntprintf_s(textbuf, buflen, _TRUNCATE, _T("LT(%d,%d)RB(%d,%d)[%d*%d]"),
-		r.left, r.top, r.right, r.bottom, (r.right-r.left), (r.bottom-r.top));
-	return textbuf;
-}
-
-template<size_t eles>
-inline TCHAR* RECTtext(const RECT &r, TCHAR (&textbuf)[eles])
-{
-	return RECTtext(r, textbuf, eles);
-}
-
-inline LONG RECTwidth(const RECT& rc)
-{
-	return rc.right - rc.left;
-}
-
-inline LONG RECTheight(const RECT& rc)
-{
-	return rc.bottom - rc.top;
-}
 
 
 template<typename T_int, size_t eles>

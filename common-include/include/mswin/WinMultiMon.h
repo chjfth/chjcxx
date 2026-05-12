@@ -1,5 +1,7 @@
-#ifndef __WinMultiMon_h_20260227_20260310_
-#define __WinMultiMon_h_20260227_20260310_
+#ifndef __CHHI__WinMultiMon_h_
+#define __CHHI__WinMultiMon_h_
+#define __CHHI__WinMultiMon_h_created_ 20260227
+#define __CHHI__WinMultiMon_h_updated_ 20260512
 
 #include <windows.h>
 
@@ -18,13 +20,15 @@ struct OneMonitorInfo_st
 	HDC hdcMonitor;
 };
 
-WinErr_t doEnumDisplayMonitors(OneMonitorInfo_st arMonInfo[], int arEles, int *pTotalMonitors);
+WinErr_t doEnumDisplayMonitors(OneMonitorInfo_st arMonInfo[], int nEles, int *pTotalMonitors);
 // -- Return ERROR_MORE_DATA if arEles is too small(smaller than output *pTotalMonitors).
 
 bool getMonitorRectByPoint(int screen_x, int screen_y, RECT *pMonitorRect);
 // -- Given a Point(X,Y), find out which monitor contains that point.
 //    Return true if pt is in one monitor, else false.
 //    *pMonitorRect outputs the screen-coord of the containing monitor.
+
+RECT mumo_PlaceRectInsideScreen(const RECT& urect, bool allow_stradle, bool allow_shrink=false);
 
 
 /*
@@ -41,8 +45,12 @@ bool getMonitorRectByPoint(int screen_x, int screen_y, RECT *pMonitorRect);
 #if defined(WinMultiMon_IMPL) || (defined CHHI_ALL_IMPL && !defined CHHI_ALL_IMPL_HIDE_WinMultiMon) // [IMPL]
 
 // >>> Include headers required by this lib's implementation
+#include <assert.h>
 #include <commdefs.h>
+#include <RECTxy.h>
 #include <mswin/win32cozy.h> // RECTtext() macro
+#include <EnsureClnup_mswin.h>
+
 // <<< Include headers required by this lib's implementation
 
 
@@ -141,7 +149,7 @@ MonitorEnumProc(
 }
 
 WinErr_t 
-doEnumDisplayMonitors(OneMonitorInfo_st arMonInfo[], int nEles, int *pTotalMonitors)
+_doEnumDisplayMonitors(OneMonitorInfo_st arMonInfo[], int nEles, int *pTotalMonitors)
 {
 	SETTLE_OUTPUT_PTR(int, pTotalMonitors, 0);
 
@@ -193,7 +201,7 @@ static BOOL CALLBACK OneMonitorEnumProc(
 }
 
 
-bool getMonitorRectByPoint(int screen_x, int screen_y, RECT *pMonitorRect)
+bool _getMonitorRectByPoint(int screen_x, int screen_y, RECT *pMonitorRect)
 {
 	SetRect(pMonitorRect, 0,0,0,0);
 
@@ -207,6 +215,106 @@ bool getMonitorRectByPoint(int screen_x, int screen_y, RECT *pMonitorRect)
 		return false;
 
 	return true;
+}
+
+MakeDelega_CleanupCxxPtr(OneMonitorInfo_st)
+
+RECT _mumo_PlaceRectInsideScreen(const RECT& uRECT, bool allow_stradle, bool allow_shrink)
+{
+	// Check if urect is inside all-monitors' area.
+	// If not(some portion of urect is invisible), move the urect(as return value)
+	// into the nearest monitor in hope that urect is fully visible.
+	//
+	// Use case of this function: 
+	//   A program records last-seen window position and restore that position
+	//   on next-time program starts up, but the monitor for that old position
+	//   has been unplugged, causing the window to be outside of all monitors.
+	// By running this function, the program code can easily re-place the window
+	// to most appropriate new position.
+
+	const Rect_st& urect = *(const Rect_st*)&uRECT;
+
+	assert(RECTcx(urect)>0);
+	assert(RECTcy(urect)>0);
+
+	int nMonitors = 0;
+	WinErr_t winerr = _doEnumDisplayMonitors(NULL, 0, &nMonitors);
+	assert(winerr==ERROR_MORE_DATA);
+	if(nMonitors<1)
+		return RECT();
+
+	OneMonitorInfo_st *arMonInfo = new OneMonitorInfo_st[nMonitors];
+	CecArray_OneMonitorInfo_st cec = arMonInfo;
+
+	int nRet = 0;
+	winerr = _doEnumDisplayMonitors(arMonInfo, nMonitors, &nRet);
+	if(nRet<nMonitors)
+		nMonitors = nRet;
+	assert(nMonitors>0);
+
+	struct PerMonOp_st
+	{
+		Rect_st ovlprect;    // intersect x,y area of urect to this Monitor
+		Pace_st pace_to_fix; // what's the pace value to place urect into this Monitor
+	};
+	PerMonOp_st *arPerMonOp = new PerMonOp_st[nMonitors];
+	CEC_raw_delete cec_op = arPerMonOp;
+
+	vaDBG3(_T("_mumo_PlaceRectInsideScreen() input uRECT %s:"), RECTtext(uRECT).c_str());
+
+	int idxMaxOvlpMonitor = 0;
+	int areaMaxOvlpPermon = 0;
+	int areaTotalOvlp = 0;
+//	int idxInBound = -1; // which Monitor fully holds the uRECT?
+
+	for (int i = 0; i < nMonitors; i++)
+	{
+		OneMonitorInfo_st &moni = arMonInfo[i];
+		PerMonOp_st &op = arPerMonOp[i];
+		
+		getRectOverlap(urect, moni.rcMonitor, &op.ovlprect);
+		op.pace_to_fix = urect.PaceToRect(moni.rcMonitor);
+
+		int areaOvlp = RECTarea(op.ovlprect);
+		areaTotalOvlp += areaOvlp;
+
+		vaDBG3(_T(".   Monitor#%-2d  : %s"), i, RECTtext(moni.rcMonitor).c_str());
+		vaDBG3(_T(".     overlapped: %s , area=%d"), RECTtext(op.ovlprect).c_str(), areaOvlp);
+		vaDBG3(_T(".     pace_to_fix: x=%d , y=%d"), op.pace_to_fix.x, op.pace_to_fix.y);
+
+		if(op.pace_to_fix.x==0 && op.pace_to_fix.y==0)
+		{
+			vaDBG3(_T(".   uRECT already in monitor#%d, done."), i);
+			return uRECT;
+		}
+
+		if(areaOvlp > areaMaxOvlpPermon)
+		{
+			areaMaxOvlpPermon = areaOvlp;
+			idxMaxOvlpMonitor = i;
+		}
+	}
+
+	vaDBG3(_T(".   Monitor#%d has max overlapping area(%d)"), idxMaxOvlpMonitor, areaMaxOvlpPermon);
+
+	if(areaTotalOvlp == RECTarea(uRECT))
+	{
+		vaDBG3(_T(".   uRECT straddles multiple monitors, and fully visible."));
+
+		if (allow_stradle)
+			return uRECT;
+	}
+
+	// Now we have to adjust uRECT position to make it go inside idxMaxOvlpMonitor.
+
+	int xfix = arPerMonOp[idxMaxOvlpMonitor].pace_to_fix.x;
+	int yfix = arPerMonOp[idxMaxOvlpMonitor].pace_to_fix.y;
+
+	RECT outrect = uRECT;
+	OffsetRect(&outrect, xfix, yfix);
+
+	vaDBG3(_T("Need to apply fix (%d,%d) to uRECT, result: %s"), xfix, yfix, RECTtext(outrect).c_str());
+	return outrect;
 }
 
 
@@ -230,12 +338,17 @@ bool getMonitorRectByPoint(int screen_x, int screen_y, RECT *pMonitorRect)
 WinErr_t 
 doEnumDisplayMonitors(OneMonitorInfo_st arMonInfo[], int nEles, int *pTotalMonitors)
 {
-	return WinMultiMon::doEnumDisplayMonitors(arMonInfo, nEles, pTotalMonitors);
+	return WinMultiMon::_doEnumDisplayMonitors(arMonInfo, nEles, pTotalMonitors);
 }
 
 bool getMonitorRectByPoint(int screen_x, int screen_y, RECT *pMonitorRect)
 {
-	return WinMultiMon::getMonitorRectByPoint(screen_x, screen_y, pMonitorRect);
+	return WinMultiMon::_getMonitorRectByPoint(screen_x, screen_y, pMonitorRect);
+}
+
+RECT mumo_PlaceRectInsideScreen(const RECT& urect, bool allow_stradle, bool allow_shrink)
+{
+	return WinMultiMon::_mumo_PlaceRectInsideScreen(urect, allow_stradle, allow_shrink);
 }
 
 
