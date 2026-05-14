@@ -240,6 +240,42 @@ struct DataXTraits<double, FORMAT>
 };
 
 
+struct RGB_wingui
+{
+	Uint dwcolor;
+
+	RGB_wingui(Uint colorref=0) { dwcolor = colorref; }
+	RGB_wingui(Uchar r, Uchar g, Uchar b) { dwcolor = r | (g<<8) | (b<<16); }
+
+	bool operator==(const RGB_wingui& inrgb) { return dwcolor==inrgb.dwcolor; }
+	bool operator!=(const RGB_wingui& inrgb) { return dwcolor!=inrgb.dwcolor; }
+
+	operator Uint(){ return dwcolor; }
+};
+
+template<typename FORMAT>
+struct DataXTraits<RGB_wingui, FORMAT>
+{
+	static Uint FromString(const TCHAR* s)
+	{
+		if (!s)
+			return 0;
+
+		Uint r=0, g=0, b=0;
+		_stscanf_s(s, _T("RGB(%u,%u,%u)"), &r, &g, &b);
+		
+		return RGB_wingui(r, g, b).dwcolor;
+	}
+
+	static Sdring ToString(RGB_wingui colorref)
+	{
+		TCHAR sz[32];
+		Uchar r = colorref.dwcolor, g = colorref.dwcolor>>8, b = colorref.dwcolor>>16;
+		snTprintf(sz, _T("RGB(%u,%u,%d)"), r, g, b);
+		return Sdring(sz);
+	}
+};
+
 ////////
 
 

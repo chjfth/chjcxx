@@ -1,6 +1,9 @@
-#ifndef __CHwndTimer_h_20250707_
-#define __CHwndTimer_h_20250707_
+#ifndef __CHwndTimer_h_
+#define __CHwndTimer_h_
+#define __CHwndTimer_h_created_ 20250707
+#define __CHwndTimer_h_updated_ 20260514
 
+#include <CxxVerCheck.h>
 // No .cpp, try to keep all functions inline.
 
 // Child class virtual function as timer callback.
@@ -62,6 +65,16 @@ public:
 		m_isOnce = true;
 		StartTimer(hwnd, interval_millisec, false);
 	}
+
+#ifdef CXX14_OR_NEWER
+	// define function alias
+	template<typename... Args> decltype(auto) StartPeriodicWork(Args&&... args) {
+		return StartTimer(std::forward<Args>(args)...);
+	}
+	template<typename... Args> decltype(auto) StartDelayedWork(Args&&... args) {
+		return StartTimerOnce(std::forward<Args>(args)...);
+	}
+#endif
 
 	void StopTimer()
 	{
