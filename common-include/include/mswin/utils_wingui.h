@@ -446,7 +446,7 @@ HMENU FindSubMenu_byText(HMENU hMenu, const TCHAR* menutext, int *pPos)
 	for (int i = 0; i < ncount; i++)
 	{
 		TCHAR buffer[256];
-		MENUITEMINFOW mii = { sizeof(mii) };
+		MENUITEMINFO mii = { sizeof(mii) };
 		mii.fMask = MIIM_STRING | MIIM_SUBMENU;
 		mii.dwTypeData = buffer;
 		mii.cch = ARRAYSIZE(buffer);
@@ -478,7 +478,7 @@ int FindMenuitemPos_byText(HMENU hMenu, const TCHAR* menutext)
 	for (int i = 0; i < ncount; i++)
 	{
 		TCHAR buffer[256];
-		MENUITEMINFOW mii = { sizeof(mii) };
+		MENUITEMINFO mii = { sizeof(mii) };
 		mii.fMask = MIIM_STRING;
 		mii.dwTypeData = buffer;
 		mii.cch = ARRAYSIZE(buffer);

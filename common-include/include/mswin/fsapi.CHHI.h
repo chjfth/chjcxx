@@ -213,9 +213,9 @@ bool file_mark_readonly(const TCHAR* inputpath, bool is_readonly)
 
 	BOOL succ = FALSE;
 	if (is_readonly)
-		succ = SetFileAttributesW(inputpath, attr | FILE_ATTRIBUTE_READONLY);
+		succ = SetFileAttributes(inputpath, attr | FILE_ATTRIBUTE_READONLY);
 	else
-		succ = SetFileAttributesW(inputpath, attr & ~FILE_ATTRIBUTE_READONLY);
+		succ = SetFileAttributes(inputpath, attr & ~FILE_ATTRIBUTE_READONLY);
 
 	return succ ? true : false;
 }

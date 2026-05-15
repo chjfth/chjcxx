@@ -32,7 +32,7 @@
 
 inline bool operator==(const RECT& r1, const RECT& r2)
 {
-	if (r1.left == r2.left && r1.top == r2.top && r1.right == r2.right && r1.bottom == r2.bottom)
+	if (r1.left==r2.left && r1.top==r2.top && r1.right==r2.right && r1.bottom==r2.bottom)
 		return true;
 	else
 		return false;
