@@ -1,7 +1,7 @@
 #ifndef __CHHI__DataXString_h_
 #define __CHHI__DataXString_h_
 #define __CHHI__DataXString_h_created_ 20260507
-#define __CHHI__DataXString_h_updated_ 20260509
+#define __CHHI__DataXString_h_updated_ 20260515
 
 // DataXString: C++ object Data eXchange via/by the form of a String.
 
@@ -137,6 +137,9 @@ private:
 // Specialization for common C++ types(int, bool, float, etc)
 //////////////////////////////////////////////////////////////////////////
 
+struct XString0xHex {}; // Tag to format int/Uint as hex
+
+
 template<>
 struct DataXTraits<int, XStringFormatDefault>
 {
@@ -156,8 +159,6 @@ struct DataXTraits<int, XStringFormatDefault>
 	}
 };
 
-struct XString0xHex {};
-
 template<>
 struct DataXTraits<int, XString0xHex>
 {
@@ -173,12 +174,59 @@ struct DataXTraits<int, XString0xHex>
 
 	static Sdring ToString(int val)
 	{
+		// For val=16, we output 0x10; for val=-16, we output -0x10. 
+		TCHAR sz[32];
+		if(val>=0)
+			snTprintf(sz, _T("0x%X"), val);
+		else
+			snTprintf(sz, _T("-0x%X"), -val); // OK for val==-2147483648
+
+		return Sdring(sz);
+	}
+};
+
+template<>
+struct DataXTraits<Uint, XStringFormatDefault>
+{
+	static Uint FromString(const TCHAR* s)
+	{
+		if (!s)
+			return 0;
+
+		return _tcstoul(s, nullptr, 0);
+	}
+
+	static Sdring ToString(Uint val)
+	{
+		TCHAR sz[32];
+		snTprintf(sz, _T("%u"), val);
+		return Sdring(sz);
+	}
+};
+
+
+template<>
+struct DataXTraits<Uint, XString0xHex>
+{
+	static Uint FromString(const TCHAR* s)
+	{
+		if (!s)
+			return 0;
+
+		// Value from a string, we still recognize (no-prefix)decimal 
+		// as well as 0x... hexadecimal.
+		return _tcstoul(s, nullptr, 0);
+	}
+
+	static Sdring ToString(Uint val)
+	{
 		// Always output string in 0x... form.
 		TCHAR sz[32];
 		snTprintf(sz, _T("0x%X"), val);
 		return Sdring(sz);
 	}
 };
+
 
 template<typename FORMAT>
 struct DataXTraits<bool, FORMAT>
@@ -200,7 +248,6 @@ struct DataXTraits<bool, FORMAT>
 	}
 };
 
-
 template<typename FORMAT>
 struct DataXTraits<float, FORMAT>
 {
@@ -219,6 +266,7 @@ struct DataXTraits<float, FORMAT>
 		return Sdring(sz);
 	}
 };
+
 
 template<typename FORMAT>
 struct DataXTraits<double, FORMAT>
@@ -239,42 +287,6 @@ struct DataXTraits<double, FORMAT>
 	}
 };
 
-
-struct RGB_wingui
-{
-	Uint dwcolor;
-
-	RGB_wingui(Uint colorref=0) { dwcolor = colorref; }
-	RGB_wingui(Uchar r, Uchar g, Uchar b) { dwcolor = r | (g<<8) | (b<<16); }
-
-	bool operator==(const RGB_wingui& inrgb) { return dwcolor==inrgb.dwcolor; }
-	bool operator!=(const RGB_wingui& inrgb) { return dwcolor!=inrgb.dwcolor; }
-
-	operator Uint(){ return dwcolor; }
-};
-
-template<typename FORMAT>
-struct DataXTraits<RGB_wingui, FORMAT>
-{
-	static Uint FromString(const TCHAR* s)
-	{
-		if (!s)
-			return 0;
-
-		Uint r=0, g=0, b=0;
-		_stscanf_s(s, _T("RGB(%u,%u,%u)"), &r, &g, &b);
-		
-		return RGB_wingui(r, g, b).dwcolor;
-	}
-
-	static Sdring ToString(RGB_wingui colorref)
-	{
-		TCHAR sz[32];
-		Uchar r = colorref.dwcolor, g = colorref.dwcolor>>8, b = colorref.dwcolor>>16;
-		snTprintf(sz, _T("RGB(%u,%u,%d)"), r, g, b);
-		return Sdring(sz);
-	}
-};
 
 ////////
 
