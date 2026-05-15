@@ -1,10 +1,17 @@
-#ifndef __win32cozy_h_20171114_
-#define __win32cozy_h_20171114_
+#ifndef __win32cozy_h_
+#define __win32cozy_h_
+#define __win32cozy_h_created_ 20171114
+#define __win32cozy_h_updated_ 20260515
 
 #include <tchar.h>
 #include <stdio.h>
 #include <assert.h>
 #include <windows.h>
+
+#define Ptr2Uint(ptr) ((unsigned int)(uintptr_t)(ptr))
+// -- to avoid 64bit compiler warning like; 
+//    warning C4311: 'type cast': pointer truncation from 'HMENU' to 'unsigned int'
+
 
 ///////////// Win32Mutex ///////////////
 
