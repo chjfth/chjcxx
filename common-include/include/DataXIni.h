@@ -1,7 +1,7 @@
 #ifndef __CHHI__DataXIni_h_
 #define __CHHI__DataXIni_h_
 #define __CHHI__DataXIni_h_created_ 20260508
-#define __CHHI__DataXIni_h_updated_ 20260511
+#define __CHHI__DataXIni_h_updated_ 20260515
 
 
 #include <hashdict.h>
@@ -26,7 +26,9 @@ public:
 
 	void LoadIni(const TCHAR* const ar_inifiles[], int nfiles, LoadSemantic_et how=LoadFresh);
 	
-	Sdring SaveIni(); // return the INI filepath saved(would be one of ar_inifiles[])
+	bool SaveIni(bool is_force=false, Sdring *pSavedToFile=nullptr); 
+	// -- If is_force==false and all data are not dirty, INI file writing is skipped.
+	// -- pSavedToFile tells the INI filepath saved, would be one of ar_inifiles[], converted to abs path
 
 	void ResetDefault();
 
@@ -199,11 +201,31 @@ void DataXIni::LoadIni(const TCHAR* const ar_inifiles[], int nfiles, LoadSemanti
 }
 
 
-Sdring DataXIni::SaveIni()
+bool DataXIni::SaveIni(bool is_force, Sdring *pSavedToFile)
 {
+	DEFAULT_PTR_OUTPUT(pSavedToFile, nullptr)
+
 	// Cycle through existing items. For each dirty item, sync its value back into INI.
 	
 	int nitems = msa_items.CurrentEles();
+
+	if(!is_force)
+	{
+		// Check for dirty-flags. If no no dirty, we just do nothing.
+		int dirties = 0;
+		for (int i = 0; i < nitems; i++)
+		{
+			IniItem_st &item = msa_items[i];
+			if (item.pdatax->IsDirty())
+				dirties++;
+		}
+		if (dirties == 0)
+		{
+			vaDBG3(_T("DataXIni::SaveIni() : No item is dirty, do nothing."));
+			return true;
+		}
+	}
+
 	for(int i=0; i<nitems; i++)
 	{
 		IniItem_st &item = msa_items[i];
@@ -218,20 +240,18 @@ Sdring DataXIni::SaveIni()
 		}
 	}
 
-	Sdring outinipath;
-	bool succ = m_ini.save_cascade(&outinipath);
+	bool succ = m_ini.save_cascade(pSavedToFile);
 	if (!succ)
-		return Sdring();
+		return false;
 
 	// Clear dirty flags for items.
 	for(int i=0; i<nitems; i++)
 	{
 		IniItem_st &item = msa_items[i];
-		const TCHAR *secname = msa_sections[item.idx_secname].c_str();
 		item.pdatax->SetDirty(false);
 	}
 
-	return outinipath;
+	return true;
 }
 
 
