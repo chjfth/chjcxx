@@ -1,5 +1,7 @@
-#ifndef __CHHI__LiveUic_h_20260313_20260317_
-#define __CHHI__LiveUic_h_20260313_20260518_
+#ifndef __CHHI__LiveUic_h_
+#define __CHHI__LiveUic_h_
+#define __CHHI__LiveUic_h_created_ 20260313
+#define __CHHI__LiveUic_h_updated_ 20260518
 
 
 #include <windows.h>
@@ -100,6 +102,10 @@ class CEditStr : public LiveUic, public CxxWindowSubclass
 	HWND m_hedit;
 
 public:
+	void SetXData(const Sdring& indata) { SetStr(indata.c_str()); }
+	Sdring GetXData() { return GetStr(); }
+
+public:
 	CEditStr(){ m_hedit = NULL; m_uic = 0; }
 
 	void Init(HWND hedit, const TCHAR *default_str)
@@ -175,6 +181,21 @@ public:
 		assert(wmDataChanged);
 		HWND hdlg = GetParent(m_hedit);
 		::SendMessage(hdlg, wmDataChanged, m_uic, 0);
+	}
+
+protected: // from CxxWindowSubclass
+	virtual LRESULT SubWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) cxx11_override
+	{
+		base_SubWndProc(hwnd, uMsg, wParam, lParam);
+
+		LRESULT lret = DefSubclassProc(hwnd, uMsg, wParam, lParam);
+		
+		if (uMsg == WM_CHAR || uMsg == WM_SETTEXT)
+		{
+			// User type-in or delete new text || EXE code set edit-text via API.
+			DataFromUic();
+		}
+		return lret;
 	}
 };
 
@@ -303,7 +324,7 @@ protected: // from CxxWindowSubclass
 		//vaDbgTs(_T("CEditValue peek: uMsg=%s"), ITCSvn(uMsg, itc::EM_xxx));
 		if(uMsg==WM_CHAR || uMsg==WM_SETTEXT )
 		{
-			// User type-in or delete new text || EXE code set text via API.
+			// User type-in or delete new text || EXE code set edit-text via API.
 			DataFromUic();
 		}
 		return lret;

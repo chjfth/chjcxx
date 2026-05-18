@@ -289,6 +289,21 @@ struct DataXTraits<double, FORMAT>
 };
 
 
+template<typename FORMAT>
+struct DataXTraits<Sdring, FORMAT>
+{
+	static Sdring FromString(const TCHAR* s)
+	{
+		return Sdring(s);
+	}
+
+	static Sdring ToString(const Sdring& val)
+	{
+		return Sdring(val.c_str());
+	}
+};
+
+
 ////////
 
 
