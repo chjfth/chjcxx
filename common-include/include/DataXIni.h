@@ -1,7 +1,7 @@
 #ifndef __CHHI__DataXIni_h_
 #define __CHHI__DataXIni_h_
 #define __CHHI__DataXIni_h_created_ 20260508
-#define __CHHI__DataXIni_h_updated_ 20260515
+#define __CHHI__DataXIni_h_updated_ 20260518
 
 
 #include <hashdict.h>
@@ -32,6 +32,10 @@ public:
 
 	void ResetDefault();
 
+protected:
+	static void LoadItemvalFromIni(IDataXString *pdatax, SimpleIniEx &ini, 
+		const TCHAR *secname, const TCHAR *keyname);
+
 private:
 	struct IniItem_st
 	{
@@ -50,6 +54,7 @@ private:
 
 	TScalableArray<IniItem_st> msa_items;
 };
+
 
 
 template<typename TU, typename FORMAT = XStringFormatDefault>
@@ -157,9 +162,7 @@ void DataXIni::AddItem(const TCHAR *secname, const TCHAR *keyname, IDataXString 
 	msa_items.SetEleQuan(nitems+1, true);
 	new(&msa_items[nitems]) IniItem_st(std::move(item));
 
-	Sdring itemval = m_ini.get_default(secname, keyname, pdatax->GetDefault());
-
-	pdatax->SetValueByString(itemval, false);
+	LoadItemvalFromIni(pdatax, m_ini, secname, keyname);
 }
 
 
@@ -182,8 +185,7 @@ void DataXIni::LoadIni(const TCHAR* const ar_inifiles[], int nfiles, LoadSemanti
 			// LoadFresh means: If some option is not provided by INI, 
 			// we should restore its runtime value to hard-coded default.
 
-			itemval = m_ini.get_default(secname, item.keyname, item.pdatax->GetDefault());
-			item.pdatax->SetValueByString(itemval, false);
+			LoadItemvalFromIni(item.pdatax, m_ini, secname, item.keyname);
 		}
 		else
 		{
@@ -269,12 +271,36 @@ void DataXIni::ResetDefault()
 		IniItem_st &item = msa_items[i];
 		const TCHAR *secname = msa_sections[item.idx_secname].c_str();
 
-		item.pdatax->SetDefault(); // dirty cleared internally
+		item.pdatax->SetValueToDefault(); // dirty cleared internally
 
 		m_ini.del_key(secname, item.keyname);
 	}
 
 	m_ini.save_cascade();
+}
+
+
+//static 
+void DataXIni::LoadItemvalFromIni(IDataXString *pdatax, SimpleIniEx &ini,
+	const TCHAR *secname, const TCHAR *keyname)
+{
+	// [2026-05-18] Historical note:
+	// This had been implemented as (yesterday):
+	//   itemval = m_ini.get_default(secname, item.keyname, item.pdatax->GetDefault());
+	//   pdatax->SetValueByString(itemval, false);
+	//
+	// That's inappropriate, bcz LiveUicXString.h does NOT want item.pdatax->GetDefault(),
+	// but want his own LiveUic-stored default value .
+
+	if (ini.has_key(secname, keyname))
+	{
+		Sdring itemval = ini.get(secname, keyname);
+		pdatax->SetValueByString(itemval, false);
+	}
+	else
+	{
+		pdatax->SetValueToDefault();
+	}
 }
 
 

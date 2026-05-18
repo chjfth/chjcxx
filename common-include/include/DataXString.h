@@ -1,7 +1,7 @@
 #ifndef __CHHI__DataXString_h_
 #define __CHHI__DataXString_h_
 #define __CHHI__DataXString_h_created_ 20260507
-#define __CHHI__DataXString_h_updated_ 20260515
+#define __CHHI__DataXString_h_updated_ 20260518
 
 // DataXString: C++ object Data eXchange via/by the form of a String.
 
@@ -33,14 +33,15 @@ public:
 	virtual void   SetValueByString(const TCHAR *valsz, bool is_mark_dirty=true) = 0;
 	virtual Sdring GetValueAsString() = 0;
 
-	virtual void SetToDefault() = 0;
+	virtual void SetValueToDefault() = 0;
+	// -- Child must implement this bcz IDataXString does NOT know the meaning of the string.
 
 	void SetDirty(bool is_dirty) { m_is_dirty = is_dirty; }
 	bool IsDirty() { return m_is_dirty; }
 
-	const TCHAR* GetDefault() { return m_default.c_str(); }
+//	const TCHAR* GetDefault() { return m_default.c_str(); } // deliberately NOT want this
 
-	void SetDefault(){ SetValueByString(m_default, false); }
+	void ChangeDefault(const TCHAR *new_default) { m_default = new_default; }
 
 private:
 	bool m_is_dirty;
@@ -68,8 +69,8 @@ class DataXString : public IDataXString
 public:
 	DataXString(const TCHAR* default_val=nullptr)
 	{
-		m_default = default_val;
-		SetToDefault();
+		ChangeDefault(default_val);
+		SetValueToDefault();
 	}
 
 	enum SetValue_ret { NoChange = 0, SetNew = 1 };
@@ -120,14 +121,14 @@ public:
 		return DataXTraits<TU, FORMAT>::ToString(m_val);
 	}
 
-	virtual void SetToDefault() cxx11_override
+	virtual void SetValueToDefault() cxx11_override
 	{
 		m_val = DataXTraits<TU, FORMAT>::FromString(
 			m_default.is_empty() ? _T("") : m_default.c_str()
 		);
 	}
 
-private:
+protected:
 	TU m_val;
 };
 
