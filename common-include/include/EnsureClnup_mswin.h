@@ -1,5 +1,8 @@
-#ifndef __EnsureClnup_mswin_h_20250305_
-#define __EnsureClnup_mswin_h_20250305_
+#ifndef __EnsureClnup_mswin_h_
+#define __EnsureClnup_mswin_h_
+#define __EnsureClnup_mswin_h_created_ 20250305
+#define __EnsureClnup_mswin_h_updated_ 20260519
+
 
 #include <windows.h>
 

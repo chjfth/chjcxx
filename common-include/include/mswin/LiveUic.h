@@ -1,5 +1,7 @@
-#ifndef __CHHI__LiveUic_h_20260313_20260317_
-#define __CHHI__LiveUic_h_20260313_20260317_
+#ifndef __CHHI__LiveUic_h_
+#define __CHHI__LiveUic_h_
+#define __CHHI__LiveUic_h_created_ 20260313
+#define __CHHI__LiveUic_h_updated_ 20260518
 
 
 #include <windows.h>
@@ -26,6 +28,9 @@ namespace liveuic {
 static const TCHAR *sigwmDataChanged = _T("LiveUic-DataChanged"); // pass to RegisterWindowMessage()
 extern const UINT wmDataChanged;
 
+static const TCHAR *sigwmUicFocusLost = _T("LiveUic-FocusLost");
+extern const UINT wmUicFocusLost;
+
 class LiveUic      // abstract base-class
 {
 	// LiveUic may be associated with an editbox, a checkbox etc.
@@ -36,6 +41,17 @@ public:
 	virtual void Reset() = 0;
 	virtual void DataToUic() = 0;
 	virtual void DataFromUic() = 0;
+
+protected:
+	static void base_SubWndProc(HWND hUic, UINT uMsg, WPARAM wParam, LPARAM lParam)
+	{
+		HWND hParent = GetParent(hUic);
+		if(uMsg==WM_KILLFOCUS)
+		{
+			HWND hwndFocusNew = (HWND)wParam;
+			::SendMessage(hParent, wmUicFocusLost, (WPARAM)hwndFocusNew, (LPARAM)hUic);
+		}
+	}
 };
 
 
@@ -84,6 +100,10 @@ class CEditStr : public LiveUic, public CxxWindowSubclass
 	Sdring m_str, m_default_str;
 	int m_uic;
 	HWND m_hedit;
+
+public:
+	void SetXData(const Sdring& indata) { SetStr(indata.c_str()); }
+	Sdring GetXData() { return GetStr(); }
 
 public:
 	CEditStr(){ m_hedit = NULL; m_uic = 0; }
@@ -162,6 +182,21 @@ public:
 		HWND hdlg = GetParent(m_hedit);
 		::SendMessage(hdlg, wmDataChanged, m_uic, 0);
 	}
+
+protected: // from CxxWindowSubclass
+	virtual LRESULT SubWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) cxx11_override
+	{
+		base_SubWndProc(hwnd, uMsg, wParam, lParam);
+
+		LRESULT lret = DefSubclassProc(hwnd, uMsg, wParam, lParam);
+		
+		if (uMsg == WM_CHAR || uMsg == WM_SETTEXT)
+		{
+			// User type-in or delete new text || EXE code set edit-text via API.
+			DataFromUic();
+		}
+		return lret;
+	}
 };
 
 
@@ -206,6 +241,10 @@ class CEditValue : public LiveUic, public CxxWindowSubclass
 	int m_uic;
 
 public:
+	void SetXData(T indata) { SetEditValue(indata); }
+	T GetXData() { return GetEditValue(); }
+
+public:
 	CEditValue()
 	{
 		m_val = 0;
@@ -241,31 +280,31 @@ public:
 		DlgboxPeeker::AddUic(hedit, this);
 	}
 
-	void SetValue(T new_val)
+	void SetEditValue(T new_val)
 	{
 		m_val = _MID_(m_min_val, new_val, m_max_val);
 		DataToUic();
 	}
 
-	T GetValue()
+	T GetEditValue()
 	{
 		return m_val;
 	}
 
-	virtual void Reset()
+	virtual void Reset() cxx11_override
 	{
 		m_val = m_default_val;
 		DataToUic();
 	}
 
-	virtual void DataToUic()
+	virtual void DataToUic() cxx11_override
 	{
 		TCHAR buf[32] = {};
 		Convert<T>::ToString(m_val, buf, ARRAYSIZE(buf));
 		SetWindowText(m_hedit, buf);
 	}
 
-	virtual void DataFromUic()
+	virtual void DataFromUic() cxx11_override
 	{
 		TCHAR buf[32] = {};
 		GetWindowText(m_hedit, buf, ARRAYSIZE(buf));
@@ -279,26 +318,33 @@ public:
 protected: // from CxxWindowSubclass
 	virtual LRESULT SubWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) cxx11_override
 	{
+		base_SubWndProc(hwnd, uMsg, wParam, lParam);
+
 		LRESULT lret = DefSubclassProc(hwnd, uMsg, wParam, lParam);
 		//vaDbgTs(_T("CEditValue peek: uMsg=%s"), ITCSvn(uMsg, itc::EM_xxx));
 		if(uMsg==WM_CHAR || uMsg==WM_SETTEXT )
 		{
-			// User type-in or delete new text || EXE code set text via API.
+			// User type-in or delete new text || EXE code set edit-text via API.
 			DataFromUic();
 		}
 		return lret;
 	}
 };
 
+typedef int int_Checkbox;
 
 class CCheckbox : public LiveUic, public CxxWindowSubclass
 {
-	int m_chkstate; // BST_UNCHECKED=0, BST_CHECKED=1, BST_INDETERMINATE=2
+	int_Checkbox m_chkstate; // BST_UNCHECKED=0, BST_CHECKED=1, BST_INDETERMINATE=2
 
 	int m_default_state;
 
 	HWND m_hbutton;
 	int m_uic;
+
+public:
+	void SetXData(int_Checkbox chkstate) { SetChkState(chkstate); }
+	int_Checkbox GetXData() { return GetChkState(); }
 
 public:
 	CCheckbox()
@@ -328,13 +374,13 @@ public:
 		DlgboxPeeker::AddUic(hbutton, this);
 	}
 
-	void SetState(int new_state)
+	void SetChkState(int new_state)
 	{
 		m_chkstate = _MID_(BST_UNCHECKED, new_state, BST_INDETERMINATE);
 		DataToUic();
 	}
 
-	int GetState()
+	int GetChkState()
 	{
 		return m_chkstate;
 	}
@@ -344,18 +390,18 @@ public:
 		return m_chkstate ? true: false;
 	}
 
-	virtual void Reset()
+	virtual void Reset() cxx11_override
 	{
 		m_chkstate = m_default_state;
 		DataToUic();
 	}
 
-	virtual void DataToUic()
+	virtual void DataToUic() cxx11_override
 	{
 		Button_SetCheck(m_hbutton, m_chkstate);
 	}
 
-	virtual void DataFromUic()
+	virtual void DataFromUic() cxx11_override
 	{
 		m_chkstate = Button_GetCheck(m_hbutton);
 
@@ -367,6 +413,8 @@ public:
 protected: // from CxxWindowSubclass
 	virtual LRESULT SubWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) cxx11_override
 	{
+		base_SubWndProc(hwnd, uMsg, wParam, lParam);
+
 		LRESULT lret = DefSubclassProc(hwnd, uMsg, wParam, lParam);
 		//vaDbgTs(_T("CCheckbox peek: uMsg=%s"), ITCSvn(uMsg, itc::BM_xxx));
 		if(uMsg==BM_SETCHECK)
@@ -380,7 +428,7 @@ protected: // from CxxWindowSubclass
 
 class CRadioGroup : public LiveUic
 {
-	int m_uicActive; // 0, 1, 2 ...
+	int m_uicActive; // ID of the checked/selected radio-button
 
 	int m_uicDefault;
 
@@ -400,9 +448,11 @@ class CRadioGroup : public LiveUic
 			m_uic = uic; m_idxInGroup = idxInGroup;
 		}
 
-	protected:
+	protected: // from CxxWindowSubclass
 		virtual LRESULT SubWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) cxx11_override
 		{
+			LiveUic::base_SubWndProc(hwnd, uMsg, wParam, lParam);
+
 			LRESULT lret = DefSubclassProc(hwnd, uMsg, wParam, lParam);
 
 			int uic = GetDlgCtrlID(hwnd);
@@ -422,6 +472,10 @@ class CRadioGroup : public LiveUic
 	};
 
 	cleanupArrayDelega<RadioBtnPeeker*>::type m_cecPeekers; //CEC_raw_delete m_cecPeekers;
+
+public:
+	void SetXData(int uicActive) { SetActive(uicActive); }
+	int GetXData() { return GetActive(); }
 
 public:
 	CRadioGroup()
@@ -504,18 +558,18 @@ public:
 		return GetActive() - m_uicStart;
 	}
 
-	virtual void Reset()
+	virtual void Reset() cxx11_override
 	{
 		m_uicActive = m_uicDefault;
 		DataToUic();
 	}
 
-	virtual void DataToUic()
+	virtual void DataToUic() cxx11_override
 	{
 		CheckRadioButton(m_hParent, m_uicStart, m_uicEnd, m_uicActive);
 	}
 
-	virtual void DataFromUic()
+	virtual void DataFromUic() cxx11_override
 	{
 		m_uicActive = getCheckedRadioButton(m_hParent, m_uicStart, m_uicEnd);
 		if(m_uicActive==0)
@@ -573,6 +627,9 @@ namespace liveuic {
 
 
 const UINT wmDataChanged = RegisterWindowMessage(sigwmDataChanged);
+
+const UINT wmUicFocusLost = RegisterWindowMessage(sigwmUicFocusLost);
+
 
 bool DlgboxPeeker::AddUic(HWND hUic, LiveUic* plu) // static
 {

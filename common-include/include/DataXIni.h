@@ -1,7 +1,7 @@
 #ifndef __CHHI__DataXIni_h_
 #define __CHHI__DataXIni_h_
 #define __CHHI__DataXIni_h_created_ 20260508
-#define __CHHI__DataXIni_h_updated_ 20260511
+#define __CHHI__DataXIni_h_updated_ 20260518
 
 
 #include <hashdict.h>
@@ -26,9 +26,15 @@ public:
 
 	void LoadIni(const TCHAR* const ar_inifiles[], int nfiles, LoadSemantic_et how=LoadFresh);
 	
-	Sdring SaveIni(); // return the INI filepath saved(would be one of ar_inifiles[])
+	bool SaveIni(bool is_force=false, Sdring *pSavedToFile=nullptr); 
+	// -- If is_force==false and all data are not dirty, INI file writing is skipped.
+	// -- pSavedToFile tells the INI filepath saved, would be one of ar_inifiles[], converted to abs path
 
 	void ResetDefault();
+
+protected:
+	static void LoadItemvalFromIni(IDataXString *pdatax, SimpleIniEx &ini, 
+		const TCHAR *secname, const TCHAR *keyname);
 
 private:
 	struct IniItem_st
@@ -48,6 +54,7 @@ private:
 
 	TScalableArray<IniItem_st> msa_items;
 };
+
 
 
 template<typename TU, typename FORMAT = XStringFormatDefault>
@@ -155,9 +162,7 @@ void DataXIni::AddItem(const TCHAR *secname, const TCHAR *keyname, IDataXString 
 	msa_items.SetEleQuan(nitems+1, true);
 	new(&msa_items[nitems]) IniItem_st(std::move(item));
 
-	Sdring itemval = m_ini.get_default(secname, keyname, pdatax->GetDefault());
-
-	pdatax->SetValueByString(itemval, false);
+	LoadItemvalFromIni(pdatax, m_ini, secname, keyname);
 }
 
 
@@ -180,8 +185,7 @@ void DataXIni::LoadIni(const TCHAR* const ar_inifiles[], int nfiles, LoadSemanti
 			// LoadFresh means: If some option is not provided by INI, 
 			// we should restore its runtime value to hard-coded default.
 
-			itemval = m_ini.get_default(secname, item.keyname, item.pdatax->GetDefault());
-			item.pdatax->SetValueByString(itemval, false);
+			LoadItemvalFromIni(item.pdatax, m_ini, secname, item.keyname);
 		}
 		else
 		{
@@ -199,11 +203,31 @@ void DataXIni::LoadIni(const TCHAR* const ar_inifiles[], int nfiles, LoadSemanti
 }
 
 
-Sdring DataXIni::SaveIni()
+bool DataXIni::SaveIni(bool is_force, Sdring *pSavedToFile)
 {
+	DEFAULT_PTR_OUTPUT(pSavedToFile, nullptr)
+
 	// Cycle through existing items. For each dirty item, sync its value back into INI.
 	
 	int nitems = msa_items.CurrentEles();
+
+	if(!is_force)
+	{
+		// Check for dirty-flags. If no no dirty, we just do nothing.
+		int dirties = 0;
+		for (int i = 0; i < nitems; i++)
+		{
+			IniItem_st &item = msa_items[i];
+			if (item.pdatax->IsDirty())
+				dirties++;
+		}
+		if (dirties == 0)
+		{
+			vaDBG3(_T("DataXIni::SaveIni() : No item is dirty, do nothing."));
+			return true;
+		}
+	}
+
 	for(int i=0; i<nitems; i++)
 	{
 		IniItem_st &item = msa_items[i];
@@ -218,20 +242,18 @@ Sdring DataXIni::SaveIni()
 		}
 	}
 
-	Sdring outinipath;
-	bool succ = m_ini.save_cascade(&outinipath);
+	bool succ = m_ini.save_cascade(pSavedToFile);
 	if (!succ)
-		return Sdring();
+		return false;
 
 	// Clear dirty flags for items.
 	for(int i=0; i<nitems; i++)
 	{
 		IniItem_st &item = msa_items[i];
-		const TCHAR *secname = msa_sections[item.idx_secname].c_str();
 		item.pdatax->SetDirty(false);
 	}
 
-	return outinipath;
+	return true;
 }
 
 
@@ -249,12 +271,36 @@ void DataXIni::ResetDefault()
 		IniItem_st &item = msa_items[i];
 		const TCHAR *secname = msa_sections[item.idx_secname].c_str();
 
-		item.pdatax->SetDefault(); // dirty cleared internally
+		item.pdatax->SetValueToDefault(); // dirty cleared internally
 
 		m_ini.del_key(secname, item.keyname);
 	}
 
 	m_ini.save_cascade();
+}
+
+
+//static 
+void DataXIni::LoadItemvalFromIni(IDataXString *pdatax, SimpleIniEx &ini,
+	const TCHAR *secname, const TCHAR *keyname)
+{
+	// [2026-05-18] Historical note:
+	// This had been implemented as (yesterday):
+	//   itemval = m_ini.get_default(secname, item.keyname, item.pdatax->GetDefault());
+	//   pdatax->SetValueByString(itemval, false);
+	//
+	// That's inappropriate, bcz LiveUicXString.h does NOT want item.pdatax->GetDefault(),
+	// but want his own LiveUic-stored default value .
+
+	if (ini.has_key(secname, keyname))
+	{
+		Sdring itemval = ini.get(secname, keyname);
+		pdatax->SetValueByString(itemval, false);
+	}
+	else
+	{
+		pdatax->SetValueToDefault();
+	}
 }
 
 

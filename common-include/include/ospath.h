@@ -184,7 +184,7 @@ Sdring paths_join_sop(const TCHAR* const paths[], int npaths, TCHAR sepchar)
 			stk.clear();
 		}
 
-		// Split inpath into path-nodes and append them into stk.
+		// Split one inpath into path-nodes and append them into stk.
 
 		StringSplitter<const TCHAR*,
 			Is_pathsep, StringSplitter_IsSpaceTab,

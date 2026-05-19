@@ -131,14 +131,14 @@ public:
 		void reset()
 		{
 			if (m_eh.ui_reset() == InProgress_TurnOff)
-				m_enuming_sessions--;
+				m_stk.m_enuming_sessions--;
 
 			m_next_idx = -1;
 		}
 
 		int next(TU **ppValue);
 		// -- Return value is the item index of the output TU, -1 on end. 
-		//    (Output) *ppValue points to stack-managed TU object, usr must not `delete *ppValue`.
+		// (Output) *ppValue points to stack-managed TU object, user must not `delete *ppValue`.
 
 	private:
 		stack& m_stk;

@@ -16,6 +16,8 @@ To avoid such annoyance, user can `#include <ShlOjb-winxp-patch.h>` instead.
 
 */
 
+//#include <windows.h> // need this before <ShlOjb.h> ?
+
 #pragma warning( push )
 
 #pragma warning(disable:4091)

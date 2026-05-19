@@ -1,5 +1,7 @@
-#ifndef __CHHI__Editbox_EnableKbdAdjustFloatnum_h_20260317_
-#define __CHHI__Editbox_EnableKbdAdjustFloatnum_h_20260317_
+#ifndef __CHHI__Editbox_EnableKbdAdjustFloatnum_h_
+#define __CHHI__Editbox_EnableKbdAdjustFloatnum_h_
+#define __CHHI__Editbox_EnableKbdAdjustFloatnum_h_created_ 20260317
+#define __CHHI__Editbox_EnableKbdAdjustFloatnum_h_updated_ 20260517
 
 // This file is modified from Editbox_EnableKbdAdjustNumber.h
 
@@ -610,7 +612,7 @@ const TCHAR* EditboxPeeker::GetTooltipText()
 		step_val,
 		min_val, max_val);
 
-	int htlen = this->helptext.len();
+	int htlen = this->helptext.rawlen();
 	const TCHAR *pszUser = this->helptext.c_str();
 	if(htlen>0 && !(htlen==1 && pszUser[0]=='\n'))
 	{

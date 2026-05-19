@@ -9,26 +9,26 @@ namespace chjds {
 ////////////////////////////////////////////////////////////////////////////
 
 
-enum EH_GoOnAction_et
+enum EnumorGo_et
 {
-	TellEnd = 0,
-	GoOnFirst = 1,
-	GoOnMore = 2,
+	EnumorGo_End = 0,
+	EnumorGo_First = 1,
+	EnumorGo_SecondOrMore = 2,
 };
 
-enum InProgress_et
+enum EnumorLock_et
 {
-	InProgress_TurnOff = 0,
-	InProgress_TurnOn = 1,
-	InProgress_NoChange = 2, 
+	EnumorLock_NoChange = 0,
+	EnumorLock_On = 1,
+	EnumorLock_Off = 2, 
 };
 
 struct enumor_helper_st
 {
 	// Three roles:
-	// [User, who does enumerating action]
+	// [User] he who wants to enumerate the main object.
 	// [Enumor] the object that provides .next(), .reset() to user.
-	// [EHelper] this class, who maintain common states for any Enumor actions.
+	// [EnHelper] this class, who maintains common states for any Enumor actions.
 
 	int enum_outputs;
 	bool is_enum_end;
@@ -39,9 +39,9 @@ struct enumor_helper_st
 		is_enum_end = false;
 	}
 
-	EH_GoOnAction_et ui_next()
+	EnumorGo_et ui_next()
 	{
-		// ui: user-input
+		// ui: user come-in
 		// Enumor.next() must call this at entrance, check ret-val to determine
 		// whether to go on concrete enumerating action(walk through a linked-list etc).
 		// > TellEnd: No concrete action needed, just tell user this round is done.
@@ -50,19 +50,20 @@ struct enumor_helper_st
 
 		if(is_enum_end)
 		{
-			return TellEnd;
+			return EnumorGo_End;
 
 			// If user wants to restart enumeration, he must call Enumor.reset() once,
 			// then Enumor.next() .
 		}
 		else if(enum_outputs==0)
-			return GoOnFirst;
+			return EnumorGo_First;
 		else
-			return GoOnMore;
+			return EnumorGo_SecondOrMore;
 	}
 
-	InProgress_et ui_reset()
+	EnumorLock_et ui_reset()
 	{
+		// ui: user come-in
 		// Enumor.reset() must call this.
 
 		int outputs_was = enum_outputs;
@@ -70,38 +71,38 @@ struct enumor_helper_st
 		is_enum_end = false;
 
 		if(outputs_was==0)
-			return InProgress_NoChange;
+			return EnumorLock_Off;
 		else
 		{
 			// The enum-progress is interrupted halfway, so Enumor can know 
 			// to discard the enum-object-lock state.
-			return InProgress_TurnOff;
+			return EnumorLock_NoChange;
 		}
 	}
 
-	InProgress_et uo_yes()
+	EnumorLock_et uo_yes()
 	{
-		// uo: user-output
+		// uo: user go-out
 		// Enumor calls this if he generates an output for user.
 		enum_outputs++;
 
 		if(enum_outputs==1)
-			return InProgress_TurnOn;
+			return EnumorLock_On;
 		else
-			return InProgress_NoChange; // still in-progress
+			return EnumorLock_Off; // still in-progress
 	}
 
-	InProgress_et uo_end()
+	EnumorLock_et uo_end()
 	{
-		// uo: user-output
+		// uo: user go-out
 		// Enumor calls this if he finds that enumeration has ended.
 		bool was_in_progress = in_progress();
 		is_enum_end = true;
 		
 		if(was_in_progress)
-			return InProgress_TurnOff; // fresh end
+			return EnumorLock_NoChange; // fresh end
 		else
-			return InProgress_NoChange; // Enumor call uo_end() multi-times
+			return EnumorLock_Off; // Enumor call uo_end() multi-times
 	}
 
 	bool in_progress() const

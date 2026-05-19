@@ -1,7 +1,7 @@
 #ifndef __CHHI__SimpleIniEx_h_
 #define __CHHI__SimpleIniEx_h_
 #define __CHHI__SimpleIniEx_h_created_ 20260504
-#define __CHHI__SimpleIniEx_h_updated_ 20260506
+#define __CHHI__SimpleIniEx_h_updated_ 20260515
 
 #include <SimpleIni.h>
 
@@ -141,6 +141,9 @@ bool SimpleIniEx::save_cascade(Sdring *p_out_inipath)
 	{
 		vaDBG2(_T("SimpleIniEx::save_cascade(), try saving to '%s'"), m_inifiles[i].c_str());
 
+		// We set *p_out_inipath first. In case of fail, user knows which INI file finally fails.
+		*p_out_inipath = m_inifiles[i];
+
 		SimpleIni::ReCode_et err = save(m_inifiles[i]);
 		if(!err)
 		{ 
@@ -148,7 +151,6 @@ bool SimpleIniEx::save_cascade(Sdring *p_out_inipath)
 
 			m_idxSave = i; // update m_idxSave for next save() action.
 
-			*p_out_inipath = m_inifiles[i];
 			return true;
 		}
 	}
