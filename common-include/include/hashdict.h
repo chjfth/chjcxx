@@ -1214,13 +1214,13 @@ const TCHAR* hashdict<TU>::enumor::next(TU **ppValue)
 	// Note: Immediately before returning to user, we(Enumor code) should call
 	// uo_yes() or uo_end() to tell enum_helper the result.
 
-	EH_GoOnAction_et goact = m_eh.ui_next();
-	if(goact==TellEnd)
+	EnumorGo_et engo = m_eh.ui_next();
+	if(engo==EnumorGo_End)
 	{
 		m_eh.uo_end(); // optional for TellEnd.
 		return nullptr;
 	}
-	else if(goact==GoOnFirst)
+	else if(engo== EnumorGo_First)
 	{
 		if(!m_fromkey)
 			m_next_trovent = 0; // enum from first trovent
@@ -1236,8 +1236,8 @@ const TCHAR* hashdict<TU>::enumor::next(TU **ppValue)
 	}
 	else
 	{
-		assert(goact==GoOnMore);
-		// Use m_next_trovent from previous time
+		assert(engo== EnumorGo_SecondOrMore);
+		// Will use m_next_trovent from previous time
 	}
 
 	for(; m_next_trovent<m_dict.m_trove_ploughs; m_next_trovent++)
@@ -1249,7 +1249,7 @@ const TCHAR* hashdict<TU>::enumor::next(TU **ppValue)
 
 			m_next_trovent++;
 			
-			if(m_eh.uo_yes() == InProgress_TurnOn)
+			if(m_eh.uo_yes() == EnumorLock_On)
 				m_dict.m_enuming_sessions++;
 
 			return trovent.key.c_str();
@@ -1260,7 +1260,7 @@ const TCHAR* hashdict<TU>::enumor::next(TU **ppValue)
 
 	*ppValue = nullptr;
 
-	if (m_eh.uo_end() == InProgress_TurnOff)
+	if (m_eh.uo_end() == EnumorLock_Off)
 		DecreaseSessionCount();
 
 	return nullptr;
@@ -1269,7 +1269,7 @@ const TCHAR* hashdict<TU>::enumor::next(TU **ppValue)
 template<typename TU> 
 void hashdict<TU>::enumor::reset()
 {
-	if(m_eh.ui_reset() == InProgress_TurnOff)
+	if(m_eh.ui_reset() == EnumorLock_Off)
 	{
 		DecreaseSessionCount();
 	}
