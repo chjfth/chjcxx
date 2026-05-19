@@ -1,7 +1,7 @@
 #ifndef __CHHI__hashdict_h_
 #define __CHHI__hashdict_h_
 #define __CHHI__hashdict_h_created_ 20260404
-#define __CHHI__hashdict_h_updated_ 20260509
+#define __CHHI__hashdict_h_updated_ 20260519
 
 #include <CxxVerCheck.h>
 #ifdef _MSC_VER
@@ -455,8 +455,8 @@ void hashdict<TU>::_clear()
 		vaDBG3(_T("  [idxTrove#%d]Freeing key \"%s\", value@<%p>"),
 			i, trovent.key.c_str(), &trovent.uvalue);
 
-		trovent.key.~sdring();
-		trovent.uvalue.~TU();
+		trovent.key = nullptr;
+		trovent.uvalue = TU();
 	}
 
 	// cleanup the two TScalableArray

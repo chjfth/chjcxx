@@ -1,7 +1,7 @@
 #ifndef __TScalableArray_h_
 #define __TScalableArray_h_
 #define __TScalableArray_h_created_ 20050101
-#define __TScalableArray_h_updated_ 20260506
+#define __TScalableArray_h_updated_ 20260519
 
 #include <assert.h>
 #include <stdio.h>
@@ -12,21 +12,53 @@
 #include <commdefs.h>
 #include <_MINMAX_.h>
 
-// [2005-10-08] The name TScalableArray starts with a 'T', which indicates it's a template class.
+// TScalableArray may be written as TSA for brevity.
 
-// [2008-08-26] NOTE: This template class is not aware of class ctor, dtor or copy-ctor.
-// If using this template class to hold objects who needs special destruction process,
-// users have to do it themselves!
-//
-// -- [2026-04-05] TScalableArray deals with only plain-old-data(POD).
-//    Although you can use Complex C++ class as T, you should always consider memory block
-//    allocated by TScalableArray containing *un-initialized* data.
-//    So, remember to call ctor after you get new memblock and call dtor before you discard it.
-//    .
-//    This has been applied on chjds::hashdict template class successfully.
-//
-// [2018-04-15] Important interface rationale fix. Unit-tests added with Google Test framework.
+/*
+[2005-10-08] The name TScalableArray starts with a 'T', which indicates it's a template class.
 
+[2026-05-19] User can choose two flavors of Element-type T inside TSA.
+
+  [Flavor One] T can be C++ class object. This is natural. 
+	
+	T's ctor/dtor will be invoked automatically when required. To be precise:
+
+	[A]	When new element-storage is allocated, every new element will be constructed by
+		no-parameter ctor of T. So user's T must supply such ctor to compile success.
+	
+	[B]	When(just before) an old element is dropped from RAM, including when TSA itself 
+		is destructed, old element's C++ destructor is called.
+	
+	[C]	A TSA object itself can be copied, at that time, all elements in new TSA is 
+		constructed by calling T's copy-constructor on elements from old TSA.
+
+  [Flavor Two] TSA manages T's storage. User can delay calling ctor for T.
+
+	[a] User calls `tsa.SetEleQuan(N, true)` to increase/decrease storage for T's array. 
+		That second param `true` tells TSA to zero out the new element's storage to zeros,
+		instead of calling T's ctor. So user can postpone construction of those T objects
+		manually.
+
+	[b] User's T must provide a no-param ctor that initialize T to a plain-old object,
+		for example, initialize all object body bytes to zero.
+		And, T's dtor should cope with zero-content object body normally.
+
+	[c] There is NOT a object-wide switch that controls whether TSA looks upon T as
+		flavor-one or flavor-two, so, even you use flavor-two, TSA still considers T 
+		as C++ object after SetEleQuan() gives birth to T's storage. For example:
+		* When you use SetEleQuan() to shrink a TSA, those dropped T objects will first
+		  be called with their dtor(). TSA does this to avoid memleak from suddenly
+		  vanishing T-s.
+		* When TSA itself is destructed, the remaining T-s dtor will be called automatically.
+
+	[d] Can a T with virtual functions be used with flavor-two?
+		Yes. Although a half-initialized T object is zeroed-out with all vtable-ptr wiped off,
+		TSA itself always call T's dtor directly, not through vtable-ptr.
+		As long as TSA's user does not return such half-initialized T to outer-user,
+		everything will be fine.
+
+	Flavor-Two has been applied on chjds::hashdict template class successfully, with [d].
+*/
 
 const int TSA_no_decrease = 0; // use for DecSize param
 
@@ -111,7 +143,7 @@ d:\ws\common-include\autotest\mytest-ci\test_tscalablearray.cpp(408): error C259
 
 	bool operator !() { return (T*)(*this) ? false : true; } // check for empty array
 		
-	ReCode_t InsertBefore(int pos, const T* array, int n);
+	ReCode_t InsertBefore(int pos, const T array[], int n);
 		// Insert `n' elements at position `pos'. Insert all or insert none.
 	ReCode_t InsertBefore(int pos, const T tobj)
 	{
@@ -178,15 +210,21 @@ d:\ws\common-include\autotest\mytest-ci\test_tscalablearray.cpp(408): error C259
 		//!< Change the array size to accommodate at least nNewEle elements.
 		/*!< After calling SetEleQuan(), original elements in the array will not be changed.
 
-		@param[in] isZeroContent
-			If array size is extended, whether clear new array element to zero.
+		@param[in] isZeroContent 
+			If true, I will not call T's ctor for those new elements.
+			This means, user should/would manually control the construction process on those 
+			newly allocated RAM space.
 		*/
 
-	void Cleanup()
-	{
-		if(m_nCurEle==0 && mar_Ele)
-			DeleteAllStorage();
-	}
+ 	void Cleanup()
+ 	{
+		assert( !(m_nCurEle==0 && mar_Ele!=nullptr) );
+ 		DeleteAllStorage();
+// 
+// 		// old code, probably wrong:
+// 		if(m_nCurEle==0 && mar_Ele)
+// 			DeleteAllStorage();
+ 	}
 
 	int GetIncSize() { return m_nIncSize; }
 	int GetDecSize() { return m_nDecSize; }
@@ -249,7 +287,7 @@ protected:
 	void CopyInEles(int pos, int n, const T* pIn);
 	void CopyOutEles(int pos, int n, T* pOut) const;
 
-	ReCode_t ExtendEles(int nTotalEles);
+	ReCode_t ExtendEles(int nTotalEles, bool isCtorNow);
 
 protected:
 	// Memory allocation/free functions, like ANSI C's realloc() and free().
@@ -307,8 +345,11 @@ void TScalableArray<T>::_copy_from_old(const TScalableArray& old)
 
 	m_nCurStorage = 0;
 	m_nCurEle = 0;
-	ReCode_et err = ExtendEles(old.m_nCurStorage);
-	assert(!err);
+	ReCode_et err = ExtendEles(old.m_nCurStorage, false);
+	assert(!err); // probably no-mem
+	if(err)
+		throw std::bad_alloc();
+
 	assert(m_nCurStorage==old.m_nCurStorage);
 	assert(m_nCurEle==old.m_nCurEle);
 
@@ -433,6 +474,10 @@ void
 TScalableArray<T>::ShiftDownEles(int pos, int n)
 {
 	memmove(mar_Ele+pos+n, mar_Ele+pos, (m_nCurEle-pos-n)*sizeof(T));
+
+	// Call T's ctor for those inserted n elements
+	for(int i=0; i<n; i++)
+		new(&mar_Ele[pos+i]) T;
 }
 
 
@@ -440,6 +485,10 @@ template<typename T>
 void 
 TScalableArray<T>::ShiftUpEles(int pos, int n)
 {
+	// Call T's dtor for those n elements
+	for(int i=0; i<n; i++)
+		mar_Ele[pos+i].~T();
+
 	memmove(mar_Ele+pos, mar_Ele+pos+n, (m_nCurEle-pos-n)*sizeof(T));
 }
 
@@ -460,7 +509,7 @@ TScalableArray<T>::CopyOutEles(int pos, int n, T* pOut) const
 
 template<typename T>
 typename TScalableArray<T>::ReCode_t 
-TScalableArray<T>::InsertBefore(int pos, const T* array, int n)
+TScalableArray<T>::InsertBefore(int pos, const T array[], int n)
 {
 	if(array==NULL || n==0) 
 		return E_Success;
@@ -470,7 +519,7 @@ TScalableArray<T>::InsertBefore(int pos, const T* array, int n)
 
 	int nNewEle = m_nCurEle+n;
 
-	ReCode_t re = ExtendEles(nNewEle);
+	ReCode_t re = ExtendEles(nNewEle, false);
 	if(re!=E_Success) 
 		return re; // return the error-code
 
@@ -517,7 +566,7 @@ TScalableArray<T>::DeleteEles(int pos, int n)
 // 	}
 
 	int occn_orig = OCC_DIVIDE(m_nCurStorage, m_nDecSize);
-	int occn_new = OCC_DIVIDE(m_nCurEle+m_nDecThres, m_nDecSize); // [2026-05-01] suspitious!
+	int occn_new = OCC_DIVIDE(m_nCurEle+m_nDecThres, m_nDecSize); // [2026-05-01] suspicious!
 
 	assert(occn_new<=occn_orig);
 
@@ -554,6 +603,12 @@ TScalableArray<T>::DeleteAllStorage()
 {
 	if(mar_Ele)
 	{
+		// Destruct all C++ elements
+		for(int i=0; i<m_nCurEle; i++)
+		{
+			mar_Ele[i].~T();
+		}
+
 		Free(mar_Ele);
 		mar_Ele = NULL;
 		m_nCurEle = m_nCurStorage = 0;
@@ -567,7 +622,7 @@ TScalableArray<T>::DeleteAllStorage()
 
 template<typename T>
 typename TScalableArray<T>::ReCode_t 
-TScalableArray<T>::ExtendEles(int nTotalEles)
+TScalableArray<T>::ExtendEles(int nTotalEles, bool isCtorNow)
 {
 	if(nTotalEles<=m_nCurEle) 
 		return E_Success; //Do nothing
@@ -576,6 +631,9 @@ TScalableArray<T>::ExtendEles(int nTotalEles)
 		return E_Full;
 
 	assert(m_nCurStorage%m_nIncSize==0); //`m_nCurStorage' should be multiple of m_nIncSize
+
+	int nOldEle = m_nCurEle;
+	int nOldStorage = m_nCurStorage;
 
 	int nNewStorage = UP_ROUND(nTotalEles, m_nIncSize);
 
@@ -598,6 +656,23 @@ TScalableArray<T>::ExtendEles(int nTotalEles)
 	}
 
 	m_nCurEle = nTotalEles;
+
+	ZeroEles(nOldStorage, nNewStorage - nOldStorage);
+
+	if(m_nCurEle>nOldEle)
+	{
+		if(isCtorNow)
+		{
+			// Call T's ctor for new elements
+			for(int i=nOldEle; i<m_nCurEle; i++)
+				new(&mar_Ele[i]) T;
+		}
+		else
+		{	// Zero-out the new elements' storage
+			ZeroEles(nOldEle, m_nCurEle-nOldEle);
+		}
+	}
+
 
 	return E_Success;
 }
@@ -622,14 +697,8 @@ TScalableArray<T>::SetEleQuan(int nNewEle, bool isZeroContent)
 	else 
 	{
 		int nOrigEle = m_nCurEle;
-		ReCode_t re = ExtendEles(nNewEle);
-		if(re!=E_Success) 
-			return re; //return the error code
-
-		if(isZeroContent) 
-			ZeroEles(nOrigEle, nNewEle-nOrigEle);
-
-		return E_Success;
+		ReCode_t re = ExtendEles(nNewEle, isZeroContent ? false : true);
+		return re;
 	}
 }
 

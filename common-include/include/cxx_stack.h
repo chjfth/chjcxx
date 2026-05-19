@@ -14,12 +14,13 @@
 #include <new>
 #include <utility>
 #include <assert.h>
+
 #include <ps_TCHAR.h>
 #include <commdefs.h>
-#include <sdring.h>
 #include <enumor_helper.h>
 #include <TScalableArray.h>
-#include <vaDbgTs_util.h>
+//#include <sdring.h>
+//#include <vaDbgTs_util.h>
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -27,16 +28,17 @@ namespace chjds {
 ////////////////////////////////////////////////////////////////////////////
 // Place API function declarations in this namespace.
 
+
 template<typename TU>
 	// TU is user's datatype(should support C++-delete)
 class stack
 {
 #ifdef CXX11_OR_NEWER
 	static_assert(std::is_copy_constructible<TU>::value,
-		"hashdict: TU must be copy constructible");
+		"stack: TU must be copy constructible");
 
 	static_assert(std::is_move_constructible<TU>::value,
-		"hashdict: TU must be move constructible");
+		"stack: TU must be move constructible");
 #endif
 
 public:
