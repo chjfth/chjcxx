@@ -343,7 +343,11 @@ void TScalableArray<T>::_copy_from_old(const TScalableArray& old)
 	m_nDecThres = old.m_nDecThres;
 	m_reallocs = 0;
 
+#ifndef _XXX_SEE_REALLOC_CRASH // should NOT #define this, just for experiment
+	mar_Ele = nullptr;
+#endif
 	m_nCurEle = m_nCurStorage = 0;
+
 	ReCode_et err = ExtendEles(old.m_nCurEle, false);
 	assert(!err); // probably no-mem
 	if(err)
@@ -749,11 +753,22 @@ template<typename T>
 void *
 TScalableArray<T>::Realloc(void *oldbuf, size_t new_size)
 {
+#ifdef _XXX_SEE_REALLOC_CRASH
+	static int ga_count = 0;
+	ga_count++;
+	printf("[%d]Realloc(oldbuf=%p, new_size: %d)\n", ga_count, oldbuf, (int)new_size);
+#endif
+
 #ifdef TScalableArray_realloc
 	void *p = TScalableArray_realloc(oldbuf, new_size);
 #else
 	void *p = realloc(oldbuf, new_size); // Call standard CRT
 #endif
+
+#ifdef _XXX_SEE_REALLOC_CRASH
+	printf("[%d]Realloc(oldbuf=%p, newbuf=%p)\n", ga_count, oldbuf, p);
+#endif
+
 	return p;
 }
 
