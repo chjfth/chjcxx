@@ -17,7 +17,7 @@
 /*
 [2005-10-08] The name TScalableArray starts with a 'T', which indicates it's a template class.
 
-[2026-05-19] User can choose two flavors of Element-type T inside TSA.
+[2026-05-20] User can choose two flavors of Element-type T inside TSA.
 
   [Flavor One] T can be C++ class object. This is natural. 
 	
@@ -197,10 +197,10 @@ d:\ws\common-include\autotest\mytest-ci\test_tscalablearray.cpp(408): error C259
 	void ZeroEles(int pos=0, int n=-1)
 	{
 		if(n<0)
-			n = CurrentEles();
+			n = m_nCurStorage;
 		
-		pos = _MID_(0, pos, CurrentEles());
-		n = _MID_(0, n, CurrentEles()-pos);
+		pos = _MID_(0, pos, m_nCurStorage);
+		n = _MID_(0, n, m_nCurStorage-pos);
 		
 		if(n>0) 
 			memset(mar_Ele+pos, 0, n*sizeof(T));
@@ -343,15 +343,13 @@ void TScalableArray<T>::_copy_from_old(const TScalableArray& old)
 	m_nDecThres = old.m_nDecThres;
 	m_reallocs = 0;
 
-	m_nCurStorage = 0;
-	ReCode_et err = ExtendEles(old.m_nCurStorage, false);
+	m_nCurEle = m_nCurStorage = 0;
+	ReCode_et err = ExtendEles(old.m_nCurEle, false);
 	assert(!err); // probably no-mem
 	if(err)
 		throw std::bad_alloc();
 
-	assert(m_nCurStorage==old.m_nCurStorage);
-
-	m_nCurEle = old.m_nCurEle;
+	assert(m_nCurEle==old.m_nCurEle);
 
 	// We must use T's copy-ctor instead of raw memcpy();
 	for(int i=0; i<m_nCurEle; i++)
