@@ -115,15 +115,17 @@ private:
 
 public:
 	// ... more public methods here ...
-	class enumor
+
+public:
+	class Enumor
 	{
 	public:
-		enumor(stack &stk, int from_idx=0)
+		Enumor(stack &stk, int from_idx=0)
 			: m_stk(stk), m_from_idx(from_idx>=0?from_idx:0)
 		{
 			m_next_idx = -1; // casual ok
 		}
-		~enumor()
+		~Enumor()
 		{
 			reset();
 		}
@@ -145,11 +147,11 @@ public:
 		enumor_helper_st m_eh;
 		const int m_from_idx;
 		int m_next_idx;
-	}; // class enumor
+	}; // class Enumor
 
-	enumor get_enumor(int from_idx=0)
+	Enumor get_enumor(int from_idx=0)
 	{
-		return enumor(*this, from_idx);
+		return Enumor(*this, from_idx);
 	}
 
 	int dbg_peek_enumlocks() const { return m_enuming_sessions; }
@@ -240,7 +242,7 @@ TU& stack<TU>::operator[](int pos)
 ////\\\\////\\\\////\\\\////\\\\////\\\\////\\\\////\\\\////
 
 template<typename TU>
-int stack<TU>::enumor::next(TU **ppValue)
+int stack<TU>::Enumor::next(TU **ppValue)
 {
 	DEFAULT_PTR_OUTPUT(ppValue, nullptr);
 

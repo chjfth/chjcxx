@@ -27,8 +27,8 @@ enum EnumorLock_et
 struct enumor_helper_st
 {
 	// Three roles:
-	// [User] he who wants to enumerate the main object.
-	// [Enumor] the object that provides .next(), .reset() to user.
+	// [EnUser] he who wants to enumerate the main object.
+	// [Enumor] the object that provides .next(), .reset() to EnUser.
 	// [EnHelper] this class, who maintains common states for any Enumor actions.
 
 	int enum_outputs;
@@ -45,15 +45,15 @@ struct enumor_helper_st
 		// ui: user come-in
 		// Enumor.next() must call this at entrance, check ret-val to determine
 		// whether to go on concrete enumerating action(walk through a linked-list etc).
-		// > TellEnd: No concrete action needed, just tell user this round is done.
-		// > GoOnFirst: First item is to be produced for user.
-		// > GoOnMore:  Second or later item is to be produced for user.
+		// > EnumorGo_End  : No concrete action needed, just tell EnUser this round is done.
+		// > EnumorGo_First: First item is to be produced for EnUser.
+		// > EnumorGo_SecondOrMore: Second or later item is to be produced for EnUser.
 
 		if(is_enum_end)
 		{
 			return EnumorGo_End;
 
-			// If user wants to restart enumeration, he must call Enumor.reset() once,
+			// If EnUser wants to restart enumeration, he must call Enumor.reset() once,
 			// then Enumor.next() .
 		}
 		else if(enum_outputs==0)
@@ -87,7 +87,7 @@ struct enumor_helper_st
 	EnumorLock_et uo_yes()
 	{
 		// uo: user go-out
-		// Enumor calls this if he generates an output for user.
+		// Enumor calls this if he generates an output for EnUser.
 		enum_outputs++;
 
 		if(enum_outputs==1)
