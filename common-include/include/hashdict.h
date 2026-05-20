@@ -1212,12 +1212,12 @@ const TCHAR* hashdict<TU>::enumor::next(TU **ppValue)
 	DEFAULT_PTR_OUTPUT(ppValue, nullptr)
 
 	// Note: Immediately before returning to user, we(Enumor code) should call
-	// uo_yes() or uo_end() to tell enum_helper the result.
+	// uo_yes() or uo_end() to notify enumor_helper the result.
 
 	EnumorGo_et engo = m_eh.ui_next();
 	if(engo==EnumorGo_End)
 	{
-		m_eh.uo_end(); // optional for TellEnd.
+		m_eh.uo_end(); // optional for EnumorGo_End.
 		return nullptr;
 	}
 	else if(engo== EnumorGo_First)

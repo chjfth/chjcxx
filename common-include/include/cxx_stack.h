@@ -1,7 +1,7 @@
 #ifndef __CHHI__cxx_stack_h_
 #define __CHHI__cxx_stack_h_
 #define __CHHI__cxx_stack_h_created_ 20260506
-#define __CHHI__cxx_stack_h_updated_ 20260506
+#define __CHHI__cxx_stack_h_updated_ 20260520
 
 
 #include <CxxVerCheck.h>
@@ -106,11 +106,11 @@ public:
 
 private:
 	void _copy_from_old(const stack& old) {
-		new(&msa_data) TU(old.msa_data); // to-test
+		new(&msa_data) TScalableArray<TU>(old.msa_data);
 	}
 
 	void _steal_from_old(stack& old) {
-		new(&msa_data) TU(std::move(old.msa_data)); // to-test
+		new(&msa_data) TScalableArray<TU>(std::move(old.msa_data));
 	}
 
 public:
@@ -130,28 +130,29 @@ public:
 
 		void reset()
 		{
-			if (m_eh.ui_reset() == InProgress_TurnOff)
+			if (m_eh.ui_reset() == EnumorLock_Off)
 				m_stk.m_enuming_sessions--;
 
 			m_next_idx = -1;
 		}
 
-		int next(TU **ppValue);
+		int next(TU **ppValue=nullptr);
 		// -- Return value is the item index of the output TU, -1 on end. 
 		// (Output) *ppValue points to stack-managed TU object, user must not `delete *ppValue`.
 
 	private:
 		stack& m_stk;
 		enumor_helper_st m_eh;
-		int m_from_idx;
+		const int m_from_idx;
 		int m_next_idx;
-	};
+	}; // class enumor
 
 	enumor get_enumor(int from_idx=0)
 	{
 		return enumor(*this, from_idx);
 	}
 
+	int dbg_peek_enumlocks() const { return m_enuming_sessions; }
 
 	//
 	// Leave below at end of class body
@@ -236,27 +237,29 @@ TU& stack<TU>::operator[](int pos)
 }
 
 
-////////
+////\\\\////\\\\////\\\\////\\\\////\\\\////\\\\////\\\\////
 
 template<typename TU>
 int stack<TU>::enumor::next(TU **ppValue)
 {
-	// Note: Immediately before returning to user, we(Enumor code) should call
-	// uo_yes() or uo_end() to tell enum_helper the result.
+	DEFAULT_PTR_OUTPUT(ppValue, nullptr);
 
-	EH_GoOnAction_et goact = m_eh.ui_next();
-	if (goact == TellEnd)
+	// Note: Immediately before returning to user, we(Enumor code) should call
+	// uo_yes() or uo_end() to notify enumor_helper the result.
+
+	EnumorGo_et engo = m_eh.ui_next();
+	if (engo == EnumorGo_End)
 	{
-		m_eh.uo_end(); // optional for TellEnd.
+		m_eh.uo_end(); // optional for EnumorGo_End.
 		return -1;
 	}
-	else if (goact == GoOnFirst)
+	else if (engo == EnumorGo_First)
 	{
 		m_next_idx = m_from_idx;
 	}
 	else
 	{
-		assert(goact == GoOnMore);
+		assert(engo == EnumorGo_SecondOrMore);
 		// Use m_next_idx from previous time
 	}
 
@@ -267,7 +270,7 @@ int stack<TU>::enumor::next(TU **ppValue)
 		*ppValue = &m_stk.msa_data[m_next_idx];
 		m_next_idx++;
 
-		if(m_eh.uo_yes() == InProgress_TurnOn)
+		if(m_eh.uo_yes() == EnumorLock_On)
 			m_stk.m_enuming_sessions++;
 
 		return m_next_idx-1;
@@ -276,7 +279,7 @@ int stack<TU>::enumor::next(TU **ppValue)
 	{
 		// Nothing more to produce.
 
-		if(m_eh.uo_end()==InProgress_TurnOff)
+		if(m_eh.uo_end() == EnumorLock_Off)
 			m_stk.m_enuming_sessions--;
 
 		return -1;

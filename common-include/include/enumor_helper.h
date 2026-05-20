@@ -1,8 +1,9 @@
 #ifndef __CHHI__enumor_helper_h_
 #define __CHHI__enumor_helper_h_
 #define __CHHI__enumor_helper_h_created_ 20260428
-#define __CHHI__enumor_helper_h_updated_ 20260429
+#define __CHHI__enumor_helper_h_updated_ 20260520
 
+//[2026-05-20] Tested with D:\gitw\trivials\chjds\test_enumor_helper\test_enumor_helper.cpp
 
 ////////////////////////////////////////////////////////////////////////////
 namespace chjds { 
@@ -66,16 +67,19 @@ struct enumor_helper_st
 		// ui: user come-in
 		// Enumor.reset() must call this.
 
-		int outputs_was = enum_outputs;
+		bool was_in_progress = in_progress();
+
 		enum_outputs = 0;
 		is_enum_end = false;
 
-		if(outputs_was==0)
-			return EnumorLock_Off;
-		else
+		if(was_in_progress)
 		{
 			// The enum-progress is interrupted halfway, so Enumor can know 
 			// to discard the enum-object-lock state.
+			return EnumorLock_Off;
+		}
+		else
+		{
 			return EnumorLock_NoChange;
 		}
 	}
@@ -89,7 +93,7 @@ struct enumor_helper_st
 		if(enum_outputs==1)
 			return EnumorLock_On;
 		else
-			return EnumorLock_Off; // still in-progress
+			return EnumorLock_NoChange;
 	}
 
 	EnumorLock_et uo_end()
@@ -100,9 +104,9 @@ struct enumor_helper_st
 		is_enum_end = true;
 		
 		if(was_in_progress)
-			return EnumorLock_NoChange; // fresh end
+			return EnumorLock_Off; // First-time enum end.
 		else
-			return EnumorLock_Off; // Enumor call uo_end() multi-times
+			return EnumorLock_NoChange; // Enumor calls uo_end() multiple-times
 	}
 
 	bool in_progress() const

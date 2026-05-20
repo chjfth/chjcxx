@@ -1,7 +1,7 @@
 #ifndef __TScalableArray_h_
 #define __TScalableArray_h_
 #define __TScalableArray_h_created_ 20050101
-#define __TScalableArray_h_updated_ 20260519
+#define __TScalableArray_h_updated_ 20260520
 
 #include <assert.h>
 #include <stdio.h>
@@ -344,19 +344,19 @@ void TScalableArray<T>::_copy_from_old(const TScalableArray& old)
 	m_reallocs = 0;
 
 	m_nCurStorage = 0;
-	m_nCurEle = 0;
 	ReCode_et err = ExtendEles(old.m_nCurStorage, false);
 	assert(!err); // probably no-mem
 	if(err)
 		throw std::bad_alloc();
 
 	assert(m_nCurStorage==old.m_nCurStorage);
-	assert(m_nCurEle==old.m_nCurEle);
+
+	m_nCurEle = old.m_nCurEle;
 
 	// We must use T's copy-ctor instead of raw memcpy();
-	for(int i=0; i<m_nCurStorage; i++)
+	for(int i=0; i<m_nCurEle; i++)
 	{
-		new(mar_Ele+i) T( (const T&)old[i] );
+		new(mar_Ele+i) T( old[i] );
 	}
 }
 
