@@ -351,10 +351,10 @@ struct DataXTraits<Sdring, FORMAT>
 // Place API function Implementation in this namespace.
 
 
-int getversion()
-{
-	return 1;
-}
+//int getversion()
+//{
+//	return 1;
+//}
 
 
 ////////////////////////////////////////////////////////////////////////////

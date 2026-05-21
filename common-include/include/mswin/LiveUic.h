@@ -1,7 +1,7 @@
 #ifndef __CHHI__LiveUic_h_
 #define __CHHI__LiveUic_h_
 #define __CHHI__LiveUic_h_created_ 20260313
-#define __CHHI__LiveUic_h_updated_ 20260518
+#define __CHHI__LiveUic_h_updated_ 20260521
 
 
 #include <windows.h>
@@ -31,12 +31,12 @@ extern const UINT wmDataChanged;
 static const TCHAR *sigwmUicFocusLost = _T("LiveUic-FocusLost");
 extern const UINT wmUicFocusLost;
 
-class LiveUic      // abstract base-class
+class ILiveUic      // abstract base-class
 {
 	// LiveUic may be associated with an editbox, a checkbox etc.
 
 public:
-	~LiveUic() {}
+	virtual ~ILiveUic() {}
 
 	virtual void Reset() = 0;
 	virtual void DataToUic() = 0;
@@ -60,19 +60,19 @@ class DlgboxPeeker : public CxxWindowSubclass
 	// 'Degraded'(=clever) using of CxxWindowSubclass to merely attach this class object
 	// to a Dlgbox HWND.
 
-	TScalableArray<LiveUic*> m_saLiveUics;
+	TScalableArray<ILiveUic*> m_saLiveUics;
 
 public:
 
-	static bool AddUic(HWND hUic, LiveUic* plu);
+	static bool AddUic(HWND hUic, ILiveUic* plu);
 
-	static bool AddUic(HWND hdlg, int uic, LiveUic* plu) {
+	static bool AddUic(HWND hdlg, int uic, ILiveUic* plu) {
 		return AddUic(GetDlgItem(hdlg, uic), plu);
 	}
 	
-	static bool DelUic(HWND hUic, LiveUic* plu);
+	static bool DelUic(HWND hUic, ILiveUic* plu);
 
-	static bool DelUic(HWND hdlg, int uic, LiveUic* plu) {
+	static bool DelUic(HWND hdlg, int uic, ILiveUic* plu) {
 		return DelUic(GetDlgItem(hdlg, uic), plu);
 	}
 
@@ -95,7 +95,7 @@ inline DlgboxPeeker* GetDlgboxPeeker(HWND hdlg, BOOL is_create=FALSE,
 ////////////////////////////////////////////////////////////////////////////
 
 
-class CEditStr : public LiveUic, public CxxWindowSubclass
+class CEditStr : public ILiveUic, public CxxWindowSubclass
 {
 	Sdring m_str, m_default_str;
 	int m_uic;
@@ -231,7 +231,7 @@ struct Convert<float>
 
 
 template<typename T> // T as user data type in the editbox
-class CEditValue : public LiveUic, public CxxWindowSubclass
+class CEditValue : public ILiveUic, public CxxWindowSubclass
 {
 	T m_val;
 
@@ -333,7 +333,7 @@ protected: // from CxxWindowSubclass
 
 typedef int int_Checkbox;
 
-class CCheckbox : public LiveUic, public CxxWindowSubclass
+class CCheckbox : public ILiveUic, public CxxWindowSubclass
 {
 	int_Checkbox m_chkstate; // BST_UNCHECKED=0, BST_CHECKED=1, BST_INDETERMINATE=2
 
@@ -426,7 +426,7 @@ protected: // from CxxWindowSubclass
 };
 
 
-class CRadioGroup : public LiveUic
+class CRadioGroup : public ILiveUic
 {
 	int m_uicActive; // ID of the checked/selected radio-button
 
@@ -451,7 +451,7 @@ class CRadioGroup : public LiveUic
 	protected: // from CxxWindowSubclass
 		virtual LRESULT SubWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) cxx11_override
 		{
-			LiveUic::base_SubWndProc(hwnd, uMsg, wParam, lParam);
+			ILiveUic::base_SubWndProc(hwnd, uMsg, wParam, lParam);
 
 			LRESULT lret = DefSubclassProc(hwnd, uMsg, wParam, lParam);
 
@@ -631,7 +631,7 @@ const UINT wmDataChanged = RegisterWindowMessage(sigwmDataChanged);
 const UINT wmUicFocusLost = RegisterWindowMessage(sigwmUicFocusLost);
 
 
-bool DlgboxPeeker::AddUic(HWND hUic, LiveUic* plu) // static
+bool DlgboxPeeker::AddUic(HWND hUic, ILiveUic* plu) // static
 {
 	assert(IsWindow(hUic));
 	if(!hUic)
@@ -657,7 +657,7 @@ bool DlgboxPeeker::AddUic(HWND hUic, LiveUic* plu) // static
 	return true;
 }
 
-bool DlgboxPeeker::DelUic(HWND hUic, LiveUic* plu) // static
+bool DlgboxPeeker::DelUic(HWND hUic, ILiveUic* plu) // static
 {
 	assert(IsWindow(hUic));
 	if(!hUic)
