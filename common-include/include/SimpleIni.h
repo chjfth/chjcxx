@@ -1,7 +1,7 @@
 #ifndef __CHHI__SimpleIni_h_
 #define __CHHI__SimpleIni_h_
 #define __CHHI__SimpleIni_h_created_ 20260416
-#define __CHHI__SimpleIni_h_updated_ 20260511
+#define __CHHI__SimpleIni_h_updated_ 20260521
 
 #include <ps_TCHAR.h>
 #include <sdring.h>
@@ -551,7 +551,7 @@ struct KVcontinue // KeyVal line continuation info
 
 		if(nReals>0)
 		{
-			// Cope with real-value lines.
+			// Cope with real-value lines. (include embedded comment lines)
 
 			pKeval->totlines = 1 + nReals;
 			pKeval->ar_exlines = new Sdring[nReals];
@@ -578,6 +578,8 @@ struct KVcontinue // KeyVal line continuation info
 			Keval_st keval;
 			keval.type = Keval_st::Comment;
 			keval.firstline = std::move(saMixLines[j]);
+
+			kvdict.set(vkey, std::move(keval));
 		}
 
 		saMixLines.SetEleQuan(0);
