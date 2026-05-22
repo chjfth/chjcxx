@@ -1,7 +1,7 @@
 #ifndef __CHHI__DataXIni_h_
 #define __CHHI__DataXIni_h_
 #define __CHHI__DataXIni_h_created_ 20260508
-#define __CHHI__DataXIni_h_updated_ 20260518
+#define __CHHI__DataXIni_h_updated_ 20260522
 
 
 #include <hashdict.h>
@@ -56,33 +56,53 @@ private:
 };
 
 
-
 template<typename TU, typename FORMAT = XStringFormatDefault>
-class DataXString_AutoSaveIni : public DataXString<TU, FORMAT>
+class DataXString_BindIni : public DataXString<TU, FORMAT>
 {
-	// When assigning TU value to this object, INI save() is automatically called.
-private:
-	DataXIni& m_xini;
+	DataXString_BindIni(const DataXString_BindIni&) = delete;
+	DataXString_BindIni(DataXString_BindIni&&) = delete;
 
-	DataXString_AutoSaveIni(const DataXString_AutoSaveIni&) = delete;
-	DataXString_AutoSaveIni(DataXString_AutoSaveIni&&) = delete;
+protected:
+	DataXIni& m_xini; // m_xini not used here, just for child convenience.
 
 public:
 	using Base = DataXString<TU, FORMAT>;
 
 public:
-	DataXString_AutoSaveIni(
+	DataXString_BindIni(
 		DataXIni& xini, const TCHAR *secname, const TCHAR *keyname,
-		const TCHAR* default_val) 
-		: 
-		m_xini(xini), 
-		Base(default_val) // the value to use if missing from INI 
+		const TCHAR* default_str=nullptr)
+		:
+		m_xini(xini), Base(default_str) // the value to use if missing from INI 
 	{
-		m_xini.AddItem(secname, keyname, this);
+		xini.AddItem(secname, keyname, this);
+	}
+
+	DataXString_BindIni(
+		DataXIni& xini, const TCHAR *secname, const TCHAR *keyname,
+		const TU& default_val)
+		:
+		m_xini(xini), Base(default_val)
+	{
+		xini.AddItem(secname, keyname, this);
 	}
 
 	using Base::operator=;
+};
 
+
+
+template<typename TU, typename FORMAT = XStringFormatDefault>
+class DataXString_AutoSaveIni : public DataXString_BindIni<TU, FORMAT>
+{
+	// When assigning TU value to this object, INI save() is automatically called.
+
+public:
+	using Base = DataXString_BindIni<TU, FORMAT>;
+	using Base::Base;
+	using Base::operator=;
+
+public: // new for _AutoSaveIni
 	virtual SetValue_ret SetValue(TU&& val) cxx11_override
 	{
 		SetValue_ret svret = Base::SetValue(std::move(val));
