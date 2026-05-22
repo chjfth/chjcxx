@@ -33,7 +33,7 @@ extern const UINT wmUicFocusLost;
 
 class ILiveUic      // abstract base-class
 {
-	// LiveUic may be associated with an editbox, a checkbox etc.
+	// ILiveUic may be associated with an editbox, a checkbox etc.
 
 public:
 	virtual ~ILiveUic() {}

@@ -1,7 +1,7 @@
 #ifndef __CHHI__DataXString_h_
 #define __CHHI__DataXString_h_
 #define __CHHI__DataXString_h_created_ 20260507
-#define __CHHI__DataXString_h_updated_ 20260518
+#define __CHHI__DataXString_h_updated_ 20260522
 
 // DataXString: C++ object Data eXchange via/by the form of a String.
 
@@ -67,10 +67,16 @@ class DataXString : public IDataXString
 #endif
 
 public:
-	DataXString(const TCHAR* default_val=nullptr)
+	DataXString(const TCHAR* default_str=nullptr)
 	{
-		ChangeDefault(default_val);
+		ChangeDefault(default_str);
 		SetValueToDefault();
+	}
+
+	DataXString(const TU& default_val)
+	{
+		m_val = default_val;
+		m_default = GetValueAsString();
 	}
 
 	enum SetValue_ret { NoChange = 0, SetNew = 1 };
