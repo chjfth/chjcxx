@@ -54,12 +54,10 @@ public: // override DataXString's virtual
 
 	virtual void SetValueToDefault() cxx11_override 
 	{
-		// This override is DataXString side. 
+		// This override is from DataXString side. 
 		// To eliminate 'default' ambiguity, we use 'default' from LiveUic side instead.
-		
-		baseU::Reset();
-		TU idata = baseU::GetXData();
-		baseX::SetValue(idata);
+
+		this->Reset();
 	}
 };
 

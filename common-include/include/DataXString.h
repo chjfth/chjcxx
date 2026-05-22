@@ -24,7 +24,7 @@ class IDataXString
 {
 	// Note: This class is pure interface.
 	// User should create some derived class to hold actual Data.
-	// Some demonstration classes are defined below, DataXString<int>, DataXString<bool> etc.
+	// Typical classes are defined below, DataXString<int>, DataXString<bool> etc.
 
 public:
 	IDataXString() { m_is_dirty = false; }
@@ -38,8 +38,6 @@ public:
 
 	void SetDirty(bool is_dirty) { m_is_dirty = is_dirty; }
 	bool IsDirty() { return m_is_dirty; }
-
-//	const TCHAR* GetDefault() { return m_default.c_str(); } // deliberately NOT want this
 
 	void ChangeDefault(const TCHAR *new_default) { m_default = new_default; }
 
@@ -132,6 +130,8 @@ public:
 		m_val = DataXTraits<TU, FORMAT>::FromString(
 			m_default.is_empty() ? _T("") : m_default.c_str()
 		);
+
+		SetDirty(false);
 	}
 
 protected:
