@@ -1,7 +1,7 @@
 #ifndef __CHHI__SimpleIni_h_
 #define __CHHI__SimpleIni_h_
 #define __CHHI__SimpleIni_h_created_ 20260416
-#define __CHHI__SimpleIni_h_updated_ 20260521
+#define __CHHI__SimpleIni_h_updated_ 20260525
 
 #include <ps_TCHAR.h>
 #include <sdring.h>
@@ -56,7 +56,7 @@ public:
 	virtual ReCode_et save(const TCHAR *savefilename=nullptr, const TCHAR *crlf=nullptr);
 
 public:
-	// boilerplate code, no need to modify >>>
+	// boilerplate ctor/dtor code, no need to modify >>>
 	SimpleIni() { _ct0r(); }          //////////////
 	virtual ~SimpleIni()                      //////////////
 	{                                 //////////////
@@ -89,7 +89,7 @@ public:
 		}                             //////////////
 		return *this;                 //////////////
 	}                                 //////////////
-									  // boilerplate code, no need to modify <<<
+	// boilerplate ctor/dtor code, no need to modify <<<
 
 private:
 	void _copy_from_old(const SimpleIni& old);
@@ -274,7 +274,7 @@ private:
 class CIniOp
 {
 public:
-	// boilerplate code, no need to modify >>>
+	// boilerplate ctor/dtor code, no need to modify >>>
 	CIniOp() { _ct0r(); }            //////////////
 	virtual ~CIniOp()                //////////////
 	{                                //////////////
@@ -307,7 +307,7 @@ public:
 		}                             //////////////
 		return *this;                 //////////////
 	}                                 //////////////
-	// boilerplate code, no need to modify <<<
+	// boilerplate ctor/dtor code, no need to modify <<<
 
 private:
 	void _copy_from_old(const CIniOp& old) {
@@ -1227,7 +1227,8 @@ CIniOp::save(const TCHAR *savefilename, const TCHAR *crlf)
 
 int SimpleIni::getversion() 
 { 
-	return 1; 
+	// High 16-bit is major ver, low 16-bit is minor ver.
+	return 0x10001; 
 }
 
 void SimpleIni::_copy_from_old(const SimpleIni& old)
