@@ -33,7 +33,7 @@ class CEnsureCleanupPtr
 
 public:
 	// Default constructor assumes an invalid value (nothing to cleanup)
-CEnsureCleanupPtr() { m_t = nullptr; }
+	CEnsureCleanupPtr() { m_t = nullptr; }
 	
 	// This constructor sets the value to the specified value
 	CEnsureCleanupPtr(PTR_TYPE t) : m_t(t) { }

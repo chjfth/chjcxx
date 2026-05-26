@@ -16,6 +16,12 @@ char (*
 
 #define ARRAYSIZE(arr)  ( sizeof(*RtlpNumberOf(arr)) )
 
+
+// [2026-05-26]
+#define MSVCRT_MemCheckStart(varprefix) // empty
+#define MSVCRT_MemCheckEnd_IsLeak(varprefix) false
+
+
 /////////////////////////////////////////////////////////////////////////////
 // Override some MSVC stramphibian CRT function names. (wrapped in !_UNOCODE)
 /////////////////////////////////////////////////////////////////////////////
