@@ -33,7 +33,7 @@ class CEnsureCleanupPtr
 
 public:
 	// Default constructor assumes an invalid value (nothing to cleanup)
-	CEnsureCleanupPtr() { m_t = NULL; }
+CEnsureCleanupPtr() { m_t = nullptr; }
 	
 	// This constructor sets the value to the specified value
 	CEnsureCleanupPtr(PTR_TYPE t) : m_t(t) { }
@@ -63,7 +63,7 @@ public:
 	}
 	
 	// Helper methods to tell if the value represents a valid object or not..
-	bool IsValid() { return(m_t != NULL); }
+	bool IsValid() { return(m_t != nullptr); }
 	bool IsInvalid() { return(!IsValid()); }
 
 	// operator bool(){ return IsValid(); }
@@ -128,7 +128,7 @@ public:
 			if(is_close_resource)
 				pfn(m_t); // Cleanup the object.
 			
-			m_t = NULL;   // We no longer represent a valid object.
+			m_t = nullptr;   // We no longer represent a valid object.
 		}
 	}
 
@@ -241,7 +241,7 @@ public:
 	CEnsureCleanupPtrArray(int ArraySize) : m_ArraySize(ArraySize) {
 		m_ar = new USER_TYPE[m_ArraySize];
 		for(int i=0; i<m_ArraySize; i++) 
-			m_ar[i] = NULL; 
+			m_ar[i] = nullptr; 
 	}
 	
 	// The destructor performs the cleanup.
@@ -250,7 +250,7 @@ public:
 	}
 	
 	// Helper methods to tell if the value represents a valid object or not..
-	bool IsValid(int idx) { return(m_ar[idx] != NULL); }
+	bool IsValid(int idx) { return(m_ar[idx] != nullptr); }
 	bool IsInvalid(int idx) { return(!IsValid(idx)); }
 
 	USER_TYPE& operator[](int idx) {
