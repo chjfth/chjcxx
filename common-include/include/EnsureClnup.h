@@ -296,11 +296,11 @@ public:
 		{
 			if (IsValid(i) && is_close_resource) 
 			{
-				if cxx17_constexpr(pfn == _cxx_delete_tag_1<PTR_TYPE>)
+				if cxx17_constexpr(pfn == _cxx_delete_tag_1<USER_TYPE>)
 				{
 					delete m_ar[i];
 				}
-				else if cxx17_constexpr(pfn == _cxx_delete_tag_N<PTR_TYPE>)
+				else if cxx17_constexpr(pfn == _cxx_delete_tag_N<USER_TYPE>)
 				{
 					delete[] m_ar[i];
 				}
