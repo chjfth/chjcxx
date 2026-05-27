@@ -1,7 +1,7 @@
 #ifndef __CxxVerCheck_h_
 #define __CxxVerCheck_h_
 #define __CxxVerCheck_h_created_ 20250429
-#define __CxxVerCheck_h_updated_ 20260506
+#define __CxxVerCheck_h_updated_ 20260527
 
 /*
 	  ____              ____  _      _                  
@@ -54,6 +54,21 @@
 #define VC2022_OR_NEWER
 #endif
 
+////////
+
+#if _MSVC_LANG >= 201402L
+#define CXX14_OR_NEWER
+#endif
+
+#if _MSVC_LANG >= 201703L
+#define CXX17_OR_NEWER
+#endif
+
+#if _MSVC_LANG >= 202002L
+#define CXX20_OR_NEWER
+#endif
+
+
 #endif // _MSC_VER
 
 
@@ -89,8 +104,10 @@
 // Some C++ keyword name alias for older vers
 #ifdef CXX11_OR_NEWER
 	#define cxx11_override override
+	#define cxx11_constexpr constexpr
 #else
 	#define cxx11_override
+	#define cxx11_constexpr
 #endif // CXX11_OR_NEWER
 
 
@@ -104,5 +121,13 @@
 		ClassName(const ClassName&); \
 		ClassName& operator=(const ClassName&); 
 #endif // CXX11_OR_NEWER
+
+
+#ifdef CXX17_OR_NEWER
+#define cxx17_constexpr constexpr
+#else
+#define cxx17_constexpr
+#endif // CXX17_OR_NEWER
+
 
 #endif

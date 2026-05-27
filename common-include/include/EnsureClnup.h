@@ -1,7 +1,7 @@
 #ifndef __EnsureClnup_h_
 #define __EnsureClnup_h_
 #define __EnsureClnup_h_created_ 20100101
-#define __EnsureClnup_h_updated_ 20260416
+#define __EnsureClnup_h_updated_ 20260527
 
 /* Jimm Chen from around 2010:
  The idea comes from Jeffrey Richter's CEnsureCleanup template class, 
@@ -14,11 +14,30 @@
 	So I did the improvement, many many improvements.
 */
 
+#include <assert.h>
 #include <CxxVerCheck.h>
 
 #define ENSURECLNUP_PRESENT
 	// So that outer headers knows this header has been included.
 	// Outer headers check this macro and offer to define MakeCleanupPtrClass(...) etc for user.
+
+
+template<typename PTR_TYPE>
+void _cxx_delete_tag_1(PTR_TYPE pobj)
+{
+	// Signifies C++-delete a single object.
+	// This function is used as a tag/signature, not to be called.
+	assert(0);
+}
+
+template<typename PTR_TYPE>
+void _cxx_delete_tag_N(PTR_TYPE arobj)
+{
+	// Signifies C++-delete an array of objects.
+	// This function is used as a tag/signature, not to be called.
+	assert(0);
+}
+
 
 
 template<typename PTR_TYPE, typename RET_TYPE, RET_TYPE (*pfn)(PTR_TYPE)> 
@@ -123,11 +142,21 @@ public:
 	// [2025-02-26] User can pass 'false' to abandon the resource.
 	void Cleanup(bool is_close_resource=true) 
 	{ 
-		if (IsValid()) 
+		if (IsValid() && is_close_resource) 
 		{
-			if(is_close_resource)
+			if cxx17_constexpr (pfn == _cxx_delete_tag_1<PTR_TYPE>)
+			{ 
+				delete m_t;
+			}
+			else if cxx17_constexpr (pfn == _cxx_delete_tag_N<PTR_TYPE>)
+			{ 
+				delete[] m_t;
+			}
+			else
+			{
 				pfn(m_t); // Cleanup the object.
-			
+			}
+
 			m_t = nullptr;   // We no longer represent a valid object.
 		}
 	}
@@ -261,12 +290,27 @@ public:
 		return m_ar; // Return the address of the first array element.
 	}
 
-	void Cleanup() { 
-		for(int i=0; i<m_ArraySize; i++) {
-			if (IsValid(i)) {
-				pfn(m_ar[i]);         // Cleanup the object.
+	void Cleanup(bool is_close_resource=true) 
+	{ 
+		for(int i=0; i<m_ArraySize; i++) 
+		{
+			if (IsValid(i) && is_close_resource) 
+			{
+				if cxx17_constexpr(pfn == _cxx_delete_tag_1<PTR_TYPE>)
+				{
+					delete m_ar[i];
+				}
+				else if cxx17_constexpr(pfn == _cxx_delete_tag_N<PTR_TYPE>)
+				{
+					delete[] m_ar[i];
+				}
+				else
+				{
+					pfn(m_ar[i]);         // Cleanup the object.
+				}
 			}
 		}
+
 		delete m_ar;
 	}
 
@@ -360,32 +404,19 @@ MakeDelega_CleanupPtr(CEC_raw_delete, void, _EnsureClnup_cpp_delete_pvoid, void*
 	//	memcpy(cec_memblock, src, 1000);
 
 
-template<typename T>
-inline void _cxx_delete_1(T *pobj)
-{
-	delete pobj;
-}
-
-template<typename T>
-inline void _cxx_delete_N(T *arobj)
-{
-	delete[] arobj;
-}
-
-
 // [2017-10-20]
 #define MakeDelega_CleanupCxxPtr_en(UserClass, Classname_delete1, Classname_deleteN) \
-	typedef CEnsureCleanupPtr< UserClass*, void, _cxx_delete_1<UserClass> > Classname_delete1; \
-	typedef CEnsureCleanupPtr< UserClass*, void, _cxx_delete_N<UserClass> > Classname_deleteN; \
+	typedef CEnsureCleanupPtr< UserClass*, void, _cxx_delete_tag_1<UserClass*> > Classname_delete1; \
+	typedef CEnsureCleanupPtr< UserClass*, void, _cxx_delete_tag_N<UserClass*> > Classname_deleteN; \
 	// -- en: Explicit Naming of the two Cec_xxx class names
 //
 #define MakeDelega_CleanupCxxPtr(UserClass) MakeDelega_CleanupCxxPtr_en(UserClass, Cec_ ## UserClass, CecArray_ ## UserClass)
 //
 // If you want only one of `delete p` or `delete[] p`, then choose one of the two below:
 #define MakeDelega_CleanupCxxPtr1(UserClass, Classname_delete1) \
-	typedef CEnsureCleanupPtr< UserClass*, void, _cxx_delete_1<UserClass> > Classname_delete1;
+	typedef CEnsureCleanupPtr< UserClass*, void, _cxx_delete_tag_1<UserClass*> > Classname_delete1;
 #define MakeDelega_CleanupCxxPtrN(UserClass, Classname_deleteN) \
-	typedef CEnsureCleanupPtr< UserClass*, void, _cxx_delete_N<UserClass> > Classname_deleteN;
+	typedef CEnsureCleanupPtr< UserClass*, void, _cxx_delete_tag_N<UserClass*> > Classname_deleteN;
 //
 // So, a statement on global statement
 //
@@ -420,19 +451,17 @@ inline void _cxx_delete_N(T *arobj)
 //// oldnames section <<<
 
 
-// [2025-02-09] Modern C++ style to apply `delete` 
-
-#if __cplusplus >= 201103L || _MSC_VER >= 1800 // 1800 is VS2013
+#ifdef CXX11_OR_NEWER // [2025-02-09] Modern C++ style to apply `delete` 
 
 // C++11 or later, we have `using` keyword
 
-#define _CEC_using_cxx11 // for user facility
+//#define _CEC_using_cxx11 // for user facility
 
 template<typename T>
-using CleanupDelega = CEnsureCleanupPtr< T*, void, _cxx_delete_1<T> >;
+using CleanupDelega = CEnsureCleanupPtr< T*, void, _cxx_delete_tag_1<T*> >;
 
 template<typename T>
-using CleanupArrayDelega = CEnsureCleanupPtr< T*, void, _cxx_delete_N<T> >;
+using CleanupArrayDelega = CEnsureCleanupPtr< T*, void, _cxx_delete_tag_N<T*> >;
 
 #endif
 
@@ -441,13 +470,13 @@ using CleanupArrayDelega = CEnsureCleanupPtr< T*, void, _cxx_delete_N<T> >;
 template<typename T>
 struct cleanupDelega // Starting 'c' letter in lowercase
 {
-	typedef CEnsureCleanupPtr< T*, void, _cxx_delete_1<T> > type;
+	typedef CEnsureCleanupPtr< T*, void, _cxx_delete_tag_1<T*> > type;
 };
 
 template<typename T>
 struct cleanupArrayDelega  // Starting 'c' letter in lowercase
 {
-	typedef CEnsureCleanupPtr< T*, void, _cxx_delete_N<T> > type;
+	typedef CEnsureCleanupPtr< T*, void, _cxx_delete_tag_N<T*> > type;
 };
 
 
