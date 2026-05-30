@@ -46,7 +46,7 @@ public:
 		}                             //////////////
 		return *this;                 //////////////
 	}                                 //////////////
-									  // boilerplate code, no need to modify <<<
+	// boilerplate code, no need to modify <<<
 
 private:
 	void _copy_from_old(const SimpleIniEx& old) {

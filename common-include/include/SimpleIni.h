@@ -48,7 +48,7 @@ public:
 
 	virtual ReCode_et del_key(const TCHAR *section_name, const TCHAR *keyname);
 
-	ReCode_et load_initext(const TCHAR *initext, int inilen);
+	virtual ReCode_et load_initext(const TCHAR *initext, int inilen);
 
 	virtual Sdring save_ini_string(const TCHAR *crlf=nullptr); // todo: rename to better name?
 	// -- return whole INI string, as appear in INI file.
