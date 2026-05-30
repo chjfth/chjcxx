@@ -358,7 +358,7 @@ void TScalableArray<T>::_copy_from_old(const TScalableArray& old)
 	// We must use T's copy-ctor instead of raw memcpy();
 	for(int i=0; i<m_nCurEle; i++)
 	{
-		new(mar_Ele+i) T( old[i] );
+		new(mar_Ele+i) T( old.mar_Ele[i] );
 	}
 }
 

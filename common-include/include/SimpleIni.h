@@ -254,8 +254,9 @@ private:
 		ar_exlines = nullptr;
 		if(old.ar_exlines)
 		{
-			ar_exlines = new Sdring[totlines];
-			for(int i=0; i<totlines; i++)
+			const int FIRST_LINE_DONE = 1;
+			ar_exlines = new Sdring[totlines-FIRST_LINE_DONE];
+			for(int i=0; i<totlines- FIRST_LINE_DONE; i++)
 			{
 				ar_exlines[i] = old.ar_exlines[i];
 			}
