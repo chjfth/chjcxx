@@ -1,7 +1,7 @@
 #ifndef __CHHI__SimpleIni_h_
 #define __CHHI__SimpleIni_h_
 #define __CHHI__SimpleIni_h_created_ 20260416
-#define __CHHI__SimpleIni_h_updated_ 20260525
+#define __CHHI__SimpleIni_h_updated_ 20260530
 
 #include <ps_TCHAR.h>
 #include <sdring.h>
@@ -57,8 +57,12 @@ public:
 
 public:
 	// boilerplate ctor/dtor code, no need to modify >>>
-	SimpleIni() { _ct0r(); }          //////////////
-	virtual ~SimpleIni()                      //////////////
+	SimpleIni()                       //////////////
+	{                                 //////////////
+		_ct0r();                      //////////////
+		_init_once_after_ct0r();      //////////////
+	}                                 //////////////
+	virtual ~SimpleIni()              //////////////
 	{                                 //////////////
 		_dtor();                      //////////////
 		_ct0r();                      //////////////
@@ -91,14 +95,22 @@ public:
 	}                                 //////////////
 	// boilerplate ctor/dtor code, no need to modify <<<
 
-private:
-	void _copy_from_old(const SimpleIni& old);
+public:
+	struct CtorFromChild {};
+	SimpleIni(CtorFromChild)
+	{
+		_ct0r();
+		// NOT calling _init_once_after_ct0r(), bcz we are constructing a derived class(CIniOp).
+	}
 
+private:
+	void _ct0r();
+	void _init_once_after_ct0r();
+	void _dtor();
+	void _copy_from_old(const SimpleIni& old);
 	void _steal_from_old(SimpleIni& old) {
 		m_pi = old.m_pi;
 	}
-
-	bool _create_impl();
 
 	//
 	// Leave below at end of class body
@@ -106,9 +118,6 @@ private:
 private: // data members
 	iniop::CIniOp *m_pi;
 
-private:
-	void _ct0r();
-	void _dtor();
 };
 
 
@@ -271,11 +280,14 @@ private:
 };
 
 
-class CIniOp
+class CIniOp : public SimpleIni
 {
 public:
 	// boilerplate ctor/dtor code, no need to modify >>>
-	CIniOp() { _ct0r(); }            //////////////
+	CIniOp() : SimpleIni(CtorFromChild()) 
+	{
+		_ct0r(); 
+	}
 	virtual ~CIniOp()                //////////////
 	{                                //////////////
 		_dtor();                     //////////////
@@ -320,19 +332,6 @@ private:
 
 public:
 	// ... more public methods here ...
-
-#define COPY_SimpleIni_ReCode(errname) errname = SimpleIni::errname
-	enum ReCode_et
-	{
-		COPY_SimpleIni_ReCode(E_Success),
-		COPY_SimpleIni_ReCode(E_Fail),
-
-		COPY_SimpleIni_ReCode(E_FileNotExist),
-		COPY_SimpleIni_ReCode(E_FileIo),
-		COPY_SimpleIni_ReCode(E_NoSuchKey),
-
-		COPY_SimpleIni_ReCode(E_ClearHashdict),
-	};
 
 	ReCode_et load(const TCHAR *inifilepath); 
 	// -- Multiple load() calls accumulate INI content. To avoid accumulate, clear() first.
@@ -1231,140 +1230,94 @@ int SimpleIni::getversion()
 	return 0x10001; 
 }
 
+void SimpleIni::_ct0r()
+{
+	m_pi = nullptr;
+}
+void SimpleIni::_init_once_after_ct0r()
+{
+	m_pi = new iniop::CIniOp;
+}
+void SimpleIni::_dtor()
+{
+	delete m_pi;
+}
 void SimpleIni::_copy_from_old(const SimpleIni& old)
 {
 	m_pi = new iniop::CIniOp(*old.m_pi);
 }
 
-void SimpleIni::_ct0r()
-{
-	m_pi = nullptr;
-}
-void SimpleIni::_dtor() 
-{
-	delete m_pi;
-}
-
-bool SimpleIni::_create_impl()
-{
-	if(m_pi)
-		return true;
-	else
-	{ 
-		m_pi = new iniop::CIniOp;
-		return m_pi ? true: false;
-	}
-}
 
 SimpleIni::ReCode_et 
 SimpleIni::load(const TCHAR *inifilename)
 {
-	if(!_create_impl())
-		return E_Fail;
-
-	return (ReCode_et)m_pi->load(inifilename);
+	return m_pi->load(inifilename);
 }
 
 SimpleIni::ReCode_et
 SimpleIni::clear()
 {
-	if (!_create_impl())
-		return E_Fail;
-
-	return (ReCode_et)m_pi->clear();
+	return m_pi->clear();
 }
 
 Sdrings SimpleIni::sections()
 {
-	if (!_create_impl())
-		return Sdrings();
-
 	return m_pi->sections();
 }
 
 bool SimpleIni::has_section(const TCHAR *section_name)
 {
-	if (!_create_impl())
-		return false;
-
 	return m_pi->has_section(section_name);
 }
 
 Sdrings SimpleIni::section_keys(const TCHAR *section_name)
 {
-	if (!_create_impl())
-		return Sdrings();
-
 	return m_pi->section_keys(section_name);
 }
 
 bool SimpleIni::has_key(const TCHAR *section_name, const TCHAR *keyname)
 {
-	if (!_create_impl())
-		return false;
-
 	return m_pi->has_key(section_name, keyname);
 }
 
 Sdring SimpleIni::get(const TCHAR *section_name, const TCHAR *keyname)
 {
-	if (!_create_impl())
-		return Sdring();
-
 	return m_pi->get(section_name, keyname);
 }
 
 Sdring SimpleIni::get_default(const TCHAR *section_name, const TCHAR *keyname,
 	const TCHAR *default_value)
 {
-	if (!_create_impl())
-		return Sdring();
-
 	return m_pi->get_default(section_name, keyname, default_value);
 }
 
 SimpleIni::ReCode_et
 SimpleIni::set(const TCHAR *section_name, const TCHAR *keyname, const TCHAR *value)
 {
-	if (!_create_impl())
-		return E_Fail;
-
-	return (ReCode_et)m_pi->set(section_name, keyname, value);
+	return m_pi->set(section_name, keyname, value);
 }
 
 SimpleIni::ReCode_et
 SimpleIni::del_key(const TCHAR *section_name, const TCHAR *keyname)
 {
-	if (!_create_impl())
-		return E_Fail;
-
 	return (ReCode_et)m_pi->del_key(section_name, keyname);
 }
 
 SimpleIni::ReCode_et
 SimpleIni::load_initext(const TCHAR *initext, int inilen)
 {
-	if (!_create_impl())
-		return E_Fail;
-	
-	return (ReCode_et)m_pi->load_initext(initext, inilen);
+	return m_pi->load_initext(initext, inilen);
 }
 
 Sdring SimpleIni::save_ini_string(const TCHAR *crlf)
 {
-	if (!_create_impl())
-		return Sdring();
-
 	return m_pi->save_ini_string(crlf);
 }
 
 SimpleIni::ReCode_et 
 SimpleIni::save(const TCHAR *savefilename, const TCHAR *crlf)
 {
-	if (!_create_impl())
-		return E_Fail;
-
-	return (ReCode_et)m_pi->save(savefilename, crlf);
+	return m_pi->save(savefilename, crlf);
 }
 
 //
