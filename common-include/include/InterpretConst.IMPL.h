@@ -1,9 +1,9 @@
 // >>> Include headers required by this lib's implementation
 
-//#include <commdefs.h> // for Uint, Uint64, enum bitwise-OR etc
 #include <assert.h>
 #include <stdio.h>
 #include <osdiff.h>
+#include <commdefs.h>
 #include <StringHelper.h>
 #include <snTprintf.h>
 #include <snTcat.h>
@@ -424,6 +424,13 @@ const TCHAR *CInterpretConst::Interpret_i1(
 						sep
 						);
 				}
+				else
+				{	
+					// User gives nullptr for this sec_val, which is weird.
+					// For such case, we assume that this .ConstVal is not mentioned,
+					// and we output its value in string form.
+					i = nowgroup.nEnum2Val;
+				}
 
 				break;
 			}
@@ -602,13 +609,10 @@ inline bool IsPipeChar(int charval)
 
 CONSTVAL_t CInterpretConst::NamesToVal(const TCHAR *names, bool *p_is_err)
 {
+	SETTLE_OUTPUT_PTR(bool, p_is_err, false);
+
 	StringSplitter<decltype(names), IsPipeChar, StringSplitter_IsSpacechar> sp(names);
 	CONSTVAL_t retval = 0;
-
-	bool is_err = false;
-	if(!p_is_err)
-		p_is_err = &is_err;
-	*p_is_err = false;
 
 	for(;;)
 	{
