@@ -14,6 +14,7 @@
 #include <stdio.h>
 
 #include <ps_TCHAR.h>
+#include <sdring.h>
 
 //
 // Check current compiler 
@@ -105,76 +106,6 @@ namespace itc {                        // API namespace
 		DF_ValueAndName = 3, // value(name)
 
 		DF_NVAuto = 8 // If enum-trait, value(name); if bitfield-trait, name(value) 
-	};
-
-
-	class String // this is inside itc namespace
-	{
-	public:
-		String(int need_chars)
-		{
-		//		vaDBG(_T("[@%p]itc::String() ctor: %d chars"), this, need_chars);
-
-			m_chars = need_chars;
-			m_str = new TCHAR[m_chars];
-		}
-
-		String(const TCHAR *instr); // use _tcscpy_s() internally
-
-		String(const String& itcs); // use _sntprintf_s() internally
-
-		String(String&& old) // move-ctor
-		{
-			//		vaDBG(_T("[@%p]itc::String() move-ctor= %s"), this, old.m_str);
-
-			_steal_from_old(old);
-		}
-
-		String& operator=(String&& old) // move-assign
-		{
-//			vaDBG(_T("[@%p]itc::String() move-assign= %s"), this, old.m_str);
-
-			if(this != &old)
-			{
-				delete this->m_str;
-				_steal_from_old(old);
-			}
-			return *this;
-		}
-
-		~String()
-		{
-//			vaDBG(_T("[%p]itc::String() dtor: %s"), this, m_str);
-
-			delete m_str;
-			m_str = nullptr;
-			m_chars = 0;
-		}
-
-		const TCHAR* get(){ return m_str; }
-
-		TCHAR* getbuf(){ return m_str; }
-
-		void put(const TCHAR *pstr); // use _sntprintf_s() internally
-
-		int bufsize(){ return m_chars; }
-
-		operator TCHAR*(){ return m_str; }
-		operator const TCHAR*() const { return m_str; }
-
-	private:
-		void _steal_from_old(String& old)
-		{
-			this->m_str = old.m_str;
-			this->m_chars = old.m_chars;
-
-			old.m_str = nullptr;
-			old.m_chars = 0;
-		}
-
-	private:
-		TCHAR *m_str;
-		int m_chars;
 	};
 
 
@@ -358,7 +289,7 @@ namespace itc {                        // API namespace
 			const TCHAR *sep=nullptr     // bit-field separator string, default is "|"
 			) const;
 
-		String Interpret(CONSTVAL_t val, 
+		Sdring Interpret(CONSTVAL_t val, 
 			DisplayFormat_et dispfmt=DF_NameOnly,
 			const TCHAR *valfmt=nullptr, // can be ITCF_HEX1B, ITCF_HEX4B etc
 			const TCHAR *sep=nullptr     // bit-field separator string, default is "|"
@@ -439,26 +370,26 @@ namespace itc {                        // API namespace
 #define ITC_NAMEPAIR(macroname) { _T( #macroname ) , (CONSTVAL_t)macroname }
 
 #define ITCS( val, itcobj) \
-	(itcobj).Interpret((itc::CONSTVAL_t)(val), itc::DF_NameOnly).get()
+	(itcobj).Interpret((itc::CONSTVAL_t)(val), itc::DF_NameOnly).getptr()
 #define ITCS_(val, itcobj, valfmt, sep) \
-	(itcobj).Interpret((itc::CONSTVAL_t)(val), itc::DF_NameOnly, valfmt, sep).get()
+	(itcobj).Interpret((itc::CONSTVAL_t)(val), itc::DF_NameOnly, valfmt, sep).getptr()
 	// -- the "return" of ITCS() macro can be passed as snprintf's variadic params
 	// Note: ITCS() cannot be used in __try{} block, otherwise we'll get Compiler Error C2712.
 
 #define ITCSnv( val, itcobj) \
-	(itcobj).Interpret((itc::CONSTVAL_t)(val), itc::DF_NameAndValue).get()
+	(itcobj).Interpret((itc::CONSTVAL_t)(val), itc::DF_NameAndValue).getptr()
 #define ITCSnv_(val, itcobj, valfmt, sep) \
-	(itcobj).Interpret((itc::CONSTVAL_t)(val), itc::DF_NameAndValue, valfmt, sep).get()
+	(itcobj).Interpret((itc::CONSTVAL_t)(val), itc::DF_NameAndValue, valfmt, sep).getptr()
 
 #define ITCSvn( val, itcobj) \
-	(itcobj).Interpret((itc::CONSTVAL_t)(val), itc::DF_ValueAndName).get()
+	(itcobj).Interpret((itc::CONSTVAL_t)(val), itc::DF_ValueAndName).getptr()
 #define ITCSvn_(val, itcobj, valfmt, sep) \
-	(itcobj).Interpret((itc::CONSTVAL_t)(val), itc::DF_ValueAndName, valfmt, sep).get()
+	(itcobj).Interpret((itc::CONSTVAL_t)(val), itc::DF_ValueAndName, valfmt, sep).getptr()
 
 #define ITCSv( val, itcobj) \
-	(itcobj).Interpret((itc::CONSTVAL_t)(val), itc::DF_NVAuto).get()
+	(itcobj).Interpret((itc::CONSTVAL_t)(val), itc::DF_NVAuto).getptr()
 #define ITCSv_(val, itcobj, valfmt, sep) \
-	(itcobj).Interpret((itc::CONSTVAL_t)(val), itc::DF_NVAuto, valfmt, sep).get()
+	(itcobj).Interpret((itc::CONSTVAL_t)(val), itc::DF_NVAuto, valfmt, sep).getptr()
 
 
 

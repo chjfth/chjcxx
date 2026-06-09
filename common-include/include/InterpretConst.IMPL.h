@@ -30,31 +30,6 @@ char (*
 namespace itc {
 
 
-String::String(const TCHAR *instr)
-{
-	m_chars = (int)_tcslen(instr) + 1;
-	m_str = new TCHAR[m_chars];
-	_tcscpy_s(m_str, m_chars, instr);
-}
-
-String::String(const String& itcs)
-{
-//	vaDBG(_T("[@%p]itc::String() copy-ctor= %s"), this, itcs.m_str);
-
-	m_chars = itcs.m_chars;
-	m_str = new TCHAR[m_chars];
-	_sntprintf_s(m_str, m_chars, _TRUNCATE, _T("%s"), itcs.m_str);
-}
-
-void String::put(const TCHAR *pstr)
-{
-	if(m_str)
-	{
-		_sntprintf_s(m_str, m_chars, _TRUNCATE, _T("%s"), pstr);
-	}
-}
-
-
 Enum2Val_merge::Enum2Val_merge(const Enum2Val_st *arEnum2Val, int nEnum2Val, 
 	... // more [arEnum2Val, nEnum2Val] pairs, end with [nullptr, 0]
 	)
@@ -501,7 +476,7 @@ const TCHAR *CInterpretConst::Interpret_i1(
 	return buf;
 }
 
-String CInterpretConst::Interpret(CONSTVAL_t input_val, 
+Sdring CInterpretConst::Interpret(CONSTVAL_t input_val, 
 	DisplayFormat_et dispfmt, 
 	const TCHAR *valfmt,
 	const TCHAR *sep) const
@@ -515,8 +490,8 @@ String CInterpretConst::Interpret(CONSTVAL_t input_val,
 	}
 */
 
-	String itcs(WholeDisplayMaxChars);
-	Interpret_i1(input_val, dispfmt, itcs.getbuf(), itcs.bufsize(), valfmt, sep);
+	Sdring itcs(WholeDisplayMaxChars);
+	Interpret_i1(input_val, dispfmt, itcs.getbuf(), itcs.rawlen(), valfmt, sep);
 	return itcs;
 }
 
