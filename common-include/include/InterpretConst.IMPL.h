@@ -575,13 +575,15 @@ Sdring CInterpretConst::DumpText(const TCHAR *crlf) const
 }
 
 
-CONSTVAL_t CInterpretConst::OneNameToVal(const TCHAR *name, bool *p_is_err)
+CONSTVAL_t CInterpretConst::OneNameToVal(const TCHAR *input_name, bool *p_is_err)
 {
-//	CONSTVAL_t retval = 0;
-	
-	bool is_err = false;
-	if(!p_is_err)
-		p_is_err = &is_err;
+	SETTLE_OUTPUT_PTR(bool, p_is_err, false);
+
+	// Note: input_name can be sth like "G1_VAL0(0x0)". 
+	// In this case, we omit the substring in parentheses, just check "G1_VAL0".
+
+	const TCHAR *plp = _tcschr(input_name, '(');
+	int input_len = plp ? (int)(plp-input_name) : (int)_tcslen(input_name);
 
 	int i, j;
 	for(i=0; i<m_nGroups; i++)
@@ -590,12 +592,24 @@ CONSTVAL_t CInterpretConst::OneNameToVal(const TCHAR *name, bool *p_is_err)
 
 		for(j=0; j<nowgroup.nEnum2Val; j++)
 		{
-			if( _tcscmp(name, nowgroup.arEnum2Val[j].EnumName)==0 )
+			const TCHAR *pname = nowgroup.arEnum2Val[j].EnumName;
+
+			if( pname && _tcsncmp(input_name, pname, input_len)==0 )
 			{
 				*p_is_err = false;
 				return nowgroup.arEnum2Val[j].ConstVal;
 			}
 		}
+	}
+
+	// All registered name-s not matching input_name, 
+	// then we try whether input_name is a string-form value, like "0x0C" etc.
+
+	Ulong guess_val = _tcstoul(input_name, nullptr, 0);
+
+	if(guess_val>0 || input_name[0]=='0')
+	{
+		return guess_val;
 	}
 
 	*p_is_err = true;

@@ -32,7 +32,9 @@ char (*
 
 #define _tcslen      strlen
 #define _tcscmp      strcmp
+#define _tcsncmp     strncmp
 #define _tcsstr      strstr
+#define _tcschr      strchr
 #define _tcstol      strtol
 #define _tcstoul     strtoul
 #define _ttof        atof
