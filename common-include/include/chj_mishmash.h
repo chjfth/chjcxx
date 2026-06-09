@@ -63,7 +63,7 @@ using namespace fsapi;
 Sdring& vlSdringAppendSelf(Sdring &s, const TCHAR *fmt, va_list args)
 {
 	const int maxlen_ = 1024;
-	const int maxlen  = maxlen_ - 1;
+//	const int maxlen  = maxlen_ - 1;
 	TCHAR sz[maxlen_] = _T("");
 	int retlen = vsnTprintf(sz, maxlen_, fmt, args);
 	if(retlen<=0)

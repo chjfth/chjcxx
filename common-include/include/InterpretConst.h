@@ -7,25 +7,12 @@
 // Note: The API interface code(not implementation code) should ONLY rely on 
 // standard C headers, NOT relying on OS platform headers like <windows.h> .
 // So that, it can be used standalone with NtStatus.itc.h .
-//
-// [2026-03-12] Linux implementation pending.
 
 #include <stdarg.h>
 #include <stdio.h>
 
 #include <ps_TCHAR.h>
 #include <sdring.h>
-
-//
-// Check current compiler 
-//
-
-#ifdef _MSC_VER
-// ...
-#else // consider it GNU GCC
-// ...
-#endif
-
 
 
 namespace itc {                        // API namespace

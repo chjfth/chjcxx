@@ -2,7 +2,6 @@
 
 //#include <commdefs.h> // for Uint, Uint64, enum bitwise-OR etc
 #include <assert.h>
-#include <tchar.h>
 #include <stdio.h>
 #include <osdiff.h>
 #include <StringHelper.h>
