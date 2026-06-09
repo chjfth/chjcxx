@@ -1,10 +1,27 @@
 #ifndef __CHHI__chj_mishmash_h_
 #define __CHHI__chj_mishmash_h_
 #define __CHHI__chj_mishmash_h_created_ 20260503
-#define __CHHI__chj_mishmash_h_updated_ 20260503
+#define __CHHI__chj_mishmash_h_updated_ 20260609
+
+#include <assert.h>
+#include <stdarg.h>
 
 #include <ps_TCHAR.h>
 #include <sdring.h>
+
+
+Sdring& vlSdringAppendSelf(Sdring &s, const TCHAR *fmt, va_list args);
+
+inline Sdring& vaSdringAppendSelf(Sdring &s, const TCHAR *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	vlSdringAppendSelf(s, fmt, args);
+	va_end(args);
+
+	return s;
+}
+
 
 bool binfile_is_match(const TCHAR *filename1, const TCHAR *filename2, int *pDiffAt=nullptr);
 
@@ -29,8 +46,9 @@ bool binfile_is_match(const TCHAR *filename1, const TCHAR *filename2, int *pDiff
 
 #include <commdefs.h> // for Uint, Uint64, enum bitwise-OR etc
 #include <fsapi.h>
-#include <EnsureClnup_misc.h>
 using namespace fsapi;
+#include <snTprintf.h>
+#include <EnsureClnup_misc.h>
 
 // <<< Include headers required by this lib's implementation
 
@@ -40,6 +58,33 @@ using namespace fsapi;
 #ifndef chj_mishmash_DEBUG
 #include <CHHI_vaDBG_hide.h> // Suppress/invalidate vaDBG macros, from now on
 #endif
+
+
+Sdring& vlSdringAppendSelf(Sdring &s, const TCHAR *fmt, va_list args)
+{
+	const int maxlen_ = 1024;
+	const int maxlen  = maxlen_ - 1;
+	TCHAR sz[maxlen_] = _T("");
+	int retlen = vsnTprintf(sz, maxlen_, fmt, args);
+	if(retlen<=0)
+		return s;
+
+	if (retlen < maxlen_)
+	{
+		s.append_self(sz, retlen);
+		return s;
+	}
+
+	// Need to allocate a larger buffer.
+	TCHAR *psz = new TCHAR[retlen+1];
+	int retlen2 = vsnTprintf(psz, retlen+1, fmt, args);
+	if(retlen2>0)
+	{ 
+		s.append_self(psz, retlen);
+	}
+	delete psz;
+	return s;
+}
 
 
 bool binfile_is_match(const TCHAR *filename1, const TCHAR *filename2, int *pDiffAt)

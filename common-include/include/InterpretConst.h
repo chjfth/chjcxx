@@ -1,7 +1,7 @@
 #ifndef __CHHI__InterpretConst_h_
 #define __CHHI__InterpretConst_h_
 #define __CHHI__InterpretConst_h_created_ 20251208
-#define __CHHI__InterpretConst_h_updated_ 20260509
+#define __CHHI__InterpretConst_h_updated_ 20260609
 
 
 // Note: The API interface code(not implementation code) should ONLY rely on 
@@ -104,7 +104,7 @@ namespace itc {                        // API namespace
 		DF_NameAndValue = 2, // name(value)
 		DF_ValueAndName = 3, // value(name)
 
-		DF_NVAuto = 8 // If enum-trait, value(name); if bitfield-trait, name(valud) 
+		DF_NVAuto = 8 // If enum-trait, value(name); if bitfield-trait, name(value) 
 	};
 
 

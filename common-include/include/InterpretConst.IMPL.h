@@ -462,13 +462,13 @@ const TCHAR *CInterpretConst::Interpret_i1(
 			if( sec_val!=0 || i>1 )
 			{
 				TCHAR szfmt_concat[20] = {};
-				_sntprintf_s(szfmt_concat, _TRUNCATE, _T("%%s%s"), valfmt);
+				_sntprintf_s(szfmt_concat, _TRUNCATE, _T("%%s%s%s"), valfmt, sep);
 				
 				_sntprintf_s(buf, bufsize, _TRUNCATE, szfmt_concat, buf, sec_val);
 			}
 			else
 			{
-				// It's a single-bit group and secval==0, 
+				// It's a single-bit group and sec_val==0, 
 				// this 0-value is of course not considered unrecognized, so mute it here. 
 
 				assert(sec_val==0);
