@@ -4,8 +4,10 @@
 #include <assert.h>
 #include <tchar.h>
 #include <stdio.h>
+#include <osdiff.h>
 #include <StringHelper.h>
-//#include <snTprintf.h>
+#include <snTprintf.h>
+#include <snTcat.h>
 // <<< Include headers required by this lib's implementation
 
 
@@ -120,7 +122,7 @@ bool CInterpretConst::SetValFmt(const TCHAR *fmt)
 	if(fmt)
 	{
 		TCHAR tbuf[OneDisplayMaxChars] = {};
-		_sntprintf_s(tbuf, _TRUNCATE, fmt, 0x3F);
+		snTprintf(tbuf, fmt, 0x3F);
 
 		if(_tcsstr(tbuf, _T("3F"))==nullptr 
 			&& _tcsstr(tbuf, _T("3f"))==nullptr
@@ -341,31 +343,31 @@ TCHAR* CInterpretConst::FormatOneDisplay(
 	{
 		// Example: ERROR_PRIVILEGE_NOT_HELD
 
-		_sntprintf_s(obuf, obufsize, _TRUNCATE, _T("%s"), szVal);
+		snTprintf(obuf, obufsize, _T("%s"), szVal);
 	}
 	else if(dispfmt==DF_NameAndValue)
 	{
 		// Example: ERROR_PRIVILEGE_NOT_HELD(1314)
 
 		TCHAR _fmt_[FmtSpecMaxChars+2] = {};
-		_sntprintf_s(_fmt_, _TRUNCATE, _T("%%s(%s)"), valfmt);
+		snTprintf(_fmt_, _T("%%s(%s)"), valfmt);
 
-		_sntprintf_s(obuf, obufsize, _TRUNCATE, _fmt_, szVal, val);
+		snTprintf(obuf, obufsize, _fmt_, szVal, val);
 	}
 	else if(dispfmt==DF_ValueAndName)
 	{
 		// Example: 1314(ERROR_PRIVILEGE_NOT_HELD)
 
 		TCHAR _fmt_[FmtSpecMaxChars+2] = {};
-		_sntprintf_s(_fmt_, _TRUNCATE, _T("%s(%%s)"), valfmt);
+		snTprintf(_fmt_, _T("%s(%%s)"), valfmt);
 
-		_sntprintf_s(obuf, obufsize, _TRUNCATE, _fmt_, val, szVal);
+		snTprintf(obuf, obufsize, _fmt_, val, szVal);
 	}
 	else // consider it DF_ValueOnly
 	{
 		// Example: 1314
 
-		_sntprintf_s(obuf, obufsize, _TRUNCATE, valfmt, val);
+		snTprintf(obuf, obufsize, valfmt, val);
 	}
 
 	return obuf;
@@ -417,8 +419,7 @@ const TCHAR *CInterpretConst::Interpret_i1(
 				if(c2v[i].EnumName)
 				{
 					TCHAR szbuf[OneDisplayMaxChars] = {};
-					_sntprintf_s(buf, bufsize, _TRUNCATE, _T("%s%s%s"), 
-						buf, 
+					snTcat(buf, bufsize, _T("%s%s"), 
 						FormatOneDisplay(c2v[i].EnumName, c2v[i].ConstVal, 
 							dispfmt, szbuf, ARRAYSIZE(szbuf), valfmt),
 						sep
@@ -437,9 +438,9 @@ const TCHAR *CInterpretConst::Interpret_i1(
 			if( sec_val!=0 || i>1 )
 			{
 				TCHAR szfmt_concat[20] = {};
-				_sntprintf_s(szfmt_concat, _TRUNCATE, _T("%%s%s%s"), valfmt, sep);
+				snTprintf(szfmt_concat, _T("%s%s"), valfmt, sep);
 				
-				_sntprintf_s(buf, bufsize, _TRUNCATE, szfmt_concat, buf, sec_val);
+				snTcat(buf, bufsize, szfmt_concat, sec_val);
 			}
 			else
 			{
@@ -456,7 +457,7 @@ const TCHAR *CInterpretConst::Interpret_i1(
 	if(remain_val)
 	{
 		// present unrecognized value to user
-		_sntprintf_s(buf, bufsize, _TRUNCATE, _T("%s0x%X%s"), buf, remain_val, sep);
+		snTcat(buf, bufsize, _T("0x%X%s"), remain_val, sep);
 	}
 
 	// Remove trailing sep
@@ -495,15 +496,18 @@ Sdring CInterpretConst::Interpret(CONSTVAL_t input_val,
 	return itcs;
 }
 
-TCHAR * 
-CInterpretConst::DumpText(TCHAR userbuf[], int nbufchars, int *pReqBufsize) const
+Sdring CInterpretConst::DumpText(const TCHAR *crlf) const
 {
-	// Return userbuf.
+	if(!crlf)
+		crlf = os_crlf;
 
-	TCHAR tbuf[WholeDisplayMaxChars+500] = _T("");
+	Sdring sret(WholeDisplayMaxChars + 500);
+	TCHAR *tbuf = sret.getbuf();
+	const int tbuflen = sret.rawlen();
 
 	int i, j;
 	TCHAR szfmt[40] = _T("");
+	const TCHAR *pnull = _T("[null]");
 
 	// First scan: pick out only SingleBit2Val
 
@@ -513,14 +517,17 @@ CInterpretConst::DumpText(TCHAR userbuf[], int nbufchars, int *pReqBufsize) cons
 
 		if(nowgroup.nEnum2Val==1)
 		{
-			_sntprintf_s(szfmt, _TRUNCATE, _T("%%s%s %%s\r\n"), valuefmt());
+			const TCHAR *pname = nowgroup.arEnum2Val[0].EnumName;
 
-			_sntprintf_s(tbuf, _TRUNCATE, szfmt, tbuf,
-				nowgroup.arEnum2Val[0].ConstVal, nowgroup.arEnum2Val[0].EnumName);
+			snTprintf(szfmt, _T("%s %%s%s"), valuefmt(), crlf);
+
+			snTcat(tbuf, tbuflen, szfmt,
+				nowgroup.arEnum2Val[0].ConstVal, pname?pname:pnull);
 		}
 	}
 
 	// Second scan: check how many true-EnumGroups .
+
 	int true_enumgroups = 0;
 
 	for(i=0; i<m_nGroups; i++)
@@ -542,27 +549,23 @@ CInterpretConst::DumpText(TCHAR userbuf[], int nbufchars, int *pReqBufsize) cons
 		{
 			// and I'll prepend a mask-value text line.
 
-			_sntprintf_s(szfmt, _TRUNCATE, _T("%%s\r\n[Mask: %s]\r\n"), valuefmt());
+			snTprintf(szfmt, _T("%s[Mask: %s]%s"), crlf, valuefmt(), crlf);
 
-			_sntprintf_s(tbuf, _TRUNCATE, szfmt, tbuf,
-				nowgroup.GroupMask);
+			snTcat(tbuf, tbuflen, szfmt, nowgroup.GroupMask);
 		}
 
 		for(j=0; j<nowgroup.nEnum2Val; j++)
 		{
-			_sntprintf_s(szfmt, _TRUNCATE, _T("%%s%s %%s\r\n"), valuefmt());
+			const TCHAR *pname = nowgroup.arEnum2Val[j].EnumName;
 
-			_sntprintf_s(tbuf, _TRUNCATE, szfmt, tbuf,
-				nowgroup.arEnum2Val[j].ConstVal, nowgroup.arEnum2Val[j].EnumName);
+			snTprintf(szfmt, _T("%s %%s%s"), valuefmt(), crlf);
+
+			snTcat(tbuf, tbuflen, szfmt,
+				nowgroup.arEnum2Val[j].ConstVal, pname?pname:pnull);
 		}
 	}
 
-	int textlen = (int)_tcslen(tbuf);
-	if(pReqBufsize)
-		*pReqBufsize = textlen;
-
-	_sntprintf_s(userbuf, nbufchars, _TRUNCATE, _T("%s"), tbuf);
-	return userbuf;
+	return sret;
 }
 
 
@@ -616,7 +619,7 @@ CONSTVAL_t CInterpretConst::NamesToVal(const TCHAR *names, bool *p_is_err)
 			break;
 
 		TCHAR onename[80] = _T("");
-		_sntprintf_s(onename, _TRUNCATE, _T("%.*s"), len, names+offset);
+		snTprintf(onename, _T("%.*s"), len, names+offset);
 
 		bool one_err = false;
 		CONSTVAL_t oneval = OneNameToVal(onename, &one_err);

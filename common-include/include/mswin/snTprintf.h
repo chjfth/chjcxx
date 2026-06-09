@@ -1,5 +1,7 @@
-#ifndef __snTprintf_h_20250628_
-#define __snTprintf_h_20250628_
+#ifndef __snTprintf_h_
+#define __snTprintf_h_
+#define __snTprintf_h_created_ 20250628
+#define __snTprintf_h_updated_ 20250628
 
 // snTprintf() is the TCHAR-style function name for C99 snprintf and its WCHAR counterpart.
 // This is C++ header(not C header), usable on VC2010+.
@@ -64,7 +66,7 @@ int snTprintf(TChar* buf, size_t bufsize, const TChar* fmt, ...)
 }
 
 template<typename TChar, size_t bufsize>
-int snTprintf(TChar(&buf)[bufsize], const TChar* fmt, ...)
+int snTprintf(TChar (&buf)[bufsize], const TChar* fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);

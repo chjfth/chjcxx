@@ -30,7 +30,9 @@ char (*
 #define _tmain       main
 #define _tprintf     printf
 
+#define _tcslen      strlen
 #define _tcscmp      strcmp
+#define _tcsstr      strstr
 #define _tcstol      strtol
 #define _tcstoul     strtoul
 #define _ttof        atof

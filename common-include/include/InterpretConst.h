@@ -297,13 +297,13 @@ namespace itc {                        // API namespace
 
 		bool SetValFmt(const TCHAR *fmt);
 
-		TCHAR *DumpText(TCHAR buf[], int nbufchars, int *pReqBufsize=nullptr) const;
+		Sdring DumpText(const TCHAR *crlf=nullptr) const;
 
-		template<size_t eles>
-		TCHAR *DumpText(TCHAR (&ar)[eles]) const
-		{
-			return DumpText(ar, eles, nullptr);
-		}
+// 		template<size_t eles>
+// 		TCHAR *DumpText(TCHAR (&ar)[eles]) const
+// 		{
+// 			return DumpText(ar, eles, nullptr);
+// 		}
 
 		CONSTVAL_t NamesToVal(const TCHAR *names, bool *p_is_err=nullptr); // names separated by |
 		CONSTVAL_t OneNameToVal(const TCHAR *name, bool *p_is_err=nullptr); 
