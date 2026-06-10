@@ -376,6 +376,10 @@ BOOL MoveWindow_byClientRect(HWND hwnd, const RECT *prcClientScreen,
 	// MoveWindow according to user-assigned client-area position.
 	// [2026-05-09] Used in DigClock2 v2.0
 
+	// If new_style!=0 or new_style_ex!=0, window style is changed before moving the window.
+
+	// If prcClientScreen==NULL, we only change window-style, keeping client-area intact.
+
 	RECT rcClientAbs = {};
 	if(! GetClientRect_ScreenPos(hwnd, &rcClientAbs))
 		return FALSE;
