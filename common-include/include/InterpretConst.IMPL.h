@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h> // Linux strtoul (_tcstoul)
 #include <osdiff.h>
 #include <commdefs.h>
 #include <StringHelper.h>
@@ -606,10 +607,12 @@ CONSTVAL_t CInterpretConst::OneNameToVal(const TCHAR *input_name, bool *p_is_err
 	// then we try whether input_name is a string-form value, like "0x0C" etc.
 
 	Ulong guess_val = _tcstoul(input_name, nullptr, 0);
+	// -- [2026-06-10] Even if input_name is "-3", (unsigned int)guess_val==4294967293,
+	//    and (int)guess_val==-3 , that is right what I expect.
 
 	if(guess_val>0 || input_name[0]=='0')
 	{
-		return guess_val;
+		return (CONSTVAL_t)guess_val;
 	}
 
 	*p_is_err = true;
