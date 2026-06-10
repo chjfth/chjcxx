@@ -49,14 +49,18 @@ public:
 
 	void StopTimer()
 	{
-		if (m_isTicking)
+		if (!m_isTicking)
 		{
-			UINT_PTR idEvent = (UINT_PTR)this;
-			KillTimer(m_hwnd, idEvent);
+			// Don't do repetitive stop-work
+			return;
 		}
+		
+		UINT_PTR idEvent = (UINT_PTR)this;
+		KillTimer(m_hwnd, idEvent);
 
 		m_isTicking = false;
 		m_need_count = m_done_count = 0;
+		m_end_millisec = 0;
 
 		TimerOffCallback();
 	}

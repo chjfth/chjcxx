@@ -27,6 +27,8 @@
 #define RECT_AnySide_A_longer_than_B(a, b) \
 	( RECTcx(a)>RECTcx(b) || RECTcy(a)>RECTcy(b) )
 
+#define RECT_disXYWH(r) (r).left, (r).top, (r).right-(r).left, (r).bottom-(r).top // distribute args
+// -- If we want to call MoveWindow(), but we have a RECT `r` at hand, we can use this.
 
 #ifdef _RECT_STRUCT_DEFINED_
 
