@@ -62,6 +62,9 @@ UINT Hwnd_TuneWinStyleExBits(HWND hwnd, UINT bits_on, UINT bits_off, bool is_tun
 
 HMENU FindSubMenu_byText(HMENU hMenu, const TCHAR* menutext, int *pPos=nullptr);
 int FindMenuitemPos_byText(HMENU hMenu, const TCHAR* menutext);
+//int FindMenuitemPos_byID(HMENU hMenu, UINT id);
+bool IsMenuitemExist_byID(HMENU hMenu, UINT id);
+BOOL SetMenuitemText_byID(HMENU hMenu, UINT id, const TCHAR *newtext);
 
 
 /*
@@ -496,6 +499,37 @@ int FindMenuitemPos_byText(HMENU hMenu, const TCHAR* menutext)
 	return -1;
 }
 
+int FindMenuitemPos_byID__not_implemented_yet(HMENU hMenu, UINT id)
+{
+	MENUITEMINFO mii = { sizeof(mii) };
+	mii.fMask = MIIM_ID;
+
+	if (GetMenuItemInfo(hMenu, id, FALSE, &mii))
+		return mii.wID;
+	else
+		return -1;
+}
+
+bool IsMenuitemExist_byID(HMENU hMenu, UINT id)
+{
+	MENUITEMINFO mii = { sizeof(mii) };
+	mii.fMask = MIIM_ID;
+
+	if (GetMenuItemInfo(hMenu, id, FALSE, &mii))
+		return true;
+	else
+		return false;
+}
+
+BOOL SetMenuitemText_byID(HMENU hMenu, UINT id, const TCHAR *newtext)
+{
+	MENUITEMINFO mii = { sizeof(mii) };
+	mii.fMask = MIIM_STRING;
+	mii.dwTypeData = (LPTSTR)newtext;
+
+	BOOL b = SetMenuItemInfo(hMenu, id, FALSE, &mii);
+	return b;
+}
 
 
 #endif // [IMPL]
