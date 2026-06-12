@@ -144,11 +144,11 @@ public:
 	{ 
 		if (IsValid() && is_close_resource) 
 		{
-			if cxx17_constexpr (pfn == _cxx_delete_tag_1<PTR_TYPE>)
+			if cxx17_constexpr ((void*)pfn == (void*)_cxx_delete_tag_1<PTR_TYPE>)
 			{ 
 				delete m_t;
 			}
-			else if cxx17_constexpr (pfn == _cxx_delete_tag_N<PTR_TYPE>)
+			else if cxx17_constexpr ((void*)pfn == (void*)_cxx_delete_tag_N<PTR_TYPE>)
 			{ 
 				delete[] m_t;
 			}
