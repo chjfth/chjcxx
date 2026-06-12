@@ -1,7 +1,7 @@
 #ifndef __CHHI__utils_wingui_h_
 #define __CHHI__utils_wingui_h_
 #define __CHHI__utils_wingui_h_created_ 20250822
-#define __CHHI__utils_wingui_h_updated_ 20260509
+#define __CHHI__utils_wingui_h_updated_ 20260611
 
 #include <windows.h>
 #include <windowsx.h>
@@ -30,6 +30,11 @@ BOOL vaSetDlgItemText(HWND hwnd, int nIDDlgItem, const TCHAR *szfmt, ...);
 
 void vlAppendText_mled(HWND hedit, const TCHAR *szfmt, va_list args);
 void vaAppendText_mled(HWND hedit, const TCHAR *szfmt, ...);
+
+void vaAppendLog_mled(HWND hedit, const TCHAR *szfmt, ...);
+void vlAppendLog_mled(HWND hedit, const TCHAR *szfmt, va_list args);
+// -- These two will add timestamp to each call.
+
 
 typedef void PROC_WM_TIMER_call_once(void *usercontext);
 bool WM_TIMER_call_once(HWND hwnd, int delay_millisec, PROC_WM_TIMER_call_once *userproc, void *usercontext);
@@ -67,6 +72,7 @@ bool IsMenuitemExist_byID(HMENU hMenu, UINT id);
 BOOL SetMenuitemText_byID(HMENU hMenu, UINT id, const TCHAR *newtext);
 
 
+
 /*
 ////////////////////////////////////////////////////////////////////////////
  ___                 _                           _        _   _             
@@ -85,7 +91,7 @@ BOOL SetMenuitemText_byID(HMENU hMenu, UINT id, const TCHAR *newtext);
 // Include system/OS headers here
 #include <assert.h>
 //
-#define utils_env_IMPL
+#include <vaDbgTs.h>
 #include <mswin/utils_env.h> // need GetExeFilename()
 // [IMPL] //
 // [IMPL] //
@@ -145,7 +151,7 @@ BOOL vaSetDlgItemText(HWND hwnd, int nIDDlgItem, const TCHAR *szfmt, ...)
 
 void vlAppendText_mled(HWND hedit, const TCHAR *szfmt, va_list args)
 {
-	TCHAR tbuf[64000] = {};
+	TCHAR tbuf[64000] = _T("");
 	_vsntprintf_s(tbuf, _TRUNCATE, szfmt, args);
 
 	int pos = GetWindowTextLength (hedit);
@@ -158,6 +164,61 @@ void vlAppendText_mled(HWND hedit, const TCHAR *szfmt, va_list args)
 	Edit_ReplaceSel(hedit, tbuf);
 }
 
+void vaAppendLog_mled(HWND hedit, const TCHAR *szfmt, ...)
+{
+	va_list args;
+	va_start(args, szfmt);
+	vlAppendLog_mled(hedit, szfmt, args);
+	va_end(args);
+}
+
+void vlAppendLog_mled(HWND hedit, const TCHAR *szfmt, va_list args)
+{
+	static Uint s_prev_msec = va_millisec();
+	Uint now_msec = va_millisec();
+
+	TCHAR timebuf[80] = _T("");
+	TCHAR tbuf[64000] = _T("");
+
+	// Print extra dot-line to show that time has elapsed for more than one second.
+	Uint delta_msec = now_msec - s_prev_msec;
+	if (delta_msec >= 1000)
+	{
+		TCHAR dots[13] = _T("..........\r\n");
+		Uint delta_sec = delta_msec / 1000;
+		if (delta_sec > 10)
+			delta_sec = 10;
+
+		dots[delta_sec] = '\r';
+		dots[delta_sec+1] = '\n';
+		dots[delta_sec+2] = '\0';
+		_tcscpy_s(tbuf, dots);
+	}
+
+	_sntprintf_s(tbuf, _TRUNCATE, _T("%s[%s] "), tbuf,
+		va_now_ymdhms_ms(timebuf, ARRAYSIZE(timebuf)));
+	int pfxlen = _tcslen(tbuf);
+
+	_vsntprintf_s(tbuf+pfxlen, ARRAYSIZE(tbuf)-pfxlen, _TRUNCATE, szfmt, args);
+
+	pfxlen = _tcslen(tbuf);
+	if(pfxlen<ARRAYSIZE(tbuf)-2)
+	{
+		tbuf[pfxlen]='\r'; tbuf[pfxlen+1]='\n'; tbuf[pfxlen+2]='\0';
+	}
+
+	int pos = GetWindowTextLength(hedit);
+	// -- [2024-10-26] Note: when pos reaches 30000, Edit_SetSel() will fail with
+	// WinErr=5 (ERROR_ACCESS_DENIED).
+	// User needs to raise the limit by calling:
+	//   Edit_LimitText(hedit, 200*1024); // EM_LIMITTEXT
+
+	Edit_SetSel(hedit, pos, pos);
+	Edit_ReplaceSel(hedit, tbuf);
+
+	s_prev_msec = now_msec;
+}
+
 void vaAppendText_mled(HWND hedit, const TCHAR *szfmt, ...)
 {
 	va_list args;
@@ -165,7 +226,6 @@ void vaAppendText_mled(HWND hedit, const TCHAR *szfmt, ...)
 	vlAppendText_mled(hedit, szfmt, args);
 	va_end(args);
 }
-
 
 //////////////////////////////////////////
 

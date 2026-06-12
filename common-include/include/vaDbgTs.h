@@ -129,6 +129,20 @@ inline TCHAR *va_now_ymdhms(TCHAR buf[], int bufchars)
 	return va_now_timestr(VaNowtime_ymd, buf, bufchars);
 }
 
+inline TCHAR *va_now_hms_ms(TCHAR buf[], int bufchars)
+{
+	return va_now_timestr(
+		VaNowtime_et(VaNowtime_hms|VaNowtime_millisec),
+		buf, bufchars);
+}
+
+inline TCHAR *va_now_ymdhms_ms(TCHAR buf[], int bufchars)
+{
+	return va_now_timestr(
+		VaNowtime_et(VaNowtime_ymd|VaNowtime_millisec), 
+		buf, bufchars);
+}
+
 
 #ifdef __cplusplus
 } // extern"C" {
