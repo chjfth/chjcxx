@@ -1,7 +1,7 @@
 #ifndef __CHHI__InterpretConst_h_
 #define __CHHI__InterpretConst_h_
 #define __CHHI__InterpretConst_h_created_ 20251208
-#define __CHHI__InterpretConst_h_updated_ 20260610
+#define __CHHI__InterpretConst_h_updated_ 20260612
 
 
 // Note: The API interface code(not implementation code) should ONLY rely on 
@@ -132,7 +132,7 @@ namespace itc {                        // API namespace
 	class CInterpretConst
 	{
 	public:
-		virtual ~CInterpretConst();
+		virtual ~CInterpretConst(){ _dtor(); }
 
 		CInterpretConst(const Enum2Val_st *arEnum2Val, int nEnum2Val, const TCHAR *valfmt=nullptr)
 		{
@@ -292,8 +292,8 @@ namespace itc {                        // API namespace
 // 			return DumpText(ar, eles, nullptr);
 // 		}
 
-		CONSTVAL_t NamesToVal(const TCHAR *names, bool *p_is_err=nullptr); // names separated by |
-		CONSTVAL_t OneNameToVal(const TCHAR *name, bool *p_is_err=nullptr); 
+		CONSTVAL_t NamesToVal(const TCHAR *names, bool *p_is_err=nullptr) const; // names separated by |
+		CONSTVAL_t OneNameToVal(const TCHAR *name, bool *p_is_err=nullptr) const; 
 
 	private:
 		enum { 
@@ -329,7 +329,8 @@ namespace itc {                        // API namespace
 		}
 
 	private:
-		void _reset(const TCHAR *valfmt);
+		void _dtor();
+		void _ct0r(const TCHAR *valfmt);
 		bool is_enum_ctor() const { return m_arGroups==&m_EnumC2V; };
 		static bool is_unique_mask(CONSTVAL_t oldmasks, CONSTVAL_t newmask);
 		bool ensure_unique_masks();
@@ -356,35 +357,44 @@ namespace itc {                        // API namespace
 
 #define ITC_NAMEPAIR(macroname) { _T( #macroname ) , (CONSTVAL_t)macroname }
 
+
+#define ITC_MAKE_OBJECT(itcobj_name, ...) \
+	const CInterpretConst& itcobj_name() \
+	{ \
+		static const CInterpretConst sobj(__VA_ARGS__); \
+		return sobj; \
+	}
+
+
 #define ITCS( val, itcobj) \
-	(itcobj).Interpret((itc::CONSTVAL_t)(val), itc::DF_NameOnly).getptr()
+	(itcobj()).Interpret((itc::CONSTVAL_t)(val), itc::DF_NameOnly).getptr()
 #define ITCS_(val, itcobj, valfmt) \
-	(itcobj).Interpret((itc::CONSTVAL_t)(val), itc::DF_NameOnly, valfmt).getptr()
+	(itcobj()).Interpret((itc::CONSTVAL_t)(val), itc::DF_NameOnly, valfmt).getptr()
 #define ITCS__(val, itcobj, valfmt, sep) \
-	(itcobj).Interpret((itc::CONSTVAL_t)(val), itc::DF_NameOnly, valfmt, sep).getptr()
+	(itcobj()).Interpret((itc::CONSTVAL_t)(val), itc::DF_NameOnly, valfmt, sep).getptr()
 	// -- the "return" of ITCS() macro can be passed as snprintf's variadic params
 	// Note: ITCS() cannot be used in __try{} block, otherwise we'll get Compiler Error C2712.
 
 #define ITCSnv( val, itcobj) \
-	(itcobj).Interpret((itc::CONSTVAL_t)(val), itc::DF_NameAndValue).getptr()
+	(itcobj()).Interpret((itc::CONSTVAL_t)(val), itc::DF_NameAndValue).getptr()
 #define ITCSnv_(val, itcobj, valfmt) \
-	(itcobj).Interpret((itc::CONSTVAL_t)(val), itc::DF_NameAndValue, valfmt).getptr()
+	(itcobj()).Interpret((itc::CONSTVAL_t)(val), itc::DF_NameAndValue, valfmt).getptr()
 #define ITCSnv__(val, itcobj, valfmt, sep) \
-	(itcobj).Interpret((itc::CONSTVAL_t)(val), itc::DF_NameAndValue, valfmt, sep).getptr()
+	(itcobj()).Interpret((itc::CONSTVAL_t)(val), itc::DF_NameAndValue, valfmt, sep).getptr()
 
 #define ITCSvn( val, itcobj) \
-	(itcobj).Interpret((itc::CONSTVAL_t)(val), itc::DF_ValueAndName).getptr()
+	(itcobj()).Interpret((itc::CONSTVAL_t)(val), itc::DF_ValueAndName).getptr()
 #define ITCSvn_(val, itcobj, valfmt) \
-	(itcobj).Interpret((itc::CONSTVAL_t)(val), itc::DF_ValueAndName, valfmt).getptr()
+	(itcobj()).Interpret((itc::CONSTVAL_t)(val), itc::DF_ValueAndName, valfmt).getptr()
 #define ITCSvn__(val, itcobj, valfmt, sep) \
-	(itcobj).Interpret((itc::CONSTVAL_t)(val), itc::DF_ValueAndName, valfmt, sep).getptr()
+	(itcobj()).Interpret((itc::CONSTVAL_t)(val), itc::DF_ValueAndName, valfmt, sep).getptr()
 
 #define ITCSv( val, itcobj) \
-	(itcobj).Interpret((itc::CONSTVAL_t)(val), itc::DF_NVAuto).getptr()
+	(itcobj()).Interpret((itc::CONSTVAL_t)(val), itc::DF_NVAuto).getptr()
 #define ITCSv_(val, itcobj, valfmt) \
-	(itcobj).Interpret((itc::CONSTVAL_t)(val), itc::DF_NVAuto, valfmt).getptr()
+	(itcobj()).Interpret((itc::CONSTVAL_t)(val), itc::DF_NVAuto, valfmt).getptr()
 #define ITCSv__(val, itcobj, valfmt, sep) \
-	(itcobj).Interpret((itc::CONSTVAL_t)(val), itc::DF_NVAuto, valfmt, sep).getptr()
+	(itcobj()).Interpret((itc::CONSTVAL_t)(val), itc::DF_NVAuto, valfmt, sep).getptr()
 
 
 

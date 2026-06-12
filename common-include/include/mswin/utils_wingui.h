@@ -18,7 +18,7 @@
   // For message processing in a WinAPI user's dialog-procedure, we need a further step
   // beyond that of windowsx.h's HANDLE_MSG(). This HANDLE_dlgMSG() applies that further step.
   // Ref: Raymond Chen https://devblogs.microsoft.com/oldnewthing/20031107-00/?p=41923
-
+  // Evclip: [20241221.c1]
 
 int vaMsgBox(HWND hwnd, UINT utype, const TCHAR *szTitle, const TCHAR *szfmt, ...);
 #define NULL_TITLE NULL // use for szTitle param
@@ -197,11 +197,11 @@ void vlAppendLog_mled(HWND hedit, const TCHAR *szfmt, va_list args)
 
 	_sntprintf_s(tbuf, _TRUNCATE, _T("%s[%s] "), tbuf,
 		va_now_ymdhms_ms(timebuf, ARRAYSIZE(timebuf)));
-	int pfxlen = _tcslen(tbuf);
+	int pfxlen = (int)_tcslen(tbuf);
 
 	_vsntprintf_s(tbuf+pfxlen, ARRAYSIZE(tbuf)-pfxlen, _TRUNCATE, szfmt, args);
 
-	pfxlen = _tcslen(tbuf);
+	pfxlen = (int)_tcslen(tbuf);
 	if(pfxlen<ARRAYSIZE(tbuf)-2)
 	{
 		tbuf[pfxlen]='\r'; tbuf[pfxlen+1]='\n'; tbuf[pfxlen+2]='\0';

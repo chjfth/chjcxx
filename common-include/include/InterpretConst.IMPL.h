@@ -89,8 +89,7 @@ Enum2Val_merge::Enum2Val_merge(const Enum2Val_st *arEnum2Val, int nEnum2Val,
 	va_end(args);
 }
 
-
-void CInterpretConst::_reset(const TCHAR *valfmt)
+void CInterpretConst::_ct0r(const TCHAR *valfmt)
 {
 	m_EnumC2V.GroupMask=0; 
 	m_EnumC2V.arEnum2Val=nullptr; 
@@ -138,16 +137,19 @@ bool CInterpretConst::SetValFmt(const TCHAR *fmt)
 	return is_correct_valfmt;
 }
 
-CInterpretConst::~CInterpretConst()
+void CInterpretConst::_dtor()
 {
 	if(m_dtor_delete_groups)
-		delete []m_arGroups;
+	{ 
+		delete[] m_arGroups;
+		m_arGroups = nullptr;
+	}
 }
 
 void CInterpretConst::_ctor(const Enum2Val_st *arEnum2Val, int nEnum2Val,
 	const TCHAR *valfmt)
 {
-	_reset(valfmt);
+	_ct0r(valfmt);
 
 	m_EnumC2V.GroupMask = 0xFFFFffff;
 	m_EnumC2V.arEnum2Val = arEnum2Val;
@@ -162,7 +164,7 @@ void CInterpretConst::_ctor(const Enum2Val_st *arEnum2Val, int nEnum2Val,
 void CInterpretConst::_ctor(const SingleBit2Val_st *arBitfield2Val, int nBitfield2Val,
 	const TCHAR *valfmt)
 {
-	_reset(valfmt);
+	_ct0r(valfmt);
 
 	m_arGroups = new ItcGroup_st[nBitfield2Val];
 	if(!m_arGroups)
@@ -188,7 +190,7 @@ void CInterpretConst::_ctor(const SingleBit2Val_st *arBitfield2Val, int nBitfiel
 void CInterpretConst::_ctor(const ItcGroup_st *arGroups, int nGroups,
 	const TCHAR *valfmt)
 {
-	_reset(valfmt);
+	_ct0r(valfmt);
 
 	m_arGroups = const_cast<ItcGroup_st*>(arGroups);
 	m_nGroups = nGroups;
@@ -208,7 +210,7 @@ void CInterpretConst::_ctor(const TCHAR *valfmt,
 	va_list args // [arSinglebit2Val, nSinglebit2Val] pairs, end with [nullptr, nullptr]
 	) // {most generic initor}
 {
-	_reset(valfmt);
+	_ct0r(valfmt);
 
 	va_list args_copy;
 	va_copy(args_copy, args); // save a copy for 2nd-iteration
@@ -576,7 +578,7 @@ Sdring CInterpretConst::DumpText(const TCHAR *crlf) const
 }
 
 
-CONSTVAL_t CInterpretConst::OneNameToVal(const TCHAR *input_name, bool *p_is_err)
+CONSTVAL_t CInterpretConst::OneNameToVal(const TCHAR *input_name, bool *p_is_err) const
 {
 	SETTLE_OUTPUT_PTR(bool, p_is_err, false);
 
@@ -624,7 +626,7 @@ inline bool IsPipeChar(int charval)
 	return charval=='|' ? true : false;
 }
 
-CONSTVAL_t CInterpretConst::NamesToVal(const TCHAR *names, bool *p_is_err)
+CONSTVAL_t CInterpretConst::NamesToVal(const TCHAR *names, bool *p_is_err) const
 {
 	SETTLE_OUTPUT_PTR(bool, p_is_err, false);
 
