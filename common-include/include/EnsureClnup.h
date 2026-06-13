@@ -1,7 +1,7 @@
 #ifndef __EnsureClnup_h_
 #define __EnsureClnup_h_
 #define __EnsureClnup_h_created_ 20100101
-#define __EnsureClnup_h_updated_ 20260527
+#define __EnsureClnup_h_updated_ 20260613
 
 /* Jimm Chen from around 2010:
  The idea comes from Jeffrey Richter's CEnsureCleanup template class, 
@@ -144,11 +144,11 @@ public:
 	{ 
 		if (IsValid() && is_close_resource) 
 		{
-			if cxx17_constexpr ((void*)pfn == (void*)_cxx_delete_tag_1<PTR_TYPE>)
+			if cxx17_constexpr ((void*)pfn == _cxx_delete_tag_1<PTR_TYPE>)
 			{ 
 				delete m_t;
 			}
-			else if cxx17_constexpr ((void*)pfn == (void*)_cxx_delete_tag_N<PTR_TYPE>)
+			else if cxx17_constexpr ((void*)pfn == _cxx_delete_tag_N<PTR_TYPE>)
 			{ 
 				delete[] m_t;
 			}
