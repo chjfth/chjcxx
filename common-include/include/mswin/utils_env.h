@@ -82,7 +82,7 @@ unsigned __int64 get_qpf()
 	LARGE_INTEGER li = {};
 	BOOL succ = QueryPerformanceFrequency(&li);
 	if(!succ)
-		return -1;
+		return (unsigned __int64)(__int64)-1;
 	else
 		return li.QuadPart;
 }
@@ -92,7 +92,7 @@ unsigned __int64 get_qpc()
 	LARGE_INTEGER li = {};
 	BOOL succ = QueryPerformanceCounter(&li);
 	if(!succ)
-		return -1;
+		return (unsigned __int64)(__int64)-1;
 	else
 		return li.QuadPart;
 }

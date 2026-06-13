@@ -99,7 +99,7 @@ BOOL SetMenuitemText_byID(HMENU hMenu, UINT id, const TCHAR *newtext);
 
 int vaMsgBox(HWND hwnd, UINT utype, const TCHAR *szTitle, const TCHAR *szfmt, ...)
 {
-	TCHAR szModuleName[40] = {};
+//	TCHAR szModuleName[40] = {};
 
 	va_list args;
 	va_start(args, szfmt);
@@ -390,6 +390,7 @@ BOOL GetClientRect_ScreenPos(HWND hwnd, RECT *pRect)
 
 	SetLastError(0);
 	int mret = MapWindowPoints(hwnd, HWND_DESKTOP, (POINT*)pRect, 2);
+	(void)mret;
 	if(GetLastError())
 		return FALSE;
 
