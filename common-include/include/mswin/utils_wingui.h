@@ -1,12 +1,14 @@
 #ifndef __CHHI__utils_wingui_h_
 #define __CHHI__utils_wingui_h_
 #define __CHHI__utils_wingui_h_created_ 20250822
-#define __CHHI__utils_wingui_h_updated_ 20260611
+#define __CHHI__utils_wingui_h_updated_ 20260624
 
 #include <windows.h>
 #include <windowsx.h>
 #include <tchar.h>
 #include <assert.h>
+
+#include <sdring.h>
 
 
 //
@@ -34,6 +36,21 @@ void vaAppendText_mled(HWND hedit, const TCHAR *szfmt, ...);
 void vaAppendLog_mled(HWND hedit, const TCHAR *szfmt, ...);
 void vlAppendLog_mled(HWND hedit, const TCHAR *szfmt, va_list args);
 // -- These two will add timestamp to each call.
+
+Sdring sdrGetWindowText(HWND hwnd);
+Sdring sdrGetDlgItemText(HWND hDlg, int nIDDlgItem);
+
+
+bool Set_DlgDefaultButton(HWND hwndDlg, UINT idDefault);
+
+struct FocusToDefaultBtn_st
+{
+	int uicFocus;
+	int uicDefaultBtn;
+};
+//
+void Set_DlgDefaultButton_byFocusId(HWND hwndDlg, int idFocus, 
+	const FocusToDefaultBtn_st arUicMap[], int nUicMap);
 
 
 typedef void PROC_WM_TIMER_call_once(void *usercontext);
@@ -226,6 +243,92 @@ void vaAppendText_mled(HWND hedit, const TCHAR *szfmt, ...)
 	vlAppendText_mled(hedit, szfmt, args);
 	va_end(args);
 }
+
+Sdring sdrGetWindowText(HWND hwnd)
+{
+	assert(IsWindow(hwnd));
+	if(!(IsWindow(hwnd)))
+		return Sdring();
+	
+	int slen = GetWindowTextLength(hwnd);
+	Sdring sdr(slen+1);
+	GetWindowText(hwnd, sdr.getbuf(), sdr.rawlen());
+	return sdr;
+}
+
+Sdring sdrGetDlgItemText(HWND hDlg, int nIDDlgItem)
+{
+	HWND hwnd = GetDlgItem(hDlg, nIDDlgItem);
+	assert(IsWindow(hDlg));
+	return sdrGetWindowText(hwnd);
+}
+
+//////////////////////////////////////////
+
+bool Set_DlgDefaultButton(HWND hwndDlg, UINT idDefault) 
+{
+	// Get that last default control
+	UINT nOld = (UINT) SendMessage(hwndDlg, DM_GETDEFID, 0, 0);
+
+	// Reset the current default push button to a regular button.
+	if (HIWORD(nOld) == DC_HASDEFID)
+	{
+		SendDlgItemMessage(hwndDlg, LOWORD(nOld), BM_SETSTYLE, 
+			BS_PUSHBUTTON, // make it a normal button
+			(LPARAM) TRUE);
+	}
+
+	HWND hbtn = GetDlgItem(hwndDlg, idDefault);
+	TCHAR classname[40] = _T("");
+	GetClassName(hbtn, classname, ARRAYSIZE(classname));
+	if(_tcscmp(classname, _T("Button"))!=0)
+	{
+		assert( (_T("Not a Button"), 0) );
+		return false;
+	}
+
+	// Update the default push button's control ID.
+	SendMessage(hwndDlg, DM_SETDEFID, idDefault, 0L);
+
+	// Set the new style.
+	SendDlgItemMessage(hwndDlg, idDefault, BM_SETSTYLE, 
+		BS_DEFPUSHBUTTON, // make it a stand-out button
+		(LPARAM) TRUE); 
+
+	return true;
+}
+
+void Set_DlgDefaultButton_byFocusId(HWND hwndDlg, int idFocus, 
+	const FocusToDefaultBtn_st arUicMap[], int nUicMap)
+{
+	// chjmemo: For the input idFocus, check whether it has mapping in arUicMap[],
+	// If yes, set the target Uic(must be a "button") to have BS_DEFPUSHBUTTON style.
+	// This caters the paradigm: When user shifts dialog focus to some Uic-F,
+	// user want current default-push-button to be some Uic-B, -- so that, 
+	// user pressing Enter-key would execute that Uic-B button.
+	//
+	// If some .uicFocus is -1, then, the .uicDefaultBtn becomes the fallback DefaultBtn.
+
+	int uicFallback = -1;
+	assert(idFocus != -1);
+
+	for(int i=0; i<nUicMap; i++)
+	{
+		if(arUicMap[i].uicFocus == idFocus)
+		{
+			Set_DlgDefaultButton(hwndDlg, arUicMap[i].uicDefaultBtn);
+			return;
+		}
+		else if(arUicMap[i].uicFocus == -1)
+		{
+			uicFallback = arUicMap[i].uicDefaultBtn;
+		}
+	}
+
+	if(uicFallback != -1)
+		Set_DlgDefaultButton(hwndDlg, uicFallback);
+}
+
 
 //////////////////////////////////////////
 

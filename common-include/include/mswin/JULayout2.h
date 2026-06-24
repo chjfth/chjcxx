@@ -1,5 +1,8 @@
-#ifndef __JULayout2_h_20260223_20260317_
-#define __JULayout2_h_20260223_20260317_
+#ifndef __CHHI__JULayout2_h_
+#define __CHHI__JULayout2_h_
+#define __CHHI__JULayout2_h_created_ 20260223 
+#define __CHHI__JULayout2_h_updated_ 20260624
+
 
 /******************************************************************************
 Original: UILayout.h
@@ -414,7 +417,7 @@ LRESULT JULPrsht::SubWndProc(HWND hwndPrsht, UINT uMsg, WPARAM wParam, LPARAM lP
 			GetClassName(hwndNowChild, classname, 100);
 //			dbgprint("See id=0x08%X , class=%s", id, classname);
 
-			if (_tcsicmp(classname, _T("button")) == 0)
+			if (_tcscmp(classname, _T("Button")) == 0)
 			{
 				// Meet the bottom-right buttons like OK, Cancel, Apply.
 				jul->AnchorControl(100, 100, 100, 100, id);
