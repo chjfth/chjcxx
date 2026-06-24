@@ -1,6 +1,8 @@
-#ifndef __snTprintf_h_20251113_
-#define __snTprintf_h_20251113_
-
+#ifndef __snTprintf_h_
+#define __snTprintf_h_
+#define __snTprintf_h_created_ 20251113
+#define __snTprintf_h_updated_ 20251113
+	
 // snTprintf() is the TCHAR-style function name for C99 snprintf and its WCHAR counterpart.
 // This is TCHAR-style function name make me feel comfortable when writing Windows C++ program,
 // so I hop to use that symbols as well on Linux.
