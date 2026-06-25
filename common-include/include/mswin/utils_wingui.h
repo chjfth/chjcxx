@@ -52,7 +52,12 @@ struct FocusToDefaultBtn_st
 void Set_DlgDefaultButton_byFocusId(HWND hwndDlg, int idFocus, 
 	const FocusToDefaultBtn_st arUicMap[], int nUicMap);
 
-void Set_WindowIcon(HWND hwnd, LPCTSTR resIcon);
+inline void Set_WindowIcon(HWND hwnd, LPCTSTR resIcon)
+{
+	SendMessage(hwnd, WM_SETICON, TRUE, 
+		(LPARAM)LoadIcon(GetWindowInstance(hwnd), resIcon)
+		);
+}
 
 
 typedef void PROC_WM_TIMER_call_once(void *usercontext);
@@ -331,13 +336,6 @@ void Set_DlgDefaultButton_byFocusId(HWND hwndDlg, int idFocus,
 		Set_DlgDefaultButton(hwndDlg, uicFallback);
 }
 
-
-void Set_WindowIcon(HWND hwnd, LPCTSTR resIcon)
-{
-	SendMessage(hwnd, WM_SETICON, TRUE, 
-		(LPARAM)LoadIcon(GetWindowInstance(hwnd), resIcon)
-		);
-}
 
 //////////////////////////////////////////
 
