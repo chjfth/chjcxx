@@ -86,6 +86,8 @@ BOOL Hwnd_GetBorderWidths(HWND hwnd, RECT *pWidths, UINT new_style=0, UINT new_s
 BOOL MoveWindow_byClientRect(HWND hwnd, const RECT *prcClientScreen=NULL,
 	UINT new_style=0, UINT new_style_ex=0);
 
+BOOL Set_ClientAreaSize(HWND hwnd, int width, int height); // in pixels
+
 UINT Hwnd_TuneWinStyleBits  (HWND hwnd, UINT bits_on, UINT bits_off, bool is_tune_now=false);
 UINT Hwnd_TuneWinStyleExBits(HWND hwnd, UINT bits_on, UINT bits_off, bool is_tune_now=false);
 
@@ -580,6 +582,19 @@ BOOL MoveWindow_byClientRect(HWND hwnd, const RECT *prcClientScreen,
 	UpdateWindow(hwnd);
 
 	return TRUE;
+}
+
+BOOL Set_ClientAreaSize(HWND hwnd, int width, int height)
+{
+	RECT rc = {};
+	BOOL b = GetClientRect_ScreenPos(hwnd, &rc);
+	if(!b)
+		return b;
+
+	rc.right = rc.left + width;
+	rc.bottom = rc.top + height;
+	b = MoveWindow_byClientRect(hwnd, &rc);
+	return b;
 }
 
 

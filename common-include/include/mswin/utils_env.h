@@ -1,7 +1,7 @@
 #ifndef __CHHI__utils_env_h_ 
 #define __CHHI__utils_env_h_
 #define __CHHI__utils_env_h_created_ 20250830
-#define __CHHI__utils_env_h_updated_ 20260509
+#define __CHHI__utils_env_h_updated_ 20260627
 
 #include <windows.h>
 #include <windowsx.h>
@@ -53,6 +53,8 @@ int_Minute util_GetTimeZoneOffset(void);
 	 On a system not supporting timezone, it should return 0.
 	 On a system supporting timezone but it fails, it should return -1.
 	*/
+
+int util_SimpleSysDpiScale(int input_pixels);
 
 
 /*
@@ -333,6 +335,25 @@ int_Minute util_GetTimeZoneOffset(void)
 	return -tzi.Bias;
 }
 
+
+int util_SimpleSysDpiScale(int std_pixels)
+{
+	// Consider input_pixels from 96dpi monitor,
+	// Calculate(Return) pixels according to current XP-style DPI scaling.
+	// Example: For 120 dpi monitor-setting, input_pixel is scaled up by 120/96 .
+
+	static double s_sysdpiScaling = 0;
+	if (s_sysdpiScaling == 0)
+	{
+		HDC hdc = GetDC(NULL);
+		int sysdpi = GetDeviceCaps(hdc, LOGPIXELSX); // or GetDeviceCaps
+		BOOL succ = ReleaseDC(NULL, hdc);
+
+		s_sysdpiScaling = (double)sysdpi / 96;
+	}
+
+	return (int)(std_pixels * s_sysdpiScaling);
+}
 
 
 #endif // [IMPL]
