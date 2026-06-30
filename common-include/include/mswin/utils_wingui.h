@@ -23,6 +23,7 @@
   // Evclip: [20241221.c1]
 
 int vaMsgBox(HWND hwnd, UINT utype, const TCHAR *szTitle, const TCHAR *szfmt, ...);
+// utype: 0 or MB_ICONERROR, MB_ICONWARNING
 #define NULL_TITLE NULL // use for szTitle param
 
 BOOL vaSetWindowText(HWND hwnd, const TCHAR *szfmt, ...);

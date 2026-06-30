@@ -63,6 +63,7 @@ enum open_share_et // can be OR-ed
 	open_share_none = 0,
 	open_share_read = 0x10,
 	open_share_write = 0x20,
+	open_share_both = open_share_read|open_share_write,
 };
 
 typedef __int64 filehandle_t;
@@ -82,8 +83,10 @@ inline bool is_bad_filehandle(filehandle_t fh) { return fh<0; }
 fserror_et file_close(filehandle_t fh);
 
 int file_read(filehandle_t fh, void *rbuf, int bytes_to_read);
+// -- On fail, return fserror_et code.
 
 int file_write(filehandle_t fh, const void *wbuf, int bytes_to_write);
+// -- On fail, return fserror_et code.
 
 enum whence_et
 {
@@ -112,10 +115,17 @@ bool file_delete(const TCHAR* inputpath);
 bool file_copy(const TCHAR* srcpath, const TCHAR *dstpath, bool is_overwrite);
 
 
-
 ////////////////////////////////////////////////////////////////////////////
 } // namespace fsapi
 ////////////////////////////////////////////////////////////////////////////
+
+#ifdef __CHHI__InterpretConst_h_
+namespace itc
+{
+extern const CInterpretConst& fsapi_E_xxx();
+}
+#endif
+
 
 
 /*
@@ -154,6 +164,30 @@ bool file_copy(const TCHAR* srcpath, const TCHAR *dstpath, bool is_overwrite);
 // Consider it Linux/GCC
 #include "linux/fsapi.CHHI.h"
 #endif
+
+
+
+#ifdef __CHHI__InterpretConst_h_
+namespace itc
+{
+
+const Enum2Val_st _e2v_fsapi_E_xxx[]=
+{
+	ITC_NAMEPAIR(fsapi::E_success),
+	ITC_NAMEPAIR(fsapi::E_unknown),
+	ITC_NAMEPAIR(fsapi::E_bad_param),
+	
+	ITC_NAMEPAIR(fsapi::E_not_found),
+	ITC_NAMEPAIR(fsapi::E_create),
+	ITC_NAMEPAIR(fsapi::E_access_denied),
+	
+	ITC_NAMEPAIR(fsapi::E_disk_full), // pending
+};
+ITC_MAKE_OBJECT(fsapi_E_xxx, _e2v_fsapi_E_xxx, ITCF_SINT);
+
+}
+#endif // __CHHI__InterpretConst_h_
+
 
 
 

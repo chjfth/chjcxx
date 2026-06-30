@@ -222,4 +222,9 @@ bool Bitfields_IsBitOff(T num, T bit_to_test)
 	return Bitfields_IsAllBitsOff(num, bit_to_test);
 }
 
+
+// [2026-06-30] 
+#define memset_0_struct(stobj)  memset(&(stobj), 0, sizeof(stobj))
+
+
 #endif

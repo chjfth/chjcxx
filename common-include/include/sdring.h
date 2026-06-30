@@ -142,7 +142,7 @@ public:
 		return m_buf;
 	}
 
-	T_CHAR* setbufsize(int nchars) // to-test
+	T_CHAR* setbufsize(int nchars)
 	{
 		if(nchars<=0)
 			nchars = 0;
@@ -612,7 +612,7 @@ typedef sdring <char> Sdring;
 typedef sdrings<char> Sdrings;
 #endif
 
-
+typedef sdring<unsigned char> sdring_bytes;
 
 
 #endif
