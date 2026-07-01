@@ -1,7 +1,8 @@
-#ifndef __IPlaySound_h_
-#define __IPlaySound_h_
-#define __IPlaySound_h_created_ 20260630
-#define __IPlaySound_h_updated_ 20260630
+#ifndef __CHHI__IPlaySound_h_
+#define __CHHI__IPlaySound_h_
+#define __CHHI__IPlaySound_h_created_ 20260630
+#define __CHHI__IPlaySound_h_updated_ 20260630
+
 
 #include <ps_TCHAR.h>
 
@@ -24,10 +25,6 @@ public:
 public:
 	static IPlaySound* CreateObj();
 
-	static int RegisterNotifyMessage();
-	// -- Return a message value [that will be sent to user program on playing done].
-	// -1 if notification message unsupported.
-
 	static const TCHAR* GetVersion();
 
 public:
@@ -42,12 +39,51 @@ public:
 	virtual ReCode_et Close() = 0;
 
 	virtual ReCode_et PlayOnce() = 0;
-	
+
 	virtual ReCode_et Stop() = 0;
 };
 
-
-
+#ifdef __CHHI__InterpretConst_h_
+namespace itc {
+extern const CInterpretConst& IPlaySound_ReCode();
+}
 #endif
 
 
+/*
+////////////////////////////////////////////////////////////////////////////
+ ___                 _                           _        _   _             
+|_ _|_ __ ___  _ __ | | ___ _ __ ___   ___ _ __ | |_ __ _| |_(_) ___  _ __  
+ | || '_ ` _ \| '_ \| |/ _ \ '_ ` _ \ / _ \ '_ \| __/ _` | __| |/ _ \| '_ \ 
+ | || | | | | | |_) | |  __/ | | | | |  __/ | | | || (_| | |_| | (_) | | | |
+|___|_| |_| |_| .__/|_|\___|_| |_| |_|\___|_| |_|\__\__,_|\__|_|\___/|_| |_|
+              |_|                                                           
+////////////////////////////////////////////////////////////////////////////
+*/
+// ++++++++++++++++++ Implementation Below ++++++++++++++++++
+
+
+#if defined(IPlaySound_IMPL) || (defined CHHI_ALL_IMPL && !defined CHHI_ALL_IMPL_HIDE_IPlaySound) // [IMPL]
+#ifdef __CHHI__InterpretConst_h_
+namespace itc {
+
+const Enum2Val_st _e2v_IPlaySound_ReCode[] =
+{
+	ITC_NAMEPAIR(IPlaySound::E_Success),
+	ITC_NAMEPAIR(IPlaySound::E_Unknown),
+	ITC_NAMEPAIR(IPlaySound::E_BadParam),
+	ITC_NAMEPAIR(IPlaySound::E_SysApi),
+	
+	ITC_NAMEPAIR(IPlaySound::E_FileNotFound),
+	ITC_NAMEPAIR(IPlaySound::E_ErrorFormat),
+	ITC_NAMEPAIR(IPlaySound::E_UnsupportFormat),
+	ITC_NAMEPAIR(IPlaySound::E_NotOpenYet),
+};
+ITC_MAKE_OBJECT(IPlaySound_ReCode, _e2v_IPlaySound_ReCode, ITCF_SINT)
+
+} // namespace itc
+#endif // __CHHI__InterpretConst_h_
+#endif // [IMPL]
+
+
+#endif // include once guard

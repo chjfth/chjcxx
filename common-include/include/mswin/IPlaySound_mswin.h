@@ -11,7 +11,13 @@
 // Place API function declarations in this namespace.
 
 
-// int getversion();
+UINT IPlaySound_RegisterHwndNotify(IPlaySound *vpsobj, HWND hwndNotify);
+// -- Return a message value [that will be sent to hwndNotify on sound-playing done].
+//    Return 0(FALSE) if notification message unsupported.
+// [WPARAM] always 0, meaning MM_WOM_DONE.
+// [LPARAM] the IPlaySound object pointer that triggered this message.
+
+
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -79,8 +85,11 @@ public:
 
 public:
 	CPlaySound();
-	~CPlaySound();
-	friend IPlaySound;
+	virtual ~CPlaySound();
+	
+	//friend IPlaySound;
+
+	UINT RegisterHwndNotify(HWND hwndNotify);
 
 protected:
 	enum State_et { Dumb=0, PlayWavBin=1, PlayFile=2 };
@@ -108,6 +117,8 @@ private:
 	static int s_notifymsg;
 
 private:
+	HWND m_hwndNotify;
+
 	Sdring m_playfile;
 	
 	HWAVEOUT m_hWaveout;
@@ -119,11 +130,13 @@ private:
 	DWORD m_wavformlen;
 };
 
-int CPlaySound::s_notifymsg = -1;
+int CPlaySound::s_notifymsg = FALSE;
 
 
 CPlaySound::CPlaySound()
 {
+	m_hwndNotify = NULL;
+
 	m_hWaveout = NULL;
 	memset_0_struct(m_wavefmtex);
 	memset_0_struct(m_wavehdr);
@@ -137,31 +150,50 @@ CPlaySound::~CPlaySound()
 }
 
 
-int IPlaySound::RegisterNotifyMessage()
+UINT IPlaySound_RegisterHwndNotify(IPlaySound *vpsobj, HWND hwndNotify)
 {
-	if(CPlaySound::s_notifymsg == -1)
+	CPlaySound *psobj = dynamic_cast<CPlaySound*>(vpsobj);
+	if(!psobj)
 	{
-		UINT msg = RegisterWindowMessage(_T("IPlaySound_NotifyMessage_20260630"));
+		vaDBG1(_T("[ERROR] IPlaySound_RegisterHwndNotify(): User pass in an invalid ptr of IPlaySound*, NOT of class CPlaySound."));
+		return FALSE;
+	}
+
+	return psobj->RegisterHwndNotify(hwndNotify);
+}
+
+UINT CPlaySound::RegisterHwndNotify(HWND hwndNotify)
+{
+	ReCode_et err = _delayed_init();
+	if(err)
+		return FALSE;
+	
+	m_hwndNotify = hwndNotify;
+
+	return s_notifymsg;
+}
+
+IPlaySound::ReCode_et 
+CPlaySound::_delayed_init()
+{
+	if(s_notifymsg == FALSE)
+	{
+		const TCHAR *msgkeystr = _T("IPlaySound_NotifyMessage_20260630");
+		UINT msg = RegisterWindowMessage(msgkeystr);
 		if(msg>0)
 		{
 			vaDBG2(_T("IPlaySound::RegisterNotifyMessage() got msgvalue: %u(=0x%X)"), msg, msg);
 		}
 		else
 		{
-			vaDBG1(_T("Panic! RegisterWindowMessage(\"IPlaySound_NotifyMessage_20260630\") returns FAIL. WinErr=%s"), ITCS_WinError);
-			msg = -1;
+			vaDBG1(_T("Panic! RegisterWindowMessage(\"%s\") returns FAIL. WinErr=%s"), msgkeystr, ITCS_WinError);
+			msg = FALSE;
 		}
 
-		CPlaySound::s_notifymsg = msg;
+		s_notifymsg = msg;
 	}
-	
-	return CPlaySound::s_notifymsg;
-}
 
-IPlaySound::ReCode_et 
-CPlaySound::_delayed_init()
-{
-	if(RegisterNotifyMessage() == -1)
+	if(s_notifymsg == FALSE)
 	{
 		return E_SysApi;
 	}
@@ -213,6 +245,8 @@ CPlaySound::OpenWavBin(const void *pWavFileBin, int nBytes)
 	ReCode_et err = _delayed_init();
 	if(err)
 		return err;
+
+	Close(); // Free old resources
 
 	// WAV file format reference: PRWIN5 Chap22.2, p940.
 
@@ -368,7 +402,6 @@ CPlaySound::Close()
 	MMRESULT mmerr = 0;
 	if(m_hWaveout)
 	{
-
 		mmerr = waveOutReset(m_hWaveout);
 		if(mmerr)
 		{
@@ -431,6 +464,13 @@ void CPlaySound::WaveOutProc(UINT wom_msg, DWORD_PTR param1, DWORD_PTR param2)
 	vaDBG2(_T("[tid=%u] In WaveOutProc(), wom_msg=%s"), 
 		GetCurrentThreadId(), ITCSnv(wom_msg, itc::MM_xxx_winmsg));
 
+	if(wom_msg==MM_WOM_DONE && m_hwndNotify)
+	{
+		assert(s_notifymsg>0);
+
+		vaDBG2(_T("Due to MM_WOM_DONE, PostMessage to HWND=0x%X, msgval=0x%X"), (UINT)m_hwndNotify, (UINT)s_notifymsg);
+		::PostMessage(m_hwndNotify, s_notifymsg, 0, (LPARAM)this);
+	}
 }
 
 
@@ -441,6 +481,7 @@ CPlaySound::OpenSoundFile(const TCHAR* pszSoundFile)
 	if(err)
 		return err;
 
+	// TODO
 
 	return E_Unknown;
 }
@@ -449,7 +490,15 @@ CPlaySound::OpenSoundFile(const TCHAR* pszSoundFile)
 IPlaySound::ReCode_et
 CPlaySound::Stop()
 {
-	return E_Success;
+	if(m_hWaveout)
+	{
+		waveOutReset(m_hWaveout);
+		return E_Success;
+	}
+	else
+	{
+		return E_NotOpenYet;
+	}
 }
 
 
