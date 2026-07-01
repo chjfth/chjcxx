@@ -10,13 +10,18 @@
 ////////////////////////////////////////////////////////////////////////////
 // Place API function declarations in this namespace.
 
+// [2026-07-01] Implementation Note: OpenSoundBin() playing .wav file-content,
+// currently need to lock all wave content. 
+// Double buffering with small buffers has not been implemented yet.
+
 
 UINT IPlaySound_RegisterHwndNotify(IPlaySound *vpsobj, HWND hwndNotify);
-// -- Return a message value [that will be sent to hwndNotify on sound-playing done].
+// -- Return a message value [that will be sent to hwndNotify on SoundBin-playing done].
 //    Return 0(FALSE) if notification message unsupported.
 // [WPARAM] always 0, meaning MM_WOM_DONE.
 // [LPARAM] the IPlaySound object pointer that triggered this message.
-
+//
+// Note of Limitation: For PlayFile, user needs to process MM_MCINOTIFY according to MSDN.
 
 
 
@@ -43,6 +48,7 @@ UINT IPlaySound_RegisterHwndNotify(IPlaySound *vpsobj, HWND hwndNotify);
 
 // >>> Include headers required by this lib's implementation
 #include <assert.h>
+#include <stdarg.h>
 #include <windows.h>
 #include <mmsystem.h>
 #pragma comment(lib, "winmm.lib")
@@ -51,6 +57,7 @@ UINT IPlaySound_RegisterHwndNotify(IPlaySound *vpsobj, HWND hwndNotify);
 #include <commdefs.h> // for Uint, Uint64, enum bitwise-OR etc
 #include <snTprintf.h>
 #include <sdring.h>
+#include <chj_mishmash.h>
 #include <mswin/WinError.itc.h>
 #include <mswin/mmsystem.itc.h>
 // <<< Include headers required by this lib's implementation
@@ -87,12 +94,10 @@ public:
 	CPlaySound();
 	virtual ~CPlaySound();
 	
-	//friend IPlaySound;
-
 	UINT RegisterHwndNotify(HWND hwndNotify);
 
 protected:
-	enum State_et { Dumb=0, PlayWavBin=1, PlayFile=2 };
+	enum State_et { Dumb=0, PlayBin=1, PlayFile=2 };
 
 	ReCode_et _delayed_init();
 
@@ -113,28 +118,45 @@ protected:
 		pobj->WaveOutProc(wom_msg, dwParam1, dwParam2);
 	}
 
+	MCIERROR vaExecMciString(const TCHAR *szfmt, ...);
+
+	bool IsMciOpened() { return m_mciDevId>0 ; }
+
 private:
 	static int s_notifymsg;
+	static const TCHAR *s_msgkeystr;
+	static const TCHAR *s_mciAliasPrefix; // suffix is this-object address
 
 private:
+	State_et m_state;
+
+	//// PlayBin members:
+
 	HWND m_hwndNotify;
 
-	Sdring m_playfile;
-	
 	HWAVEOUT m_hWaveout;
 	
 	WAVEFORMATEX m_wavefmtex; // used by waveOutOpen()
-	WAVEHDR m_wavehdr;         // used by waveOutPrepareHeader(), waveOutWrite()
+	WAVEHDR m_wavehdr;        // used by waveOutPrepareHeader(), waveOutWrite()
 	
 	const Uchar *m_pwavformbin;
 	DWORD m_wavformlen;
+
+	//// PlayFile members:
+
+	Sdring m_playfile;
+	Sdring m_devalias; // sound file 'alias' used by MCI command
+	UINT m_mciDevId; // 1, 2, 3 etc
 };
 
 int CPlaySound::s_notifymsg = FALSE;
-
+const TCHAR *CPlaySound::s_msgkeystr = _T("IPlaySound_NotifyMessage_20260630");
+const TCHAR *CPlaySound::s_mciAliasPrefix = _T("IPlaySound_alias");
 
 CPlaySound::CPlaySound()
 {
+	m_state = Dumb;
+
 	m_hwndNotify = NULL;
 
 	m_hWaveout = NULL;
@@ -142,6 +164,8 @@ CPlaySound::CPlaySound()
 	memset_0_struct(m_wavehdr);
 	m_pwavformbin = NULL;
 	m_wavformlen = 0;
+
+	m_mciDevId = 0;
 }
 
 CPlaySound::~CPlaySound()
@@ -178,15 +202,14 @@ CPlaySound::_delayed_init()
 {
 	if(s_notifymsg == FALSE)
 	{
-		const TCHAR *msgkeystr = _T("IPlaySound_NotifyMessage_20260630");
-		UINT msg = RegisterWindowMessage(msgkeystr);
+		UINT msg = RegisterWindowMessage(s_msgkeystr);
 		if(msg>0)
 		{
 			vaDBG2(_T("IPlaySound::RegisterNotifyMessage() got msgvalue: %u(=0x%X)"), msg, msg);
 		}
 		else
 		{
-			vaDBG1(_T("Panic! RegisterWindowMessage(\"%s\") returns FAIL. WinErr=%s"), msgkeystr, ITCS_WinError);
+			vaDBG1(_T("Panic! RegisterWindowMessage(\"%s\") returns FAIL. WinErr=%s"), s_msgkeystr, ITCS_WinError);
 			msg = FALSE;
 		}
 
@@ -392,6 +415,8 @@ CPlaySound::OpenWavBin(const void *pWavFileBin, int nBytes)
 		return E_SysApi;
 	}
 
+	m_state = PlayBin;
+
 	return E_Success;
 }
 
@@ -400,8 +425,11 @@ IPlaySound::ReCode_et
 CPlaySound::Close()
 {
 	MMRESULT mmerr = 0;
+
 	if(m_hWaveout)
 	{
+		vaDBG2(_T("Close() PlayBin"));
+
 		mmerr = waveOutReset(m_hWaveout);
 		if(mmerr)
 		{
@@ -424,9 +452,23 @@ CPlaySound::Close()
 		m_hWaveout = NULL;
 	}
 
+	if(IsMciOpened())
+	{
+		vaDBG2(_T("Close() PlayFile"));
+
+		assert(m_devalias.not_empty());
+
+		vaExecMciString(_T("close %s"), m_devalias.c_str());
+	}
+
+	m_state = Dumb;
 	memset_0_struct(m_wavefmtex);
 	memset_0_struct(m_wavehdr);
 	m_pwavformbin = NULL;
+
+	m_playfile.set_empty();
+	m_devalias.set_empty();
+	m_mciDevId = 0;
 
 	return E_Success;
 }
@@ -474,6 +516,32 @@ void CPlaySound::WaveOutProc(UINT wom_msg, DWORD_PTR param1, DWORD_PTR param2)
 }
 
 
+MCIERROR 
+CPlaySound::vaExecMciString(const TCHAR *szfmt, ...)
+{
+	Sdring mcistr;
+
+	va_list args;
+	va_start(args, szfmt);
+	vlSdringSet(mcistr, szfmt, args);
+	va_end(args);
+
+	vaDBG2(_T("Executing MCI string:\n> %s"), mcistr.c_str());
+
+	MCIERROR mcierr = mciSendString(mcistr, NULL, 0, m_hwndNotify);
+
+	if(!mcierr)
+	{
+		vaDBG2(_T("Executing MCI done, success."));
+	}
+	else
+	{
+		vaDBG2(_T("Executing MCI error, mcierr=%s."), ITCSvn(mcierr, itc::MmsystemError));
+	}
+
+	return mcierr;
+}
+
 IPlaySound::ReCode_et
 CPlaySound::OpenSoundFile(const TCHAR* pszSoundFile)
 {
@@ -481,9 +549,54 @@ CPlaySound::OpenSoundFile(const TCHAR* pszSoundFile)
 	if(err)
 		return err;
 
-	// TODO
+	Close(); // Free old resources
 
-	return E_Unknown;
+	vaSdringSet(m_devalias, _T("%s-0x%llX"), s_mciAliasPrefix, (Uint64)(UINT_PTR)this);
+	// -- Use %llX instead of %p, bcz %p has too many leading 0s for 64bit pointer.
+
+	MCI_OPEN_PARMS mop = {};
+	mop.lpstrElementName = pszSoundFile;
+	mop.lpstrDeviceType  = NULL;
+	mop.lpstrAlias       = m_devalias.c_str();
+	mop.dwCallback       = 0;
+
+	DWORD flags = 
+		MCI_OPEN_ELEMENT // open-type according to mop.lpstrElementName
+		| MCI_OPEN_ALIAS // an alias is included in the mop.lpstrAlias 
+		;
+
+	MCIERROR mcierr = mciSendCommand(
+		0, // MCI_OPEN does not use this param
+		MCI_OPEN,
+		flags,
+		(DWORD_PTR)&mop);
+
+	if(mcierr)
+	{
+		vaDBG1(_T("mciSendCommand('%s') fails with mcierr=%s"), mop.lpstrElementName, ITCSvn(mcierr, itc::MmsystemError));
+		
+		if(mcierr==MCIERR_FILE_NOT_FOUND)
+		{
+			// pszSoundFile filename not found on disk
+			return E_FileNotFound; 
+		}
+		else if(mcierr==MCIERR_EXTENSION_NOT_FOUND)
+		{
+			// pszSoundFile's extname is unrecognized(not .wav/.mp3 etc)
+			return E_UnsupportFormat; 
+		}
+		else
+		{
+			// [2026-07-01] If I rename a foo.jpg to foo.jpg.mp3 and pass it to MCI_OPEN,
+			// we'll get mcierr==MCIERR_INTERNAL .
+			return E_SysApi;
+		}
+	}
+
+	assert(mop.wDeviceID>0);
+	m_mciDevId = mop.wDeviceID;
+
+	return E_Success;
 }
 
 
