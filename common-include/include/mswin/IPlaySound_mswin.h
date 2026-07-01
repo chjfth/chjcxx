@@ -1,7 +1,7 @@
 #ifndef __CHHI__IPlaySound_mswin_h_
 #define __CHHI__IPlaySound_mswin_h_
 #define __CHHI__IPlaySound_mswin_h_created_ 20260630
-#define __CHHI__IPlaySound_mswin_h_updated_ 20260630
+#define __CHHI__IPlaySound_mswin_h_updated_ 20260701
 
 #include <IPlaySound.h>
 
@@ -18,10 +18,10 @@
 UINT IPlaySound_RegisterHwndNotify(IPlaySound *vpsobj, HWND hwndNotify);
 // -- Return a message value [that will be sent to hwndNotify on SoundBin-playing done].
 //    Return 0(FALSE) if notification message unsupported.
+//    If hwndNotify is NULL, notification will be turned off.
+// When notificaiton window-message arrives:
 // [WPARAM] always 0, meaning MM_WOM_DONE.
 // [LPARAM] the IPlaySound object pointer that triggered this message.
-//
-// Note of Limitation: For PlayFile, user needs to process MM_MCINOTIFY according to MSDN.
 
 
 
@@ -58,6 +58,7 @@ UINT IPlaySound_RegisterHwndNotify(IPlaySound *vpsobj, HWND hwndNotify);
 #include <snTprintf.h>
 #include <sdring.h>
 #include <chj_mishmash.h>
+#include <CxxWindowSubclass.h>
 #include <mswin/WinError.itc.h>
 #include <mswin/mmsystem.itc.h>
 // <<< Include headers required by this lib's implementation
@@ -75,6 +76,7 @@ UINT IPlaySound_RegisterHwndNotify(IPlaySound *vpsobj, HWND hwndNotify);
 ////////////////////////////////////////////////////////////////////////////
 // Place API function Implementation in this namespace.
 
+
 const Uint MaxWavFormLen = 128*1024*1024;
 
 class CPlaySound : public IPlaySound
@@ -91,13 +93,16 @@ public:
 	virtual ReCode_et Stop() cxx11_override;
 
 public:
-	CPlaySound();
-	virtual ~CPlaySound();
+	CPlaySound() { _ctor(); }
+	virtual ~CPlaySound() { _dtor(); }
 	
 	UINT RegisterHwndNotify(HWND hwndNotify);
 
 protected:
 	enum State_et { Dumb=0, PlayBin=1, PlayFile=2 };
+
+	void _ctor();
+	void _dtor();
 
 	ReCode_et _delayed_init();
 
@@ -120,6 +125,8 @@ protected:
 
 	MCIERROR vaExecMciString(const TCHAR *szfmt, ...);
 
+	bool IsWavBinOpened() { return m_pwavformbin ? true : false; }
+
 	bool IsMciOpened() { return m_mciDevId>0 ; }
 
 private:
@@ -127,8 +134,41 @@ private:
 	static const TCHAR *s_msgkeystr;
 	static const TCHAR *s_mciAliasPrefix; // suffix is this-object address
 
+	struct MciNotifyPeeker : public CxxWindowSubclass
+	{
+		CPlaySound *m_psParent;
+
+		virtual LRESULT SubWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) cxx11_override
+		{
+			if( CPlaySound::s_notifymsg>0 
+				&& m_psParent->m_hwndNotify
+				&& uMsg==MM_MCINOTIFY )
+			{
+				LONG mciDevId = (LONG)lParam;
+				UINT notiflags = (UINT)wParam;
+
+				if(mciDevId == m_psParent->m_mciDevId)
+				{
+					if(notiflags==MCI_NOTIFY_SUCCESSFUL || notiflags==MCI_NOTIFY_ABORTED)
+					{
+						vaDBG2(_T("IPlaySound: MciNotifyPeeker will notify user HWND(=0x%08X) play-done, msgval=0x%X"), 
+							m_psParent->m_hwndNotify, CPlaySound::s_notifymsg);
+
+						::PostMessage(m_psParent->m_hwndNotify, CPlaySound::s_notifymsg, 
+							0, (LPARAM)m_psParent);
+					}
+				}
+			}
+
+			return DefSubclassProc(hwnd, uMsg, wParam, lParam);
+		}
+	};
+
+	friend MciNotifyPeeker; // can omit?
+
 private:
-	State_et m_state;
+	State_et m_state; // to-delete
+	MciNotifyPeeker *m_peeker; // Peek into user's HWND to post play-done notification
 
 	//// PlayBin members:
 
@@ -153,9 +193,10 @@ int CPlaySound::s_notifymsg = FALSE;
 const TCHAR *CPlaySound::s_msgkeystr = _T("IPlaySound_NotifyMessage_20260630");
 const TCHAR *CPlaySound::s_mciAliasPrefix = _T("IPlaySound_alias");
 
-CPlaySound::CPlaySound()
+void CPlaySound::_ctor()
 {
 	m_state = Dumb;
+	m_peeker = nullptr;
 
 	m_hwndNotify = NULL;
 
@@ -168,9 +209,14 @@ CPlaySound::CPlaySound()
 	m_mciDevId = 0;
 }
 
-CPlaySound::~CPlaySound()
+void CPlaySound::_dtor()
 {
 	Close();
+	
+	if(m_peeker) {
+		m_peeker->DetachHwnd(true);
+		m_peeker = nullptr;
+	}
 }
 
 
@@ -192,9 +238,40 @@ UINT CPlaySound::RegisterHwndNotify(HWND hwndNotify)
 	if(err)
 		return FALSE;
 	
-	m_hwndNotify = hwndNotify;
+	if(m_hwndNotify == hwndNotify)
+	{
+		// duplicate calling, easy return
+		return hwndNotify ? s_notifymsg : FALSE; 
+	}
 
-	return s_notifymsg;
+	if(m_hwndNotify)
+	{
+		// Remove old association first
+		assert(m_peeker);
+		m_peeker->DetachHwnd(true);
+		m_peeker = nullptr;
+	}
+
+	if(hwndNotify)
+	{
+		if( !IsWindow(hwndNotify) )
+			return FALSE;
+
+		m_peeker = CxxWindowSubclass::FetchCxxobjFromHwnd<MciNotifyPeeker>(
+			hwndNotify, nullptr, 
+			TRUE // TRUE: Each IPlaySound object will associate a peeker object.
+			);
+		if(!m_peeker)
+		{
+			vaDBG1(_T("CPlaySound::RegisterHwndNotify() fails to create peeker object for HWND=0x%08X"), (UINT)hwndNotify);
+			return FALSE;
+		}
+		m_peeker->m_psParent = this;
+
+		m_hwndNotify = hwndNotify;
+	}
+
+	return hwndNotify ? s_notifymsg : FALSE; 
 }
 
 IPlaySound::ReCode_et 
@@ -426,7 +503,7 @@ CPlaySound::Close()
 {
 	MMRESULT mmerr = 0;
 
-	if(m_hWaveout)
+	if(IsWavBinOpened())
 	{
 		vaDBG2(_T("Close() PlayBin"));
 
@@ -477,27 +554,39 @@ CPlaySound::Close()
 IPlaySound::ReCode_et 
 CPlaySound::PlayOnce()
 {
-	if(!m_pwavformbin)
+	if( IsWavBinOpened() )
+	{
+		assert(!IsMciOpened());
+		assert(m_wavefmtex.wFormatTag==WAVE_FORMAT_PCM);
+		assert(m_pwavformbin);
+		assert(m_hWaveout);
+
+		vaDBG3(_T("waveOutWrite() >>> lenbytes: %d [tid=%u]"), m_wavehdr.dwBufferLength, GetCurrentThreadId());
+		//
+		MMRESULT mmerr = waveOutWrite(m_hWaveout, &m_wavehdr, sizeof(m_wavehdr));
+		//
+		if(!mmerr)
+		{
+			vaDBG3(_T("waveOutWrite() <<<"));
+			return E_Success;
+		}
+		else
+		{
+			vaDBG3(_T("waveOutWrite() <<< mmerr=%s"), ITCS_MmsystemError(mmerr));
+			return E_SysApi;
+		}
+	}
+	else if( IsMciOpened() )
+	{
+		assert(!IsWavBinOpened());
+		assert(m_devalias.not_empty());
+
+		MCIERROR mcierr = vaExecMciString(_T("play %s from 0 notify"), m_devalias.c_str());
+
+		return mcierr ? E_SysApi : E_Success;
+	}
+	else 
 		return E_NotOpenYet;
-
-	assert(m_wavefmtex.wFormatTag==WAVE_FORMAT_PCM);
-	assert(m_pwavformbin);
-	assert(m_hWaveout);
-
-	vaDBG3(_T("waveOutWrite() >>> lenbytes: %d [tid=%u]"), m_wavehdr.dwBufferLength, GetCurrentThreadId());
-	//
-	MMRESULT mmerr = waveOutWrite(m_hWaveout, &m_wavehdr, sizeof(m_wavehdr));
-	//
-	if(!mmerr)
-	{
-		vaDBG3(_T("waveOutWrite() <<<"));
-		return E_Success;
-	}
-	else
-	{
-		vaDBG3(_T("waveOutWrite() <<< mmerr=%s"), ITCS_MmsystemError(mmerr));
-		return E_SysApi;
-	}
 }
 
 
@@ -603,10 +692,20 @@ CPlaySound::OpenSoundFile(const TCHAR* pszSoundFile)
 IPlaySound::ReCode_et
 CPlaySound::Stop()
 {
-	if(m_hWaveout)
+	if( IsWavBinOpened() )
 	{
+		assert(m_hWaveout);
 		waveOutReset(m_hWaveout);
+
 		return E_Success;
+	}
+	else if( IsMciOpened() )
+	{
+		assert(m_devalias.not_empty());
+
+		MCIERROR mcierr = vaExecMciString(_T("stop %s"), m_devalias.c_str());
+
+		return mcierr ? E_SysApi : E_Success;
 	}
 	else
 	{

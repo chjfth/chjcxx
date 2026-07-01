@@ -1,7 +1,7 @@
 #ifndef __CHHI__IPlaySound_h_
 #define __CHHI__IPlaySound_h_
 #define __CHHI__IPlaySound_h_created_ 20260630
-#define __CHHI__IPlaySound_h_updated_ 20260630
+#define __CHHI__IPlaySound_h_updated_ 20260701
 
 
 #include <ps_TCHAR.h>
@@ -28,7 +28,7 @@ public:
 	static const TCHAR* GetVersion();
 
 public:
-	~IPlaySound() {}
+	virtual ~IPlaySound() {}
 
 	virtual ReCode_et OpenWavBin(const void *pWavFileBin, int nBytes) = 0;
 	// -- [pWavFileBin, nBytes] is whole .wav file content in RAM.
