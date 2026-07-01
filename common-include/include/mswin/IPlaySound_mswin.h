@@ -99,8 +99,6 @@ public:
 	UINT RegisterHwndNotify(HWND hwndNotify);
 
 protected:
-	enum State_et { Dumb=0, PlayBin=1, PlayFile=2 };
-
 	void _ctor();
 	void _dtor();
 
@@ -164,10 +162,7 @@ private:
 		}
 	};
 
-	friend MciNotifyPeeker; // can omit?
-
 private:
-	State_et m_state; // to-delete
 	MciNotifyPeeker *m_peeker; // Peek into user's HWND to post play-done notification
 
 	//// PlayBin members:
@@ -195,7 +190,6 @@ const TCHAR *CPlaySound::s_mciAliasPrefix = _T("IPlaySound_alias");
 
 void CPlaySound::_ctor()
 {
-	m_state = Dumb;
 	m_peeker = nullptr;
 
 	m_hwndNotify = NULL;
@@ -492,8 +486,6 @@ CPlaySound::OpenWavBin(const void *pWavFileBin, int nBytes)
 		return E_SysApi;
 	}
 
-	m_state = PlayBin;
-
 	return E_Success;
 }
 
@@ -538,7 +530,6 @@ CPlaySound::Close()
 		vaExecMciString(_T("close %s"), m_devalias.c_str());
 	}
 
-	m_state = Dumb;
 	memset_0_struct(m_wavefmtex);
 	memset_0_struct(m_wavehdr);
 	m_pwavformbin = NULL;
