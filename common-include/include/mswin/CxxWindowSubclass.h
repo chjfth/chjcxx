@@ -1,7 +1,7 @@
 #ifndef __CHHI__CxxWindowSubclass_h_
 #define __CHHI__CxxWindowSubclass_h_
 #define __CHHI__CxxWindowSubclass_h_created_ 20250606
-#define __CHHI__CxxWindowSubclass_h_updated_ 20260317
+#define __CHHI__CxxWindowSubclass_h_updated_ 20260702
 
 // From Jimm Chen's chjcxx repo.
 // Modification date at first line as version number.
@@ -97,6 +97,10 @@ public:
 
 	bool IsAttached() {
 		return m_hwnd ? true : false;
+	}
+
+	HWND GetHwnd() {
+		return m_hwnd;
 	}
 
 private:

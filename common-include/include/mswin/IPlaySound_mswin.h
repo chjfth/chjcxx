@@ -215,11 +215,6 @@ void CPlaySound::_ctor()
 void CPlaySound::_dtor()
 {
 	Close();
-	
-	if(m_peeker) {
-		m_peeker->DetachHwnd(true);
-		m_peeker = nullptr;
-	}
 }
 
 
@@ -251,8 +246,12 @@ UINT CPlaySound::RegisterHwndNotify(HWND hwndNotify)
 	{
 		// Remove old association first
 		assert(m_peeker);
-		m_peeker->DetachHwnd(true);
+		
+		if(IsWindow(m_hwndNotify))
+			m_peeker->DetachHwnd(true);
+		
 		m_peeker = nullptr;
+		m_hwndNotify = NULL;
 	}
 
 	if(hwndNotify)
