@@ -36,6 +36,8 @@ public:
 
 	virtual ReCode_et OpenSoundFile(const TCHAR* pszSoundFile) = 0;
 
+	virtual bool IsOpened() = 0;
+
 	virtual ReCode_et Close() = 0;
 
 	virtual ReCode_et PlayOnce() = 0;

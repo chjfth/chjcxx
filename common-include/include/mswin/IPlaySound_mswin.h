@@ -1,8 +1,9 @@
 #ifndef __CHHI__IPlaySound_mswin_h_
 #define __CHHI__IPlaySound_mswin_h_
 #define __CHHI__IPlaySound_mswin_h_created_ 20260630
-#define __CHHI__IPlaySound_mswin_h_updated_ 20260701
+#define __CHHI__IPlaySound_mswin_h_updated_ 20260702
 
+#include <windows.h>
 #include <IPlaySound.h>
 
 ////////////////////////////////////////////////////////////////////////////
@@ -19,7 +20,7 @@ UINT IPlaySound_RegisterHwndNotify(IPlaySound *vpsobj, HWND hwndNotify);
 // -- Return a message value [that will be sent to hwndNotify on SoundBin-playing done].
 //    Return 0(FALSE) if notification message unsupported.
 //    If hwndNotify is NULL, notification will be turned off.
-// When notificaiton window-message arrives:
+// When notification window-message arrives:
 // [WPARAM] always 0, meaning MM_WOM_DONE.
 // [LPARAM] the IPlaySound object pointer that triggered this message.
 
@@ -59,7 +60,7 @@ UINT IPlaySound_RegisterHwndNotify(IPlaySound *vpsobj, HWND hwndNotify);
 #include <sdring.h>
 #include <chj_mishmash.h>
 #include <CxxWindowSubclass.h>
-#include <mswin/WinError.itc.h>
+//#include <mswin/WinError.itc.h> // This bloats EXE by 300KB+
 #include <mswin/mmsystem.itc.h>
 // <<< Include headers required by this lib's implementation
 
@@ -85,6 +86,8 @@ public:
 	virtual ReCode_et OpenWavBin(const void *pWavFileBin, int nBytes) cxx11_override;
 
 	virtual ReCode_et OpenSoundFile(const TCHAR* pszSoundFile) cxx11_override;
+
+	virtual bool IsOpened() cxx11_override;
 
 	virtual ReCode_et Close() cxx11_override;
 
@@ -179,7 +182,7 @@ private:
 
 	//// PlayFile members:
 
-	Sdring m_playfile;
+//	Sdring m_playfile;
 	Sdring m_devalias; // sound file 'alias' used by MCI command
 	UINT m_mciDevId; // 1, 2, 3 etc
 };
@@ -206,11 +209,6 @@ void CPlaySound::_ctor()
 void CPlaySound::_dtor()
 {
 	Close();
-	
-	if(m_peeker) {
-		m_peeker->DetachHwnd(true);
-		m_peeker = nullptr;
-	}
 }
 
 
@@ -242,8 +240,12 @@ UINT CPlaySound::RegisterHwndNotify(HWND hwndNotify)
 	{
 		// Remove old association first
 		assert(m_peeker);
-		m_peeker->DetachHwnd(true);
+		
+		if(IsWindow(m_hwndNotify))
+			m_peeker->DetachHwnd(true);
+		
 		m_peeker = nullptr;
+		m_hwndNotify = NULL;
 	}
 
 	if(hwndNotify)
@@ -280,7 +282,7 @@ CPlaySound::_delayed_init()
 		}
 		else
 		{
-			vaDBG1(_T("Panic! RegisterWindowMessage(\"%s\") returns FAIL. WinErr=%s"), s_msgkeystr, ITCS_WinError);
+			vaDBG1(_T("Panic! RegisterWindowMessage(\"%s\") returns FAIL. WinErr=%d"), s_msgkeystr, GetLastError());
 			msg = FALSE;
 		}
 
@@ -490,58 +492,6 @@ CPlaySound::OpenWavBin(const void *pWavFileBin, int nBytes)
 }
 
 
-IPlaySound::ReCode_et
-CPlaySound::Close()
-{
-	MMRESULT mmerr = 0;
-
-	if(IsWavBinOpened())
-	{
-		vaDBG2(_T("Close() PlayBin"));
-
-		mmerr = waveOutReset(m_hWaveout);
-		if(mmerr)
-		{
-			vaDBG1(_T("Unexpect! waveOutReset() returns error: %s"), ITCSvn(mmerr, itc::MmsystemError));
-		}
-
-		if(m_wavehdr.lpData)
-		{
-			mmerr = waveOutUnprepareHeader(m_hWaveout, &m_wavehdr, sizeof(m_wavehdr));
-			assert(!mmerr);
-		}
-
-
-		mmerr = waveOutClose(m_hWaveout);
-		if(mmerr)
-		{
-			vaDBG1(_T("Unexpect! waveOutClose() returns error: %s"), ITCSvn(mmerr, itc::MmsystemError));
-		}
-
-		m_hWaveout = NULL;
-	}
-
-	if(IsMciOpened())
-	{
-		vaDBG2(_T("Close() PlayFile"));
-
-		assert(m_devalias.not_empty());
-
-		vaExecMciString(_T("close %s"), m_devalias.c_str());
-	}
-
-	memset_0_struct(m_wavefmtex);
-	memset_0_struct(m_wavehdr);
-	m_pwavformbin = NULL;
-
-	m_playfile.set_empty();
-	m_devalias.set_empty();
-	m_mciDevId = 0;
-
-	return E_Success;
-}
-
-
 IPlaySound::ReCode_et 
 CPlaySound::PlayOnce()
 {
@@ -704,6 +654,66 @@ CPlaySound::Stop()
 	}
 }
 
+
+IPlaySound::ReCode_et
+CPlaySound::Close()
+{
+	MMRESULT mmerr = 0;
+
+	if(IsWavBinOpened())
+	{
+		vaDBG2(_T("Close() PlayBin"));
+
+		mmerr = waveOutReset(m_hWaveout);
+		if(mmerr)
+		{
+			vaDBG1(_T("Unexpect! waveOutReset() returns error: %s"), ITCSvn(mmerr, itc::MmsystemError));
+		}
+
+		if(m_wavehdr.lpData)
+		{
+			mmerr = waveOutUnprepareHeader(m_hWaveout, &m_wavehdr, sizeof(m_wavehdr));
+			assert(!mmerr);
+		}
+
+
+		mmerr = waveOutClose(m_hWaveout);
+		if(mmerr)
+		{
+			vaDBG1(_T("Unexpect! waveOutClose() returns error: %s"), ITCSvn(mmerr, itc::MmsystemError));
+		}
+
+		m_hWaveout = NULL;
+	}
+
+	if(IsMciOpened())
+	{
+		vaDBG2(_T("Close() PlayFile"));
+
+		assert(m_devalias.not_empty());
+
+		vaExecMciString(_T("close %s"), m_devalias.c_str());
+	}
+
+	memset_0_struct(m_wavefmtex);
+	memset_0_struct(m_wavehdr);
+	m_pwavformbin = NULL;
+
+//	m_playfile.set_empty();
+	m_devalias.set_empty();
+	m_mciDevId = 0;
+
+	return E_Success;
+}
+
+
+bool CPlaySound::IsOpened()
+{
+	if(IsWavBinOpened() || IsMciOpened())
+		return true;
+	else
+		return false;
+}
 
 
 IPlaySound* IPlaySound::CreateObj()
