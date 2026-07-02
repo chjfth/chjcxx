@@ -87,6 +87,8 @@ public:
 
 	virtual ReCode_et OpenSoundFile(const TCHAR* pszSoundFile) cxx11_override;
 
+	virtual bool IsOpened() cxx11_override;
+
 	virtual ReCode_et Close() cxx11_override;
 
 	virtual ReCode_et PlayOnce() cxx11_override;
@@ -185,7 +187,7 @@ private:
 
 	//// PlayFile members:
 
-	Sdring m_playfile;
+//	Sdring m_playfile;
 	Sdring m_devalias; // sound file 'alias' used by MCI command
 	UINT m_mciDevId; // 1, 2, 3 etc
 };
@@ -499,59 +501,6 @@ CPlaySound::OpenWavBin(const void *pWavFileBin, int nBytes)
 }
 
 
-IPlaySound::ReCode_et
-CPlaySound::Close()
-{
-	MMRESULT mmerr = 0;
-
-	if(IsWavBinOpened())
-	{
-		vaDBG2(_T("Close() PlayBin"));
-
-		mmerr = waveOutReset(m_hWaveout);
-		if(mmerr)
-		{
-			vaDBG1(_T("Unexpect! waveOutReset() returns error: %s"), ITCSvn(mmerr, itc::MmsystemError));
-		}
-
-		if(m_wavehdr.lpData)
-		{
-			mmerr = waveOutUnprepareHeader(m_hWaveout, &m_wavehdr, sizeof(m_wavehdr));
-			assert(!mmerr);
-		}
-
-
-		mmerr = waveOutClose(m_hWaveout);
-		if(mmerr)
-		{
-			vaDBG1(_T("Unexpect! waveOutClose() returns error: %s"), ITCSvn(mmerr, itc::MmsystemError));
-		}
-
-		m_hWaveout = NULL;
-	}
-
-	if(IsMciOpened())
-	{
-		vaDBG2(_T("Close() PlayFile"));
-
-		assert(m_devalias.not_empty());
-
-		vaExecMciString(_T("close %s"), m_devalias.c_str());
-	}
-
-	m_state = Dumb;
-	memset_0_struct(m_wavefmtex);
-	memset_0_struct(m_wavehdr);
-	m_pwavformbin = NULL;
-
-	m_playfile.set_empty();
-	m_devalias.set_empty();
-	m_mciDevId = 0;
-
-	return E_Success;
-}
-
-
 IPlaySound::ReCode_et 
 CPlaySound::PlayOnce()
 {
@@ -714,6 +663,67 @@ CPlaySound::Stop()
 	}
 }
 
+
+IPlaySound::ReCode_et
+CPlaySound::Close()
+{
+	MMRESULT mmerr = 0;
+
+	if(IsWavBinOpened())
+	{
+		vaDBG2(_T("Close() PlayBin"));
+
+		mmerr = waveOutReset(m_hWaveout);
+		if(mmerr)
+		{
+			vaDBG1(_T("Unexpect! waveOutReset() returns error: %s"), ITCSvn(mmerr, itc::MmsystemError));
+		}
+
+		if(m_wavehdr.lpData)
+		{
+			mmerr = waveOutUnprepareHeader(m_hWaveout, &m_wavehdr, sizeof(m_wavehdr));
+			assert(!mmerr);
+		}
+
+
+		mmerr = waveOutClose(m_hWaveout);
+		if(mmerr)
+		{
+			vaDBG1(_T("Unexpect! waveOutClose() returns error: %s"), ITCSvn(mmerr, itc::MmsystemError));
+		}
+
+		m_hWaveout = NULL;
+	}
+
+	if(IsMciOpened())
+	{
+		vaDBG2(_T("Close() PlayFile"));
+
+		assert(m_devalias.not_empty());
+
+		vaExecMciString(_T("close %s"), m_devalias.c_str());
+	}
+
+	m_state = Dumb;
+	memset_0_struct(m_wavefmtex);
+	memset_0_struct(m_wavehdr);
+	m_pwavformbin = NULL;
+
+//	m_playfile.set_empty();
+	m_devalias.set_empty();
+	m_mciDevId = 0;
+
+	return E_Success;
+}
+
+
+bool CPlaySound::IsOpened()
+{
+	if(IsWavBinOpened() || IsMciOpened())
+		return true;
+	else
+		return false;
+}
 
 
 IPlaySound* IPlaySound::CreateObj()
