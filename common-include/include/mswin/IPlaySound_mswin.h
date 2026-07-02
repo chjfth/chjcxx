@@ -1,8 +1,9 @@
 #ifndef __CHHI__IPlaySound_mswin_h_
 #define __CHHI__IPlaySound_mswin_h_
 #define __CHHI__IPlaySound_mswin_h_created_ 20260630
-#define __CHHI__IPlaySound_mswin_h_updated_ 20260701
+#define __CHHI__IPlaySound_mswin_h_updated_ 20260702
 
+#include <windows.h>
 #include <IPlaySound.h>
 
 ////////////////////////////////////////////////////////////////////////////
@@ -19,7 +20,7 @@ UINT IPlaySound_RegisterHwndNotify(IPlaySound *vpsobj, HWND hwndNotify);
 // -- Return a message value [that will be sent to hwndNotify on SoundBin-playing done].
 //    Return 0(FALSE) if notification message unsupported.
 //    If hwndNotify is NULL, notification will be turned off.
-// When notificaiton window-message arrives:
+// When notification window-message arrives:
 // [WPARAM] always 0, meaning MM_WOM_DONE.
 // [LPARAM] the IPlaySound object pointer that triggered this message.
 
@@ -59,7 +60,7 @@ UINT IPlaySound_RegisterHwndNotify(IPlaySound *vpsobj, HWND hwndNotify);
 #include <sdring.h>
 #include <chj_mishmash.h>
 #include <CxxWindowSubclass.h>
-#include <mswin/WinError.itc.h>
+//#include <mswin/WinError.itc.h> // This bloats EXE by 300KB+
 #include <mswin/mmsystem.itc.h>
 // <<< Include headers required by this lib's implementation
 
@@ -286,7 +287,7 @@ CPlaySound::_delayed_init()
 		}
 		else
 		{
-			vaDBG1(_T("Panic! RegisterWindowMessage(\"%s\") returns FAIL. WinErr=%s"), s_msgkeystr, ITCS_WinError);
+			vaDBG1(_T("Panic! RegisterWindowMessage(\"%s\") returns FAIL. WinErr=%d"), s_msgkeystr, GetLastError());
 			msg = FALSE;
 		}
 

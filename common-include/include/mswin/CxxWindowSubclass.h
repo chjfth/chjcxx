@@ -10,7 +10,8 @@
 
 #include <tchar.h>
 #include <windows.h>
-#include <CommCtrl.h> // DefSubclassProc
+#include <CommCtrl.h> // provides DefSubclassProc
+#pragma comment(lib, "comctl32.lib")
 
 #include <CxxVerCheck.h>
 #include <Cxx_delete_this_helper.h>
