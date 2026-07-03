@@ -1,7 +1,7 @@
 #ifndef __sdring_h_
 #define __sdring_h_
 #define __sdring_h_created_ 20251225_
-#define __sdring_h_updated_ 20260504_
+#define __sdring_h_updated_ 20260703_
 
 #include <assert.h>
 
@@ -114,15 +114,16 @@ public:
 
 	T_CHAR* & getbuf() {
 		// Note: returns a reference(not T_CHAR*'s value)
-		// For function prototype, put a `const` exactly before `&` is vital.
 		return m_buf; 
 	}
 	operator T_CHAR* & () { 
 		return getbuf();
 	}
 
-	operator T_CHAR const* const& () {
-		return getbuf();
+	operator T_CHAR const* const& () const {
+		return m_buf;
+		// Note: returns a reference(not T_CHAR*'s value)
+		// For function prototype, put a `const` exactly before `&` is vital.
 	}
 
 	const T_CHAR* takeover(T_CHAR *buf, int nchars)
