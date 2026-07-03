@@ -10,34 +10,6 @@
 #include <sdring.h>
 
 
-Sdring& vlSdringAppendSelf(Sdring &s, const TCHAR *fmt, va_list args);
-
-inline Sdring& vaSdringAppendSelf(Sdring &s, const TCHAR *fmt, ...)
-{
-	va_list args;
-	va_start(args, fmt);
-	vlSdringAppendSelf(s, fmt, args);
-	va_end(args);
-	return s;
-}
-
-inline Sdring& vlSdringSet(Sdring &s, const TCHAR *fmt, va_list args)
-{
-	s.set_empty();
-	vlSdringAppendSelf(s, fmt, args);
-	return s;
-}
-
-inline Sdring& vaSdringSet(Sdring &s, const TCHAR *fmt, ...)
-{
-	va_list args;
-	va_start(args, fmt);
-	vlSdringSet(s, fmt, args);
-	va_end(args);
-	return s;
-}
-
-
 bool binfile_is_match(const TCHAR *filename1, const TCHAR *filename2, int *pDiffAt=nullptr);
 
 
@@ -74,32 +46,6 @@ using namespace fsapi;
 #include <CHHI_vaDBG_hide.h> // Suppress/invalidate vaDBG macros, from now on
 #endif
 
-
-Sdring& vlSdringAppendSelf(Sdring &s, const TCHAR *fmt, va_list args)
-{
-	const int oncelen_ = 1024;
-//	const int maxlen  = maxlen_ - 1;
-	TCHAR sz[oncelen_] = _T("");
-	int retlen = vsnTprintf(sz, oncelen_, fmt, args);
-	if(retlen<=0)
-		return s; // no mem
-
-	if (retlen < oncelen_)
-	{
-		s.append_self(sz, retlen);
-		return s;
-	}
-
-	// Need to allocate a larger buffer.
-	TCHAR *psz = new TCHAR[retlen+1];
-	int retlen2 = vsnTprintf(psz, retlen+1, fmt, args);
-	if(retlen2>0)
-	{ 
-		s.append_self(psz, retlen);
-	}
-	delete psz;
-	return s;
-}
 
 
 bool binfile_is_match(const TCHAR *filename1, const TCHAR *filename2, int *pDiffAt)

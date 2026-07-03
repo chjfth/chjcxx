@@ -493,6 +493,35 @@ inline Sdrings SplitToSdrings(const TCHAR *szinput,
 	return ss;
 }
 
+
+Sdring& vlSdringAppendSelf(Sdring &s, const TCHAR *fmt, va_list args);
+
+inline Sdring& vaSdringAppendSelf(Sdring &s, const TCHAR *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	vlSdringAppendSelf(s, fmt, args);
+	va_end(args);
+	return s;
+}
+
+inline Sdring& vlSdringSet(Sdring &s, const TCHAR *fmt, va_list args)
+{
+	s.set_empty();
+	vlSdringAppendSelf(s, fmt, args);
+	return s;
+}
+
+inline Sdring& vaSdringSet(Sdring &s, const TCHAR *fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	vlSdringSet(s, fmt, args);
+	va_end(args);
+	return s;
+}
+
+
 ////////////////////////////////////////////////////////////////////////////
 //-- } // namespace nonamespace
 ////////////////////////////////////////////////////////////////////////////
@@ -516,10 +545,9 @@ inline Sdrings SplitToSdrings(const TCHAR *szinput,
 
 // >>> Include headers required by this lib's implementation
 
-//#include <commdefs.h> // for Uint, Uint64, enum bitwise-OR etc
-//#include <snTprintf.h>
-
 #include <ctype.h> // shp_stricmp
+//#include <commdefs.h> // for Uint, Uint64, enum bitwise-OR etc
+#include <snTprintf.h>
 
 // <<< Include headers required by this lib's implementation
 
@@ -558,6 +586,32 @@ int shp_stricmp(const TCHAR *s1, const TCHAR *s2)
 	return 0;
 }
 
+
+Sdring& vlSdringAppendSelf(Sdring &s, const TCHAR *fmt, va_list args)
+{
+	const int oncelen_ = 1024;
+	//	const int maxlen  = maxlen_ - 1;
+	TCHAR sz[oncelen_] = _T("");
+	int retlen = vsnTprintf(sz, oncelen_, fmt, args);
+	if (retlen <= 0)
+		return s; // no mem
+
+	if (retlen < oncelen_)
+	{
+		s.append_self(sz, retlen);
+		return s;
+	}
+
+	// Need to allocate a larger buffer.
+	TCHAR *psz = new TCHAR[retlen + 1];
+	int retlen2 = vsnTprintf(psz, retlen + 1, fmt, args);
+	if (retlen2 > 0)
+	{
+		s.append_self(psz, retlen);
+	}
+	delete psz;
+	return s;
+}
 
 
 
