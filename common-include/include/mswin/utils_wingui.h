@@ -92,11 +92,16 @@ BOOL Set_ClientAreaSize(HWND hwnd, int width, int height); // in pixels
 UINT Hwnd_TuneWinStyleBits  (HWND hwnd, UINT bits_on, UINT bits_off, bool is_tune_now=false);
 UINT Hwnd_TuneWinStyleExBits(HWND hwnd, UINT bits_on, UINT bits_off, bool is_tune_now=false);
 
+enum MenuitemBy_et { MenuitemById=0, MenuitemByPos=1 };
+
 HMENU FindSubMenu_byText(HMENU hMenu, const TCHAR* menutext, int *pPos=nullptr);
 int FindMenuitemPos_byText(HMENU hMenu, const TCHAR* menutext);
 //int FindMenuitemPos_byID(HMENU hMenu, UINT id);
 bool IsMenuitemExist_byID(HMENU hMenu, UINT id);
 BOOL SetMenuitemText_byID(HMENU hMenu, UINT id, const TCHAR *newtext);
+
+BOOL SetMenuitem_UserContext(HMENU hMenu, UINT uItem, MenuitemBy_et byWhat, void *userdata);
+BOOL GetMenuitem_UserContext(HMENU hMenu, UINT uItem, MenuitemBy_et byWhat, void **puserdata);
 
 
 
@@ -677,7 +682,7 @@ int FindMenuitemPos_byText(HMENU hMenu, const TCHAR* menutext)
 		mii.dwTypeData = buffer;
 		mii.cch = ARRAYSIZE(buffer);
 
-		if (GetMenuItemInfo(hMenu, i, TRUE, &mii))
+		if (GetMenuItemInfo(hMenu, i, MenuitemByPos, &mii))
 		{
 			if (_tcscmp(buffer, menutext) == 0)
 				return i;
@@ -702,7 +707,7 @@ bool IsMenuitemExist_byID(HMENU hMenu, UINT id)
 	MENUITEMINFO mii = { sizeof(mii) };
 	mii.fMask = MIIM_ID;
 
-	if (GetMenuItemInfo(hMenu, id, FALSE, &mii))
+	if (GetMenuItemInfo(hMenu, id, MenuitemById, &mii))
 		return true;
 	else
 		return false;
@@ -714,7 +719,31 @@ BOOL SetMenuitemText_byID(HMENU hMenu, UINT id, const TCHAR *newtext)
 	mii.fMask = MIIM_STRING;
 	mii.dwTypeData = (LPTSTR)newtext;
 
-	BOOL b = SetMenuItemInfo(hMenu, id, FALSE, &mii);
+	BOOL b = SetMenuItemInfo(hMenu, id, MenuitemById, &mii);
+	return b;
+}
+
+BOOL SetMenuitem_UserContext(HMENU hMenu, UINT uItem, MenuitemBy_et byWhat, void *userdata)
+{
+	MENUITEMINFO mii = { sizeof(mii) };
+	mii.fMask = MIIM_DATA;
+	mii.dwItemData = (ULONG_PTR)userdata;
+	
+	BOOL b = SetMenuItemInfo(hMenu, uItem, byWhat, &mii);
+	return b;
+}
+
+BOOL GetMenuitem_UserContext(HMENU hMenu, UINT uItem, MenuitemBy_et byWhat, void **puserdata)
+{
+	MENUITEMINFO mii = { sizeof(mii) };
+	mii.fMask = MIIM_DATA;
+
+	BOOL b = GetMenuItemInfo(hMenu, uItem, byWhat, &mii);
+	if(b)
+		*puserdata = (void*)mii.dwItemData;
+	else
+		*puserdata = nullptr;
+
 	return b;
 }
 

@@ -166,7 +166,7 @@ void DataXIni::AddItem(const TCHAR *secname, const TCHAR *keyname, IDataXString 
 {
 	int nsecs = msa_sections.CurrentEles();
 
-	// Query secname for idx into msa_sections[]
+	// Query secname for 'idx into msa_sections[]'
 	int secidx = *m_sec2idx.setdefault(secname, nsecs);
 
 	if(secidx==nsecs) // secname is not recorded yet
@@ -190,7 +190,7 @@ void DataXIni::LoadIni(const TCHAR* const ar_inifiles[], int nfiles, LoadSemanti
 {
 	m_ini.load_cascade(ar_inifiles, nfiles);
 
-	// Cycle through existing items, check if each appears in the INI,
+	// Cycle through existing items, check if each that appears in the INI,
 	// load its corresponding INI-stored values.
 
 	int nitems = msa_items.CurrentEles();
@@ -309,7 +309,7 @@ void DataXIni::LoadItemvalFromIni(IDataXString *pdatax, SimpleIniEx &ini,
 	//   itemval = m_ini.get_default(secname, item.keyname, item.pdatax->GetDefault());
 	//   pdatax->SetValueByString(itemval, false);
 	//
-	// That's inappropriate, bcz LiveUicXString.h does NOT want item.pdatax->GetDefault(),
+	// That was inappropriate, bcz LiveUicXString.h does NOT want item.pdatax->GetDefault(),
 	// but want his own LiveUic-stored default value .
 
 	if (ini.has_key(secname, keyname))
