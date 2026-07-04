@@ -1,7 +1,7 @@
 #ifndef __CHHI__IPlaySound_h_
 #define __CHHI__IPlaySound_h_
 #define __CHHI__IPlaySound_h_created_ 20260630
-#define __CHHI__IPlaySound_h_updated_ 20260701
+#define __CHHI__IPlaySound_h_updated_ 20260704
 
 
 #include <ps_TCHAR.h>
@@ -41,8 +41,20 @@ public:
 	virtual ReCode_et Close() = 0;
 
 	virtual ReCode_et PlayOnce() = 0;
+	// -- The sound-playing should be asynchronous, i.e. thread not block while playing.
+
+	enum PlayingQuery_et { PlayingQuery_NotSupport=0, Stopped=1, Playing=2 };
+
+	virtual PlayingQuery_et IsPlaying() = 0;
 
 	virtual ReCode_et Stop() = 0;
+	// -- Stop() is asynchronous. If user calls Stop() then immediately query IsPlaying(),
+	//    IsPlaying() may still return true. Actual implementation can design an 
+	//    out-of-band(asynchronous) notification/message that tells the playing has stopped.
+	//    On receiving that notification, IsPlaying() may still return Playing or Stopped.
+	//    - If Playing, it means current notification is triggered by *previous* PlayOnce();
+	//      a further notification must appear to tell play-done of *current* PlayOnce().
+	//    - If Stopped, it really means *current* PlayOnce() has ended.
 };
 
 #ifdef __CHHI__InterpretConst_h_

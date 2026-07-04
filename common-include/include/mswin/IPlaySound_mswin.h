@@ -1,7 +1,7 @@
 #ifndef __CHHI__IPlaySound_mswin_h_
 #define __CHHI__IPlaySound_mswin_h_
 #define __CHHI__IPlaySound_mswin_h_created_ 20260630
-#define __CHHI__IPlaySound_mswin_h_updated_ 20260702
+#define __CHHI__IPlaySound_mswin_h_updated_ 20260704
 
 #include <windows.h>
 #include <IPlaySound.h>
@@ -93,6 +93,8 @@ public:
 
 	virtual ReCode_et PlayOnce() cxx11_override;
 
+	virtual PlayingQuery_et IsPlaying() cxx11_override;
+
 	virtual ReCode_et Stop() cxx11_override;
 
 public:
@@ -104,6 +106,9 @@ public:
 protected:
 	void _ctor();
 	void _dtor();
+	void reset_playstop_count() {
+		m_nStarted = m_nFinished = 0;
+	}
 
 	ReCode_et _delayed_init();
 
@@ -133,7 +138,7 @@ protected:
 private:
 	static int s_notifymsg;
 	static const TCHAR *s_msgkeystr;
-	static const TCHAR *s_mciAliasPrefix; // suffix is this-object address
+	static const TCHAR *s_mciAliasPrefix; // and suffix is this-object address
 
 	struct MciNotifyPeeker : public CxxWindowSubclass
 	{
@@ -152,8 +157,10 @@ private:
 				{
 					if(notiflags==MCI_NOTIFY_SUCCESSFUL || notiflags==MCI_NOTIFY_ABORTED)
 					{
-						vaDBG2(_T("IPlaySound: MciNotifyPeeker will notify user HWND(=0x%08X) play-done, msgval=0x%X"), 
-							m_psParent->m_hwndNotify, CPlaySound::s_notifymsg);
+						m_psParent->m_nFinished++;
+
+						vaDBG2(_T("[nFinished#%u] IPlaySound: MciNotifyPeeker will notify user HWND(=0x%08X) play-done, msgval=0x%X"), 
+							m_psParent->m_nFinished, m_psParent->m_hwndNotify, CPlaySound::s_notifymsg);
 
 						::PostMessage(m_psParent->m_hwndNotify, CPlaySound::s_notifymsg, 
 							0, (LPARAM)m_psParent);
@@ -167,6 +174,8 @@ private:
 
 private:
 	MciNotifyPeeker *m_peeker; // Peek into user's HWND to post play-done notification
+
+	Uint m_nStarted, m_nFinished;
 
 	//// PlayBin members:
 
@@ -194,6 +203,7 @@ const TCHAR *CPlaySound::s_mciAliasPrefix = _T("IPlaySound_alias");
 void CPlaySound::_ctor()
 {
 	m_peeker = nullptr;
+	reset_playstop_count();
 
 	m_hwndNotify = NULL;
 
@@ -235,6 +245,8 @@ UINT CPlaySound::RegisterHwndNotify(HWND hwndNotify)
 		// duplicate calling, easy return
 		return hwndNotify ? s_notifymsg : FALSE; 
 	}
+
+	reset_playstop_count();
 
 	if(m_hwndNotify)
 	{
@@ -495,6 +507,8 @@ CPlaySound::OpenWavBin(const void *pWavFileBin, int nBytes)
 IPlaySound::ReCode_et 
 CPlaySound::PlayOnce()
 {
+	ReCode_et pserr = E_Unknown;
+
 	if( IsWavBinOpened() )
 	{
 		assert(!IsMciOpened());
@@ -509,12 +523,12 @@ CPlaySound::PlayOnce()
 		if(!mmerr)
 		{
 			vaDBG3(_T("waveOutWrite() <<<"));
-			return E_Success;
+			pserr = E_Success;
 		}
 		else
 		{
 			vaDBG3(_T("waveOutWrite() <<< mmerr=%s"), ITCS_MmsystemError(mmerr));
-			return E_SysApi;
+			pserr = E_SysApi;
 		}
 	}
 	else if( IsMciOpened() )
@@ -524,10 +538,33 @@ CPlaySound::PlayOnce()
 
 		MCIERROR mcierr = vaExecMciString(_T("play %s from 0 notify"), m_devalias.c_str());
 
-		return mcierr ? E_SysApi : E_Success;
+		pserr = mcierr ? E_SysApi : E_Success;
 	}
 	else 
-		return E_NotOpenYet;
+	{
+		pserr = E_NotOpenYet;
+	}
+
+	if(!pserr)
+	{
+		m_nStarted++;
+		vaDBG2(_T("[nStarted#%u] CPlaySound::PlayOnce() success"), m_nStarted);
+	}
+
+	return pserr;
+}
+
+
+CPlaySound::PlayingQuery_et 
+CPlaySound::IsPlaying()
+{
+	if(!m_hwndNotify)
+		return PlayingQuery_NotSupport;
+
+	if( int(m_nStarted - m_nFinished) > 0 )
+		return Playing;
+	else
+		return Stopped;
 }
 
 
@@ -540,7 +577,11 @@ void CPlaySound::WaveOutProc(UINT wom_msg, DWORD_PTR param1, DWORD_PTR param2)
 	{
 		assert(s_notifymsg>0);
 
-		vaDBG2(_T("Due to MM_WOM_DONE, PostMessage to HWND=0x%X, msgval=0x%X"), (UINT)m_hwndNotify, (UINT)s_notifymsg);
+		m_nFinished++;
+
+		vaDBG2(_T("[nFinished#%u] Due to MM_WOM_DONE, PostMessage to HWND=0x%X, msgval=0x%X"), 
+			m_nFinished, (UINT)m_hwndNotify, (UINT)s_notifymsg);
+
 		::PostMessage(m_hwndNotify, s_notifymsg, 0, (LPARAM)this);
 	}
 }
