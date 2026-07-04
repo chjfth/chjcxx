@@ -355,13 +355,13 @@ namespace itc {                        // API namespace
 	};
 
 
-#define ITC_NAMEPAIR(macroname) { _T( #macroname ) , (CONSTVAL_t)macroname }
+#define ITC_NAMEPAIR(macroname) { _T( #macroname ) , (itc::CONSTVAL_t)macroname }
 
 
 #define ITC_MAKE_OBJECT(itcobj_name, ...) \
-	const CInterpretConst& itcobj_name() \
+	const itc::CInterpretConst& itcobj_name() \
 	{ \
-		static const CInterpretConst sobj(__VA_ARGS__); \
+		static const itc::CInterpretConst sobj(__VA_ARGS__); \
 		return sobj; \
 	}
 
