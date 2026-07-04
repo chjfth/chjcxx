@@ -8,6 +8,7 @@
 #include <string.h>
 
 #include <CxxVerCheck.h>
+#include <msvc_extras.h>
 #include <ps_TCHAR.h>
 #include <sdring.h>
 #include <_MINMAX_.h>

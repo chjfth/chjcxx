@@ -622,6 +622,8 @@ CPlaySound::OpenSoundFile(const TCHAR* pszSoundFile)
 
 	Close(); // Free old resources
 
+	vaDBG2(_T("CPlaySound::OpenSoundFile() Will use MCI to play file: '%s'"), pszSoundFile);
+
 	vaSdringSet(m_devalias, _T("%s-0x%llX"), s_mciAliasPrefix, (Uint64)(UINT_PTR)this);
 	// -- Use %llX instead of %p, bcz %p has too many leading 0s for 64bit pointer.
 

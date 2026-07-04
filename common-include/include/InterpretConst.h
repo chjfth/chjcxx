@@ -415,6 +415,17 @@ namespace itc {                        // API namespace
 
 
 
+#ifndef ARRAY_SIZE 
+  // Clone of Visual C++ ARRAYSIZE(), but with a different name to use it on Linux as well.
+extern"C++"
+template <typename TElement, int N>
+char(*
+	RtlpNumberOf_commdefs(TElement(&rparam)[N])
+	)[N];
+#define ARRAY_SIZE(arr)  ( sizeof(*RtlpNumberOf_commdefs(arr)) )
+#endif
+
+
 
 
 /*

@@ -16,19 +16,6 @@
 #endif
 
 
-#ifndef ARRAYSIZE 
-
-// Define ARRAYSIZE from VC2010 CRT
-extern"C++"
-template <typename TElement, int N>
-char (*
-    RtlpNumberOf( TElement (& rparam)[N] )
-)[N];
-
-#define ARRAYSIZE(arr)  ( sizeof(*RtlpNumberOf(arr)) )
-
-#endif
-
 namespace itc {
 
 
@@ -423,7 +410,7 @@ const TCHAR *CInterpretConst::Interpret_i1(
 					TCHAR szbuf[OneDisplayMaxChars] = {};
 					snTcat(buf, bufsize, _T("%s%s"), 
 						FormatOneDisplay(c2v[i].EnumName, c2v[i].ConstVal, 
-							dispfmt, szbuf, ARRAYSIZE(szbuf), valfmt),
+							dispfmt, szbuf, ARRAY_SIZE(szbuf), valfmt),
 						sep
 						);
 				}
