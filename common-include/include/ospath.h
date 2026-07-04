@@ -1,7 +1,7 @@
 #ifndef __CHHI__ospath_h_
 #define __CHHI__ospath_h_
 #define __CHHI__ospath_h_created_ 20260418
-#define __CHHI__ospath_h_updated_ 20260506
+#define __CHHI__ospath_h_updated_ 20260704
 
 #include <ps_TCHAR.h>
 #include <sdring.h>
@@ -41,6 +41,12 @@ inline Sdring paths_join2(const TCHAR* path1, const TCHAR* path2, TCHAR sepchar=
 	return paths_join_sop(paths, 2, sepchar);
 }
 
+inline Sdring paths_join3(const TCHAR* path1, const TCHAR* path2, const TCHAR* path3, TCHAR sepchar = 0)
+{
+	TCHAR const* const paths[3] = { path1, path2, path3 };
+	return paths_join_sop(paths, 3, sepchar);
+}
+
 
 ////////////////////////////////////////////////////////////////////////////
 } // namespace ospath
@@ -75,6 +81,8 @@ inline Sdring paths_join2(const TCHAR* path1, const TCHAR* path2, TCHAR sepchar=
 
 
 #include <commdefs.h> // for Uint, Uint64, enum bitwise-OR etc
+#include <string.h>
+#include <msvc_extras.h>
 //#include <snTprintf.h>
 #include <cxx_stack.h>
 #include <StringHelper.h>
@@ -169,8 +177,9 @@ Sdring paths_join_sop(const TCHAR* const paths[], int npaths, TCHAR sepchar)
 	// pass in '\dir1' and 'dir2' instead.
 
 	bool is_root_lead = false;
+	TCHAR windrive_root[3] = _T(""); // could be "C:"
 
-	chjds::stack<Sdring> stk; // path-node stack
+	chjds::stack<Sdring> stk; // path-node stack`
 
 	int i;
 	for(i=0; i<npaths; i++)
@@ -182,6 +191,16 @@ Sdring paths_join_sop(const TCHAR* const paths[], int npaths, TCHAR sepchar)
 			// inpath starts with '/', so start over from root-dir
 			is_root_lead = true;
 			stk.clear();
+		}
+		else if(_tcslen(inpath)>=3 && inpath[1] == ':'
+			&& (inpath[0]>='A' && inpath[0]<='Z' || inpath[0]>='a' && inpath[0]<='z')
+			&& Is_pathsep(inpath[2]))
+		{
+			// Special for Windows root-drive path like C:\dir
+			is_root_lead = true;
+			stk.clear();
+			windrive_root[0]=inpath[0], windrive_root[1]=inpath[1];
+			inpath += 2;
 		}
 
 		// Split one inpath into path-nodes and append them into stk.
@@ -253,7 +272,12 @@ Sdring paths_join_sop(const TCHAR* const paths[], int npaths, TCHAR sepchar)
 	// Scan through stk, to collapse each ".."
 	Sdring sout;
 	if(is_root_lead)
+	{ 
+		if(windrive_root[0])
+			sout.append_self(windrive_root);
+
 		sout.append_self(&sepchar, 1);
+	}
 
 	int nodes = stk.count();
 	for (i=0; i<nodes; i++)
