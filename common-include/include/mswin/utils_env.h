@@ -6,6 +6,7 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <tchar.h>
+#include <Sdring.h>
 
 
 unsigned __int64 get_qpf();
@@ -23,6 +24,8 @@ BOOL Is_UserAnAdmin();
 const TCHAR* GetExeFilename();
 const TCHAR *GetExeStemname(); // the exe filename without .exe suffix
 const TCHAR* GetExeDir();
+
+Sdring GetFullpathRelaToExe(const TCHAR *relapath);
 
 
 const TCHAR* env_GetCpuArch();
@@ -75,6 +78,7 @@ int util_SimpleSysDpiScale(int input_pixels);
 // Include system/OS headers here
 #include <Shlwapi.h> // for StrRChr
 #pragma comment(lib, "Shlwapi.lib")
+#include <ospath.h>
 // [IMPL] //
 // [IMPL] //
 
@@ -179,6 +183,9 @@ const TCHAR* GetExeDir()
 	static TCHAR exepath[MAX_PATH] = _T("");
 	static const TCHAR* s_pdir = NULL;
 
+	if(s_pdir)
+		return s_pdir;
+
 	GetModuleFileName(NULL, exepath, ARRAYSIZE(exepath));
 
 	TCHAR *pLastSlash = StrRChr(exepath, NULL, _T('\\'));
@@ -192,6 +199,13 @@ const TCHAR* GetExeDir()
 		return _T("");
 }
 
+Sdring GetFullpathRelaToExe(const TCHAR *relapath)
+{
+	// Special: if relapath is already a fullpath, return it as is.
+
+	Sdring fullpath = ospath::paths_join2(GetExeDir(), relapath);
+	return fullpath;
+}
 
 const TCHAR* env_GetCpuArch()
 {
