@@ -5,10 +5,10 @@
 
 
 #include <CxxVerCheck.h>
-#ifdef _MSC_VER
-#ifndef VC2015_OR_NEWER
-#error This libcode needs VC2015 or newer. VC2010 has bug on move-assignment code generation.
-#endif
+#ifndef CXX11_OR_NEWER
+//#error This libcode needs C++11 compiler. (VC2015+ is OK. VC2010 has bug on move-assignment.)
+// [20260704.c2] Does VC2010 really cause problem on chjds:stack? I can't recall it.
+// ospath::paths_join_sop() needs chjds::stack, so just let it out.
 #endif
 
 #include <new>
@@ -93,6 +93,10 @@ public:
 		_steal_from_old(old);     //////////////
 		old._ct0r();              //////////////
 	}                             //////////////
+#ifndef CXX11_OR_NEWER
+private: // VC2010's move-assignment causes bug, due to its containing TScalableArray object. ([20260704.c2] to-confirm)
+	     // So, I allow VC2010 to use this class, but disables(make private) its move-assignment ability.
+#endif
 	stack& operator=(stack&& old) // move-assign
 	{                             //////////////
 		if (this != &old) {       //////////////

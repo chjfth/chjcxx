@@ -4,10 +4,10 @@
 #define __CHHI__hashdict_h_updated_ 20260519
 
 #include <CxxVerCheck.h>
-#ifdef _MSC_VER
-#ifndef VC2015_OR_NEWER
-#error This libcode needs VC2015 or newer. VC2010 has bug on move-assignment code generation.
-#endif
+#ifndef CXX11_OR_NEWER
+#error This libcode needs C++11 compiler. (VC2015+ is OK. VC2010 has bug on move-assignment.)
+/* VC2010 bug: trove_entry_st contains Sdring(the Sdring defines move-assignment),
+this defeats immature VC2010, user gets silent wrong behavior. EvClip [20260415.c1] */
 #endif
 
 #include <new>
