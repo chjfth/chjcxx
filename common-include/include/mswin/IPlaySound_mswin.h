@@ -20,11 +20,11 @@ class CPlaySound_u  // '_u' means user interface, user public symbols etc
 {
 public:
 	static UINT RegisterHwndNotify(IPlaySound *vpsobj, HWND hwndNotify);
-	// -- Return a message value [that will be sent to hwndNotify on SoundBin-playing done].
+	// -- Return a message value [that will be sent to hwndNotify on sound-playing done].
 	//    Return 0(FALSE) if notification message unsupported.
 	//    If hwndNotify is NULL, notification will be turned off.
 	// When notification window-message arrives:
-	// [WPARAM] contains CPlaySound::PlayDone_et error-code.
+	// [WPARAM] contains PlayDone_et error-code.
 	// [LPARAM] the IPlaySound object pointer that triggered this message.
 
 	enum PlayDone_et { PlayDone_Success=0, PlayDone_Aborted=2, PlayDone_FileError=3 };

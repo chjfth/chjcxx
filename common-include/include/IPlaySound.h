@@ -55,13 +55,16 @@ public:
 	//    - If Playing, it means current notification is triggered by *previous* PlayOnce();
 	//      a further notification must appear to tell play-done of *current* PlayOnce().
 	//    - If Stopped, it really means *current* PlayOnce() has ended.
-};
 
 #ifdef __CHHI__InterpretConst_h_
-namespace itc {
-extern const CInterpretConst& IPlaySound_ReCode();
-}
+	static const itc::Enum2Val_st _e2v_ReCode[];
+	static const itc::CInterpretConst& ReCode_itc();
+
+	static const itc::Enum2Val_st _e2v_PlayingQuery[];
+	static const itc::CInterpretConst& PlayingQuery_itc();
 #endif
+};
+
 
 
 /*
@@ -78,25 +81,35 @@ extern const CInterpretConst& IPlaySound_ReCode();
 
 
 #if defined(IPlaySound_IMPL) || (defined CHHI_ALL_IMPL && !defined CHHI_ALL_IMPL_HIDE_IPlaySound) // [IMPL]
+
+
 #ifdef __CHHI__InterpretConst_h_
-namespace itc {
 
-const Enum2Val_st _e2v_IPlaySound_ReCode[] =
+const itc::Enum2Val_st IPlaySound::_e2v_ReCode[] =
 {
-	ITC_NAMEPAIR(IPlaySound::E_Success),
-	ITC_NAMEPAIR(IPlaySound::E_Unknown),
-	ITC_NAMEPAIR(IPlaySound::E_BadParam),
-	ITC_NAMEPAIR(IPlaySound::E_SysApi),
-	
-	ITC_NAMEPAIR(IPlaySound::E_FileNotFound),
-	ITC_NAMEPAIR(IPlaySound::E_ErrorFormat),
-	ITC_NAMEPAIR(IPlaySound::E_UnsupportFormat),
-	ITC_NAMEPAIR(IPlaySound::E_NotOpenYet),
-};
-ITC_MAKE_OBJECT(IPlaySound_ReCode, _e2v_IPlaySound_ReCode, ITCF_SINT)
+	ITC_NAMEPAIR(E_Success),
+	ITC_NAMEPAIR(E_Unknown),
+	ITC_NAMEPAIR(E_BadParam),
+	ITC_NAMEPAIR(E_SysApi),
 
-} // namespace itc
+	ITC_NAMEPAIR(E_FileNotFound),
+	ITC_NAMEPAIR(E_ErrorFormat),
+	ITC_NAMEPAIR(E_UnsupportFormat),
+	ITC_NAMEPAIR(E_NotOpenYet),
+};
+ITC_MAKE_OBJECT(IPlaySound::ReCode_itc, IPlaySound::_e2v_ReCode, ITCF_SINT)
+
+const itc::Enum2Val_st IPlaySound::_e2v_PlayingQuery[] =
+{
+	ITC_NAMEPAIR(PlayingQuery_NotSupport),
+	ITC_NAMEPAIR(Stopped),
+	ITC_NAMEPAIR(Playing),
+};
+ITC_MAKE_OBJECT(IPlaySound::PlayingQuery_itc, IPlaySound::_e2v_PlayingQuery, ITCF_SINT)
+
 #endif // __CHHI__InterpretConst_h_
+
+
 #endif // [IMPL]
 
 
