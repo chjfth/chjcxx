@@ -19,7 +19,7 @@
 class CPlaySound_u  // '_u' means user interface, user public symbols etc
 {
 public:
-	static UINT RegisterHwndNotify(IPlaySound *vpsobj, HWND hwndNotify);
+	static UINT RegisterHwndNotify(IPlaySound *psobj, HWND hwndNotify);
 	// -- Return a message value [that will be sent to hwndNotify on sound-playing done].
 	//    Return 0(FALSE) if notification message unsupported.
 	//    If hwndNotify is NULL, notification will be turned off.
@@ -92,7 +92,7 @@ const Uint MaxWavFormLen = 128*1024*1024;
 class CPlaySound : public IPlaySound, public CPlaySound_u
 {
 public:
-	virtual ReCode_et OpenWavBin(const void *pWavFileBin, int nBytes) cxx11_override;
+	virtual ReCode_et OpenSoundBin(const void *pWavFileBin, int nBytes) cxx11_override;
 
 	virtual ReCode_et OpenSoundFile(const TCHAR* pszSoundFile) cxx11_override;
 
@@ -386,7 +386,7 @@ CPlaySound::CheckWaveFormat(const WAVEFORMATEX& wf)
 }
 
 IPlaySound::ReCode_et
-CPlaySound::OpenWavBin(const void *pWavFileBin, int nBytes)
+CPlaySound::OpenSoundBin(const void *pWavFileBin, int nBytes)
 {
 	ReCode_et err = _delayed_init();
 	if(err)

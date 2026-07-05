@@ -1,7 +1,7 @@
 #ifndef __CHHI__IPlaySound_h_
 #define __CHHI__IPlaySound_h_
 #define __CHHI__IPlaySound_h_created_ 20260630
-#define __CHHI__IPlaySound_h_updated_ 20260704
+#define __CHHI__IPlaySound_h_updated_ 20260705
 
 
 #include <ps_TCHAR.h>
@@ -30,11 +30,15 @@ public:
 public:
 	virtual ~IPlaySound() {}
 
-	virtual ReCode_et OpenWavBin(const void *pWavFileBin, int nBytes) = 0;
-	// -- [pWavFileBin, nBytes] is whole .wav file content in RAM.
-	//    User should keep pWavBin buffer until the playing is done/stop.
+	virtual ReCode_et OpenSoundBin(const void *pFileBin, int nBytes) = 0;
+	// -- [pFileBin, nBytes] is whole .wav file content in RAM.
+	//    User should keep pFileBin buffer until the playing is done/stop.
+	// [2026-07-05] Currently, my Mswin port only support .wav content as pFileBin.
 
 	virtual ReCode_et OpenSoundFile(const TCHAR* pszSoundFile) = 0;
+	// -- pszSoundFile can be any media file type, typically an .mp3 file.
+	//    Underlying implementation determines whether the input file is supported,
+	//    if not, an ReCode_et is returned.
 
 	virtual bool IsOpened() = 0;
 
