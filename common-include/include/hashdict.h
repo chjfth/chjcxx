@@ -1,7 +1,7 @@
 #ifndef __CHHI__hashdict_h_
 #define __CHHI__hashdict_h_
 #define __CHHI__hashdict_h_created_ 20260404
-#define __CHHI__hashdict_h_updated_ 20260519
+#define __CHHI__hashdict_h_updated_ 20260706
 
 #include <CxxVerCheck.h>
 #ifndef CXX11_OR_NEWER
@@ -106,6 +106,8 @@ public:
 	}
 
 	TU* get(const TCHAR *key);
+
+	bool has_key(const TCHAR *key) { return get(key) ? true : false; }
 
 	int keycount() { return m_slots_active; }
 
