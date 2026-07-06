@@ -1,7 +1,7 @@
 #ifndef __CHHI__SimpleIni_h_
 #define __CHHI__SimpleIni_h_
 #define __CHHI__SimpleIni_h_created_ 20260416
-#define __CHHI__SimpleIni_h_updated_ 20260530
+#define __CHHI__SimpleIni_h_updated_ 20260706
 
 #include <ps_TCHAR.h>
 #include <sdring.h>
@@ -708,14 +708,17 @@ CIniOp::load_initext(const TCHAR *initext, int inilen)
 	
 	for (int iline=0;;)
 	{
+		hashdict<Keval_st> &kvdict = *pCurKvdict; // make a short name
+
 		int linelen = 0;
 		int linepos = spgline.next(&linelen);
 		if(linepos==-1)
+		{ 
+			kvc.Converge(kvdict);
 			break;
+		}
 
 		iline++;
-
-		hashdict<Keval_st> &kvdict = *pCurKvdict; // make a short name
 
 		Sdring newkey_real, linetext;
 
