@@ -58,6 +58,12 @@
 		everything will be fine.
 
 	Flavor-Two has been applied on chjds::hashdict template class successfully, with [d].
+
+[2026-07-06] Caution for immaturity: (still to confirm)
+
+	Currently TScalableArray only applies C++ object dtor when an C++ element is 
+	dropped/removed from the managed array. It does not care about ctor/dtor when 
+	creating new storage, when CopyInEles() or CopyOutEles().
 */
 
 const int TSA_no_decrease = 0; // use for DecSize param
@@ -167,6 +173,8 @@ d:\ws\common-include\autotest\mytest-ci\test_tscalablearray.cpp(408): error C259
 		//    In this case, passing a const to a reference type may be forbidden by the compiler.
 		// 2. If user's T object is large and he wants to avoid object memory copy, 
 		//    he can instead use ``AppendAt(int pos, const T* array, int n);'' for efficiency.
+		//
+		// [2026-07-06] Perhaps AppendAt() should be named ReplaceAt().
 
 	ReCode_t DeleteEles(int pos, int n);
 		// A too large `n' means to delete all eles starting at `pos'
@@ -727,6 +735,7 @@ TScalableArray<T>::AppendAt(int pos, const T* array, int n)
 	}
 	else
 	{
+		// split into two parts, do them separately
 		int nOverWrite = m_nCurEle-pos;
 		CopyInEles(pos, nOverWrite, array);
 		return AppendTail(array+nOverWrite, n-nOverWrite);
