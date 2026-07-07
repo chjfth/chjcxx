@@ -208,16 +208,6 @@ struct Keval_st  // represent a INI-key(or virtual-key)'s value
 		Headup0Lines=-1, Headup1Lines=-2, // negative for VIRTUAL_KEYNAME_HEADUP_BLANK_LINES
 	};
 
-	static Type BlankLinesToTypeVal(int blanklines) { 
-		assert(blanklines>=0);
-		return (Type)(-(blanklines+1)); 
-	}
-	static int TypeValToBlankLines(Type typeval) {
-		assert(typeval<0);
-		return -(typeval+1);
-	}
-
-
 	union
 	{
 		Type type;
@@ -226,7 +216,15 @@ struct Keval_st  // represent a INI-key(or virtual-key)'s value
 	Sdring  firstline; // used when type=Comment or type=OneLine
 	Sdring *ar_exlines; // array size indicated by `totlines-1`
 
-	// Special: For VIRTUAL_KEYNAME_HEADUP_BLANK_LINES, totlines>0 but ar_exlines==nullptr .
+	////
+	static Type BlankLinesToTypeVal(int blanklines) {
+		assert(blanklines >= 0);
+		return (Type)(-(blanklines + 1));
+	}
+	static int TypeValToBlankLines(Type typeval) {
+		assert(typeval < 0);
+		return -(typeval + 1);
+	}
 
 public:
 	// boilerplate code, no need to modify >>>
@@ -1073,6 +1071,20 @@ keym =
 	{
 		assert(keval.ar_exlines == nullptr);
 		return keval.firstline; // will call Sdring's copy-ctor, not move-ctor
+	}
+
+	// Special since 20260707: check for "_blanklines_" keyname.
+	if (int(keval.type) < 0)
+	{
+		if( _tcscmp(keyname, VIRTUAL_KEYNAME_of_HeadupBlankLines)!=0 )
+		{
+			vaDBG1(_T("Unexpect! [%s] '%s' Meet negative Keval type(=%d)"), secname, keyname, keval.totlines);
+			return Sdring();
+		}
+		int blanklines = Keval_st::TypeValToBlankLines(keval.type);
+		Sdring sret(12);
+		snTprintf(sret.getbuf(), sret.rawlen(), _T("%d"), blanklines);
+		return sret;
 	}
 
 	// Below: Deal with multi-line keval case.
