@@ -66,6 +66,16 @@ typedef int YorN;
 # define NO 0
 #endif
 
+#define Ptr2Uint(ptr) ((unsigned int)(uintptr_t)(ptr))
+// -- to avoid 64bit compiler warning like; 
+//    warning C4311: 'type cast': pointer truncation from 'HMENU' to 'unsigned int'
+
+#define Ptr2Uint64(ptr) ((unsigned __int64)(uintptr_t)(ptr))
+// -- Usage: When MSVC printf a 64bit pointer using %p, the output could be very lengthy
+//    like '000000000014FBA0'. To workaround, we could instead use:
+//    printf("<0x%llX>", Ptr2Uint64(ptr))
+
+
 #define FREE_MALLOCED(p) \
 	do{ if(p){free(p); p=0;} }while(0)
 

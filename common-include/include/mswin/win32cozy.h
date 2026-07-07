@@ -8,10 +8,6 @@
 #include <assert.h>
 #include <windows.h>
 
-#define Ptr2Uint(ptr) ((unsigned int)(uintptr_t)(ptr))
-// -- to avoid 64bit compiler warning like; 
-//    warning C4311: 'type cast': pointer truncation from 'HMENU' to 'unsigned int'
-
 
 ///////////// Win32Mutex ///////////////
 
