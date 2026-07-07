@@ -1,7 +1,7 @@
 #ifndef __CHHI__makeTsdring_h_
 #define __CHHI__makeTsdring_h_
 #define __CHHI__makeTsdring_h_created_ 20251217
-#define __CHHI__makeTsdring_h_updated_ 20260406
+#define __CHHI__makeTsdring_h_updated_ 20260707
 
 
 #include <ps_TCHAR.h>
@@ -76,7 +76,9 @@ sdring<TCHAR> makeTsdring(const char *instr, int codepage)
 #if defined(UNICODE) || defined(_UNICODE)
 	int outs_ = 0;
 	wchar_t *wcbuf = mTs_wchar_from_char(codepage, instr, &outs_);
-	// instr = nullptr;
+
+	if(!wcbuf)
+		return nullptr;
 
 	sdring<TCHAR> rets;
 	rets.takeover(wcbuf, outs_-1);
@@ -92,6 +94,9 @@ sdring<TCHAR> makeTsdring(sdring<char>&& instr, int codepage)
 	int outs_ = 0;
 	wchar_t *wcbuf = mTs_wchar_from_char(codepage, instr, &outs_);
 	instr = nullptr; // release old sdring
+
+	if(!wcbuf)
+		return nullptr;
 
 	sdring<TCHAR> rets;
 	rets.takeover(wcbuf, outs_-1);
@@ -112,7 +117,9 @@ sdring<TCHAR> makeTsdring(const wchar_t *instr, int codepage)
 #else
 	int outs_ = 0;
 	char *charbuf = mTs_char_from_wchar(codepage, instr, &outs_);
-	// instr = nulltpr;
+
+	if(!charbuf)
+		return nullptr;
 
 	sdring<TCHAR> rets;
 	rets.takeover(charbuf, outs_-1);
@@ -129,6 +136,9 @@ sdring<TCHAR> makeTsdring(sdring<wchar_t>&& instr, int codepage)
 	char *charbuf = mTs_char_from_wchar(codepage, instr, &outs_);
 	instr = nullptr;
 
+	if(!charbuf)
+		return nullptr;
+
 	sdring<TCHAR> rets;
 	rets.takeover(charbuf, outs_-1);
 	return rets;
@@ -144,7 +154,9 @@ sdring<char> makeAsdring(const TCHAR *instr, int codepage)
 #if defined(UNICODE) || defined(_UNICODE)
 	int outs_ = 0;
 	char *charbuf = mTs_char_from_wchar(codepage, instr, &outs_);
-	// instr = nullptr;
+
+	if (!charbuf)
+		return nullptr;
 
 	sdring<char> rets;
 	rets.takeover(charbuf, outs_-1);
@@ -161,13 +173,15 @@ sdring<char> makeAsdring(sdring<TCHAR>&& instr, int codepage)
 	char *charbuf = mTs_char_from_wchar(codepage, instr, &outs_);
 	instr = nullptr; // release old sdring
 
+	if (!charbuf)
+		return nullptr;
+
 	sdring<char> rets;
 	rets.takeover(charbuf, outs_-1);
 	return rets;
 #else
 	return sdring<char>(std::move(instr));
 #endif
-
 }
 
 
@@ -179,11 +193,32 @@ sdring<wchar_t> makeWsdring(const TCHAR *instr, int codepage)
 #if defined(UNICODE) || defined(_UNICODE)
 	return sdring<wchar_t>(instr);
 #else
-	wchar_t *wcbuf = mTs_wchar_from_char(codepage, instr);
+	int outs_ = 0;
+	wchar_t *wcbuf = mTs_wchar_from_char(codepage, instr, &outs_);
 
-	sdring<wchar_t> rets = wcbuf;
+	if(!wcbuf)
+		return nullptr;
 
-	delete wcbuf;
+	sdring<wchar_t> rets;
+	rets.takeover(wcbuf, outs_-1);
+	return rets;
+#endif
+}
+
+sdring<wchar_t> makeWsdring(sdring<TCHAR>&& instr, int codepage)
+{
+#if defined(UNICODE) || defined(_UNICODE)
+	return sdring<wchar_t>(std::move(instr));
+#else
+	int outs_ = 0;
+	wchar_t *wcbuf = mTs_wchar_from_char(codepage, instr, &outs_);
+	instr = nullptr;
+
+	if(!wcbuf)
+		return nullptr;
+
+	sdring<wchar_t> rets;
+	rets.takeover(wcbuf, outs_-1);
 	return rets;
 #endif
 }
