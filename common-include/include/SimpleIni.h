@@ -1347,7 +1347,7 @@ Sdring CIniOp::save_ini_string(const TCHAR *crlf)
 	} // for(;; sec_count++)
 
 	// Append end-of-INI blank lines.
-	// But I reduce one \n now, bcz above sec_count cycle has always added extra one \n.
+	// But I reduce one CRLF now, bcz above sec_count cycle has always added extra one CRLF.
 	if (m_bls.IsFill())
 	{
 		int addlines = m_bls.m_count - 1;
@@ -1355,11 +1355,11 @@ Sdring CIniOp::save_ini_string(const TCHAR *crlf)
 	}
 	else
 	{
-		// Drop one \n from sout's tail.
+		// Chop off one CRLF from sout's tail.
 		int orig_len_ = sout.CurrentEles();
 		assert(sout[orig_len_-1]=='\0');
-		if(orig_len_>1)
-			sout[orig_len_-2] = '\0';
+		if(orig_len_ > crlflen)
+			sout[orig_len_ - 1 - crlflen] = '\0';
 	}
 
 	// [2026-05-02] Here I have to do a string copy, bcz TSA & Sdring's heap pointers
