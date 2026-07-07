@@ -330,7 +330,7 @@ struct BlankLines_St // consecutive blank line info
 		if (IsNull())
 			return;
 
-		vaDBG3(_T("Converge %d blank lines to [%s], virtual-key ';%d' ~ ';%d' "),
+		vaDBG3(_T(".   Converge %d blank lines to [%s], virtual-key ';%d'~';%d' "),
 			m_count, secname, m_iline_start, m_iline_start + m_count - 1);
 
 		TCHAR vkey[10] = {};
@@ -632,9 +632,9 @@ struct KVcontinue // KeyVal line continuation info
 
 		if(nReals>0)
 		{
-			// Cope with real-value lines. (include embedded comment lines)
+			// Cope with real-value lines. (including embedded comment lines)
 
-			pKeval->totlines = 1 + nReals;
+			pKeval->totlines = (1+nReals);
 			pKeval->ar_exlines = new Sdring[nReals];
 
 			for (int i = 0; i < nReals; i++)
@@ -647,8 +647,9 @@ struct KVcontinue // KeyVal line continuation info
 
 		if(nReals<nMixLines)
 		{ 
-			vaDBG3(_T("Migrate previous %d comment lines(#%d~#%d) to standalone virtual-keys"), 
-				nMixLines-nReals, nReals+1, nMixLines);
+			vaDBG3(_T(".   Migrate previous %d comment lines(L#%d~L#%d) to standalone virtual-keys"), 
+				nMixLines-nReals, 
+				ini_linestart+(1+nReals), ini_linestart+nMixLines);
 		}
 
 		for(int j=nReals; j<nMixLines; j++)
@@ -805,7 +806,8 @@ CIniOp::load_initext(const TCHAR *initext, int inilen)
 	StringSplitter<const TCHAR*, IsSplitLf, IsTrimCr, true> 
 		spgline(initext, 0, inilen); // spgline: split to get line(s)
 	
-	for (int iline=0;;)
+	int iline = 0;
+	while(1)
 	{
 		int linelen = 0;
 		int linepos = spgline.next(&linelen);
@@ -821,7 +823,7 @@ CIniOp::load_initext(const TCHAR *initext, int inilen)
 		linecat = CheckLineCategory(kvc.has_penkey(), 
 			initext, linepos, linelen, 
 			newkey_real, linetext);
-		// -- curkey_real, linetext may have produced NEW content
+		// -- [outparam] newkey_real, linetext may have produced NEW content
 
 		// ..... Check each ILC_xxx .....
 
@@ -838,13 +840,15 @@ CIniOp::load_initext(const TCHAR *initext, int inilen)
 				// Assume this comment-line belongs to current key-val(as embedded comment), 
 				// may migrate outward in later kvc.Converge().
 
-				vaDBG3(_T(".   '%s' #%d: embedded comment"), kvc.get_penkey(), kvc.accums()+1);
+				vaDBG3(_T(".   '%s' #.%d: assume embedded comment"), kvc.get_penkey(), kvc.accums()+1);
 				kvc.AppendLine(std::move(linetext));
 			}
 			else
 			{
 				if(linecat==ILC_empty)
 				{
+					kvc.Converge(kvdict);
+
 					int nowcount = bls.AddOne(iline);
 					vaDBG3(_T(".   Cache this blank line (accumed %d)."), nowcount);
 				}
@@ -867,10 +871,10 @@ CIniOp::load_initext(const TCHAR *initext, int inilen)
 		}
 		else if(linecat==ILC_section)
 		{
-			kvc.Converge(kvdict);
-
 			Sdring secname = linetext.trim(_T("[]"), 2);
 			vaDBG3(_T("{%s}L#%d <ILC_section> [%s]"), m_pfilenam, iline, secname.c_str());
+
+			kvc.Converge(kvdict);
 
 			pCurKvdict = m_inidict.get(secname);
 			
@@ -891,11 +895,11 @@ CIniOp::load_initext(const TCHAR *initext, int inilen)
 		}
 		else if(linecat==ILC_realkey)
 		{
+			vaDBG3(_T("{%s}L#%d <ILC_realkey> '%s' = '%s'"), m_pfilenam, iline,
+				newkey_real.c_str(), linetext.c_str());
+
 			kvc.Converge(kvdict); // settle pending key-value pair.
 			bls.Converge(kvdict, curSection);
-
- 			vaDBG3(_T("{%s}L#%d <ILC_realkey> '%s' = '%s'"), m_pfilenam,iline, 
-				newkey_real.c_str(), linetext.c_str());
 
 			Keval_st keval;
 			keval.type = Keval_st::OneLine; // assume it one-line key-val at first seen
@@ -909,13 +913,14 @@ CIniOp::load_initext(const TCHAR *initext, int inilen)
 		{
 			assert(linecat == ILC_keycont);
 			vaDBG3(_T("{%s}L#%d <ILC_keycont> '%s'"), m_pfilenam,iline, linetext.c_str());
-			vaDBG3(_T(".   '%s' #%d: keyval continuation"), kvc.get_penkey(), kvc.accums()+1);
+			vaDBG3(_T(".   '%s' #.%d: keyval continuation"), kvc.get_penkey(), kvc.accums()+1);
 
 			kvc.AppendLine(std::move(linetext));
 		}
 
-	}
+	} // while(1) process each INI line
 
+	vaDBG3(_T("{%s}Meet end of INI text, total INI lines: %d"), m_pfilenam, iline);
 	kvc.Converge(*pCurKvdict);
 
 	return E_Success;
