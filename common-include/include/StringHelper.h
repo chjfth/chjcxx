@@ -405,7 +405,7 @@ public:
 		const T_CHAR arSplitterChars[], int nSplitterChars,
 		const T_CHAR arTrimChars[], int nTrimChars,
 		bool want_null_split=false) 
-		: IStringSplitter(want_null_split)
+		: IStringSplitter<TCHAR>(want_null_split)
 	{
 		int i;
 		mar_SplitterChars[0] = mar_TrimChars[0] = T_CHAR(0);

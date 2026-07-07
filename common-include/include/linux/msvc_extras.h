@@ -1,5 +1,7 @@
-#ifndef __msvc_extras_h_20251113_20260404_
-#define __msvc_extras_h_20251113_20260404_
+#ifndef __msvc_extras_h_
+#define __msvc_extras_h_
+#define __msvc_extras_h_created_ 20260404
+#define __msvc_extras_h_updated_ 20260526
 
 // This file brings those useful MSVC header stuff onto Linux.
 
