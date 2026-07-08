@@ -53,12 +53,13 @@ struct FocusToDefaultBtn_st
 void Set_DlgDefaultButton_byFocusId(HWND hwndDlg, int idFocus, 
 	const FocusToDefaultBtn_st arUicMap[], int nUicMap);
 
-inline void Set_WindowIcon(HWND hwnd, LPCTSTR resIcon)
+inline void util_SetWindowIcon(HWND hwnd, LPCTSTR resIcon)
 {
 	SendMessage(hwnd, WM_SETICON, TRUE, 
 		(LPARAM)LoadIcon(GetWindowInstance(hwnd), resIcon)
 		);
 }
+#define Set_WindowIcon util_SetWindowIcon
 
 
 typedef void PROC_WM_TIMER_call_once(void *usercontext);

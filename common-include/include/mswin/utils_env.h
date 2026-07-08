@@ -60,8 +60,20 @@ int_Minute util_GetTimeZoneOffset(void);
 int util_SimpleSysDpiScale(int input_pixels);
 
 
-UINT util_RegisterDlgboxKillMessage();
-bool util_PostDlgboxKillMessage(HWND hDlgbox);
+// [2026-07-08] The following 3 funcs enables using a modal dlgbox in modeless style.
+
+UINT util_RegisterEndDialogMessage();
+// -- RegisterMessage("WM_EndDialog-20260708"), return the msgval.
+//    Optional, informational purpose, always return the same value across multiple calls.
+
+bool util_PostEndDialogMessage(HWND hdlgbox);
+// -- When you call EndDialog(), call this function as well, to mark its quitflag.
+
+bool util_IsEndDialog(HWND hdlgbox, const MSG& msgnow);
+// -- In your WinMain's message loop, after GetMessage(), call this to check whether
+//    hdlgbox has requested to quit. If true, go on DestroyWindow(hdlgbox); .
+
+
 
 
 /*
@@ -374,9 +386,9 @@ int util_SimpleSysDpiScale(int std_pixels)
 }
 
 
-UINT util_RegisterDlgboxKillMessage()
+UINT util_RegisterEndDialogMessage()
 {
-	static const TCHAR *gsz_DLGBOX_KILL_MESSAGE =_T("DlgboxKillMessage-20260708");
+	static const TCHAR *gsz_DLGBOX_KILL_MESSAGE =_T("WM_EndDialog-20260708");
 	static UINT g_DLGBOX_KILL_MESSAGE = 0;
 
 	if(!g_DLGBOX_KILL_MESSAGE)
@@ -389,22 +401,33 @@ UINT util_RegisterDlgboxKillMessage()
 	return g_DLGBOX_KILL_MESSAGE;
 }
 
-bool util_PostDlgboxKillMessage(HWND hDlgbox)
+bool util_PostEndDialogMessage(HWND hDlgbox)
 {
-	UINT msgval = util_RegisterDlgboxKillMessage();
+	UINT msgval = util_RegisterEndDialogMessage();
 	if(!msgval)
 		return false;
 
 	if(!IsWindow(hDlgbox))
 		return false;
 
-	BOOL succ = ::PostMessage(hDlgbox, msgval, (WPARAM)hDlgbox, 0);
+	BOOL succ = ::PostMessage(hDlgbox, msgval, 0, 0);
 	if(succ)
 		return true;
 	else
 		return false;
 }
 
+bool util_IsEndDialog(HWND hdlgbox, const MSG& msgnow)
+{
+	UINT msgval = util_RegisterEndDialogMessage();
+	if(!msgval)
+		return false;
+
+	if(msgnow.message==msgval && hdlgbox==msgnow.hwnd)
+		return true;
+	else 
+		return false;
+}
 
 
 #endif // [IMPL]
