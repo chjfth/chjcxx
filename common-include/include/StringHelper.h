@@ -1,7 +1,7 @@
 #ifndef __CHHI__StringHelper_h_
 #define __CHHI__StringHelper_h_
 #define __CHHI__StringHelper_h_created_ 20250426
-#define __CHHI__StringHelper_h_updated_ 20260703
+#define __CHHI__StringHelper_h_updated_ 20260707
 
 
 #include <assert.h>
@@ -492,6 +492,22 @@ inline Sdrings SplitToSdrings(const TCHAR *szinput,
 	delete pss;
 
 	return ss;
+}
+
+inline Sdring MergeFromSdrings(const Sdrings& inss,
+	const TCHAR* szJoinBy = _T("\r\n"), const TCHAR* szTrimChars = _T(" \t"))
+{
+	Sdring sret;
+	int sscount = inss.count();
+
+	for(int i=0; i<sscount; i++)
+	{
+		sret.append_self( inss[i].trim(szTrimChars, -1) );
+		
+		if(i<sscount-1)
+			sret.append_self(szJoinBy, -1);
+	}
+	return sret;
 }
 
 

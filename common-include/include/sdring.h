@@ -1,9 +1,10 @@
 #ifndef __sdring_h_
 #define __sdring_h_
 #define __sdring_h_created_ 20251225_
-#define __sdring_h_updated_ 20260703_
+#define __sdring_h_updated_ 20260707_
 
 #include <assert.h>
+#include <_MINMAX_.h>
 
 /* Semantic:
 
@@ -558,13 +559,36 @@ private:
 	}
 
 public:
-	int count(){ return m_count; }
+	int count() const { return m_count; }
 
 	sdring<T_CHAR>& operator[](int i)
 	{
 		assert(i>=0 && i<m_count);
 		return mar_sdring[i];
 	}
+
+	const sdring<T_CHAR>& operator[](int i) const
+	{
+		assert(i >= 0 && i < m_count);
+		return mar_sdring[i];
+	}
+
+	sdrings<T_CHAR>& DeleteAt(int pos, int ndel)
+	{
+		int iDel0 = _MID_(0, pos, m_count-1);
+		int iDel1 = _MID_(0, pos+ndel, m_count);
+		int nMove = m_count - iDel1;
+
+		// delete unwanted eles
+		for(int i=0; i<nMove; i++)
+			mar_sdring[iDel0+i] = std::move(mar_sdring[iDel1+i]);
+		
+		m_count -= nMove;
+
+		// for simplicity, not shrinking/moving mar_sdring[]'s own storage
+		return *this;
+	}
+
 
 	//
 	// Leave below at end of class body
