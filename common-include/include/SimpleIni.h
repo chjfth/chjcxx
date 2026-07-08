@@ -200,7 +200,7 @@ const int KEYVAL_MULTILINE_INC = 128; // roughly default to an INI line's text l
 const int INIWRITE_MAX = 256*1024*1024; // whole ini file size
 const int INIWRITE_INC = 32768; // each increase of write-ini buffer
 
-struct Keval_st  // represent a INI-key(or virtual-key)'s value
+struct Keval_St  // represent a INI-key(or virtual-key)'s value
 {
 	enum Type { 
 		Comment=0, OneLine=1, _2Lines=2, _3Lines=3, _4Lines=4,
@@ -228,17 +228,17 @@ struct Keval_st  // represent a INI-key(or virtual-key)'s value
 
 public:
 	// boilerplate code, no need to modify >>>
-	Keval_st() { _ct0r(); }           //////////////
-	virtual ~Keval_st()               //////////////
+	Keval_St() { _ct0r(); }           //////////////
+	virtual ~Keval_St()               //////////////
 	{                                 //////////////
 		_dtor();                      //////////////
 		_ct0r();                      //////////////
 	}                                 //////////////
-	Keval_st(const Keval_st& old)            // copy-ctor
+	Keval_St(const Keval_St& old)          // copy-ctor
 	{                                      //////////////
 		_copy_from_old(old);               //////////////
 	}                                      //////////////
-	Keval_st& operator=(const Keval_st& old) // copy-assign
+	Keval_St& operator=(const Keval_St& old) // copy-assign
 	{                                      //////////////
 		if (this != &old) {                //////////////
 			_dtor();                       //////////////
@@ -246,12 +246,12 @@ public:
 		}                                  //////////////
 		return *this;                      //////////////
 	}                                      //////////////
-	Keval_st(Keval_st&& old)          // move-ctor
+	Keval_St(Keval_St&& old)          // move-ctor
 	{                                 //////////////
 		_steal_from_old(old);         //////////////
 		old._ct0r();                  //////////////
 	}                                 //////////////
-	Keval_st& operator=(Keval_st&& old) // move-assign
+	Keval_St& operator=(Keval_St&& old) // move-assign
 	{                                 //////////////
 		if (this != &old) {           //////////////
 			_dtor();                  //////////////
@@ -263,7 +263,7 @@ public:
 	// boilerplate code, no need to modify <<<
 
 private:
-	void _copy_from_old(const Keval_st& old) {
+	void _copy_from_old(const Keval_St& old) {
 		totlines = old.totlines;
 		firstline = old.firstline;
 		ar_exlines = nullptr;
@@ -278,7 +278,7 @@ private:
 		}
 	}
 
-	void _steal_from_old(Keval_st& old) {
+	void _steal_from_old(Keval_St& old) {
 		totlines = old.totlines;
 		firstline = std::move(old.firstline);
 		ar_exlines = old.ar_exlines;
@@ -323,7 +323,7 @@ struct BlankLines_St // consecutive blank line info
 		return m_count;
 	}
 
-	void Converge(hashdict<Keval_st> &kvdict, const TCHAR *secname)
+	void Converge(hashdict<Keval_St> &kvdict, const TCHAR *secname)
 	{
 		if (IsNull())
 			return;
@@ -335,8 +335,8 @@ struct BlankLines_St // consecutive blank line info
 		for (int i = 0; i < m_count; i++)
 		{
 			snTprintf(vkey, _T(";%d"), m_iline_start + i);
-			Keval_st keval;
-			keval.type = Keval_st::Comment;
+			Keval_St keval;
+			keval.type = Keval_St::Comment;
 			keval.firstline.set_empty();
 			kvdict.set(vkey, std::move(keval));
 		}
@@ -438,10 +438,10 @@ private:
 	void create_virtual_start_section()
 	{
 		// We require an empty [_start_] virtual section always exits.
-		m_inidict.setdefault(VIRTUAL_SECTION_0, hashdict<Keval_st>());
+		m_inidict.setdefault(VIRTUAL_SECTION_0, hashdict<Keval_St>());
 	}
 
-	hashdict<Keval_st>* create_new_section_with_headup(const TCHAR *secname, int blanklines);
+	hashdict<Keval_St>* create_new_section_with_headup(const TCHAR *secname, int blanklines);
 
 	Sdrings _in_section_keys(const TCHAR *secname, bool want_virtual);
 
@@ -455,7 +455,7 @@ private: // data members
 	Sdring m_inifilenam;
 	const TCHAR *m_pfilenam;
 
-	hashdict< hashdict<Keval_st> > m_inidict;
+	hashdict< hashdict<Keval_St> > m_inidict;
 
 	BlankLines_St m_bls;
 
@@ -552,68 +552,68 @@ inline bool IsTrimCr(int charval)
 	return charval=='\r' ? true : false;
 }
 
-struct KVcontinue // KeyVal line continuation info
+struct KVcontinue_St // KeyVal line continuation info
 {
-	Sdring penkey;   // Pending INI key, for the key-value pair already seen, 
-	                 // but whose multi-line keval processing is not finished yet.
-	int ini_linestart;
-	int idxlastreal; // 0-based index of last-seen real keval(non-comment) line, -1 if none.
+	Sdring m_penkey;   // Pending INI key, for the key-value pair already seen, 
+	                   // but whose multi-line keval processing is not finished yet.
+	int m_ini_linestart;
+	int m_idxlastreal; // 0-based index of last-seen real keval(non-comment) line, -1 if none.
 
-	TScalableArray<Sdring> saMixLines;
+	TScalableArray<Sdring> m_saMixLines;
 
-	KVcontinue()
+	KVcontinue_St()
 	{
-		saMixLines.SetTrait(KEYVAL_MULTILINE_MAX, KEYVAL_MULTILINE_INC, TSA_no_decrease);
+		m_saMixLines.SetTrait(KEYVAL_MULTILINE_MAX, KEYVAL_MULTILINE_INC, TSA_no_decrease);
 		reset();
 	}
 
 	void reset()
 	{
-		this->penkey.set_empty();
-		this->ini_linestart = 0;
-		idxlastreal = -1;
+		m_penkey.set_empty();
+		m_ini_linestart = 0;
+		m_idxlastreal = -1;
 	}
 	void reset(Sdring&& penkey, int ini_linestart)
 	{ 
-		this->penkey = std::move(penkey);
-		this->ini_linestart = ini_linestart;
-		idxlastreal = -1; 
+		m_penkey = std::move(penkey);
+		m_ini_linestart = ini_linestart;
+		m_idxlastreal = -1; 
 	}
 
 	int accums()
 	{
-		return saMixLines.CurrentEles();
+		return m_saMixLines.CurrentEles();
 	}
 
 	bool has_penkey()
 	{
-		return penkey.is_empty() ? false : true;
+		return m_penkey.is_empty() ? false : true;
 	}
 
 	const TCHAR* get_penkey()
 	{
-		return penkey.is_empty() ? nullptr : penkey.c_str();
+		return m_penkey.is_empty() ? nullptr : m_penkey.c_str();
 	}
 
 	void AppendLine(Sdring&& linetext)
 	{
-		int nlines = saMixLines.CurrentEles();
+		int nlines = m_saMixLines.CurrentEles();
 
 		assert(linetext[0]==';' || linetext[0]=='\t');
 
 		if(linetext[0]=='\t')
-			idxlastreal = nlines;
+			m_idxlastreal = nlines;
 
-		saMixLines.SetEleQuan(nlines+1, true);
-		saMixLines[nlines] = std::move(linetext);
+		m_saMixLines.SetEleQuan(nlines+1, true);
+		m_saMixLines[nlines] = std::move(linetext);
 	}
 
-	void Converge(hashdict<Keval_st>& kvdict)
+	void Converge(hashdict<Keval_St>& kvdict)
 	{
-		if(penkey.is_empty())
+		if(m_penkey.is_empty())
 			return;
 
-		int nMixLines = saMixLines.CurrentEles();
+		int nMixLines = m_saMixLines.CurrentEles();
 
 		if(nMixLines==0)
 		{
@@ -621,12 +621,12 @@ struct KVcontinue // KeyVal line continuation info
 			return;
 		}
 
-		Keval_st *pKeval = kvdict.get(penkey);
+		Keval_St *pKeval = kvdict.get(m_penkey);
 		assert(pKeval);
-		assert(pKeval->type==Keval_st::OneLine);
+		assert(pKeval->type==Keval_St::OneLine);
 		assert(pKeval->ar_exlines==nullptr);
 
-		int nReals = idxlastreal + 1;
+		int nReals = m_idxlastreal + 1;
 
 		if(nReals>0)
 		{
@@ -637,7 +637,7 @@ struct KVcontinue // KeyVal line continuation info
 
 			for (int i = 0; i < nReals; i++)
 			{
-				pKeval->ar_exlines[i] = std::move(saMixLines[i]);
+				pKeval->ar_exlines[i] = std::move(m_saMixLines[i]);
 			}
 		}
 
@@ -647,22 +647,22 @@ struct KVcontinue // KeyVal line continuation info
 		{ 
 			vaDBG3(_T(".   Migrate previous %d comment lines(L#%d~L#%d) to standalone virtual-keys"), 
 				nMixLines-nReals, 
-				ini_linestart+(1+nReals), ini_linestart+nMixLines);
+				m_ini_linestart+(1+nReals), m_ini_linestart+nMixLines);
 		}
 
 		for(int j=nReals; j<nMixLines; j++)
 		{
 			TCHAR vkey[10] = {};
-			snTprintf(vkey, _T(";%d"), ini_linestart+j);
+			snTprintf(vkey, _T(";%d"), m_ini_linestart+j);
 
-			Keval_st keval;
-			keval.type = Keval_st::Comment;
-			keval.firstline = std::move(saMixLines[j]);
+			Keval_St keval;
+			keval.type = Keval_St::Comment;
+			keval.firstline = std::move(m_saMixLines[j]);
 
 			kvdict.set(vkey, std::move(keval));
 		}
 
-		saMixLines.SetEleQuan(0);
+		m_saMixLines.SetEleQuan(0);
 
 		reset();
 	}
@@ -762,17 +762,17 @@ static IniLineCat_et CheckLineCategory(
 	return ILC_realkey;
 }
 
-hashdict<Keval_st>* 
+hashdict<Keval_St>* 
 CIniOp::create_new_section_with_headup(const TCHAR *secname, int blanklines)
 {
 	assert(!m_inidict.has_key(secname));
 
-	hashdict<Keval_st> *p_kvdict = m_inidict.set(secname, hashdict<Keval_st>());
+	hashdict<Keval_St> *p_kvdict = m_inidict.set(secname, hashdict<Keval_St>());
 
 	// Always set '_blanklines_' as new secname's (virtual) first key.
 
-	Keval_st keval;
-	keval.type = Keval_st::BlankLinesToTypeVal(blanklines);
+	Keval_St keval;
+	keval.type = Keval_St::BlankLinesToTypeVal(blanklines);
 	p_kvdict->set(VIRTUAL_KEYNAME_of_HeadupBlankLines, std::move(keval));
 	return p_kvdict;
 }
@@ -788,9 +788,9 @@ CIniOp::load_initext(const TCHAR *initext, int inilen)
 	Sdring curSection = VIRTUAL_SECTION_0;
 
 	// get back(ptr) the just created empty kvdict inside m_inidict.
-	hashdict<Keval_st> *pCurKvdict = m_inidict.get(VIRTUAL_SECTION_0);
+	hashdict<Keval_St> *pCurKvdict = m_inidict.get(VIRTUAL_SECTION_0);
 
-	KVcontinue kvc;
+	KVcontinue_St kvc;
 	kvc.reset();
 
 	BlankLines_St &bls = m_bls;
@@ -814,7 +814,7 @@ CIniOp::load_initext(const TCHAR *initext, int inilen)
 
 		iline++;
 
-		hashdict<Keval_st> &kvdict = *pCurKvdict; // make a short name
+		hashdict<Keval_St> &kvdict = *pCurKvdict; // make a short name
 
 		Sdring newkey_real, linetext;
 
@@ -859,8 +859,8 @@ CIniOp::load_initext(const TCHAR *initext, int inilen)
 
 					vaDBG3(_T(".   Added as virtual-key '%s'"), vkey);
 
-					Keval_st keval;
-					keval.type = Keval_st::Comment;
+					Keval_St keval;
+					keval.type = Keval_St::Comment;
 					keval.firstline = std::move(linetext);
 
 					kvdict.set(vkey, std::move(keval));
@@ -899,8 +899,8 @@ CIniOp::load_initext(const TCHAR *initext, int inilen)
 			kvc.Converge(kvdict); // settle pending key-value pair.
 			bls.Converge(kvdict, curSection);
 
-			Keval_st keval;
-			keval.type = Keval_st::OneLine; // assume it one-line key-val at first seen
+			Keval_St keval;
+			keval.type = Keval_St::OneLine; // assume it one-line key-val at first seen
 			keval.firstline = std::move(linetext);
 
 			kvdict.set(newkey_real, std::move(keval));
@@ -961,7 +961,7 @@ bool CIniOp::has_section(const TCHAR *secname)
 	if (!secname || !secname[0])
 		return false;
 
-	hashdict<Keval_st> *p_kvdict = m_inidict.get(secname);
+	hashdict<Keval_St> *p_kvdict = m_inidict.get(secname);
 	if(p_kvdict)
 		return true;
 	else
@@ -977,7 +977,7 @@ Sdrings CIniOp::_in_section_keys(const TCHAR *secname, bool want_virtual)
 	if(!has_section(secname))
 		return Sdrings();
 
-	hashdict<Keval_st> &kvdict = *m_inidict.get(secname);
+	hashdict<Keval_St> &kvdict = *m_inidict.get(secname);
 
 	// Those rawkeys that do NOT start with ';' are real INI-keys.
 
@@ -1026,11 +1026,11 @@ Sdrings CIniOp::_in_section_keys(const TCHAR *secname, bool want_virtual)
 
 bool CIniOp::has_key(const TCHAR *secname, const TCHAR *keyname)
 {
-	hashdict<Keval_st> *p_kvdict = m_inidict.get(secname);
+	hashdict<Keval_St> *p_kvdict = m_inidict.get(secname);
 	if(!p_kvdict)
 		return false;
 
-	Keval_st *pval = p_kvdict->get(keyname);
+	Keval_St *pval = p_kvdict->get(keyname);
 	if(!pval)
 		return false;
 
@@ -1045,11 +1045,11 @@ inline void EasyDebug_AppendNUL(TScalableArray<TCHAR>& sout)
 
 Sdring CIniOp::get(const TCHAR *secname, const TCHAR *keyname)
 {
-	hashdict<Keval_st> *p_kvdict = m_inidict.get(secname);
+	hashdict<Keval_St> *p_kvdict = m_inidict.get(secname);
 	if(!p_kvdict)
 		return Sdring();
 
-	Keval_st& keval = *p_kvdict->get(keyname);
+	Keval_St& keval = *p_kvdict->get(keyname);
 	if(&keval==nullptr)
 		return Sdring();
 
@@ -1067,7 +1067,7 @@ keym =
 	We only concatenate those lines leading by Tab(but strip off the Tab) for user output.
 	*/
 
-	if(keval.type==Keval_st::OneLine)
+	if(keval.type==Keval_St::OneLine)
 	{
 		assert(keval.ar_exlines == nullptr);
 		return keval.firstline; // will call Sdring's copy-ctor, not move-ctor
@@ -1081,7 +1081,7 @@ keym =
 			vaDBG1(_T("Unexpect! [%s] '%s' Meet negative Keval type(=%d)"), secname, keyname, keval.totlines);
 			return Sdring();
 		}
-		int blanklines = Keval_st::TypeValToBlankLines(keval.type);
+		int blanklines = Keval_St::TypeValToBlankLines(keval.type);
 		Sdring sret(12);
 		snTprintf(sret.getbuf(), sret.rawlen(), _T("%d"), blanklines);
 		return sret;
@@ -1138,14 +1138,14 @@ CIniOp::set(const TCHAR *secname, const TCHAR *keyname, const TCHAR *sz_val_line
 
 	create_virtual_start_section();
 
-	hashdict<Keval_st> *p_kvdict = m_inidict.get(secname);
+	hashdict<Keval_St> *p_kvdict = m_inidict.get(secname);
 	if(!p_kvdict)
 	{
 		// Create a new kvdict for this secname.
 		p_kvdict = create_new_section_with_headup(secname, 0);
 	}
 
-	Keval_st keval;
+	Keval_St keval;
 
 	StringSplitter<const TCHAR*, IsSplitLf, IsTrimCr, true> 
 		spgline(sz_val_lines, 0); // spgline: split to get line(s)
@@ -1195,7 +1195,7 @@ CIniOp::del_key(const TCHAR *secname, const TCHAR *keyname)
 {
 	create_virtual_start_section();
 
-	hashdict<Keval_st> *p_kvdict = m_inidict.get(secname);
+	hashdict<Keval_St> *p_kvdict = m_inidict.get(secname);
 	if (p_kvdict)
 	{
 		bool succ = p_kvdict->del(keyname);
@@ -1260,7 +1260,7 @@ Sdring CIniOp::save_ini_string(const TCHAR *crlf)
 
 	for(;; sec_count++)
 	{
-		hashdict<Keval_st> *p_kvdict = nullptr;
+		hashdict<Keval_St> *p_kvdict = nullptr;
 		const TCHAR *secname = en_sections.next(&p_kvdict);
 		if(!secname)
 			break;
@@ -1273,12 +1273,12 @@ Sdring CIniOp::save_ini_string(const TCHAR *crlf)
 		{
 			// For a [section name], if there is '_blanklines_' key, write those blank lines first.
 
-			Keval_st *p_keval = nullptr;
+			Keval_St *p_keval = nullptr;
 			const TCHAR *_blanklines_ = en_kvdict.next(&p_keval);
 
 			assert(Sdring::str_match(_blanklines_, VIRTUAL_KEYNAME_of_HeadupBlankLines));
 
-			int blanklines = Keval_st::TypeValToBlankLines(p_keval->type);
+			int blanklines = Keval_St::TypeValToBlankLines(p_keval->type);
 			if( blanklines > 0 )
 				TSA_append_blank_lines(sout, blanklines, crlf, crlflen);
 
@@ -1299,12 +1299,12 @@ Sdring CIniOp::save_ini_string(const TCHAR *crlf)
 
 		for(;;) // for each key=value pair
 		{
-			Keval_st *p_keval = nullptr; // notice: no-way to decorate const?
+			Keval_St *p_keval = nullptr; // notice: no-way to decorate const?
 			const TCHAR *keyname = en_kvdict.next(&p_keval);
 			if(!keyname)
 				break;
 
-			const Keval_st& keval = *p_keval;
+			const Keval_St& keval = *p_keval;
 
 			// Check whether it's virtual(;3=xxx) or real(foo=bar).
 
