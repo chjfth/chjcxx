@@ -1,7 +1,7 @@
 #ifndef __CHHI__utils_env_h_ 
 #define __CHHI__utils_env_h_
 #define __CHHI__utils_env_h_created_ 20250830
-#define __CHHI__utils_env_h_updated_ 20260627
+#define __CHHI__utils_env_h_updated_ 20260708
 
 #include <windows.h>
 #include <windowsx.h>
@@ -58,6 +58,10 @@ int_Minute util_GetTimeZoneOffset(void);
 	*/
 
 int util_SimpleSysDpiScale(int input_pixels);
+
+
+UINT util_RegisterDlgboxKillMessage();
+bool util_PostDlgboxKillMessage(HWND hDlgbox);
 
 
 /*
@@ -368,6 +372,39 @@ int util_SimpleSysDpiScale(int std_pixels)
 
 	return (int)(std_pixels * s_sysdpiScaling);
 }
+
+
+UINT util_RegisterDlgboxKillMessage()
+{
+	static const TCHAR *gsz_DLGBOX_KILL_MESSAGE =_T("DlgboxKillMessage-20260708");
+	static UINT g_DLGBOX_KILL_MESSAGE = 0;
+
+	if(!g_DLGBOX_KILL_MESSAGE)
+	{
+		g_DLGBOX_KILL_MESSAGE = RegisterWindowMessage(gsz_DLGBOX_KILL_MESSAGE);
+		if(!g_DLGBOX_KILL_MESSAGE) // not likely
+			return 0;
+	}
+
+	return g_DLGBOX_KILL_MESSAGE;
+}
+
+bool util_PostDlgboxKillMessage(HWND hDlgbox)
+{
+	UINT msgval = util_RegisterDlgboxKillMessage();
+	if(!msgval)
+		return false;
+
+	if(!IsWindow(hDlgbox))
+		return false;
+
+	BOOL succ = ::PostMessage(hDlgbox, msgval, (WPARAM)hDlgbox, 0);
+	if(succ)
+		return true;
+	else
+		return false;
+}
+
 
 
 #endif // [IMPL]
