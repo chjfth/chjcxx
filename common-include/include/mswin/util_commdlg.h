@@ -10,7 +10,7 @@
 
 
 Sdrings util_GetOpenFilenames(HWND hwndOwner,
-	const Sdring filters[], int nfilters, // format a bit different to OPENFILENAME.lpstrFilter.
+	const Sdring filters[], int nfilters, // format a bit different to OPENFILENAME.lpstrFilter
 	const TCHAR *pInitDir = nullptr,
 	const TCHAR *pDefaultFilename = nullptr);
 // -- Example:
@@ -40,6 +40,7 @@ Sdrings util_GetOpenFilenames(HWND hwndOwner,
 #include <snTprintf.h>
 #include <snTcat.h>
 #include <StringHelper.h>
+#include <ospath.h>
 // <<< Include headers required by this lib's implementation
 
 
@@ -49,10 +50,13 @@ Sdrings util_GetOpenFilenames(HWND hwndOwner,
 
 
 Sdrings util_GetOpenFilenames(HWND hwndOwner,
-	const Sdring filters[], int nfilters, // as in OPENFILENAME.lpstrFilter
+	const Sdring filters[], int nfilters, // format a bit different to OPENFILENAME.lpstrFilter
 	const TCHAR *pInitDir,
 	const TCHAR *pDefaultFilename)
 {
+	// This function brings up system's Open-file dialog for user to select
+	// *multiple* files.
+
 	TCHAR outfiles[32000] = _T("");
 	const int outbufsize = ARRAYSIZE(outfiles);
 
@@ -106,7 +110,15 @@ Sdrings util_GetOpenFilenames(HWND hwndOwner,
 	if(succ)
 	{
 		Sdrings ssret = ZZSplitToSdrings(ofn.lpstrFile);
-		return ssret;
+		
+		if(ssret.count()==1)
+		{	// User selected only one file, so I split it into dirpath and filenam.
+			Sdrings ss2(2);
+			ss2[0] = ospath::split(ssret[0], ss2[1]);
+			return ss2;
+		}
+		else
+			return ssret;
 	}
 	else
 	{

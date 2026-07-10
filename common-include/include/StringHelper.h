@@ -496,7 +496,8 @@ inline Sdrings SplitToSdrings(const TCHAR *szinput,
 
 inline Sdrings ZZSplitToSdrings(const TCHAR *zzinput)
 {
-	// This deals with WinAPI OPENFILENAME.lpstrFile's weird zzstr text buffer.
+	// This deals with WinAPI OPENFILENAME.lpstrFile's weird zzstr text buffer
+	// when OFN_ALLOWMULTISELECT flag is enabled.
 	// zzinput points multiple substrings separated by \0, and terminated by dual \0 .
 	// Example:
 	//		"D:\\somedir\0file1.txt\0file2.txt\0\0"

@@ -1,7 +1,7 @@
 #ifndef __CHHI__ospath_h_
 #define __CHHI__ospath_h_
 #define __CHHI__ospath_h_created_ 20260418
-#define __CHHI__ospath_h_updated_ 20260704
+#define __CHHI__ospath_h_updated_ 20260710
 
 #include <ps_TCHAR.h>
 #include <sdring.h>
@@ -28,6 +28,24 @@ inline Sdring split_filenam(const TCHAR* inputpath)
 	return filenam;
 }
 
+inline bool Is_pathsep(int charval)
+{
+	return (charval=='/' || charval=='\\') ? true : false;
+}
+
+inline bool Is_LetterColon(const TCHAR *inpath)
+{
+	// Checks whether inpath[] starts with "C:", "D:" etc, the Windows drive letter prefix.
+
+	if(inpath && inpath[0])
+	{
+		if(inpath[1] == ':'
+			&& (inpath[0]>='A' && inpath[0]<='Z' || inpath[0]>='a' && inpath[0]<='z')	
+			)
+			return true;
+	}
+	return false;
+}
 
 Sdring fullpath_from_rela(const TCHAR* rela);
 
@@ -82,6 +100,8 @@ inline Sdring paths_join3(const TCHAR* path1, const TCHAR* path2, const TCHAR* p
 
 #include <commdefs.h> // for Uint, Uint64, enum bitwise-OR etc
 #include <string.h>
+
+#include <osdiff.h> // os_pathsep
 #include <msvc_extras.h>
 //#include <snTprintf.h>
 #include <cxx_stack.h>
@@ -118,42 +138,45 @@ Sdring split(const TCHAR* inputpath, Sdring& outfilenam)
 		return nullptr;
 	}
 
-	const TCHAR *pfilenam = 
+	const TCHAR *pFinalSlash = 
 #ifdef CXX_TARGET_WINDOWS
 	// Use WinAPI StrRChr so that it can deal with '\'(0x5c) in MBCS strings.
 	// Example: GBK 0xd55c, 0xd65c, 0xd95c
-	StrRChr(inputpath, NULL, '\\');
+	StrRChr(inputpath, NULL, os_pathsep);
 #else
-	strrchr(inputpath, '\\');
+	strrchr(inputpath, os_pathsep);
 #endif
-	if (pfilenam)
+	if (pFinalSlash)
 	{
-		// found a \ .
-		pfilenam++;
+		Sdring dirpart; // as return value
 
-		Sdring dirpart(inputpath, (int)(pfilenam-inputpath));
+		// found a '/' or '\' (the slash)
+		// Shall this slash appear at end of dirpart? Two cases.
+		// [1] If the the dirpart is '/' or 'C:\' etc, the slash must be copied to dirpart.
+		// [2] Other cases(non-root slash), the slash should be discarded.
+		//
+		// Python 3.7 example:
+		//  In [42]: os.path.split(r'c:\abc.txt')
+		//	Out[42]: ('c:\\', 'abc.txt')
 
-		if (*pfilenam) // some char after the \ .
+		if(pFinalSlash==inputpath // the final slash is root-slash
+			|| ( pFinalSlash-inputpath==2 && Is_LetterColon(inputpath) ) // the final slash is mswin-style root-slash
+			) 
 		{
-			outfilenam = Sdring(pfilenam);
+			dirpart.setsn(inputpath, pFinalSlash-inputpath + 1);
 		}
 		else
-		{	// \ is the trailing char, so filenam is empty
-			outfilenam = nullptr;
-		}
+			dirpart.setsn(inputpath, pFinalSlash-inputpath );
+
+		outfilenam = Sdring(pFinalSlash+1);
 
 		return dirpart;
 	}
 	else
-	{	// not found any \ .
+	{	// not found any '\'
 		outfilenam = inputpath;
 		return nullptr;
 	}
-}
-
-inline bool Is_pathsep(int charval)
-{
-	return (charval=='/' || charval=='\\') ? true : false;
 }
 
 Sdring paths_join_sop(const TCHAR* const paths[], int npaths, TCHAR sepchar)
@@ -192,9 +215,8 @@ Sdring paths_join_sop(const TCHAR* const paths[], int npaths, TCHAR sepchar)
 			is_root_lead = true;
 			stk.clear();
 		}
-		else if(_tcslen(inpath)>=3 && inpath[1] == ':'
-			&& (inpath[0]>='A' && inpath[0]<='Z' || inpath[0]>='a' && inpath[0]<='z')
-			&& Is_pathsep(inpath[2]))
+		else if(_tcslen(inpath)>=3 
+			&& Is_LetterColon(inpath) && Is_pathsep(inpath[2]))
 		{
 			// Special for Windows root-drive path like C:\dir
 			is_root_lead = true;
