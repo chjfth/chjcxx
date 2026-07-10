@@ -494,6 +494,48 @@ inline Sdrings SplitToSdrings(const TCHAR *szinput,
 	return ss;
 }
 
+inline Sdrings ZZSplitToSdrings(const TCHAR *zzinput)
+{
+	// This deals with WinAPI OPENFILENAME.lpstrFile's weird zzstr text buffer.
+	// zzinput points multiple substrings separated by \0, and terminated by dual \0 .
+	// Example:
+	//		"D:\\somedir\0file1.txt\0file2.txt\0\0"
+
+	if(!(zzinput && zzinput[0]))
+		return Sdrings();
+
+	// Count substrings sep by \0
+	int scount = 0;
+	const TCHAR *ptr = zzinput;
+
+	for(;;)
+	{
+		scount++;
+		int ilen = (int)_tcslen(ptr);
+
+		if( ptr[ilen+1] == '\0' )
+			break;
+
+		ptr += ilen + 1;
+	}
+
+	Sdrings ssret(scount);
+
+	ptr = zzinput;
+
+	for (int i = 0; i < scount; i++)
+	{
+		int ilen = (int)_tcslen(ptr);
+
+		ssret[i].setsn(ptr, ilen);
+
+		ptr += ilen + 1;
+	}
+
+	return ssret;
+}
+
+
 inline Sdring MergeFromSdrings(const Sdrings& inss,
 	const TCHAR* szJoinBy = _T("\r\n"), const TCHAR* szTrimChars = _T(" \t"))
 {
@@ -539,6 +581,16 @@ inline Sdring& vaSdringSet(Sdring &s, const TCHAR *fmt, ...)
 }
 
 
+Sdring SdringsJoin(const Sdring ars[], int scount,
+	const TCHAR *arSep, int lenSep=-1, 
+	int extra_space=0);
+
+inline Sdring SdringsJoin(const Sdrings& ssin, 
+	const TCHAR *arSep, int lenSep=-1, int extra_space=0)
+{
+	return SdringsJoin(ssin.get_array(), ssin.count(), arSep, lenSep, extra_space);
+}
+
 ////////////////////////////////////////////////////////////////////////////
 //-- } // namespace nonamespace
 ////////////////////////////////////////////////////////////////////////////
@@ -565,6 +617,8 @@ inline Sdring& vaSdringSet(Sdring &s, const TCHAR *fmt, ...)
 #include <ctype.h> // shp_stricmp
 //#include <commdefs.h> // for Uint, Uint64, enum bitwise-OR etc
 #include <snTprintf.h>
+#include <snTcat.h>
+#include <_MINMAX_.h>
 
 // <<< Include headers required by this lib's implementation
 
@@ -630,6 +684,56 @@ Sdring& vlSdringAppendSelf(Sdring &s, const TCHAR *fmt, va_list args)
 	return s;
 }
 
+
+Sdring SdringsJoin(const Sdring ars[], int scount, 
+	const TCHAR *arSep, int lenSep,
+	int extra_space)
+{
+	// Note: User can input arSep[0]=='\0' and lenSep==1, so that the resulting
+	// string is joined by '\0'. WinAPI OPENFILENAME.lpstrFilter needs such zzstr,
+	// remember to pass extra_space=1, to leave room for extra '\0' at end .
+	// Note: SdringsJoin respects input string's rawlen, instead of ztlen.
+	
+	if(scount<=0)
+		return nullptr;
+
+	if(lenSep<0)
+		lenSep = (int)_tcslen(arSep);
+
+	int i, totlen = 0;
+
+	// count final length
+	for(i=0; i<scount; i++)
+	{
+		totlen += ars[i].rawlen();
+	}
+	
+	if(scount>1)
+		totlen += (scount-1)*lenSep;
+
+	Sdring sret( totlen + _MAX_(0, extra_space) );
+
+	const int csize = sizeof(TCHAR);
+	int nowlen = 0;
+
+	for(i=0; i<scount; i++)
+	{
+		int ilen = ars[i].rawlen();
+
+		memcpy(sret.getptr()+nowlen, ars[i].c_str(), csize*ilen);
+		nowlen += ilen;
+		
+		if(i<scount-1 && lenSep>0)
+		{
+			memcpy(sret.getptr()+nowlen, arSep, csize*lenSep);
+			nowlen += lenSep;
+		}
+	}
+
+	sret[nowlen] = '\0';
+
+	return sret;
+}
 
 
 ////////////////////////////////////////////////////////////////////////////

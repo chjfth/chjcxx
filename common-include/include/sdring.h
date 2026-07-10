@@ -1,7 +1,7 @@
 #ifndef __sdring_h_
 #define __sdring_h_
 #define __sdring_h_created_ 20251225_
-#define __sdring_h_updated_ 20260707_
+#define __sdring_h_updated_ 20260710_
 
 #include <assert.h>
 #include <_MINMAX_.h>
@@ -93,10 +93,19 @@ private:
 	}
 
 public:
-	sdring& operator=(const T_CHAR *instr)
-	{
+	sdring& operator=(const T_CHAR *szstr) {
+		return setsz(szstr);
+	}
+
+	sdring& setsz(const T_CHAR *szstr) {
 		_dtor();
-		_ctor(instr);
+		_ctor(szstr);
+		return *this;
+	}
+
+	sdring& setsn(const T_CHAR *pchars, int nchars) {
+		_dtor();
+		_ctor(pchars, nchars);
 		return *this;
 	}
 
@@ -114,7 +123,8 @@ public:
 //  }
 
 	T_CHAR* & getbuf() {
-		// Note: returns a reference(not T_CHAR*'s value)
+		// Note: returns a reference(not T_CHAR*'s value), may be DANGEROUS.
+		// Use with caution. Safer alternative is getptr().
 		return m_buf; 
 	}
 	operator T_CHAR* & () { 
@@ -560,6 +570,10 @@ private:
 
 public:
 	int count() const { return m_count; }
+
+	const sdring<TCHAR>* get_array() const { return mar_sdring; }
+
+	sdring<TCHAR>* get_array() { return mar_sdring; }
 
 	sdring<T_CHAR>& operator[](int i)
 	{
