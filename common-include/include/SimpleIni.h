@@ -1,7 +1,7 @@
 #ifndef __CHHI__SimpleIni_h_
 #define __CHHI__SimpleIni_h_
 #define __CHHI__SimpleIni_h_created_ 20260416
-#define __CHHI__SimpleIni_h_updated_ 20260707
+#define __CHHI__SimpleIni_h_updated_ 20260710
 
 #include <ps_TCHAR.h>
 #include <sdring.h>
@@ -703,7 +703,7 @@ static IniLineCat_et CheckLineCategory(
 
 	int indents = 0;
 	while (indents < linelen && Is_leading_blank(initext[linepos + indents]))
-		indents;
+		indents++;
 
 	if (indents == linelen)
 		return ILC_empty;
