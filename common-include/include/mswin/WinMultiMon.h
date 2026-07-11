@@ -31,9 +31,9 @@ bool getMonitorRectByPoint(int screen_x, int screen_y, RECT *pMonitorRect);
 
 Rect_st mumo_ReposRect(const Rect_st& urect,
 	int nMonitors, const Rect_st arMonitorRect[],
-	bool allow_stradle, bool allow_shrink=false);
+	bool allow_straddle, bool allow_shrink=false);
 
-RECT mumo_PlaceRectInsideScreen(const RECT& urect, bool allow_stradle, bool allow_shrink=false);
+RECT mumo_PlaceRectInsideScreen(const RECT& urect, bool allow_straddle, bool allow_shrink=false);
 
 
 /*
@@ -225,7 +225,7 @@ bool _getMonitorRectByPoint(int screen_x, int screen_y, RECT *pMonitorRect)
 
 Rect_st _mumo_ReposRect(const Rect_st& urect,
 	int nMonitors, const Rect_st arMonitorRect[],
-	bool allow_stradle, bool allow_shrink)
+	bool allow_straddle, bool allow_shrink)
 {
 	struct PerMonOp_st
 	{
@@ -287,7 +287,7 @@ Rect_st _mumo_ReposRect(const Rect_st& urect,
 	{
 		vaDBG3(_T(".   uRECT straddles multiple monitors, and fully visible."));
 
-		if (allow_stradle)
+		if (allow_straddle)
 			return urect;
 	}
 
@@ -326,7 +326,7 @@ Rect_st _mumo_ReposRect(const Rect_st& urect,
 
 MakeDelega_CleanupCxxPtr(OneMonitorInfo_st)
 
-RECT _mumo_PlaceRectInsideScreen(const RECT& uRECT, bool allow_stradle, bool allow_shrink)
+RECT _mumo_PlaceRectInsideScreen(const RECT& uRECT, bool allow_straddle, bool allow_shrink)
 {
 	// Check if urect is inside all-monitors' area.
 	// If not(some portion of urect is invisible), move the urect(as return value)
@@ -365,7 +365,7 @@ RECT _mumo_PlaceRectInsideScreen(const RECT& uRECT, bool allow_stradle, bool all
 	for(int i=0; i<nMonitors; i++)
 		arMonitorRect[i] = arMonInfo[i].rcMonitor;
 
-	Rect_st outrect = mumo_ReposRect(uRECT, nMonitors, arMonitorRect, allow_stradle, allow_shrink);
+	Rect_st outrect = mumo_ReposRect(uRECT, nMonitors, arMonitorRect, allow_straddle, allow_shrink);
 	return outrect;
 }
 
@@ -400,15 +400,15 @@ bool getMonitorRectByPoint(int screen_x, int screen_y, RECT *pMonitorRect)
 
 Rect_st mumo_ReposRect(const Rect_st& urect,
 	int nMonitors, const Rect_st arMonitorRect[],
-	bool allow_stradle, bool allow_shrink)
+	bool allow_straddle, bool allow_shrink)
 {
-	return WinMultiMon::_mumo_ReposRect(urect, nMonitors, arMonitorRect, allow_stradle, allow_shrink);
+	return WinMultiMon::_mumo_ReposRect(urect, nMonitors, arMonitorRect, allow_straddle, allow_shrink);
 }
 
 
-RECT mumo_PlaceRectInsideScreen(const RECT& urect, bool allow_stradle, bool allow_shrink)
+RECT mumo_PlaceRectInsideScreen(const RECT& urect, bool allow_straddle, bool allow_shrink)
 {
-	return WinMultiMon::_mumo_PlaceRectInsideScreen(urect, allow_stradle, allow_shrink);
+	return WinMultiMon::_mumo_PlaceRectInsideScreen(urect, allow_straddle, allow_shrink);
 }
 
 
