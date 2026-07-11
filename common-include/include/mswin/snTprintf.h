@@ -1,7 +1,7 @@
 #ifndef __snTprintf_h_
 #define __snTprintf_h_
 #define __snTprintf_h_created_ 20250628
-#define __snTprintf_h_updated_ 20250628
+#define __snTprintf_h_updated_ 20260711
 
 // snTprintf() is the TCHAR-style function name for C99 snprintf and its WCHAR counterpart.
 // This is C++ header(not C header), usable on VC2010+.
@@ -17,12 +17,18 @@
 #endif
 #endif 
 
-inline int vsnTprintf(wchar_t* buf, size_t bufsize, const wchar_t* fmt, va_list args)
+// Note: I deliberately use (signed) int as bufsize's type.
+// Unsigned bufsize behaves badly, see Evclip [20260711.c1].
+
+inline int vsnTprintf(wchar_t* buf, int bufsize, const wchar_t* fmt, va_list args)
 {
 	va_list args_copy;
 	va_copy(args_copy, args); // save a copy for 2nd-used
 
-	int ret = _vsnwprintf_s(buf, bufsize, _TRUNCATE, fmt, args); // truncate if needed
+	int ret = (bufsize>0)
+		? _vsnwprintf_s(buf, bufsize, _TRUNCATE, fmt, args) // truncate if needed
+		: -1;
+		// Note: VC2010 _vsnwprintf_s requires bufsize>0, otherwise, internal asserts fail..
 
 	if (ret < 0)
 	{
@@ -36,12 +42,14 @@ inline int vsnTprintf(wchar_t* buf, size_t bufsize, const wchar_t* fmt, va_list 
 	return ret;
 }
 
-inline int vsnTprintf(char* buf, size_t bufsize, const char* fmt, va_list args)
+inline int vsnTprintf(char* buf, int bufsize, const char* fmt, va_list args)
 {
 	va_list args_copy;
 	va_copy(args_copy, args); // save a copy for 2nd-used
 
-	int ret = _vsnprintf_s(buf, bufsize, _TRUNCATE, fmt, args); // truncate if needed
+	int ret = (bufsize>0) 
+		? _vsnprintf_s(buf, bufsize, _TRUNCATE, fmt, args) // truncate if needed
+		: -1;
 
 	if (ret < 0)
 	{
@@ -55,8 +63,16 @@ inline int vsnTprintf(char* buf, size_t bufsize, const char* fmt, va_list args)
 	return ret;
 }
 
+
+template<typename TChar, int bufsize>
+int vsnTprintf(TChar (&buf)[bufsize], const TChar* fmt, va_list args)
+{
+	return vsnTprintf(buf, bufsize, fmt, args);
+}
+
+
 template<typename TChar>
-int snTprintf(TChar* buf, size_t bufsize, const TChar* fmt, ...)
+int snTprintf(TChar* buf, int bufsize, const TChar* fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
@@ -65,7 +81,7 @@ int snTprintf(TChar* buf, size_t bufsize, const TChar* fmt, ...)
 	return ret;
 }
 
-template<typename TChar, size_t bufsize>
+template<typename TChar, int bufsize>
 int snTprintf(TChar (&buf)[bufsize], const TChar* fmt, ...)
 {
 	va_list args;
