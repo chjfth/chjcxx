@@ -136,6 +136,9 @@ struct Rect_st // same as Windows API RECT (right & bottom off-by-one)
 		*this = *(const Rect_st*)&r;
 		return *this;
 	}
+	Sdring text() const {
+		return RECTtext(*(const RECT*)this);
+	}
 #endif
 };
 

@@ -163,10 +163,10 @@ Sdring split(const TCHAR* inputpath, Sdring& outfilenam)
 			|| ( pFinalSlash-inputpath==2 && Is_LetterColon(inputpath) ) // the final slash is mswin-style root-slash
 			) 
 		{
-			dirpart.setsn(inputpath, pFinalSlash-inputpath + 1);
+			dirpart.setsn(inputpath, int(pFinalSlash-inputpath + 1));
 		}
 		else
-			dirpart.setsn(inputpath, pFinalSlash-inputpath );
+			dirpart.setsn(inputpath, int(pFinalSlash-inputpath) );
 
 		outfilenam = Sdring(pFinalSlash+1);
 
