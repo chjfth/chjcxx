@@ -105,7 +105,7 @@ struct Rect_st // same as Windows API RECT (right & bottom off-by-one)
 	int right;
 	int bottom;
 
-	Rect_st(){ left=top=right=bottom=0; }     // old comment: would cause Visual C++ C2552 error.
+	Rect_st(){ left = top = right = bottom = 0; }
 
 	Rect_st(int l, int t, int r, int b) 
 	{
@@ -123,7 +123,9 @@ struct Rect_st // same as Windows API RECT (right & bottom off-by-one)
 		return !(*this==ri);
 	}
 
-	inline Pace_st PaceToRect(const Rect_st &rBig) const;
+	Pace_st PaceToRect(const Rect_st &rBig) const;
+
+	Rect_st StrechKeepCenter(int new_width, int new_height) const;
 
 #ifdef _RECT_STRUCT_DEFINED_
 	operator const RECT&() {
@@ -270,6 +272,24 @@ Rect_st::PaceToRect(const Rect_st &rTarget) const
 */
 }
 
+Rect_st 
+Rect_st::StrechKeepCenter(int new_width, int new_height) const
+{
+	// Return the resulting RECT after stretch.
+	// After stretch, new RECT's center keeps the same as original RECT's center.
+
+	assert(new_width>=0 && new_height>=0);
+
+	Point_st ptcenter = { RECTxcenter(*this), RECTycenter(*this) };
+
+	Rect_st rcNew;
+	rcNew.left = ptcenter.x - new_width/2;
+	rcNew.right = rcNew.left + new_width;
+	rcNew.top = ptcenter.y - new_height/2;
+	rcNew.bottom = rcNew.top + new_height;
+
+	return rcNew;
+}
 
 bool getLinesegOverlap(const int seg1[2], const int seg2[2], int ovlp[2])
 {
