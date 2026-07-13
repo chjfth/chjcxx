@@ -561,7 +561,7 @@ ggt_normalize_crlf(const TCHAR *ibuf, TCHAR *obuf, int obufchars, const TCHAR *s
 			continue;
 		}
 		
-		omove = snTprintf(po, (po_end0-po+1), _T("%s"), szcrlf);
+		omove = snTprintf(po, (int)(po_end0-po+1), _T("%s"), szcrlf);
 		po += omove;
 
 		if(c=='\n' || pi[1]!='\n')

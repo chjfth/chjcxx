@@ -15,23 +15,23 @@
 
 
 template<typename TChar>
-int vsnTcat(TChar* buf, size_t bufsize, const TChar* fmt, va_list args)
+int vsnTcat(TChar* buf, int bufsize, const TChar* fmt, va_list args)
 {
 	int oldlen = (int)_tcslen(buf);
 
-	int addlen = vsnTprintf(buf + oldlen, bufsize - oldlen, fmt, args);
+	int addlen = vsnTprintf(buf+oldlen, bufsize-oldlen, fmt, args);
 
 	return oldlen + addlen;
 }
 
-template<typename TChar, size_t bufsize>
+template<typename TChar, int bufsize>
 int vsnTcat(TChar(&buf)[bufsize], const TChar* fmt, va_list args)
 {
 	return vsnTcat(buf, bufsize, fmt, args);
 }
 
 template<typename TChar>
-int snTcat(TChar* buf, size_t bufsize, const TChar* fmt, ...)
+int snTcat(TChar* buf, int bufsize, const TChar* fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
@@ -40,7 +40,7 @@ int snTcat(TChar* buf, size_t bufsize, const TChar* fmt, ...)
 	return ret;
 }
 
-template<typename TChar, size_t bufsize>
+template<typename TChar, int bufsize>
 int snTcat(TChar(&buf)[bufsize], const TChar* fmt, ...)
 {
 	va_list args;
