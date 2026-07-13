@@ -1,7 +1,7 @@
 #ifndef __commdefs_h_
 #define __commdefs_h_
 #define __commdefs_h_created_ 20021128
-#define __commdefs_h_updated_ 20260504
+#define __commdefs_h_updated_ 20260713
 
 /**************************************************************************
 
@@ -236,6 +236,19 @@ bool Bitfields_IsBitOff(T num, T bit_to_test)
 
 // [2026-06-30] 
 #define memset_0_struct(stobj)  memset(&(stobj), 0, sizeof(stobj))
+
+
+// [2026-07-13]
+inline int RangeOffset_pon(int start, int end_, int offset)
+{
+	// From AmHotkey.ahk NewCoordFromHint()
+	// PoN: offset can be Positive or Negative. If negative, it is counted from end_.
+
+	if(offset>0)
+		return start + offset;
+	else
+		return end_ + offset;
+}
 
 
 #endif

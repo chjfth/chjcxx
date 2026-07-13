@@ -268,6 +268,7 @@ FIB_ret ggt_FlexiInfobox_useRC(HINSTANCE hinstExeDll, LPCTSTR resIdDlgbox,
 #include <mswin/WinMultiMon.h>
 #include <mswin/utils_wingui.h>
 #include <util_Clipboard.h>
+#include <Tooltip-helper.h>
 
 #include "FlexiInfobox_ids.h" // TO-delete
 
@@ -296,238 +297,6 @@ namespace ns_fib {
 ////////////////////////////////////////////////////////////////////////////
 // (private namespace 'ns_fib') 
 
-
-//#include <gadgetlib/wintooltip.h>
-
-struct TooltipHandle_user_st { };
-typedef TooltipHandle_user_st *TooltipHandle_gt;
-
-TooltipHandle_gt ggt_CreateManualTooltip(HWND hOwner, bool isBalloon=false, WinErr_t *pWinErr=NULL);
-	// return NULL on fail
-
-WinErr_t ggt_TooltipShow(TooltipHandle_gt htt, bool isShow, const POINT *pt=NULL,
-	const TCHAR *szfmt=NULL, ...);
-	// pt.x/pt.y can be negative, which mean count from right/bottom edge.
-	// For example: {0,-1} means lower-left corner, {-1,0} means upper-right corner.
-	//
-	// If szfmt==NULL, text is not changed. Use this to move tooltip only.
-
-bool ggt_TooltipDelete(TooltipHandle_gt htt);
-	// Release resource related to htt.
-	// One ggt_CreateManualTooltip call must be paired with one ggt_TooltipDelete.
-
-
-class CTooltipHandle
-{
-public:
-	CTooltipHandle();
-	~CTooltipHandle();
-
-	WinErr_t CreateManualTip(HWND hOwner, bool isBalloon);
-	WinErr_t TooltipShow(bool isShow, const POINT *pt=NULL, const TCHAR *szfmt=NULL, ...);
-
-private:
-	HWND m_htt; // tooltip handle
-	HWND m_hwndOwner;
-
-	TOOLINFO m_toolinfo;
-
-	TCHAR *m_textbuf; // malloc/realloc
-	int m_buflen_;
-};
-
-CTooltipHandle::CTooltipHandle()
-{
-	memset(this, 0, sizeof(CTooltipHandle));
-}
-
-CTooltipHandle::~CTooltipHandle()
-{
-	if(m_textbuf)
-		free(m_textbuf);
-}
-
-WinErr_t 
-CTooltipHandle::CreateManualTip(HWND hOwner, bool isBalloon)
-{
-	WinErr_t winerr = 0;
-
-#ifndef TTS_BALLOON
-#define TTS_BALLOON 0 // WinCE 5.0 SDK don't have this
-#endif
-
-	m_hwndOwner = hOwner;
-	m_htt = CreateWindowEx(WS_EX_TOPMOST, TOOLTIPS_CLASS , NULL, 
-		TTS_NOPREFIX | TTS_ALWAYSTIP | (isBalloon?TTS_BALLOON:0) , // implies WS_POPUP
-		CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, 
-		hOwner, // set owner so that tooltip object gets destroyed along with owner's destruction
-		NULL, 
-		NULL, // hInstance
-		NULL);
-
-	if (!m_htt)
-	{
-		winerr = GetLastError();
-		if(!winerr)
-			winerr = ERROR_NOT_ENOUGH_MEMORY;
-		return NULL;
-	}
-
-	// Set up the tool information. In this case, the "tool" is the entire parent window.
-
-	m_toolinfo.cbSize   = sizeof(TOOLINFO);
-	m_toolinfo.uFlags   = TTF_TRACK | TTF_ABSOLUTE;
-	m_toolinfo.hwnd     = NULL; // no need to notify for a manual tooltip
-	m_toolinfo.hinst    = NULL;
-	m_toolinfo.lpszText = NULL; // ok
-	m_toolinfo.uId      = NULL; // no need to notify for a manual tooltip
-
-//	GetClientRect (hOwner, &m_toolinfo.rect);
-	LRESULT lret = SendMessage(m_htt, TTM_ADDTOOL, 0, (LPARAM)&m_toolinfo); 
-	assert(lret==TRUE);
-	if(lret!=TRUE)
-		return ERROR_MOD_NOT_FOUND; // probably due to commctl32 *v6* DLL is not loaded.
-
-//	lret = SendMessage(hwndTT, TTM_SETMAXTIPWIDTH, 0, 80);
-	return ERROR_SUCCESS;
-}
-
-WinErr_t 
-CTooltipHandle::TooltipShow(bool isShow, const POINT *pt_in, const TCHAR *fmt, ...)
-{
-	WinErr_t winerr = 0;
-	bool malloc_error = false;
-
-	if(!isShow)
-	{
-		SendMessage(m_htt, TTM_TRACKACTIVATE, FALSE, (LPARAM)&m_toolinfo); 
-		return ERROR_SUCCESS;
-	}
-
-	va_list args;
-	va_start(args, fmt);
-
-	POINT pt0 = {0,0}, *pt = &pt0;
-	if(pt_in)
-		pt0 = *pt_in;
-
-	RECT rectOwner;
-	BOOL Succ = GetClientRect(m_hwndOwner, &rectOwner);
-
-	if(pt->x<0)
-		pt->x = rectOwner.right + pt->x;
-	if(pt->y<0)
-		pt->y = rectOwner.bottom + pt->y;
-
-	pt->x = _MID_(0, pt->x, rectOwner.right);
-	pt->y = _MID_(0, pt->y, rectOwner.bottom);
-
-	// Set tooltip display position
-	ClientToScreen(m_hwndOwner, pt);
-	SendMessage(m_htt, TTM_TRACKPOSITION, 0, MAKELONG(pt->x, pt->y));
-
-	if(fmt)
-	{
-		// Set new tooltip text
-		int textlen = vsnTprintf(m_textbuf, m_buflen_, fmt, args);
-		if(textlen>=m_buflen_)
-		{
-			TCHAR *newbuf = (TCHAR*)realloc(m_textbuf, (textlen+1)*sizeof(TCHAR));
-			if(newbuf)
-			{
-				m_textbuf = newbuf;
-				m_buflen_ =  textlen+1;
-				vsnTprintf(m_textbuf, m_buflen_, fmt, args);
-			}
-			else
-				malloc_error = true;
-		}
-	}
-	else
-	{
-		// Use old text
-		if(m_textbuf==NULL)
-			m_textbuf = _T(" ");
-	}
-
-	m_toolinfo.lpszText = m_textbuf;
-	SendMessage(m_htt, TTM_SETTOOLINFO, 0, (LPARAM)&m_toolinfo);
-
-	SendMessage(m_htt, TTM_TRACKACTIVATE, TRUE, (LPARAM)&m_toolinfo); 
-
-	va_end(args);
-
-	if(malloc_error)
-		return ERROR_NOT_ENOUGH_MEMORY;
-	else
-		return ERROR_SUCCESS;
-}
-
-TooltipHandle_gt 
-ggt_CreateManualTooltip(HWND hOwner, bool isBalloon, WinErr_t *pWinErr)
-{
-	WinErr_t _winerr = 0;
-	if(!pWinErr)
-		pWinErr = &_winerr;
-	*pWinErr = 0;
-
-	CTooltipHandle *ptt = new CTooltipHandle;
-	if(!ptt)
-	{
-		*pWinErr = ERROR_NOT_ENOUGH_MEMORY;
-		return NULL;
-	}
-
-	*pWinErr = ptt->CreateManualTip(hOwner, isBalloon);
-	if(*pWinErr)
-	{
-		delete ptt;
-		return NULL;
-	}
-
-	return (TooltipHandle_gt)ptt;
-}
-
-//////////////////////////////////////////////////////////////////////////
-
-WinErr_t 
-ggt_TooltipShow(TooltipHandle_gt htt, bool isShow, const POINT *pt, const TCHAR *szfmt, ...)
-{
-	if(!htt)
-		return ERROR_INVALID_DATA;
-
-	CTooltipHandle *ptt = (CTooltipHandle*)htt;
-	WinErr_t winerr = 0;
-
-	if(szfmt)
-	{
-		TCHAR tbuf[16000] = _T("");
-		va_list args;
-		va_start(args, szfmt);
-		vsnTprintf(tbuf, szfmt, args);
-		va_end(args);
-
-		winerr = ptt->TooltipShow(isShow, pt, _T("%s"), tbuf);
-	}
-	else
-	{
-		winerr = ptt->TooltipShow(isShow, pt, NULL);
-	}
-
-	return winerr;
-}
-
-bool 
-ggt_TooltipDelete(TooltipHandle_gt htt)
-{
-	if(!htt)
-		return false;
-
-	CTooltipHandle *ptt = (CTooltipHandle*)htt;
-	delete ptt;
-
-	return true;
-}
 
 int 
 ggt_normalize_crlf(const TCHAR *ibuf, TCHAR *obuf, int obufchars, const TCHAR *szcrlf)
@@ -586,9 +355,6 @@ ggt_normalize_crlf(const TCHAR *ibuf, TCHAR *obuf, int obufchars, const TCHAR *s
 }
 
 /// ..........................................................................
-/// ..........................................................................
-/// ..........................................................................
-/// ..........................................................................
 
 
 const int timerId_AutoRefresh = 1;
@@ -621,8 +387,6 @@ inline bool FIBcb__IsStopAutoRefresh(FibCallback_ret ret)
 		return false;
 }
 
-#define HideWindow(hwnd) ShowWindow((hwnd), SW_HIDE)
-
 static void Hide_DlgItem(HWND hwnd, int idCtl)
 {
 	HWND hctl = GetDlgItem(hwnd, idCtl);
@@ -630,12 +394,6 @@ static void Hide_DlgItem(HWND hwnd, int idCtl)
 	ShowWindow(hctl, SW_HIDE);
 }
 
-// enum FibAgain_et // whether to display infobox again
-// {
-// 	FibNoAgain = 0,
-// 	FibAgainAttached = 1,
-// 	FibAgainDetached = 2, // use NULL as owner
-// };
 
 struct FibDlgParams_st
 {
@@ -697,10 +455,8 @@ struct FibDlgParams_st
 
 	int secTooltip;
 	const TCHAR *szTooltipText;
-	TooltipHandle_gt hTooltip;
+	CTooltipSimple ttsimple; // TooltipHandle_gt hTooltip;
 	bool isTooltipShowing;
-
-//	FibAgain_et again;
 
 //	JULayout jul; // Not necessary from 20260711
 
@@ -757,7 +513,6 @@ FibDlgParams_st::FibDlgParams_st(const FibInput_st &in, HWND hwndOwner, const TC
 	//
 	secTooltip = in.secTooltip;
 	szTooltipText = in.szTooltipText;
-	hTooltip = NULL;
 
 	hwndOwnerFibIn = hwndOwner;
 	hwndRealOwner = in.isInitDetached ? NULL : hwndOwner;
@@ -862,7 +617,7 @@ void FibDlgParams_st::SetMyText(HWND hdlg)
 
 void FibDlgParams_st::HideTooltip()
 {
-	ggt_TooltipShow(hTooltip, false);
+	ttsimple.Show(CTooltipSimple::Show_Hide);
 	isTooltipShowing = false;
 }
 
@@ -1120,12 +875,12 @@ BOOL fib_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 	if(pr->szBtnOK)
 		SetWindowText(hctlOK, pr->szBtnOK);
 	else
-		HideWindow(hctlOK);
+		ShowWindow(hctlOK, SW_HIDE);
 	
 	if(pr->szBtnCancel)
 		SetWindowText(hctlCancel, pr->szBtnCancel);
 	else
-		HideWindow(hctlCancel);
+		ShowWindow(hctlCancel, SW_HIDE);
 
 	if(!pr->szBtnOK && !pr->szBtnCancel)
 		SetFocus(NULL);
@@ -1268,8 +1023,9 @@ BOOL fib_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 		if(pr->secTooltip==0)
 			pr->secTooltip = 2; // default to show 2 seconds
 
-		pr->hTooltip = ggt_CreateManualTooltip(hdlg, true);
-		ggt_TooltipShow(pr->hTooltip, true, &ptTooltipCorner, 
+		pr->ttsimple.Create(hdlg, true);
+
+		pr->ttsimple.Show(CTooltipSimple::Show_ClientPos, &ptTooltipCorner, 
 			pr->szTooltipText ? pr->szTooltipText : _T("Right-click blank area to get context menu.")
 			);
 		pr->isTooltipShowing = true;
@@ -1283,8 +1039,6 @@ BOOL fib_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 void fib_OnDestroy(HWND hwnd)
 {
 	FibDlgParams_st *pr = (FibDlgParams_st*)GetWindowLongPtr(hwnd, DWLP_USER);
-
-	ggt_TooltipDelete(pr->hTooltip);
 
 	fib_StopTimer(hwnd, pr); 
 		// key purpose: to set pr->isTimerOn=false
@@ -1358,7 +1112,7 @@ void fib_OnMove(HWND hdlg, int x, int y)
 	FibDlgParams_st *pr = (FibDlgParams_st*)GetWindowLongPtr(hdlg, DWLP_USER);
 	if(pr->isTooltipShowing)
 	{
-		ggt_TooltipShow(pr->hTooltip, true, &ptTooltipCorner);
+		pr->ttsimple.Show(CTooltipSimple::Show_ClientPos, &ptTooltipCorner);
 	}
 }
 

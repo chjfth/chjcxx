@@ -79,9 +79,19 @@ public:
 	CTooltipSimple();
 	~CTooltipSimple();
 
-	bool Create(HWND hOwner, bool isBalloon=false);
-	bool Show(bool isShow, const POINT *pt=nullptr, const TCHAR *szfmt=nullptr, ...);
-	// -- `pt` is screen position. If nullptr, show tooltip beside mouse cursor.
+	enum ShowWhere_et 
+	{
+		Show_Hide = 0,      // hide the tooltip
+		Show_ScreenPos = 1, // pt is screen position
+		Show_WindowPos = 2, // pt is relative to hwndOwner's window
+		Show_ClientPos = 3, // pt is relative to hwndOwner's client area
+		Show_AtMouse =   4, // Show at mouse cursor
+	};
+
+	bool Create(HWND hwndOwner, bool isBalloon=false);
+	bool Show(ShowWhere_et where, const POINT *pt=nullptr, const TCHAR *szfmt=nullptr, ...);
+	// -- `pt` coord accroding to `where`. 
+	//    If `pt` is nullptr, always show tooltip beside mouse cursor.
 	//    If szfmt==nullptr, previous text is preserved, just show the tooltip.
 
 private:
@@ -138,6 +148,9 @@ bool CTooltipSimple::Create(HWND hOwner, bool isBalloon)
 {
 	WinErr_t winerr = 0;
 
+	if(!hOwner)
+		hOwner = GetDesktopWindow();
+
 	m_hwndOwner = hOwner;
 	m_htt = CreateWindowEx(WS_EX_TOPMOST, TOOLTIPS_CLASS, NULL,
 		TTS_NOPREFIX | TTS_ALWAYSTIP | (isBalloon ? TTS_BALLOON : 0), // implies WS_POPUP
@@ -170,7 +183,7 @@ bool CTooltipSimple::Create(HWND hOwner, bool isBalloon)
 	return true;
 }
 
-bool CTooltipSimple::Show(bool isShow, const POINT *pt_screen, const TCHAR *szfmt, ...)
+bool CTooltipSimple::Show(ShowWhere_et where, const POINT *pt, const TCHAR *szfmt, ...)
 {
 	assert(m_htt);
 	if(!m_htt)
@@ -181,10 +194,10 @@ bool CTooltipSimple::Show(bool isShow, const POINT *pt_screen, const TCHAR *szfm
 	TOOLINFO ti = { sizeof(TOOLINFO) };
 	LRESULT lret = SendMessage(m_htt, TTM_GETTOOLINFO, 0, (LPARAM)&ti);
 
-	if (!isShow)
+	if (where==Show_Hide)
 	{
 		SendMessage(m_htt, TTM_TRACKACTIVATE, FALSE, (LPARAM)&ti);
-		return ERROR_SUCCESS;
+		return true;
 	}
 
 	if(szfmt)
@@ -198,19 +211,38 @@ bool CTooltipSimple::Show(bool isShow, const POINT *pt_screen, const TCHAR *szfm
 	ti.lpszText = (LPTSTR)m_text.c_str();
 	lret = SendMessage(m_htt, TTM_SETTOOLINFO, 0, (LPARAM)&ti);
 
-	if(pt_screen)
+	POINT ptscreen = {0, 0};
+	if(!pt)
+		where = Show_AtMouse;
+
+	if(where==Show_ScreenPos)
 	{
-		lret = SendMessage(m_htt, TTM_TRACKPOSITION, 0,
-			MAKELONG(pt_screen->x, pt_screen->y));
+		ptscreen = *pt;
+	}
+	else if(where==Show_WindowPos)
+	{
+		RECT rc = {};
+		GetWindowRect(m_hwndOwner, &rc);
+		ptscreen.x = RangeOffset_pon(rc.left, rc.right, pt->x);
+		ptscreen.y = RangeOffset_pon(rc.top, rc.bottom, pt->y);
+	}
+	else if(where==Show_ClientPos)
+	{
+		RECT rc = {};
+		GetClientRect_ScreenPos(m_hwndOwner, &rc);
+		ptscreen.x = RangeOffset_pon(rc.left, rc.right, pt->x);
+		ptscreen.y = RangeOffset_pon(rc.top, rc.bottom, pt->y);
+	}
+	else if(where==Show_AtMouse)
+	{
+		GetCursorPos(&ptscreen);
+		int cursorHeight = GetSystemMetrics(SM_CYCURSOR);
+		ptscreen.y += cursorHeight;
 	}
 	else
-	{
-		POINT pt = {};
-		GetCursorPos(&pt);
-		int cursorHeight = GetSystemMetrics(SM_CYCURSOR);
-		pt.y += cursorHeight;
-		lret = SendMessage(m_htt, TTM_TRACKPOSITION, 0, MAKELONG(pt.x, pt.y));
-	}
+		assert(0);
+
+	lret = SendMessage(m_htt, TTM_TRACKPOSITION, 0, MAKELONG(ptscreen.x, ptscreen.y));
 
 	lret = SendMessage(m_htt, TTM_TRACKACTIVATE, TRUE, (LPARAM)&ti);
 
