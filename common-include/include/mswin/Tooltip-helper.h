@@ -185,7 +185,6 @@ bool CTooltipSimple::Create(HWND hOwner, bool isBalloon)
 
 bool CTooltipSimple::Show(ShowWhere_et where, const POINT *pt, const TCHAR *szfmt, ...)
 {
-	assert(m_htt);
 	if(!m_htt)
 		return false;
 

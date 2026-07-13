@@ -1,7 +1,7 @@
 #ifndef __CHHI__FlexiInfobox_h_
 #define __CHHI__FlexiInfobox_h_
 #define __CHHI__FlexiInfobox_h_created_ 20260711
-#define __CHHI__FlexiInfobox_h_updated_ 20260711
+#define __CHHI__FlexiInfobox_h_updated_ 20260713
 
 #include <varargs.h>
 #include <windows.h>
@@ -553,15 +553,15 @@ FibDlgParams_st::FibDlgParams_st(const FibInput_st &in, HWND hwndOwner, const TC
 
 void FibDlgParams_st::SetCustomFocus(HWND hdlg)
 {
-	HWND hctlOK = GetDlgItem(hdlg, IDC_BTN_OK);
-	HWND hctlCancel = GetDlgItem(hdlg, IDC_BTN_CANCEL);
+	HWND hctlOK = GetDlgItem(hdlg, fib_IDC_BTN_OK);
+	HWND hctlCancel = GetDlgItem(hdlg, fib_IDC_BTN_CANCEL);
 
 	if(!idDefaultFocus)
 	{
 		if(szBtnOK)
-			idDefaultFocus = IDC_BTN_OK;
+			idDefaultFocus = fib_IDC_BTN_OK;
 		else if(szBtnCancel)
-			idDefaultFocus = IDC_BTN_CANCEL;
+			idDefaultFocus = fib_IDC_BTN_CANCEL;
 	}
 
 	if(idDefaultFocus)
@@ -572,9 +572,9 @@ void FibDlgParams_st::SetCustomFocus(HWND hdlg)
 		// and set default-push-button as well
 		//
 		HWND hDefaultPushBtn = NULL;
-		if(idDefaultFocus==IDC_BTN_OK)
+		if(idDefaultFocus==fib_IDC_BTN_OK)
 			hDefaultPushBtn = hctlOK;
-		else if(idDefaultFocus==IDC_BTN_CANCEL)
+		else if(idDefaultFocus==fib_IDC_BTN_CANCEL)
 			hDefaultPushBtn = hctlCancel;
 
 		if(hDefaultPushBtn)
@@ -589,7 +589,7 @@ void FibDlgParams_st::SetMyText(HWND hdlg)
 {
 	assert(textbuf);
 
-	HWND hEdit = GetDlgItem(hdlg, IDC_EDIT_SHOW_INFO);
+	HWND hEdit = GetDlgItem(hdlg, fib_IDC_EDIT_TEXTINFO);
 	assert(hEdit);
 	
 	//	TCHAR t1[1]={'z'}; int ttt = ggt_normalize_crlf(textbuf, t1, 1, _T("\r\n")); // test
@@ -629,7 +629,7 @@ fib_SetIcon(HWND hwnd, HICON hNewIcon, FibDlgParams_st *pr)
 
 	pr->hIconNow = hNewIcon; // remember to avoid redundant Static_SetIcon call
 
-	HWND hctlIcon = GetDlgItem(hwnd, IDI_SHOW_INFO);
+	HWND hctlIcon = GetDlgItem(hwnd, fib_IDC_ICON);
 	Static_SetIcon(hctlIcon, pr->hIconNow);
 }
 
@@ -664,7 +664,7 @@ fib_CalNewboxTextMax(HWND hdlg, FibDlgParams_st *pr, Size_st *pIdealDrawsize=NUL
 
 	// ... cal input string display width ...
 
-	HWND hEdit = GetDlgItem(hdlg, IDC_EDIT_SHOW_INFO);
+	HWND hEdit = GetDlgItem(hdlg, fib_IDC_EDIT_TEXTINFO);
 	
 	HDC hdcEdit = GetDC(hEdit);
 	int textlen = (int)_tcslen(pr->textbuf);
@@ -754,7 +754,7 @@ fib_CallbackFetchUserText(HWND hdlg, FibCallbackReason_et reason, FibDlgParams_s
 		pr->cb_info.isTickOn = isTickOn;
 	}
 	pr->cb_info.ret_replace_offset = 0;
-	pr->cb_info.isAutoRefreshOn = IsDlgButtonChecked(hdlg, IDC_CHK_AUTOREFRESH)?true:false;
+	pr->cb_info.isAutoRefreshOn = IsDlgButtonChecked(hdlg, fib_IDC_CKB_AUTOREFRESH)?true:false;
 
 	FibCallback_ret ret = pr->procGetText(pr->ctxGetText, pr->cb_info,
 		pr->textbuf, pr->bufchars); 
@@ -781,7 +781,7 @@ fib_CallbackFetchUserText(HWND hdlg, FibCallbackReason_et reason, FibDlgParams_s
 		if(FIBcb__IsStopAutoRefresh(ret))
 		{
 			fib_StopTimer(hdlg, pr);
-			CheckDlgButton(hdlg, IDC_CHK_AUTOREFRESH, BST_UNCHECKED);
+			CheckDlgButton(hdlg, fib_IDC_CKB_AUTOREFRESH, BST_UNCHECKED);
 		}
 	}
 
@@ -841,7 +841,7 @@ fib_CallbackFetchUserText(HWND hdlg, FibCallbackReason_et reason, FibDlgParams_s
 	}
 
 	// Re-check to see whether we need to re-show scrollbar
-	HWND hEdit = GetDlgItem(hdlg, IDC_EDIT_SHOW_INFO); assert(hEdit);
+	HWND hEdit = GetDlgItem(hdlg, fib_IDC_EDIT_TEXTINFO); assert(hEdit);
 	RECT rectEditboxNow;
 	GetWindowRect(hEdit, &rectEditboxNow);
 	if( idealEditSize.cy>RECTcy(rectEditboxNow) || idealEditSize.cx>RECTcx(rectEditboxNow) )
@@ -868,8 +868,8 @@ BOOL fib_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 
 	// Hide unwanted UI elements (must do this before JUL)
 
-	HWND hctlOK = GetDlgItem(hdlg, IDC_BTN_OK);
-	HWND hctlCancel = GetDlgItem(hdlg, IDC_BTN_CANCEL);
+	HWND hctlOK = GetDlgItem(hdlg, fib_IDC_BTN_OK);
+	HWND hctlCancel = GetDlgItem(hdlg, fib_IDC_BTN_CANCEL);
 	assert(hctlOK && hctlCancel);
 
 	if(pr->szBtnOK)
@@ -887,12 +887,12 @@ BOOL fib_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 
 	JULayout *jul = JULayout::EnableJULayout(hdlg);
 	//
-	jul->AnchorControl(0, 0, 100, 100, IDC_EDIT_SHOW_INFO); 
+	jul->AnchorControl(0, 0, 100, 100, fib_IDC_EDIT_TEXTINFO); 
 	//
 	if(pr->szBtnOK && pr->szBtnCancel)
 	{	// place OK & Cancel both at right-bottom corner
-		jul->AnchorControl(100, 100, 100, 100, IDC_BTN_OK);
-		jul->AnchorControl(100, 100, 100, 100, IDC_BTN_CANCEL);
+		jul->AnchorControl(100, 100, 100, 100, fib_IDC_BTN_OK);
+		jul->AnchorControl(100, 100, 100, 100, fib_IDC_BTN_CANCEL);
 	}
 	else if(pr->szBtnOK || pr->szBtnCancel)
 	{	// place the single button at middle-bottom
@@ -913,7 +913,7 @@ BOOL fib_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 	}
 
 	// Set sysmenu icon
-	HWND hctlIcon = GetDlgItem(hdlg, IDI_SHOW_INFO);
+	HWND hctlIcon = GetDlgItem(hdlg, fib_IDC_ICON);
 	Static_SetIcon(hctlIcon, pr->hIconUser);
 	if(pr->hIconUser)
 	{
@@ -926,11 +926,11 @@ BOOL fib_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 	if(pr->isAutoRefreshNow)
 		fib_CallbackFetchUserText(hdlg, FIBReason_Timer, pr, false); // pr->textbuf[] filled
 	
-	pr->SetMyText(hdlg); // SetDlgItemText(hdlg, IDC_EDIT_SHOW_INFO, pr->textbuf);
+	pr->SetMyText(hdlg); // SetDlgItemText(hdlg, fib_IDC_EDIT_TEXTINFO, pr->textbuf);
 
 	// Create a font to be used for EditBox
 	LOGFONT logfont = {0};
-	HFONT hFont = (HFONT)SendDlgItemMessage(hdlg, IDC_EDIT_SHOW_INFO, WM_GETFONT, 0, 0);
+	HFONT hFont = (HFONT)SendDlgItemMessage(hdlg, fib_IDC_EDIT_TEXTINFO, WM_GETFONT, 0, 0);
 	int retbytes = GetObject(hFont, sizeof(logfont), &logfont);
 	(void)retbytes;
 	assert(retbytes==sizeof(logfont));
@@ -945,7 +945,7 @@ BOOL fib_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 	pr->hfontEditbox = CreateFontIndirect(&logfont);
 	assert(pr->hfontEditbox);
 
-	SendDlgItemMessage(hdlg, IDC_EDIT_SHOW_INFO, WM_SETFONT, (WPARAM)(pr->hfontEditbox), TRUE);
+	SendDlgItemMessage(hdlg, fib_IDC_EDIT_TEXTINFO, WM_SETFONT, (WPARAM)(pr->hfontEditbox), TRUE);
 		// Note: If using fixed-width font, it only influence the editbox, not the whole dialogbox.
 
 	Rect_st &rectMax = pr->rectNewboxVisualMax;
@@ -955,26 +955,26 @@ BOOL fib_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 
 	// Hide hEdit's ugly scrollbar, because we do not need it now.
 	// It will be shown later when the message box is shrunk, when processing WM_SIZE.
-	HWND hEdit = GetDlgItem(hdlg, IDC_EDIT_SHOW_INFO);
+	HWND hEdit = GetDlgItem(hdlg, fib_IDC_EDIT_TEXTINFO);
 	ShowScrollBar(hEdit, SB_VERT, pr->ScrollbarAlways?TRUE:FALSE);
 
-	SetDlgItemText(hdlg, IDC_BTN_REFRESH, 
+	SetDlgItemText(hdlg, fib_IDC_BTN_REFRESH, 
 		pr->szBtnRefresh ? pr->szBtnRefresh : _T("&Refresh")
 		);
-	SetDlgItemText(hdlg, IDC_CHK_AUTOREFRESH,
+	SetDlgItemText(hdlg, fib_IDC_CKB_AUTOREFRESH,
 		pr->szAutoChkbox ? pr->szAutoChkbox : _T("&Auto")
 		);
 
 	if(! (pr->isShowRefreshBtn || pr->msecAutoRefresh>0) )
 	{
-		Hide_DlgItem(hdlg, IDC_BTN_REFRESH); 
+		Hide_DlgItem(hdlg, fib_IDC_BTN_REFRESH); 
 	}
 
 	if(pr->msecAutoRefresh>0) // user need auto-refresh feature
 	{
 		if(pr->isAutoRefreshNow)
 		{
-			CheckDlgButton(hdlg, IDC_CHK_AUTOREFRESH, BST_CHECKED);
+			CheckDlgButton(hdlg, fib_IDC_CKB_AUTOREFRESH, BST_CHECKED);
 			fib_StartTimer(hdlg, pr);
 		}
 		else
@@ -985,7 +985,7 @@ BOOL fib_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 	else
 	{
 		// hide []Auto chkbox
-		Hide_DlgItem(hdlg, IDC_CHK_AUTOREFRESH);
+		Hide_DlgItem(hdlg, fib_IDC_CKB_AUTOREFRESH);
 	}
 
 	SetFocus(NULL);
@@ -1014,8 +1014,8 @@ BOOL fib_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 
 	if(pr->isForceHideRefreshCtrl)
 	{
-		Hide_DlgItem(hdlg, IDC_BTN_REFRESH);
-		Hide_DlgItem(hdlg, IDC_CHK_AUTOREFRESH);
+		Hide_DlgItem(hdlg, fib_IDC_BTN_REFRESH);
+		Hide_DlgItem(hdlg, fib_IDC_CKB_AUTOREFRESH);
 	}
 
 	if(pr->nUserCmds>0 && pr->secTooltip>=0)
@@ -1059,7 +1059,7 @@ void fib_OnSize(HWND hdlg, UINT state, int cx, int cy)
 		RECT rectNow;
 		GetWindowRect(hdlg, &rectNow);
 		BOOL showsb = RECT_AnySide_A_shorter_than_B(rectNow, pr->rectNewboxVisualMax) ? TRUE : FALSE;
-		ShowScrollBar(GetDlgItem(hdlg, IDC_EDIT_SHOW_INFO), SB_VERT, showsb);
+		ShowScrollBar(GetDlgItem(hdlg, fib_IDC_EDIT_TEXTINFO), SB_VERT, showsb);
 	}
 }
 
@@ -1083,8 +1083,8 @@ void fib_OnTimer(HWND hwnd, UINT id)
 	}
 	else if(id==timerId_AllowClose)
 	{
-		HWND hctlOK = GetDlgItem(hwnd, IDC_BTN_OK);
-		HWND hctlCancel = GetDlgItem(hwnd, IDC_BTN_CANCEL);
+		HWND hctlOK = GetDlgItem(hwnd, fib_IDC_BTN_OK);
+		HWND hctlCancel = GetDlgItem(hwnd, fib_IDC_BTN_CANCEL);
 		EnableWindow(hctlOK, TRUE);
 		EnableWindow(hctlCancel, TRUE);
 		KillTimer(hwnd, timerId_AllowClose);
@@ -1103,7 +1103,7 @@ static void fib_CopyToClipboard(HWND hdlg)
 {
 	TCHAR text[64000];
 	text[ARRAYSIZE(text)-1] = _T('\0');
-	GetDlgItemText(hdlg, IDC_EDIT_SHOW_INFO, text, ARRAYSIZE(text));
+	GetDlgItemText(hdlg, fib_IDC_EDIT_TEXTINFO, text, ARRAYSIZE(text));
 	ggt_SetClipboardText(text, -1, hdlg);
 }
 
@@ -1206,22 +1206,22 @@ void fib_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 
 	switch (id) 
 	{{
-	case IDI_SHOW_INFO:
+	case fib_IDC_ICON:
 	{
 		fib_CopyToClipboard(hwnd);
 		//MessageBox(hwnd, L"copied", NULL, MB_OK);
 		break;
 	}
 
-	case IDC_BTN_REFRESH:
+	case fib_IDC_BTN_REFRESH:
 	{
 		fib_CallbackFetchUserText(hwnd, FIBReason_RefreshBtn, pr, true);
 		break;
 	}
 
-	case IDC_CHK_AUTOREFRESH:
+	case fib_IDC_CKB_AUTOREFRESH:
 	{
-		UINT chkst = IsDlgButtonChecked(hwnd, IDC_CHK_AUTOREFRESH);
+		UINT chkst = IsDlgButtonChecked(hwnd, fib_IDC_CKB_AUTOREFRESH);
 		if(chkst==BST_CHECKED)
 		{
 			fib_CallbackFetchUserText(hwnd, FIBReason_Timer, pr, true);
@@ -1234,14 +1234,14 @@ void fib_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 		break;
 	}
 
-	case IDC_BTN_OK:
+	case fib_IDC_BTN_OK:
 	{
 		pr->cb_info.isOKBtnRequested = true;
 		pr->cb_info.msecOKBtnRequested = GetTickCount();
 		break;
 	}
 
-	case IDC_BTN_CANCEL:
+	case fib_IDC_BTN_CANCEL:
 	{
 		pr->cb_info.isCancelRequested = true;
 		pr->cb_info.msecCancelRequested = GetTickCount();
@@ -1252,7 +1252,7 @@ void fib_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 		break;
 	}}
 
-	if(id==IDC_BTN_OK || id==IDC_BTN_CANCEL)
+	if(id==fib_IDC_BTN_OK || id==fib_IDC_BTN_CANCEL)
 	{
 		FibCallback_ret cbret = fib_CallbackFetchUserText(hwnd, 
 			id==IDOK ? FIBReason_OKBtn : FIBReason_CancelBtn, 
@@ -1270,7 +1270,7 @@ void fib_OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 			return;
 		}
 
-		if(id==IDC_BTN_OK)
+		if(id==fib_IDC_BTN_OK)
 			EndDialog(hwnd, FIB_OK);
 		else
 			EndDialog(hwnd, FIB_Cancel);
@@ -1388,9 +1388,9 @@ BEGIN
 	PUSHBUTTON      "OK",IDOK,46,38,50,14
 	PUSHBUTTON      "Btn2",IDCANCEL,99,38,50,14
 	ICON            "",IDI_SHOW_INFO,14,6,20,20,SS_NOTIFY
-	EDITTEXT        IDC_EDIT_SHOW_INFO,47,6,102,28,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | NOT WS_BORDER | WS_VSCROLL
+	EDITTEXT        fib_IDC_EDIT_TEXTINFO,47,6,102,28,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | NOT WS_BORDER | WS_VSCROLL
 	PUSHBUTTON      "&Refresh",IDC_BTN_REFRESH,6,28,36,12
-	CONTROL         "&Auto",IDC_CHK_AUTOREFRESH,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,42,35,10
+	CONTROL         "&Auto",fib_IDC_CKB_AUTOREFRESH,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,42,35,10
 END
 */
 	char memblock[4000];
@@ -1406,7 +1406,7 @@ END
 	// Special case for bare-infobox scene: eliminate bottom button spaces.
 	if(!p_usr_opt->szBtnOK && !p_usr_opt->szBtnCancel && p_usr_opt->isForceHideRefreshCtrl)
 	{
-		dt.cy = 34+5; // 34 is IDC_EDIT_SHOW_INFO's bottom y-pos
+		dt.cy = 34+5; // 34 is fib_IDC_EDIT_TEXTINFO's bottom y-pos
 	}
 
 	// menu, class, title
@@ -1463,7 +1463,7 @@ END
 	pitem->style = WS_VISIBLE|WS_TABSTOP;
 	pitem->dwExtendedStyle = 0;
 	SET_CHILD_RECT(pitem, 99, 38, 50, 14);
-	pitem->id = IDC_BTN_CANCEL;
+	pitem->id = fib_IDC_BTN_CANCEL;
 	//
 	pword = (WORD*)(pitem+1);
 	*pword++ = 0xFFFF; *pword++ = 0x0080; // ctrl class is "button"
@@ -1477,7 +1477,7 @@ END
 	pitem->style = WS_VISIBLE|SS_ICON|SS_NOTIFY; // | SS_BLACKFRAME;
 	pitem->dwExtendedStyle = 0;
 	pitem->x=14, pitem->y=6, pitem->cx=20, pitem->cy=20;
-	pitem->id = IDI_SHOW_INFO;
+	pitem->id = fib_IDC_ICON;
 	//
 	pword = (WORD*)(pitem+1);
 	*pword++ = 0xFFFF; *pword++ = 0x0082; // ctrl class is "static"
@@ -1493,7 +1493,7 @@ END
 	pitem->style = WS_VISIBLE|ES_MULTILINE|ES_AUTOVSCROLL|ES_READONLY|WS_VSCROLL|WS_TABSTOP;
 	pitem->dwExtendedStyle = 0;
 	pitem->x=47, pitem->y=6, pitem->cx=102, pitem->cy=28;
-	pitem->id = IDC_EDIT_SHOW_INFO;
+	pitem->id = fib_IDC_EDIT_TEXTINFO;
 	//
 	pword = (WORD*)(pitem+1);
 	*pword++ = 0xFFFF; *pword++ = 0x0081; // ctrl class is "edit"
@@ -1509,7 +1509,7 @@ END
 	pitem->style = WS_VISIBLE|WS_TABSTOP;
 	pitem->dwExtendedStyle = 0;
 	pitem->x=6, pitem->y=28, pitem->cx=36, pitem->cy=12;
-	pitem->id = IDC_BTN_REFRESH;
+	pitem->id = fib_IDC_BTN_REFRESH;
 	//
 	pword = (WORD*)(pitem+1);
 	*pword++ = 0xFFFF; *pword++ = 0x0080; // ctrl class is "button"
@@ -1525,7 +1525,7 @@ END
 	pitem->style = WS_VISIBLE|BS_AUTOCHECKBOX|WS_TABSTOP;
 	pitem->dwExtendedStyle = 0;
 	pitem->x=7, pitem->y=42, pitem->cx=36, pitem->cy=10;
-	pitem->id = IDC_CHK_AUTOREFRESH;
+	pitem->id = fib_IDC_CKB_AUTOREFRESH;
 	//
 	pword = (WORD*)(pitem+1);
 	*pword++ = 0xFFFF; *pword++ = 0x0080; // ctrl class is "button"
