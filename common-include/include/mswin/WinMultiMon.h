@@ -1,7 +1,7 @@
 #ifndef __CHHI__WinMultiMon_h_
 #define __CHHI__WinMultiMon_h_
 #define __CHHI__WinMultiMon_h_created_ 20260227
-#define __CHHI__WinMultiMon_h_updated_ 20260711
+#define __CHHI__WinMultiMon_h_updated_ 20260713
 
 #include <windows.h>
 #include <RECTxy.h>
@@ -29,11 +29,18 @@ bool getMonitorRectByPoint(int screen_x, int screen_y, RECT *pMonitorRect);
 //    Return true if pt is in one monitor, else false.
 //    *pMonitorRect outputs the screen-coord of the containing monitor.
 
+struct MultimonPlaceRect_st
+{
+	bool AllowCoverTaskbar;
+	bool AllowStraddle;
+	bool AllowShrink;
+};
+
 Rect_st mumo_ReposRect(const Rect_st& urect,
 	int nMonitors, const Rect_st arMonitorRect[],
 	bool allow_straddle, bool allow_shrink=false);
 
-RECT mumo_PlaceRectInsideScreen(const RECT& urect, bool allow_straddle, bool allow_shrink=false);
+RECT mumo_PlaceRectInsideScreen(const RECT& urect, const MultimonPlaceRect_st& flags);
 
 
 /*
@@ -326,7 +333,7 @@ Rect_st _mumo_ReposRect(const Rect_st& urect,
 
 MakeDelega_CleanupCxxPtr(OneMonitorInfo_st)
 
-RECT _mumo_PlaceRectInsideScreen(const RECT& uRECT, bool allow_straddle, bool allow_shrink)
+RECT _mumo_PlaceRectInsideScreen(const RECT& uRECT, const MultimonPlaceRect_st& flags)
 {
 	// Check if urect is inside all-monitors' area.
 	// If not(some portion of urect is invisible), move the urect(as return value)
@@ -363,9 +370,15 @@ RECT _mumo_PlaceRectInsideScreen(const RECT& uRECT, bool allow_straddle, bool al
 	CEC_raw_delete cec_monrect = arMonitorRect;
 
 	for(int i=0; i<nMonitors; i++)
-		arMonitorRect[i] = arMonInfo[i].rcMonitor;
+	{
+		if(flags.AllowCoverTaskbar)
+			arMonitorRect[i] = arMonInfo[i].rcMonitor;
+		else
+			arMonitorRect[i] = arMonInfo[i].rcWorkArea;
+	}
 
-	Rect_st outrect = mumo_ReposRect(uRECT, nMonitors, arMonitorRect, allow_straddle, allow_shrink);
+	Rect_st outrect = mumo_ReposRect(uRECT, nMonitors, arMonitorRect, 
+		flags.AllowStraddle, flags.AllowShrink);
 	return outrect;
 }
 
@@ -405,10 +418,18 @@ Rect_st mumo_ReposRect(const Rect_st& urect,
 	return WinMultiMon::_mumo_ReposRect(urect, nMonitors, arMonitorRect, allow_straddle, allow_shrink);
 }
 
+RECT mumo_PlaceRectInsideScreen(const RECT& urect, const MultimonPlaceRect_st& flags)
+{
+	return WinMultiMon::_mumo_PlaceRectInsideScreen(urect, flags);
+}
 
 RECT mumo_PlaceRectInsideScreen(const RECT& urect, bool allow_straddle, bool allow_shrink)
 {
-	return WinMultiMon::_mumo_PlaceRectInsideScreen(urect, allow_straddle, allow_shrink);
+	MultimonPlaceRect_st flags = {};
+	flags.AllowCoverTaskbar = false;
+	flags.AllowStraddle = allow_straddle;
+	flags.AllowShrink = allow_shrink;
+	return WinMultiMon::_mumo_PlaceRectInsideScreen(urect, flags);
 }
 
 
