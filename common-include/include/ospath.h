@@ -47,6 +47,50 @@ inline bool Is_LetterColon(const TCHAR *inpath)
 	return false;
 }
 
+inline bool Is_split_got_root(const Sdring& indir)
+{
+	int len = indir.rawlen();
+	if(len==1 && Is_pathsep(indir[0]))
+		return true;
+	else if(len==3 && Is_LetterColon(indir) && Is_pathsep(indir[2]))
+		return true;
+	else
+		return false;
+}
+
+
+inline bool Is_winfullpath(const TCHAR *inpath)
+{
+	if(! (inpath && inpath[0]) )
+		return false;
+	
+	if(_tcslen(inpath)>=3 
+		&& Is_LetterColon(inpath) && Is_pathsep(inpath[2]))
+		return true;
+	else
+		return false;
+}
+
+inline bool Is_fullpath(const TCHAR *inpath, bool *p_is_winstyle=nullptr)
+{
+	SETTLE_OUTPUT_PTR(bool, p_is_winstyle, false);
+
+	if(! (inpath && inpath[0]) )
+		return false;
+	
+	if(Is_pathsep(inpath[0]))
+		return true;
+	
+	if(Is_winfullpath(inpath))
+	{
+		*p_is_winstyle = true;
+		return true;
+	}
+
+	return false;
+}
+
+
 Sdring fullpath_from_rela(const TCHAR* rela);
 
 Sdring paths_join_sop(const TCHAR* const paths[], int npaths, TCHAR sepchar=0);
@@ -64,6 +108,16 @@ inline Sdring paths_join3(const TCHAR* path1, const TCHAR* path2, const TCHAR* p
 	TCHAR const* const paths[3] = { path1, path2, path3 };
 	return paths_join_sop(paths, 3, sepchar);
 }
+
+
+struct FTR_feedback_st
+{
+	bool success; 
+	int nparents; // how many ..\..\.. levels on output
+	bool is_reach_root;
+};
+
+Sdring fullpath_to_rela(const TCHAR *infullpath, const TCHAR *inbase, FTR_feedback_st *pfeedback=nullptr);
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -215,8 +269,7 @@ Sdring paths_join_sop(const TCHAR* const paths[], int npaths, TCHAR sepchar)
 			is_root_lead = true;
 			stk.clear();
 		}
-		else if(_tcslen(inpath)>=3 
-			&& Is_LetterColon(inpath) && Is_pathsep(inpath[2]))
+		else if(Is_winfullpath(inpath))
 		{
 			// Special for Windows root-drive path like C:\dir
 			is_root_lead = true;
@@ -313,6 +366,116 @@ Sdring paths_join_sop(const TCHAR* const paths[], int npaths, TCHAR sepchar)
 	return sout;
 }
 
+
+inline bool is_A_prefix_of_B(const TCHAR *a, const TCHAR *b)
+{
+	int alen = (int)_tcslen(a);
+	int cmpret = _tcsncmp(a, b, alen);
+	if(cmpret==0)
+		return true;
+	else
+		return false;
+}
+
+Sdring fullpath_to_rela(const TCHAR *infullpath, const TCHAR *inbase, 
+	FTR_feedback_st *pfeedback)
+{
+	// This code is coarse now. To improve later.
+
+	// [Example]
+	// infullpath = D:\barn\_data\winxp.wav
+	//     inbase = D:\barn\x64\__Debug\_DigClock2
+	//
+	//     Return = ..\..\..\_data\winxp.wav
+	//              pfeedback->nparents = 3
+	//
+	// If infullpath & inbase is from different drive-letter, just return infullpath.
+	//
+	// This function could NOT fail, worst case is to return infullpath verbatim.
+
+	FTR_feedback_st odefault = {};
+	SETTLE_OUTPUT_PTR(FTR_feedback_st, pfeedback, odefault);
+
+	bool is_winstyle1 = false, is_winstyle2;
+	assert(Is_fullpath(infullpath, &is_winstyle1));
+	assert(Is_fullpath(    inbase, &is_winstyle2));
+
+	// Two fullpath styles must match to go.
+	if(is_winstyle2 ^ is_winstyle2)
+	{ 
+//		pfeedback->success = false;
+		return Sdring(infullpath);
+	}
+
+	// TODO: clean up infullpath & inbase, reject verbose slashes. Can use paths_join_sop() to achieve this.
+
+	// If infullpath has inbase as prefix, do it easily.
+
+	if(is_A_prefix_of_B(inbase, infullpath))
+	{
+		int baselen = (int)_tcslen(inbase);
+		const TCHAR *pout = infullpath + baselen;
+
+		if(Is_pathsep(pout[0]))
+			pout++;
+
+//		pfeedback->success = true;
+		return Sdring(pout);
+	}
+	else
+	{
+		// If winstyle drive-letter different, result is infullpath.
+		if (is_winstyle1 && is_winstyle2
+			&& toupper(infullpath[0]) != toupper(inbase[0]))
+		{
+			pfeedback->success = true;
+			return Sdring(infullpath);
+		}
+	}
+
+	// Now we try: If some parent dir of inbase can lead to infullpath.
+
+	chjds::stack<Sdring> stk; // no use actually
+
+	Sdring nowbase = inbase;
+	int nParents = 0;
+
+	for(;;)
+	{
+		Sdring nowtail;
+		nowbase = split(nowbase, nowtail);
+
+		nParents++;
+		stk.push(std::move(nowtail));
+
+		if(Is_split_got_root(nowbase))
+		{
+			pfeedback->is_reach_root = true;
+			break;
+		}
+
+		if (is_A_prefix_of_B(nowbase, infullpath))
+			break;
+	}
+
+	assert(nParents>0);
+	Sdring spathsep(1); spathsep[0] = os_pathsep;
+
+	Sdring srela;
+	int i;
+	for(i=0; i<nParents; i++)
+	{
+		srela.append_self(_T(".."));
+		srela.append_self(spathsep);
+	}
+
+	int lenbase = (int)_tcslen(nowbase);
+
+	srela.append_self(infullpath+lenbase+1);
+
+	pfeedback->nparents = nParents;
+	return srela;
+}
 
 
 ////////////////////////////////////////////////////////////////////////////

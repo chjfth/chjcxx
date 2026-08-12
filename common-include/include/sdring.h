@@ -571,9 +571,15 @@ private:
 public:
 	int count() const { return m_count; }
 
-	const sdring<TCHAR>* get_array() const { return mar_sdring; }
+	const sdring<TCHAR>* get_array() const 
+	{ 
+		return mar_sdring; 
+	}
 
-	sdring<TCHAR>* get_array() { return mar_sdring; }
+	sdring<TCHAR>* get_array() // NOT const
+	{ 
+		return mar_sdring; 
+	}
 
 	sdring<T_CHAR>& operator[](int i)
 	{
