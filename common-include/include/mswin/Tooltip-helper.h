@@ -71,6 +71,8 @@ inline BOOL do_TTM_SETTITLE_ClearTitle(HWND htt)
 }
 
 
+#include <mswin/CHwndTimer.h>
+
 class CTooltipSimple
 {
 	// Code derived from year 2017:
@@ -115,15 +117,36 @@ public:
 		return ret;
 	}
 
-	bool Hide()
+	bool Hide(int delay_millisec=0)
 	{
-		return Show(Show_Hide);
+		if(delay_millisec<=0)
+			return Show(Show_Hide);
+
+		m_timer.m_ptt = this;
+		m_timer.StartDelayedWork(m_htt, delay_millisec);
+		return true;
 	}
+
+protected:
+
+	class CTimerHideTT : public CHwndTimer
+	{
+	public:
+		CTooltipSimple *m_ptt;
+
+		virtual void TimerCallback() cxx11_override
+		{
+			assert(m_ptt);
+			m_ptt->Hide();
+		}
+	};
+
 
 private:
 	HWND m_htt; // tooltip handle
 	HWND m_hwndOwner;
 	Sdring m_text;
+	CTimerHideTT m_timer;
 };
 
 
@@ -213,6 +236,8 @@ bool CTooltipSimple::vlShow(ShowWhere_et where, const POINT *pt, const TCHAR *sz
 {
 	if(!m_htt)
 		return false;
+
+	m_timer.StopTimer();
 
 	const POINT pt_zero = {0, 0};
 	if(!pt)
