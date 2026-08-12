@@ -584,12 +584,12 @@ inline Sdring& vaSdringSet(Sdring &s, const TCHAR *fmt, ...)
 
 Sdring SdringsJoin(const Sdring ars[], int scount,
 	const TCHAR *arSep, int lenSep=-1, 
-	int extra_space=0);
+	int extra_tail=0);
 
 inline Sdring SdringsJoin(const Sdrings& ssin, 
-	const TCHAR *arSep, int lenSep=-1, int extra_space=0)
+	const TCHAR *arSep, int lenSep=-1, int extra_tail=0)
 {
-	return SdringsJoin(ssin.get_array(), ssin.count(), arSep, lenSep, extra_space);
+	return SdringsJoin(ssin.get_array(), ssin.count(), arSep, lenSep, extra_tail);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -688,12 +688,13 @@ Sdring& vlSdringAppendSelf(Sdring &s, const TCHAR *fmt, va_list args)
 
 Sdring SdringsJoin(const Sdring ars[], int scount, 
 	const TCHAR *arSep, int lenSep,
-	int extra_space)
+	int extra_tail)
 {
-	// Note: User can input arSep[0]=='\0' and lenSep==1, so that the resulting
-	// string is joined by '\0'. WinAPI OPENFILENAME.lpstrFilter needs such zzstr,
-	// remember to pass extra_space=1, to leave room for extra '\0' at end .
-	// Note: SdringsJoin respects input string's rawlen, instead of ztlen.
+	// Note(1): User can input arSep[0]=='\0' and lenSep==1, so that the resulting
+	// string is joined by '\0'. WinAPI OPENFILENAME.lpstrFilter needs such zzstr.
+	// Remember to pass extra_tail=1, to leave room for extra '\0' at end .
+	//
+	// Note(2): SdringsJoin respects input string's rawlen, instead of ztlen.
 	
 	if(scount<=0)
 		return nullptr;
@@ -703,7 +704,7 @@ Sdring SdringsJoin(const Sdring ars[], int scount,
 
 	int i, totlen = 0;
 
-	// count final length
+	// count total length (totlen not including extra_tail)
 	for(i=0; i<scount; i++)
 	{
 		totlen += ars[i].rawlen();
@@ -712,7 +713,8 @@ Sdring SdringsJoin(const Sdring ars[], int scount,
 	if(scount>1)
 		totlen += (scount-1)*lenSep;
 
-	Sdring sret( totlen + _MAX_(0, extra_space) );
+	int totlen_ex = totlen + _MAX_(0, extra_tail);
+	Sdring sret( totlen_ex );
 
 	const int csize = sizeof(TCHAR);
 	int nowlen = 0;
@@ -731,7 +733,10 @@ Sdring SdringsJoin(const Sdring ars[], int scount,
 		}
 	}
 
+	assert(nowlen==totlen);
 	sret[nowlen] = '\0';
+
+	sret[totlen_ex] = '\0';
 
 	return sret;
 }

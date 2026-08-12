@@ -1,7 +1,7 @@
 #ifndef __CHHI__TooltipHelper_h_
 #define __CHHI__TooltipHelper_h_
 #define __CHHI__TooltipHelper_h_created_ 20250612
-#define __CHHI__TooltipHelper_h_updated_ 20260703
+#define __CHHI__TooltipHelper_h_updated_ 20260812
 
 
 #include <windows.h>
@@ -85,14 +85,40 @@ public:
 		Show_ScreenPos = 1, // pt is screen position
 		Show_WindowPos = 2, // pt is relative to hwndOwner's window
 		Show_ClientPos = 3, // pt is relative to hwndOwner's client area
-		Show_AtMouse =   4, // Show at mouse cursor
+		Show_AtMouse   = 4, // pt relative to current mouse cursor
+		Show_BelowMouse= 5, // similar to AtMouse, but Y+SM_CYCURSOR.
 	};
 
 	bool Create(HWND hwndOwner, bool isBalloon=false);
-	bool Show(ShowWhere_et where, const POINT *pt=nullptr, const TCHAR *szfmt=nullptr, ...);
-	// -- `pt` coord accroding to `where`. 
-	//    If `pt` is nullptr, always show tooltip beside mouse cursor.
+
+	bool vlShow(ShowWhere_et where, const POINT *pt, const TCHAR *szfmt, va_list args);
+	// -- `pt` coord according to `where`.
+	//    For ScreenPos/WindowPos/ClientPos, pt is a PoN value(negative means from right/bottom border). 
+	//    If `pt` is nullptr, same as pt={0,0}.
 	//    If szfmt==nullptr, previous text is preserved, just show the tooltip.
+
+	bool Show(ShowWhere_et where, const POINT *pt=nullptr, const TCHAR *szfmt=nullptr, ...)
+	{
+		va_list args;
+		va_start(args, szfmt);
+		bool ret = vlShow(where, pt, szfmt, args);
+		va_end(args);
+		return ret;
+	}
+
+	bool ShowBelowMouse(const TCHAR *szfmt=nullptr, ...)
+	{
+		va_list args;
+		va_start(args, szfmt);
+		bool ret = vlShow(Show_BelowMouse, NULL, szfmt, args);
+		va_end(args);
+		return ret;
+	}
+
+	bool Hide()
+	{
+		return Show(Show_Hide);
+	}
 
 private:
 	HWND m_htt; // tooltip handle
@@ -183,10 +209,14 @@ bool CTooltipSimple::Create(HWND hOwner, bool isBalloon)
 	return true;
 }
 
-bool CTooltipSimple::Show(ShowWhere_et where, const POINT *pt, const TCHAR *szfmt, ...)
+bool CTooltipSimple::vlShow(ShowWhere_et where, const POINT *pt, const TCHAR *szfmt, va_list args)
 {
 	if(!m_htt)
 		return false;
+
+	const POINT pt_zero = {0, 0};
+	if(!pt)
+		pt = &pt_zero;
 
 	WinErr_t winerr = 0;
 
@@ -200,19 +230,12 @@ bool CTooltipSimple::Show(ShowWhere_et where, const POINT *pt, const TCHAR *szfm
 	}
 
 	if(szfmt)
-	{
-		va_list args;
-		va_start(args, szfmt);
 		vlSdringSet(m_text, szfmt, args);
-		va_end(args);
-	}
 
 	ti.lpszText = (LPTSTR)m_text.c_str();
 	lret = SendMessage(m_htt, TTM_SETTOOLINFO, 0, (LPARAM)&ti);
 
 	POINT ptscreen = {0, 0};
-	if(!pt)
-		where = Show_AtMouse;
 
 	if(where==Show_ScreenPos)
 	{
@@ -232,11 +255,16 @@ bool CTooltipSimple::Show(ShowWhere_et where, const POINT *pt, const TCHAR *szfm
 		ptscreen.x = RangeOffset_pon(rc.left, rc.right, pt->x);
 		ptscreen.y = RangeOffset_pon(rc.top, rc.bottom, pt->y);
 	}
-	else if(where==Show_AtMouse)
+	else if(where==Show_AtMouse || where==Show_BelowMouse)
 	{
 		GetCursorPos(&ptscreen);
 		int cursorHeight = GetSystemMetrics(SM_CYCURSOR);
-		ptscreen.y += cursorHeight;
+
+		if(where==Show_BelowMouse)
+			ptscreen.y += cursorHeight;
+
+		ptscreen.x += pt->x;
+		ptscreen.y += pt->y;
 	}
 	else
 		assert(0);

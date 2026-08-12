@@ -29,6 +29,10 @@ bool getMonitorRectByPoint(int screen_x, int screen_y, RECT *pMonitorRect);
 //    Return true if pt is in one monitor, else false.
 //    *pMonitorRect outputs the screen-coord of the containing monitor.
 
+Rect_st mumo_ReposRect(const Rect_st& urect,
+	int nMonitors, const Rect_st arMonitorRect[],
+	bool allow_straddle, bool allow_shrink = false);
+
 struct MultimonPlaceRect_st
 {
 	bool AllowCoverTaskbar;
@@ -36,11 +40,10 @@ struct MultimonPlaceRect_st
 	bool AllowShrink;
 };
 
-Rect_st mumo_ReposRect(const Rect_st& urect,
-	int nMonitors, const Rect_st arMonitorRect[],
-	bool allow_straddle, bool allow_shrink=false);
+static const MultimonPlaceRect_st s_default_mmpc = {};
 
-RECT mumo_PlaceRectInsideScreen(const RECT& urect, const MultimonPlaceRect_st& flags);
+RECT mumo_PlaceRectInsideScreen(const RECT& urect, 
+	const MultimonPlaceRect_st& flags=s_default_mmpc);
 
 
 /*
