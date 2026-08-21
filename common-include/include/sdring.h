@@ -1,8 +1,9 @@
 #ifndef __sdring_h_
 #define __sdring_h_
 #define __sdring_h_created_ 20251225_
-#define __sdring_h_updated_ 20260710_
+#define __sdring_h_updated_ 20260821_
 
+#include <utility>
 #include <assert.h>
 #include <_MINMAX_.h>
 
@@ -395,7 +396,7 @@ public:
 		const T_CHAR *trim_what=nullptr, int nwhat=-1) const // like Python strip()
 	{
 		static T_CHAR trim_default[] = {' ', '\t', '\r', '\n'};
-		const int ndefault = ARRAYSIZE(trim_default);
+		const int ndefault = sizeof(trim_default)/sizeof(trim_default[0]);
 		if (!trim_what) 
 			trim_what = trim_default, nwhat = ndefault;
 		
@@ -464,6 +465,21 @@ public:
 	sdring& append_self(const T_CHAR *tail, int ntail=-1)
 	{
 		*this = this->append(tail, ntail);
+		return *this;
+	}
+
+	sdring& quick_shrink(int nshrink)
+	{
+		nshrink = _MID_(0, nshrink, m_nchars);
+
+		int nchars = m_nchars - nshrink;
+		if(nchars==0)
+			set_empty();
+		else {
+			m_nchars = nchars;
+			m_buf[m_nchars] = '\0';
+		}
+
 		return *this;
 	}
 

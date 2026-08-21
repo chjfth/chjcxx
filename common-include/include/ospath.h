@@ -1,10 +1,12 @@
 #ifndef __CHHI__ospath_h_
 #define __CHHI__ospath_h_
 #define __CHHI__ospath_h_created_ 20260418
-#define __CHHI__ospath_h_updated_ 20260710
+#define __CHHI__ospath_h_updated_ 20260821
 
 #include <ps_TCHAR.h>
 #include <sdring.h>
+#include <msvc_extras.h>
+#include <commdefs.h>
 
 ////////////////////////////////////////////////////////////////////////////
 namespace ospath { 
@@ -12,16 +14,17 @@ namespace ospath {
 
 // Mimic Python os.path functions.
 
-Sdring split(const TCHAR* inputpath, Sdring& outfilenam);
+Sdring split(const TCHAR* inputpath, Sdring& outfilenam, TCHAR sepchar=0);
 // -- dir part in return-value.
+// sepchar: If 0, use os_sepchar, otherwise, should be '/' or '\' explicitly
 
-inline Sdring split_dir(const TCHAR* inputpath)
+inline Sdring split_dir(const TCHAR* inputpath, TCHAR sepchar=0)
 {
 	Sdring filenam;
 	return split(inputpath, filenam);
 }
 
-inline Sdring split_filenam(const TCHAR* inputpath)
+inline Sdring split_filenam(const TCHAR* inputpath, TCHAR sepchar=0)
 {
 	Sdring filenam;
 	split(inputpath, filenam);
@@ -73,7 +76,7 @@ inline bool Is_winfullpath(const TCHAR *inpath)
 
 inline bool Is_fullpath(const TCHAR *inpath, bool *p_is_winstyle=nullptr)
 {
-	SETTLE_OUTPUT_PTR(bool, p_is_winstyle, false);
+	SETTLE_OUTPUT_PTR(bool, p_is_winstyle, false)
 
 	if(! (inpath && inpath[0]) )
 		return false;
@@ -103,21 +106,27 @@ inline Sdring paths_join2(const TCHAR* path1, const TCHAR* path2, TCHAR sepchar=
 	return paths_join_sop(paths, 2, sepchar);
 }
 
-inline Sdring paths_join3(const TCHAR* path1, const TCHAR* path2, const TCHAR* path3, TCHAR sepchar = 0)
+inline Sdring paths_join3(const TCHAR* path1, const TCHAR* path2, const TCHAR* path3, TCHAR sepchar=0)
 {
 	TCHAR const* const paths[3] = { path1, path2, path3 };
 	return paths_join_sop(paths, 3, sepchar);
 }
 
+inline Sdring path_normalize(const TCHAR* inpath, TCHAR sepchar=0)
+{
+	// This will remove redundant slashes, collapse midway ..\..\ .
+	return paths_join2(_T(""), inpath, sepchar);
+}
+
 
 struct FTR_feedback_st
 {
-	bool success; 
-	int nparents; // how many ..\..\.. levels on output
+	int nparents; // how many ../../.. levels on output
 	bool is_reach_root;
 };
 
-Sdring fullpath_to_rela(const TCHAR *infullpath, const TCHAR *inbase, FTR_feedback_st *pfeedback=nullptr);
+Sdring fullpath_to_rela(const TCHAR *basedir, const TCHAR *tofullpath, 
+	TCHAR sepchar=0, FTR_feedback_st *pfeedback=nullptr);
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -151,9 +160,10 @@ Sdring fullpath_to_rela(const TCHAR *infullpath, const TCHAR *inbase, FTR_feedba
 #include "linux/ospath.CHHI.h"
 #endif
 
+#include <utility> // std::move()
+#include <string.h>
 
 #include <commdefs.h> // for Uint, Uint64, enum bitwise-OR etc
-#include <string.h>
 
 #include <osdiff.h> // os_pathsep
 #include <msvc_extras.h>
@@ -184,7 +194,7 @@ namespace ospath {
 // Place API function Implementation in this namespace.
 
 
-Sdring split(const TCHAR* inputpath, Sdring& outfilenam)
+Sdring split(const TCHAR* inputpath, Sdring& outfilenam, TCHAR sepchar)
 {
 	if(!inputpath || !inputpath[0])
 	{
@@ -192,13 +202,16 @@ Sdring split(const TCHAR* inputpath, Sdring& outfilenam)
 		return nullptr;
 	}
 
+	if(sepchar==0)
+		sepchar = os_pathsep;
+
 	const TCHAR *pFinalSlash = 
 #ifdef CXX_TARGET_WINDOWS
 	// Use WinAPI StrRChr so that it can deal with '\'(0x5c) in MBCS strings.
 	// Example: GBK 0xd55c, 0xd65c, 0xd95c
-	StrRChr(inputpath, NULL, os_pathsep);
+	StrRChr(inputpath, NULL, sepchar);
 #else
-	strrchr(inputpath, os_pathsep);
+	strrchr(inputpath, sepchar);
 #endif
 	if (pFinalSlash)
 	{
@@ -377,44 +390,54 @@ inline bool is_A_prefix_of_B(const TCHAR *a, const TCHAR *b)
 		return false;
 }
 
-Sdring fullpath_to_rela(const TCHAR *infullpath, const TCHAR *inbase, 
-	FTR_feedback_st *pfeedback)
+Sdring fullpath_to_rela(const TCHAR *basedir, const TCHAR *tofullpath,  
+	TCHAR sepchar, FTR_feedback_st *pfeedback)
 {
 	// This code is coarse now. To improve later.
 
 	// [Example]
-	// infullpath = D:\barn\_data\winxp.wav
-	//     inbase = D:\barn\x64\__Debug\_DigClock2
+	//    basedir = D:\barn\x64\__Debug\_DigClock2
+	// tofullpath = D:\barn\_data\winxp.wav
 	//
 	//     Return = ..\..\..\_data\winxp.wav
 	//              pfeedback->nparents = 3
 	//
-	// If infullpath & inbase is from different drive-letter, just return infullpath.
+	// If basedir and tofullpath is from different drive-letter, just return tofullpath.
 	//
-	// This function could NOT fail, worst case is to return infullpath verbatim.
+	// This function cannot NOT fail, worst case is to return tofullpath verbatim.
+
+	if(sepchar==0)
+		sepchar = os_pathsep;
 
 	FTR_feedback_st odefault = {};
 	SETTLE_OUTPUT_PTR(FTR_feedback_st, pfeedback, odefault);
 
-	bool is_winstyle1 = false, is_winstyle2;
-	assert(Is_fullpath(infullpath, &is_winstyle1));
-	assert(Is_fullpath(    inbase, &is_winstyle2));
+	bool is_winstyle1 = false, is_winstyle2 = false;
+
+	bool isfullpath1 = Is_fullpath(   basedir, &is_winstyle1);
+	bool isfullpath2 = Is_fullpath(tofullpath, &is_winstyle2);
+//	assert(isfullpath1);
+//	assert(isfullpath2);
+	if(!isfullpath1 || !isfullpath2)
+		return nullptr;
 
 	// Two fullpath styles must match to go.
-	if(is_winstyle2 ^ is_winstyle2)
+	if(is_winstyle1 ^ is_winstyle2)
 	{ 
-//		pfeedback->success = false;
-		return Sdring(infullpath);
+		return Sdring(tofullpath);
 	}
 
-	// TODO: clean up infullpath & inbase, reject verbose slashes. Can use paths_join_sop() to achieve this.
+	Sdring basedir_norm = path_normalize(basedir, sepchar);
+	Sdring tofullpath_norm = path_normalize(tofullpath, sepchar);
+	basedir = basedir_norm;
+	tofullpath = tofullpath_norm;
 
-	// If infullpath has inbase as prefix, do it easily.
+	// If tofullpath has basedir as prefix, do it easily.
 
-	if(is_A_prefix_of_B(inbase, infullpath))
+	if(is_A_prefix_of_B(basedir, tofullpath))
 	{
-		int baselen = (int)_tcslen(inbase);
-		const TCHAR *pout = infullpath + baselen;
+		int baselen = (int)_tcslen(basedir);
+		const TCHAR *pout = tofullpath + baselen;
 
 		if(Is_pathsep(pout[0]))
 			pout++;
@@ -424,29 +447,28 @@ Sdring fullpath_to_rela(const TCHAR *infullpath, const TCHAR *inbase,
 	}
 	else
 	{
-		// If winstyle drive-letter different, result is infullpath.
+		// If winstyle drive-letter different, result is tofullpath.
 		if (is_winstyle1 && is_winstyle2
-			&& toupper(infullpath[0]) != toupper(inbase[0]))
+			&& toupper(tofullpath[0]) != toupper(basedir[0]))
 		{
-			pfeedback->success = true;
-			return Sdring(infullpath);
+			return Sdring(tofullpath);
 		}
 	}
 
-	// Now we try: If some parent dir of inbase can lead to infullpath.
+	// Now we try: If some parent dir of basedir can lead to tofullpath.
 
-	chjds::stack<Sdring> stk; // no use actually
+//	chjds::stack<Sdring> stk; // no use actually
 
-	Sdring nowbase = inbase;
+	Sdring nowbase = basedir;
 	int nParents = 0;
 
 	for(;;)
 	{
 		Sdring nowtail;
-		nowbase = split(nowbase, nowtail);
+		nowbase = split(nowbase, nowtail, sepchar);
 
 		nParents++;
-		stk.push(std::move(nowtail));
+//		stk.push(std::move(nowtail));
 
 		if(Is_split_got_root(nowbase))
 		{
@@ -454,24 +476,43 @@ Sdring fullpath_to_rela(const TCHAR *infullpath, const TCHAR *inbase,
 			break;
 		}
 
-		if (is_A_prefix_of_B(nowbase, infullpath))
+		if (is_A_prefix_of_B(nowbase, tofullpath))
 			break;
 	}
 
 	assert(nParents>0);
-	Sdring spathsep(1); spathsep[0] = os_pathsep;
+	
+//	TCHAR szSep[2];
+//	szSep[0] = sepchar, szSep[1] = '\0';
 
 	Sdring srela;
 	int i;
 	for(i=0; i<nParents; i++)
 	{
 		srela.append_self(_T(".."));
-		srela.append_self(spathsep);
+		srela.append_self(&sepchar, 1);
 	}
 
 	int lenbase = (int)_tcslen(nowbase);
 
-	srela.append_self(infullpath+lenbase+1);
+	assert(lenbase>0);
+
+	if(tofullpath[lenbase] != '\0')
+	{
+		int extra_slash = 1;
+		if( Is_pathsep(nowbase[lenbase-1]) )
+		{
+			// nowbase is like "/" or "d:/" .
+			extra_slash = 0;
+		}
+
+		srela.append_self(tofullpath + lenbase + extra_slash);
+	}
+	else
+	{	// Remove redundant trailing slash
+		assert( srela[srela.rawlen()-1]==sepchar );
+		srela.quick_shrink(1);
+	}
 
 	pfeedback->nparents = nParents;
 	return srela;
