@@ -598,6 +598,11 @@ inline Sdring SdringsJoin(const Sdrings& ssin,
 	return SdringsJoin(ssin.get_array(), ssin.count(), arSep, lenSep, extra_tail);
 }
 
+
+int SdringsFind(const Sdrings& ss, const TCHAR *needle, bool case_sensitive=true);
+// -- Return found-index, -1 if not found.
+
+
 ////////////////////////////////////////////////////////////////////////////
 //-- } // namespace nonamespace
 ////////////////////////////////////////////////////////////////////////////
@@ -747,6 +752,22 @@ Sdring SdringsJoin(const Sdring ars[], int scount,
 	return sret;
 }
 
+int SdringsFind(const Sdrings& ss, const TCHAR *needle, bool case_sensitive)
+{
+	for(int i=0; i<ss.count(); i++)
+	{
+		int cmpret = 0;
+		if (case_sensitive)
+			cmpret = _tcscmp(ss[i], needle);
+		else
+			cmpret = shp_stricmp(ss[i], needle);
+
+		if(cmpret==0)
+			return i;
+	}
+
+	return -1;
+}
 
 ////////////////////////////////////////////////////////////////////////////
 //-- } // namespace nonamespace
