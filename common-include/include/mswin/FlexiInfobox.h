@@ -299,7 +299,7 @@ namespace ns_fib {
 
 
 int 
-ggt_normalize_crlf(const TCHAR *ibuf, TCHAR *obuf, int obufchars, const TCHAR *szcrlf)
+normalize_crlf(const TCHAR *ibuf, TCHAR *obuf, int obufchars, const TCHAR *szcrlf)
 {
 	// Return required characters to fill the result, snTprintf style return value.
 	
@@ -592,10 +592,10 @@ void FibDlgParams_st::SetMyText(HWND hdlg)
 	HWND hEdit = GetDlgItem(hdlg, fib_IDC_EDIT_TEXTINFO);
 	assert(hEdit);
 	
-	//	TCHAR t1[1]={'z'}; int ttt = ggt_normalize_crlf(textbuf, t1, 1, _T("\r\n")); // test
+	//	TCHAR t1[1]={'z'}; int ttt = normalize_crlf(textbuf, t1, 1, _T("\r\n")); // test
 
 	int nspace = m_saNormText.CurrentEles();
-	int nreq_ = 1 + ggt_normalize_crlf(textbuf, m_saNormText, nspace, _T("\r\n"));
+	int nreq_ = 1 + normalize_crlf(textbuf, m_saNormText, nspace, _T("\r\n"));
 	if(nreq_>nspace)
 	{
 		if( IsTsaErr(m_saNormText.SetEleQuan(nreq_)) )
@@ -603,7 +603,7 @@ void FibDlgParams_st::SetMyText(HWND hdlg)
 			snTprintf(textbuf, bufchars, _T("No memory!"));
 			return;
 		}
-		ggt_normalize_crlf(textbuf, m_saNormText, nreq_, _T("\r\n"));
+		normalize_crlf(textbuf, m_saNormText, nreq_, _T("\r\n"));
 	}
 
 	SetWindowText(hEdit, m_saNormText);
@@ -1557,7 +1557,7 @@ END
 
 int FlexiInfobox_getversion()
 {
-	return 0; //ns_fib::FlexiInfobox_getversion();
+	return 0x10000;
 }
 
 
