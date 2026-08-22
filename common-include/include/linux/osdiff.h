@@ -9,5 +9,7 @@ static const TCHAR os_crlf[] = _T("\n");
 
 static const TCHAR os_pathsep = _T('/');
 
+static const bool os_path_case_sensitive = true;
+
 
 #endif // include once guard

@@ -1,7 +1,7 @@
 #ifndef __CHHI__ospath_h_
 #define __CHHI__ospath_h_
 #define __CHHI__ospath_h_created_ 20260418
-#define __CHHI__ospath_h_updated_ 20260821
+#define __CHHI__ospath_h_updated_ 20260822
 
 #include <ps_TCHAR.h>
 #include <sdring.h>
@@ -94,8 +94,6 @@ inline bool Is_fullpath(const TCHAR *inpath, bool *p_is_winstyle=nullptr)
 }
 
 
-Sdring fullpath_from_rela(const TCHAR* rela);
-
 Sdring paths_join_sop(const TCHAR* const paths[], int npaths, TCHAR sepchar=0);
 // -- sop: pure string operation; sepchar is typically '/' or '\'
 // -- spechar is only for output Sdring; if 0, default to OS flavor.
@@ -125,8 +123,24 @@ struct FTR_feedback_st
 	bool is_reach_root;
 };
 
+enum CaseSensitive_et 
+{ 
+	CaseSense_byOS = 0, // On Windows, not case-sensitive; on Linux, yes.
+	CaseSense_yes = 1,
+	CaseSense_no = 2,
+};
+
+Sdring fullpath_from_rela(const TCHAR* rela);
+// -- Convert relative path to fullpath(absolute path).
+
 Sdring fullpath_to_rela(const TCHAR *basedir, const TCHAR *tofullpath, 
-	TCHAR sepchar=0, FTR_feedback_st *pfeedback=nullptr);
+	TCHAR sepchar=0, 
+	FTR_feedback_st *pfeedback=nullptr, 
+	CaseSensitive_et cas=CaseSense_byOS);
+// -- Convert a fullpath to a possible relative-path(relapath).
+// If user is in basedir, then returned relapath will refer to tofullpath.
+// If no relative path representation is possible(different windows driver-letter etc), 
+// it will return tofullpath verbatim.
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -380,18 +394,36 @@ Sdring paths_join_sop(const TCHAR* const paths[], int npaths, TCHAR sepchar)
 }
 
 
-inline bool is_A_prefix_of_B(const TCHAR *a, const TCHAR *b)
+inline bool is_A_prefix_of_B(const TCHAR *a, const TCHAR *b, 
+	CaseSensitive_et cas=CaseSense_byOS)
 {
+	if(cas==CaseSense_byOS)
+		cas = os_path_case_sensitive ? CaseSense_yes : CaseSense_no;
+
 	int alen = (int)_tcslen(a);
-	int cmpret = _tcsncmp(a, b, alen);
-	if(cmpret==0)
-		return true;
+
+	if(cas==CaseSense_yes)
+	{
+		int cmpret = _tcsncmp(a, b, alen);
+		if(cmpret==0)
+			return true;
+		else
+			return false;
+	}
 	else
-		return false;
+	{
+		assert(cas==CaseSense_no);
+
+		int cmpret = shp_stricmp(a, b);
+		if( cmpret==0 || cmpret==-(alen+1) )
+			return true;
+		else
+			return false;
+	}
 }
 
 Sdring fullpath_to_rela(const TCHAR *basedir, const TCHAR *tofullpath,  
-	TCHAR sepchar, FTR_feedback_st *pfeedback)
+	TCHAR sepchar, FTR_feedback_st *pfeedback, CaseSensitive_et cas)
 {
 	// This code is coarse now. To improve later.
 
@@ -434,7 +466,7 @@ Sdring fullpath_to_rela(const TCHAR *basedir, const TCHAR *tofullpath,
 
 	// If tofullpath has basedir as prefix, do it easily.
 
-	if(is_A_prefix_of_B(basedir, tofullpath))
+	if(is_A_prefix_of_B(basedir, tofullpath, cas))
 	{
 		int baselen = (int)_tcslen(basedir);
 		const TCHAR *pout = tofullpath + baselen;
@@ -442,7 +474,6 @@ Sdring fullpath_to_rela(const TCHAR *basedir, const TCHAR *tofullpath,
 		if(Is_pathsep(pout[0]))
 			pout++;
 
-//		pfeedback->success = true;
 		return Sdring(pout);
 	}
 	else
@@ -457,8 +488,6 @@ Sdring fullpath_to_rela(const TCHAR *basedir, const TCHAR *tofullpath,
 
 	// Now we try: If some parent dir of basedir can lead to tofullpath.
 
-//	chjds::stack<Sdring> stk; // no use actually
-
 	Sdring nowbase = basedir;
 	int nParents = 0;
 
@@ -468,7 +497,6 @@ Sdring fullpath_to_rela(const TCHAR *basedir, const TCHAR *tofullpath,
 		nowbase = split(nowbase, nowtail, sepchar);
 
 		nParents++;
-//		stk.push(std::move(nowtail));
 
 		if(Is_split_got_root(nowbase))
 		{
@@ -482,9 +510,6 @@ Sdring fullpath_to_rela(const TCHAR *basedir, const TCHAR *tofullpath,
 
 	assert(nParents>0);
 	
-//	TCHAR szSep[2];
-//	szSep[0] = sepchar, szSep[1] = '\0';
-
 	Sdring srela;
 	int i;
 	for(i=0; i<nParents; i++)

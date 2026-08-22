@@ -22,6 +22,12 @@
 
 
 int shp_stricmp(const TCHAR *s1, const TCHAR *s2);
+// -- Case insensitive string comparison.
+// Returns(retval):
+// 0: s1 and s2 equal.
+// Negative: concludes s1<s2
+// Positive: concludes s1<s2
+// `abs(retval)-1` tells the first difference offset.
 
 
 //////// StringSplitter template class ////////
