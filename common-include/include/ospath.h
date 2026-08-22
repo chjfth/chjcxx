@@ -472,9 +472,14 @@ Sdring fullpath_to_rela(const TCHAR *basedir, const TCHAR *tofullpath,
 		const TCHAR *pout = tofullpath + baselen;
 
 		if(Is_pathsep(pout[0]))
+		{
 			pout++;
-
-		return Sdring(pout);
+			return Sdring(pout);
+		}
+		else
+		{	// A==B
+			return Sdring(_T("."));
+		}
 	}
 	else
 	{
