@@ -67,8 +67,7 @@ inline bool Is_winfullpath(const TCHAR *inpath)
 	if(! (inpath && inpath[0]) )
 		return false;
 	
-	if(_tcslen(inpath)>=3 
-		&& Is_LetterColon(inpath) && Is_pathsep(inpath[2]))
+	if(Is_LetterColon(inpath) && Is_pathsep(inpath[2]))
 		return true;
 	else
 		return false;
@@ -509,7 +508,7 @@ Sdring fullpath_to_rela(const TCHAR *basedir, const TCHAR *tofullpath,
 			break;
 		}
 
-		if (is_A_prefix_of_B(nowbase, tofullpath))
+		if (is_A_prefix_of_B(nowbase, tofullpath, cas))
 			break;
 	}
 
