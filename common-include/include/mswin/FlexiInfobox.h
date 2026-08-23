@@ -1,7 +1,7 @@
 #ifndef __CHHI__FlexiInfobox_h_
 #define __CHHI__FlexiInfobox_h_
 #define __CHHI__FlexiInfobox_h_created_ 20260711
-#define __CHHI__FlexiInfobox_h_updated_ 20260713
+#define __CHHI__FlexiInfobox_h_updated_ 20260823
 
 #include <varargs.h>
 #include <windows.h>
@@ -264,6 +264,7 @@ FIB_ret ggt_FlexiInfobox_useRC(HINSTANCE hinstExeDll, LPCTSTR resIdDlgbox,
 #include <EnsureClnup_common.h>
 #include <EnsureClnup_mswin.h>
 #include <JAutoBuf.h>
+#include <mswin/utils_env.h>
 #include <mswin/JULayout2.h>
 #include <mswin/WinMultiMon.h>
 #include <mswin/utils_wingui.h>
@@ -1321,7 +1322,7 @@ in_FlexiInfobox(HINSTANCE hinstExeDll,
 	// Set valid "defaults" for opt.
 
 	if(opt.title==NULL)
-		opt.title = _T("FlexiInfo");
+		opt.title = GetExeFilename(); //_T("FlexiInfo");
 	
 	if(opt.hIcon==NULL)
 		opt.hIcon = LoadIcon(NULL, IDI_INFORMATION);
