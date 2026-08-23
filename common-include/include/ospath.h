@@ -458,6 +458,9 @@ Sdring fullpath_to_rela(const TCHAR *basedir, const TCHAR *tofullpath,
 		return Sdring(tofullpath);
 	}
 
+	// Normalizing the path string(remove all redundant dots and slashes) is a must
+	// for later code to work.
+	//
 	Sdring basedir_norm = path_normalize(basedir, sepchar);
 	Sdring tofullpath_norm = path_normalize(tofullpath, sepchar);
 	basedir = basedir_norm;
@@ -472,12 +475,22 @@ Sdring fullpath_to_rela(const TCHAR *basedir, const TCHAR *tofullpath,
 
 		if(Is_pathsep(pout[0]))
 		{
-			pout++;
-			return Sdring(pout);
+			return Sdring(pout+1); // +1 to skip that very sepchar.
 		}
 		else
-		{	// A==B
-			return Sdring(_T("."));
+		{	
+			if(pout[0]=='\0')
+			{
+				// A==B
+				return Sdring(_T("."));
+			}
+			else
+			{
+				// A could be d:/
+				// B could be d:/123
+				pfeedback->is_reach_root = true;
+				return Sdring(pout);
+			}
 		}
 	}
 	else
