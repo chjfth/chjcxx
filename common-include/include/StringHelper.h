@@ -1,7 +1,7 @@
 #ifndef __CHHI__StringHelper_h_
 #define __CHHI__StringHelper_h_
 #define __CHHI__StringHelper_h_created_ 20250426
-#define __CHHI__StringHelper_h_updated_ 20260707
+#define __CHHI__StringHelper_h_updated_ 20260823
 
 
 #include <assert.h>
@@ -252,7 +252,7 @@ private:
 	virtual bool IsTrimChar(T_CHAR charval) = 0;
 
 public:
-	~IStringSplitter() {}
+	virtual ~IStringSplitter() {}
 
 	IStringSplitter(bool _want_null_split=false)
 	{
