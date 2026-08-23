@@ -1,7 +1,7 @@
 #ifndef __sdring_h_
 #define __sdring_h_
 #define __sdring_h_created_ 20251225_
-#define __sdring_h_updated_ 20260821_
+#define __sdring_h_updated_ 20260822_
 
 #include <utility>
 #include <assert.h>
@@ -609,8 +609,39 @@ public:
 		return mar_sdring[i];
 	}
 
+	sdrings<T_CHAR>& InsertAt(int pos, int nAdd) // Insert empty sdrings
+	{
+		nAdd = _MID_(0, nAdd, 0x7FFFffff-m_count);
+		int newcount = m_count + nAdd;
+		int iAddStart = _MID_(0, pos, m_count);
+		int iAddEnd_ = iAddStart + nAdd;
+
+		sdring<T_CHAR> *ar_newss = new sdring<T_CHAR>[newcount];
+
+		// move old ss to new ss
+		for(int i=0; i<iAddStart; i++)
+			ar_newss[i] = std::move(mar_sdring[i]);
+
+		for(int j=iAddStart; j<m_count; j++)
+			ar_newss[iAddStart+nAdd+j] = std::move(mar_sdring[j]);
+
+		delete[] mar_sdring;
+		mar_sdring = ar_newss;
+		m_count = newcount;
+		return *this;
+	}
+
+	sdrings<T_CHAR>& AppendTail(const TCHAR *str)
+	{
+		int oldcount = m_count;
+		InsertAt(m_count, 1);
+		mar_sdring[oldcount] = str;
+		return *this;
+	}
+
 	sdrings<T_CHAR>& DeleteAt(int pos, int ndel)
 	{
+		ndel = _MID_(0, ndel, m_count);
 		int iDel0 = _MID_(0, pos, m_count-1);
 		int iDel1 = _MID_(0, pos+ndel, m_count);
 		int nMove = m_count - iDel1;
@@ -619,7 +650,7 @@ public:
 		for(int i=0; i<nMove; i++)
 			mar_sdring[iDel0+i] = std::move(mar_sdring[iDel1+i]);
 		
-		m_count -= nMove;
+		m_count -= ndel;
 
 		// for simplicity, not shrinking/moving mar_sdring[]'s own storage
 		return *this;
