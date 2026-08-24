@@ -104,6 +104,8 @@ BOOL SetMenuitemText_byID(HMENU hMenu, UINT id, const TCHAR *newtext);
 BOOL SetMenuitem_UserContext(HMENU hMenu, UINT uItem, MenuitemBy_et byWhat, void *userdata);
 BOOL GetMenuitem_UserContext(HMENU hMenu, UINT uItem, MenuitemBy_et byWhat, void **puserdata);
 
+BOOL Menuitem_Tune_MFTxxx(HMENU hMenu, UINT uItem, MenuitemBy_et byWhat,
+	UINT bits_on, UINT bits_off);
 
 
 /*
@@ -746,6 +748,28 @@ BOOL GetMenuitem_UserContext(HMENU hMenu, UINT uItem, MenuitemBy_et byWhat, void
 		*puserdata = nullptr;
 
 	return b;
+}
+
+BOOL Menuitem_Tune_MFTxxx(HMENU hMenu, UINT uItem, MenuitemBy_et byWhat,
+	UINT bits_on, UINT bits_off)
+{
+	// [2026-08-24] Use this to turn on/off MFT_RADIOCHECK in DigClock2's menu.
+
+	MENUITEMINFO mii = { sizeof(mii) };
+	mii.fMask = MIIM_FTYPE;
+
+	BOOL b = GetMenuItemInfo(hMenu, uItem, byWhat, &mii);
+	if(b)
+	{
+		mii.fType &= ~bits_off;
+		mii.fType |= bits_on;
+		if(SetMenuItemInfo(hMenu, uItem, byWhat, &mii))
+			return TRUE;
+		else
+			return FALSE;
+	}
+	else 
+		return FALSE;
 }
 
 
