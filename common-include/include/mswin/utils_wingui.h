@@ -93,7 +93,9 @@ BOOL Set_ClientAreaSize(HWND hwnd, int width, int height); // in pixels
 UINT Hwnd_TuneWinStyleBits  (HWND hwnd, UINT bits_on, UINT bits_off, bool is_tune_now=false);
 UINT Hwnd_TuneWinStyleExBits(HWND hwnd, UINT bits_on, UINT bits_off, bool is_tune_now=false);
 
-enum MenuitemBy_et { MenuitemById=0, MenuitemByPos=1 };
+enum MenuitemBy_et { MenuitemById=0, MenuitemByPos=1 }; 
+// =fByPosition param of GetMenuItemInfo
+// NOTE: MenuitemByPos(1) is different value to MF_BYPOSITION(0x0400).
 
 HMENU FindSubMenu_byText(HMENU hMenu, const TCHAR* menutext, int *pPos=nullptr);
 int FindMenuitemPos_byText(HMENU hMenu, const TCHAR* menutext);
