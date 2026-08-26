@@ -171,7 +171,7 @@ CMenuTracker::r_BindMenuTree(HMENU hmenu, const Sdring &popname, const Sdring &t
 	// We do depth-first searching, so that msa_map[] holds menunob elements
 	// the same sequence as that in .rc script.
 	//
-	// trimtext is the menutext with popname tail trimmed, only for debugging.
+	// `trimtext` is the menutext with popname tail trimmed, only for debugging.
 
 	BOOL b = 0;
 

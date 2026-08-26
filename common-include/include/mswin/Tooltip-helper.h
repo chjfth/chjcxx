@@ -5,6 +5,7 @@
 
 
 #include <windows.h>
+#include <CommCtrl.h>
 #include <commdefs.h>
 
 struct HottoolId_st
