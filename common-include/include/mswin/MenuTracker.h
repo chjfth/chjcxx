@@ -20,13 +20,17 @@ class IMenuPop
 public:
 	virtual ~IMenuPop() {}
 	
+	// On_Init() is called inside CMenuTracker::AddPopAction().
+	// Resource allocated should be free-ed in dtor.
+	virtual void On_Init(HMENU hmenuPopup, const TCHAR *popname) {}
+
 	// Mimic WindowsX: Cls_OnInitMenuPopup()
 	virtual void On_WM_INITMENUPOPUP(
-		HWND hwnd, HMENU hmenuPopup, UINT uItem, BOOL isSystemMenu) = 0;
+		HWND hwnd, HMENU hmenuPopup, UINT uItem, BOOL isSystemMenu) {}
 
 	// Mimic WindowsX: Cls_OnMenuSelect()
 	virtual void On_WM_MENUSELECT(
-		HWND hwnd, HMENU hmenu, int idxItem, HMENU hSubmenu, UINT flags) = 0;
+		HWND hwnd, HMENU hmenu, int idxItem, HMENU hSubmenu, UINT flags) {}
 };
 
 
@@ -37,13 +41,16 @@ public:
 	{
 		E_Success = 0,
 		E_Unknown = -1,
-		
-		E_PopNameNotFound = -2,
-		E_PopNameExisted = -3, 
+		E_ReInit = -2, 
 
-		E_Winapi = -4,
-		E_GetMenuItemInfo = -5,
+		E_PopNameNotFound = -3,
+		E_PopNameExisted = -4, 
+
+		E_Winapi = -5,
+		E_GetMenuItemInfo = -6,
 	};
+
+	static const TCHAR * const s_root_popname; // ="_root_"
 
 public:
 	CMenuTracker() {}
@@ -51,11 +58,11 @@ public:
 
 	ReCode_et BindMenuTree(HMENU hmenuTop);
 
-	ReCode_et AddListen(const TCHAR *popname, IMenuPop *p_menupop);
-	// -- Inside CMenuTracker dtor, `delete popobj` will be executed automatically.
+	ReCode_et AddPopAction(const TCHAR *popname, IMenuPop *p_menupop);
+	// -- Inside CMenuTracker dtor, `delete p_menupop` will be executed automatically.
 	//    May return E_PopNameNotFound or E_PopNameExisted.
 
-	ReCode_et DelListen(const TCHAR *popname, IMenuPop **pp_oldobj);
+	ReCode_et DelPopAction(const TCHAR *popname, IMenuPop **pp_oldobj);
 
 	void Do_WM_INITMENUPOPUP(
 		HWND hwnd, HMENU hmenuPopup, int idxItem, BOOL isSystemMenu);
@@ -65,7 +72,9 @@ public:
 		HWND hwnd, HMENU hmenu, int idxItem, HMENU hSubmenu, UINT flags);
 
 protected:
-	ReCode_et r_BindMenuTree(HMENU hmenu);
+	ReCode_et r_BindMenuTree(HMENU hmenu, const Sdring &popname, const Sdring &trimtext);
+	
+	Sdring GetPopnameFromMenutext(const TCHAR *menutext, Sdring &out_trimmed_menutext);
 
 protected:
 	struct SMap // map hMenupop to pMenupop
@@ -128,6 +137,8 @@ int MenuTracker_getversion()
 	return 1;
 }
 
+const TCHAR * const CMenuTracker::s_root_popname = _T("_root_");
+
 CMenuTracker::~CMenuTracker()
 {
 	int i, count = msa_map.CurrentEles();
@@ -144,23 +155,41 @@ CMenuTracker::BindMenuTree(HMENU hmenuTop)
 	// with nobtext ending with //SOME_POPNAME, register that menupop into msa_map[].
 	// So that, user later can associate IMenuPop to some registered menupop.
 
-	ReCode_et err = r_BindMenuTree(hmenuTop);
+	if(m_hmenuTop)
+		return E_ReInit;
+
+	m_hmenuTop = hmenuTop;
+
+	ReCode_et err = r_BindMenuTree(hmenuTop, s_root_popname, _T(""));
 	return err;
 }
 
 CMenuTracker::ReCode_et
-CMenuTracker::r_BindMenuTree(HMENU hmenu)
+CMenuTracker::r_BindMenuTree(HMENU hmenu, const Sdring &popname, const Sdring &trimtext)
 {
 	// r_ prefix implies recursive calling.
-	// We do wide-first searching.
+	// We do depth-first searching, so that msa_map[] holds menunob elements
+	// the same sequence as that in .rc script.
+	//
+	// trimtext is the menutext with popname tail trimmed, only for debugging.
 
 	BOOL b = 0;
-	int start_idx = msa_map.CurrentEles();
-	int submenu_count = 0;
+
+	// First, if popname yes, append this hmenu to msa_map[].
+
+	if(popname.not_empty())
+	{
+		SMap map = {};
+		map.hMenupop = hmenu;
+		map.popname = std::move(popname);
+		msa_map.AppendTail(map);
+	}
+
+	// Second, iterate menuitems and recurse into all submenus.
 
 	TCHAR menutext[256] = {};
-
 	int items = GetMenuItemCount(hmenu);
+
 	for(int i=0; i<items; i++)
 	{
 		MENUITEMINFO mii = {sizeof(mii)};
@@ -176,40 +205,24 @@ CMenuTracker::r_BindMenuTree(HMENU hmenu)
 			continue;
 		
 		// Now we meet a menunob. 
-		// Check whether nobtext ends with //SOME_POPNAME
+		assert(mii.hSubMenu == IntToPtr(mii.wID)); // MSDN undoc, but true
 
-		const TCHAR *pss = StrRStrI(menutext, NULL, _T("//"));
-		if(!pss)
-			continue;
+		// Check whether nobtext ends with "//SOME_POPNAME"
 
-		Sdring popname = pss+2;
-		popname.trim(_T(" \t"));
-		if(popname.is_empty())
-			continue;
+		Sdring trimmed_menutext;
+		Sdring sub_popname = GetPopnameFromMenutext(menutext, trimmed_menutext);
 
-		assert(mii.hSubMenu==IntToPtr(mii.wID)); // MSDN undoc, but true
-		
-		SMap map = {};
-		map.hMenupop = mii.hSubMenu;
-		map.popname = std::move(popname);
+		if(sub_popname)
+		{
+			b = Menuitem_SetText(hmenu, i, MenuitemByPos, trimmed_menutext);
+			if(!b)
+				return E_Winapi;
+		}
+		else
+			assert(trimmed_menutext.is_empty());
 
-		msa_map.AppendTail(map);
-		submenu_count++;
-
-		// Remove visual popname from nobtext
-		Sdring trimmed_popname(menutext, int(pss-menutext));
-		trimmed_popname.trim_self(_T(" \t"));
-		
-		b = Menuitem_SetText(hmenu, i, MenuitemByPos, trimmed_popname);
-		if(!b)
-			return E_Winapi;
-	}
-
-	// Recurse into each submenu
-
-	for(int i=0; i<submenu_count; i++)
-	{
-		ReCode_et err = r_BindMenuTree(msa_map[start_idx+i].hMenupop);
+		ReCode_et err = r_BindMenuTree(mii.hSubMenu, sub_popname,
+			trimmed_menutext.is_empty() ? menutext : trimmed_menutext);
 		if(err)
 			return err;
 	}
@@ -217,9 +230,39 @@ CMenuTracker::r_BindMenuTree(HMENU hmenu)
 	return E_Success;
 }
 
+Sdring CMenuTracker::GetPopnameFromMenutext(const TCHAR *menutext, Sdring &out_trimmed_menutext)
+{
+	// A menutext with popname "ShowDate" looks like this:
+	//		"Show Date //ShowDate"
+	// Human user intends to see only "Show Date" on menu item.
+	// But to support MenuTracker facility, programmer should write "Show Date //ShowDate"
+	// in .rc script.
+	//
+	// This function extract "ShowDate" as return value.
+
+	out_trimmed_menutext.set_empty();
+
+	const TCHAR *pss = StrRStrI(menutext, NULL, _T("//"));
+	if(!pss)
+		return nullptr;
+
+	Sdring popname = pss+2;
+	popname.trim_self(_T(" \t"));
+	if(popname.is_empty())
+		return nullptr;
+
+	// Non-empty popname confirmed.
+
+	// Remove "//SOME_POPNAME" from menutext, so they don't appear to human user.
+	out_trimmed_menutext.setsn(menutext, int(pss-menutext));
+	out_trimmed_menutext.trim_self(_T(" \t"));
+		
+	return popname;
+}
+
 
 CMenuTracker::ReCode_et 
-CMenuTracker::AddListen(const TCHAR *popname, IMenuPop *p_menupop)
+CMenuTracker::AddPopAction(const TCHAR *popname, IMenuPop *p_menupop)
 {
 	int count = msa_map.CurrentEles();
 	for(int i=0; i<count; i++)
@@ -232,6 +275,7 @@ CMenuTracker::AddListen(const TCHAR *popname, IMenuPop *p_menupop)
 			else
 			{
 				map.pMenupop = p_menupop;
+				p_menupop->On_Init(map.hMenupop, popname);
 				return E_Success;
 			}
 		}
@@ -241,7 +285,7 @@ CMenuTracker::AddListen(const TCHAR *popname, IMenuPop *p_menupop)
 }
 
 CMenuTracker::ReCode_et 
-CMenuTracker::DelListen(const TCHAR *popname, IMenuPop **pp_oldobj)
+CMenuTracker::DelPopAction(const TCHAR *popname, IMenuPop **pp_oldobj)
 {
 	int count = msa_map.CurrentEles();
 	for (int i = 0; i < count; i++)
@@ -268,7 +312,7 @@ void CMenuTracker::Do_WM_INITMENUPOPUP(
 	for (int i = 0; i < count; i++)
 	{
 		SMap &map = msa_map[i];
-		if (hmenuPopup == map.hMenupop)
+		if (hmenuPopup==map.hMenupop && map.pMenupop)
 		{
 			map.pMenupop->On_WM_INITMENUPOPUP(hwnd, hmenuPopup, idxItem, isSystemMenu);
 			return;
@@ -283,7 +327,7 @@ void CMenuTracker::Do_WM_MENUSELECT(
 	for (int i = 0; i < count; i++)
 	{
 		SMap &map = msa_map[i];
-		if (hmenu == map.hMenupop)
+		if (hmenu==map.hMenupop && map.pMenupop)
 		{
 			map.pMenupop->On_WM_MENUSELECT(hwnd, hmenu, idxItem, hSubmenu, flags);
 			return;

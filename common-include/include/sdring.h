@@ -1,7 +1,7 @@
 #ifndef __sdring_h_
 #define __sdring_h_
 #define __sdring_h_created_ 20251225_
-#define __sdring_h_updated_ 20260822_
+#define __sdring_h_updated_ 20260826_
 
 #include <utility>
 #include <assert.h>
@@ -206,9 +206,14 @@ public:
 
 	bool not_empty() const { return !is_empty(); }
 
-// 	operator bool() const {   // please use not_empty() instead
-// 		return (m_buf && m_buf[0]) ? true : false;
-// 	}
+ 	operator bool() const {
+		// [2026-08-26] Synonym to not_empty()
+ 		return not_empty();
+ 	}
+	bool operator !() const {
+		// [2026-08-26] Synonym to is_empty()
+		return is_empty();
+	}
 
 	void set_empty() {
 		_dtor();
