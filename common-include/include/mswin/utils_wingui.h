@@ -109,6 +109,8 @@ BOOL GetMenuitem_UserContext(HMENU hMenu, UINT uItem, MenuitemBy_et byWhat, void
 BOOL Menuitem_Tune_MFTxxx(HMENU hMenu, UINT uItem, MenuitemBy_et byWhat,
 	UINT bits_on, UINT bits_off);
 
+BOOL Menuitem_SetText(HMENU hMenu, UINT uItem, MenuitemBy_et byWhat, const TCHAR *newtext);
+
 
 /*
 ////////////////////////////////////////////////////////////////////////////
@@ -772,6 +774,16 @@ BOOL Menuitem_Tune_MFTxxx(HMENU hMenu, UINT uItem, MenuitemBy_et byWhat,
 	}
 	else 
 		return FALSE;
+}
+
+BOOL Menuitem_SetText(HMENU hMenu, UINT uItem, MenuitemBy_et byWhat, const TCHAR *newtext)
+{
+	MENUITEMINFO mii = { sizeof(mii) };
+	mii.fMask = MIIM_STRING;
+	mii.dwTypeData = (LPTSTR)newtext;
+
+	BOOL b = SetMenuItemInfo(hMenu, uItem, byWhat, &mii);
+	return b;
 }
 
 

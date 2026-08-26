@@ -1,7 +1,7 @@
 #ifndef __TScalableArray_h_
 #define __TScalableArray_h_
 #define __TScalableArray_h_created_ 20050101
-#define __TScalableArray_h_updated_ 20260520
+#define __TScalableArray_h_updated_ 20260826
 
 #include <assert.h>
 #include <stdio.h>
@@ -24,10 +24,10 @@
 	T's ctor/dtor will be invoked automatically when required. To be precise:
 
 	[A]	When new element-storage is allocated, every new element will be constructed by
-		no-parameter ctor of T. So user's T must supply such ctor to compile success.
+		no-param ctor of T. So user's T must supply such ctor to compile success.
 	
-	[B]	When(just before) an old element is dropped from RAM, including when TSA itself 
-		is destructed, old element's C++ destructor is called.
+	[B]	When(just before) an old element is dropped from RAM(including when TSA itself 
+		is destructed), old element's C++ destructor is called.
 	
 	[C]	A TSA object itself can be copied, at that time, all elements in new TSA is 
 		constructed by calling T's copy-constructor on elements from old TSA.
@@ -37,11 +37,16 @@
 	[a] User calls `tsa.SetEleQuan(N, true)` to increase/decrease storage for T's array. 
 		That second param `true` tells TSA to zero out the new element's storage to zeros,
 		instead of calling T's ctor. So user can postpone construction of those T objects
-		manually.
+		manually, maybe using a placement new operator with arbitrary constructing parameters.
+		Yes, user's placement new operator will then face a all-zero memblock.
 
-	[b] User's T must provide a no-param ctor that initialize T to a plain-old object,
+	[b] User's T must still provide a no-param ctor that initialize T to a plain-old object,
 		for example, initialize all object body bytes to zero.
-		And, T's dtor should cope with zero-content object body normally.
+		.
+		This no-param ctor will be used when user calls .InsertBefore(some_pos, nullptr, some_N); .
+		The newly inserted space(=memblock) will be constructed with no-param ctor.
+		.
+		Accordingly, T's dtor should cope with zero-content object body normally.
 
 	[c] There is NOT a object-wide switch that controls whether TSA looks upon T as
 		flavor-one or flavor-two, so, even you use flavor-two, TSA still considers T 
@@ -59,11 +64,9 @@
 
 	Flavor-Two has been applied on chjds::hashdict template class successfully, with [d].
 
-[2026-07-06] Caution for immaturity: (still to confirm)
-
-	Currently TScalableArray only applies C++ object dtor when an C++ element is 
-	dropped/removed from the managed array. It does not care about ctor/dtor when 
-	creating new storage, when CopyInEles() or CopyOutEles().
+[2026-08-26] 
+	Make CopyInEles() and CopyOutEles() C++ object aware.
+	Now user can use AppendTail() to add C++ objects.
 */
 
 const int TSA_no_decrease = 0; // use for DecSize param
@@ -150,9 +153,16 @@ d:\ws\common-include\autotest\mytest-ci\test_tscalablearray.cpp(408): error C259
 	bool operator !() { return (T*)(*this) ? false : true; } // check for empty array
 		
 	ReCode_t InsertBefore(int pos, const T array[], int n);
-		// Insert `n' elements at position `pos'. Insert all or insert none.
+	// -- Insert `n' elements at position `pos'. Insert all or insert none.
+
 	ReCode_t InsertBefore(int pos, const T tobj)
 	{
+		// Q: Why not use `const T &tobj` as 2nd param ?
+		// Answer:
+		// 1. Sometimes, user prefer to provide a const(enum value etc) as 2nd param. 
+		//    In this case, passing a const to a reference type may be forbidden by the compiler.
+		// 2. If user's T object is large and he wants to avoid object memory copy, 
+		//    he can instead use `InsertBefore(int pos, const T* array, int n);` for efficiency.
 		return InsertBefore(pos, &tobj, 1);
 	}
 
@@ -167,17 +177,9 @@ d:\ws\common-include\autotest\mytest-ci\test_tscalablearray.cpp(408): error C259
 
 	ReCode_t AppendAt(int pos, const T* array, int n);
 	ReCode_t AppendAt(int pos, const T tobj);
-		// Q: Why not use ``const T &tobj'' as 2nd param ?
-		// Answer:
-		// 1. Sometimes, user prefer to provide a const(enum value etc) as 2nd param. 
-		//    In this case, passing a const to a reference type may be forbidden by the compiler.
-		// 2. If user's T object is large and he wants to avoid object memory copy, 
-		//    he can instead use ``AppendAt(int pos, const T* array, int n);'' for efficiency.
-		//
-		// [2026-07-06] Perhaps AppendAt() should be named ReplaceAt().
-
 	ReCode_t DeleteEles(int pos, int n);
-		// A too large `n' means to delete all eles starting at `pos'
+	// -- A too large `n` means to delete all eles starting at `pos`
+
 	ReCode_t DeleteEle(int pos)
 	{
 		return DeleteEles(pos, 1);
@@ -495,7 +497,7 @@ template<typename T>
 void 
 TScalableArray<T>::ShiftUpEles(int pos, int n)
 {
-	// Call T's dtor for those n elements
+	// Call T's dtor for those vanishing n elements
 	for(int i=0; i<n; i++)
 		mar_Ele[pos+i].~T();
 
@@ -506,14 +508,22 @@ template<typename T>
 void 
 TScalableArray<T>::CopyInEles(int pos, int n, const T* pIn)
 {
-	memcpy(mar_Ele+pos, pIn, n*sizeof(T));
+	for(int i=0; i<n; i++)
+	{
+		mar_Ele[pos+i] = pIn[i];
+	}
+	//memcpy(mar_Ele+pos, pIn, n*sizeof(T)); // old-code
 }
 
 template<typename T>
 void 
 TScalableArray<T>::CopyOutEles(int pos, int n, T* pOut) const
 {
-	memcpy(pOut, mar_Ele+pos, n*sizeof(T));
+	for(int i=0; i<n; i++)
+	{
+		pOut[i] = mar_Ele[pos+i];
+	}
+	//memcpy(pOut, mar_Ele+pos, n*sizeof(T)); // old-code
 }
 
 

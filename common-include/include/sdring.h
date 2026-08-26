@@ -29,8 +29,6 @@ template<typename T_CHAR>
 class sdring
 {
 public:
-	static int bufSize_(int nchars){ return nchars+1; }
-
 	sdring(int nchars)
 	{
 		_ct0r();
@@ -45,6 +43,8 @@ public:
 	sdring(const T_CHAR* inchars, int nchars) {
 		_ctor(inchars, nchars);
 	}
+
+	static int bufSize_(int nchars) { return nchars + 1; }
 
 public:
 	// boilerplate code, no need to modify >>>
@@ -438,6 +438,12 @@ public:
 	sdring trimright(const T_CHAR *trim_what=nullptr, int nwhat=-1) const
 	{
 		return trim_ex(false, true, trim_what, nwhat);
+	}
+
+	sdring trim_self(const T_CHAR *trim_what=nullptr, int nwhat=-1)
+	{
+		*this = trim(trim_what, nwhat);
+		return *this;
 	}
 
 	sdring operator+(const sdring& tail) const
