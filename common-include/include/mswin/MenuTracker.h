@@ -1,7 +1,7 @@
 #ifndef __CHHI__MenuTracker_h_
 #define __CHHI__MenuTracker_h_
 #define __CHHI__MenuTracker_h_created_ 20260826
-#define __CHHI__MenuTracker_h_updated_ 20260826
+#define __CHHI__MenuTracker_h_updated_ 20260828
 
 #include <utility>
 #include <windows.h>
@@ -63,6 +63,8 @@ public:
 	//    May return E_PopNameNotFound or E_PopNameExisted.
 
 	ReCode_et DelPopAction(const TCHAR *popname, IMenuPop **pp_oldobj);
+
+	HMENU FindPopname(const TCHAR *popname, IMenuPop **pp_oldobj=nullptr);
 
 	void Do_WM_INITMENUPOPUP(
 		HWND hwnd, HMENU hmenuPopup, int idxItem, BOOL isSystemMenu);
@@ -293,8 +295,7 @@ CMenuTracker::DelPopAction(const TCHAR *popname, IMenuPop **pp_oldobj)
 		SMap &map = msa_map[i];
 		if (_tcscmp(map.popname, popname) == 0)
 		{
-			if (map.pMenupop)
-				*pp_oldobj = map.pMenupop;
+			*pp_oldobj = map.pMenupop; // can be NULL
 
 			map.pMenupop = nullptr;
 			return E_Success;
@@ -304,6 +305,24 @@ CMenuTracker::DelPopAction(const TCHAR *popname, IMenuPop **pp_oldobj)
 	return E_PopNameNotFound;
 }
 
+HMENU CMenuTracker::FindPopname(const TCHAR *popname, IMenuPop **pp_oldobj)
+{
+	int count = msa_map.CurrentEles();
+	for (int i = 0; i < count; i++)
+	{
+		SMap &map = msa_map[i];
+		if (_tcscmp(map.popname, popname) == 0)
+		{
+			if(pp_oldobj)
+				*pp_oldobj = map.pMenupop;
+			
+			assert(map.hMenupop);
+			return map.hMenupop;
+		}
+	}
+
+	return NULL;
+}
 
 void CMenuTracker::Do_WM_INITMENUPOPUP(
 	HWND hwnd, HMENU hmenuPopup, int idxItem, BOOL isSystemMenu)
