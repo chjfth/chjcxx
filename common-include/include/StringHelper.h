@@ -1,7 +1,7 @@
 #ifndef __CHHI__StringHelper_h_
 #define __CHHI__StringHelper_h_
 #define __CHHI__StringHelper_h_created_ 20250426
-#define __CHHI__StringHelper_h_updated_ 20260823
+#define __CHHI__StringHelper_h_updated_ 20260908
 
 
 #include <assert.h>
@@ -598,9 +598,25 @@ inline Sdring SdringsJoin(const Sdrings& ssin,
 	return SdringsJoin(ssin.get_array(), ssin.count(), arSep, lenSep, extra_tail);
 }
 
+inline Sdring StrJoin(const TCHAR* const arsz[], int scount, 
+	const TCHAR *arSep, int lenSep=-1, int extra_tail=0)
+{
+	if(scount<=0)
+		return nullptr;
+
+	Sdrings ss(scount);
+	for(int i=0; i<scount; i++)
+		ss[i].setsz(arsz[i]);
+
+	return SdringsJoin(ss, arSep, lenSep, extra_tail);
+}
+
 
 int SdringsFind(const Sdrings& ss, const TCHAR *needle, bool case_sensitive=true);
 // -- Return found-index, -1 if not found.
+
+
+bool StrEndsWith(const TCHAR *slong, const TCHAR *sshort, bool case_sensitive=true);
 
 
 ////////////////////////////////////////////////////////////////////////////
@@ -767,6 +783,25 @@ int SdringsFind(const Sdrings& ss, const TCHAR *needle, bool case_sensitive)
 	}
 
 	return -1;
+}
+
+
+bool StrEndsWith(const TCHAR *slong, const TCHAR *sshort, bool case_sensitive)
+{
+	int len_long = (int)_tcslen(slong);
+	int len_short = (int)_tcslen(sshort);
+	int len_diff = len_long - len_short;
+	
+	if(len_long<len_short)
+		return false;
+	
+	int cmpret = 0;
+	if(case_sensitive)
+		cmpret = _tcscmp(slong+len_diff, sshort);
+	else
+		cmpret = shp_stricmp(slong+len_diff, sshort);
+	
+	return cmpret==0 ? true : false;
 }
 
 ////////////////////////////////////////////////////////////////////////////
