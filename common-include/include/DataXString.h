@@ -1,7 +1,7 @@
 #ifndef __CHHI__DataXString_h_
 #define __CHHI__DataXString_h_
 #define __CHHI__DataXString_h_created_ 20260507
-#define __CHHI__DataXString_h_updated_ 20260522
+#define __CHHI__DataXString_h_updated_ 20260908
 
 // DataXString: C++ object Data eXchange via/by the form of a String.
 
@@ -96,9 +96,51 @@ public:
 		return this->SetValue( std::move(copy) );
 	}
 
-	DataXString& operator= (const TU& val)
+	DataXString& operator= (const TU& newval)
 	{
-		SetValue(val);
+		SetValue(newval);
+		return *this;
+	}
+
+	DataXString& operator= (const DataXString<TU, FORMAT>& his)
+	{
+		/*
+		[2026-09-08] This explicit copy-assignment is important. 
+		Without it, user will face very subtle coding error when using `Sdring` as TU.
+
+		Without this fix, error case is as follows:
+
+			In DigClock2.cpp, user has definition of Sdring:
+
+				DataXString_AutoSaveIni<Sdring> g_playsound_filepath; // [A] ref: DataXIni.h
+
+			Then user assigns to g_playsound_filepath like this:
+
+				g_playsound_filepath = _T("new-filepath"); // [B]
+
+			User intents to construct a Sdring("new-filepath") object then call 
+			`DataXString& operator= (const TU& newval)`, so to have newval stored into INI.
+			
+			But the actual behavior is: the compiler constructs a new DataXString object using
+			ctor `DataXString(const TCHAR* default_str)`, then invokes the *implicit* 
+			copy-assignment `DataXString& operator(const DataXString&)` to copy the newval 
+			to g_playsound_filepath.
+			
+			The consequence is: `DataXString& operator= (const TU& newval)` is NOT executed,
+			g_playsound_filepath's in-RAM content changed to "new-filepath", but storing-to-INI
+			did NOT happen.
+
+			Coding trap: user code compiles OK, but wrong runtime behavior.
+		
+		With this fix(explicit copy-assignment), [B] will cause ambiguous calling compiler error. 
+		So the user will be forced to write un-ambiguous statement:
+
+			g_playsound_filepath = Sdring(_T("some-filepath"));
+			or
+			g_playsound_filepath.SetValue(_T("some-filepath"));
+		*/
+
+		SetValue(his.GetValue());
 		return *this;
 	}
 
