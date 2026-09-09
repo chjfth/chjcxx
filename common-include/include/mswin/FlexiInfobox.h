@@ -1,7 +1,7 @@
 #ifndef __CHHI__FlexiInfobox_h_
 #define __CHHI__FlexiInfobox_h_
 #define __CHHI__FlexiInfobox_h_created_ 20260711
-#define __CHHI__FlexiInfobox_h_updated_ 20260823
+#define __CHHI__FlexiInfobox_h_updated_ 20260909
 
 #include <varargs.h>
 #include <windows.h>
@@ -860,6 +860,33 @@ fib_Dumb_GetText(void *ctx, const FibCallback_st &cb_info, TCHAR *textbuf, int b
 	return FIBcb_OK;
 }
 
+static bool fib_UncoverParentTitle(HWND hwndParent, Rect_st *pRectToAdjust)
+{
+	if(!IsWindow(hwndParent))
+		return false;
+
+	RECT &rect = *(RECT*)pRectToAdjust;
+
+	// If input rect covers hwnd's title(this happens when parent UI windows is small, like DigClock2,
+	// and FlexiInfobox's window is large), we nudge *pRectToAdjust down, so it provides a visual clue
+	// that the FIB belongs to the parent UI.
+	// And, the FIB's up-border should NOT stick to the parent
+
+	RECT rcParent;
+	BOOL succ = GetClientRect_ScreenPos(hwndParent, &rcParent);
+	assert(succ);
+
+	int fibHeight = RECTcy(rect);
+	int cyTitlebar = GetSystemMetrics(SM_CYCAPTION); 
+	// -- the extra Y-gap btw parent title-bottom and FIB title-top.
+
+	rect.top = rcParent.top + cyTitlebar;
+	rect.bottom = rect.top + fibHeight;
+
+	rect = mumo_PlaceRectInsideScreen(rect, false, false);
+
+	return true;
+}
 
 BOOL fib_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam) 
 {
@@ -951,6 +978,8 @@ BOOL fib_OnInitDialog(HWND hdlg, HWND hwndFocus, LPARAM lParam)
 
 	Rect_st &rectMax = pr->rectNewboxVisualMax;
 	rectMax = fib_CalNewboxTextMax(hdlg, pr);
+
+	fib_UncoverParentTitle(GetParent(hdlg), &rectMax); // 2026-09-09
 
 	MoveWindow(hdlg, rectMax.left, rectMax.top, RECTcx(rectMax), RECTcy(rectMax), TRUE);
 
