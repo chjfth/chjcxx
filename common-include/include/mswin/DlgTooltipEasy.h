@@ -1,5 +1,5 @@
 #ifndef __DlgTooltipEasy_h_20250707_20260317_
-#define __DlgTooltipEasy_h_20250707_20260317_
+#define __DlgTooltipEasy_h_20250707_20260912_
 
 #include <tchar.h>
 #include <windows.h>
@@ -86,8 +86,9 @@ static inline Dlgtte_err Dlgtte_EnableStaticUsageTooltip(HWND hwndCtl, const TCH
 // >>> Include headers required by this lib's implementation
 #include <assert.h>
 #include <windowsx.h>
-#include <mswin/Tooltip-helper.h>
 //
+#include <mswin/Tooltip-helper.h>
+#include <mswin/utils_wingui.h>
 #include <mswin/WinMultiMon.h>
 #include <mswin/CxxWindowSubclass.h>
 // <<< Include headers required by this lib's implementation
@@ -293,6 +294,9 @@ private:
 	RECT m_rcFinal; 
 
 	UINT_PTR m_timeridHideUsageTip;
+
+	UINT m_origWinstyle; // used by "static" SS_NOTIFY
+	// UINT m_origExWinstyle; // unused yet
 };
 
 CHottoolSubsi::CHottoolSubsi()
@@ -742,6 +746,21 @@ CTooltipMan::AddUic(HWND hwndUic, const GetTextCallbacks_st &gtcb)
 
 	phottool->AssignCallback(this, gtcb);
 
+	// Extra process for special types of Uic >>>
+
+	TCHAR szWinclass[100] = {};
+	GetClassName(hwndUic, szWinclass, ARRAYSIZE(szWinclass));
+	phottool->m_origWinstyle = GetWindowStyle(hwndUic);
+
+	// For a Static control, we should turn on its SS_NOTIFY.
+
+	if(_tcscmp(szWinclass, _T("Static"))==0)
+	{
+		Hwnd_TuneWinStyleBits(hwndUic, SS_NOTIFY, 0, true);
+	}
+
+	// Extra process for special types of Uic <<<
+
 	return E_Success;
 }
 
@@ -891,6 +910,26 @@ CTooltipMan::DelUic(HWND hwndUic)
 	}
 
 	assert(pth);
+
+	// Extra process for special types of Uic >>>
+
+	TCHAR szWinclass[100] = {};
+	GetClassName(hwndUic, szWinclass, ARRAYSIZE(szWinclass));
+	assert(IsWindow(hwndUic));
+
+	// For a Static control, we should turn on its SS_NOTIFY.
+
+	if(_tcscmp(szWinclass, _T("Static"))==0)
+	{
+		if((pth->m_origWinstyle & SS_NOTIFY)==0)
+		{
+			// turn off SS_NOTIFY
+			Hwnd_TuneWinStyleBits(hwndUic, 0, SS_NOTIFY, true);
+		}
+	}
+
+	// Extra process for special types of Uic <<<
+
 
 	ReCode_et err = pth->DetachHwnd(true);
 	assert(!err);
