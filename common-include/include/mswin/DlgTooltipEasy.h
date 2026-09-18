@@ -1,5 +1,7 @@
-#ifndef __DlgTooltipEasy_h_20250707_20260317_
-#define __DlgTooltipEasy_h_20250707_20260912_
+#ifndef __DlgTooltipEasy_h_
+#define __DlgTooltipEasy_h_
+#define __DlgTooltipEasy_h_created_ 20250707
+#define __DlgTooltipEasy_h_updated_ 20260912
 
 #include <tchar.h>
 #include <windows.h>
