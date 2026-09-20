@@ -1,7 +1,7 @@
 #ifndef __CHHI__DataXIni_h_
 #define __CHHI__DataXIni_h_
 #define __CHHI__DataXIni_h_created_ 20260508
-#define __CHHI__DataXIni_h_updated_ 20260522
+#define __CHHI__DataXIni_h_updated_ 20260920
 
 
 #include <hashdict.h>
@@ -22,9 +22,10 @@ public:
 
 	void AddItem(const TCHAR *secname, const TCHAR *keyname, IDataXString *pdatax);
 
-	enum LoadSemantic_et { LoadFresh=0, LoadIncrement=1 };
+	enum LoadHow_et { LoadMergeAll=1, LoadFirstFound=2 , LoadFinalFound=3};
 
-	void LoadIni(const TCHAR* const ar_inifiles[], int nfiles, LoadSemantic_et how=LoadFresh);
+	void LoadIni(const TCHAR* const ar_inifiles[], int nfiles, bool isLoadFresh,
+		LoadHow_et how=LoadMergeAll);
 	
 	bool SaveIni(bool is_force=false, Sdring *pSavedToFile=nullptr); 
 	// -- If is_force==false and all data are not dirty, INI file writing is skipped.
@@ -33,8 +34,9 @@ public:
 	void ResetDefault();
 
 protected:
-	static void LoadItemvalFromIni(IDataXString *pdatax, SimpleIniEx &ini, 
+	static void ResetItemvalFromIni(IDataXString *pdatax, SimpleIniEx &ini, 
 		const TCHAR *secname, const TCHAR *keyname);
+		// [2026-09-20] oldname: LoadItemvalFromIni
 
 private:
 	struct IniItem_st
@@ -182,13 +184,22 @@ void DataXIni::AddItem(const TCHAR *secname, const TCHAR *keyname, IDataXString 
 	msa_items.SetEleQuan(nitems+1, true);
 	new(&msa_items[nitems]) IniItem_st(std::move(item));
 
-	LoadItemvalFromIni(pdatax, m_ini, secname, keyname);
+	ResetItemvalFromIni(pdatax, m_ini, secname, keyname);
 }
 
 
-void DataXIni::LoadIni(const TCHAR* const ar_inifiles[], int nfiles, LoadSemantic_et how)
+void DataXIni::LoadIni(const TCHAR* const ar_inifiles[], int nfiles, bool isLoadFresh,
+	LoadHow_et how)
 {
-	m_ini.load_cascade(ar_inifiles, nfiles);
+	SimpleIniEx::LoadHow_et inihow = SimpleIniEx::LoadMerge;
+	if(how==LoadMergeAll)
+		inihow = SimpleIniEx::LoadMerge;
+	else if(how==LoadFirstFound)
+		inihow = SimpleIniEx::LoadFirst;
+	else if(how==LoadFinalFound)
+		inihow = SimpleIniEx::LoadFinal;
+
+	m_ini.load_cascade(ar_inifiles, nfiles, inihow);
 
 	// Cycle through existing items, check if each that appears in the INI,
 	// load its corresponding INI-stored values.
@@ -200,17 +211,16 @@ void DataXIni::LoadIni(const TCHAR* const ar_inifiles[], int nfiles, LoadSemanti
 		const TCHAR *secname = msa_sections[item.idx_secname].c_str();
 		Sdring itemval;
 
-		if(how==LoadFresh)
+		if(isLoadFresh)
 		{
 			// LoadFresh means: If some option is not provided by INI, 
 			// we should restore its runtime value to hard-coded default.
 
-			LoadItemvalFromIni(item.pdatax, m_ini, secname, item.keyname);
+			ResetItemvalFromIni(item.pdatax, m_ini, secname, item.keyname);
 		}
 		else
 		{
-			assert(how==LoadIncrement);
-			// LoadIncrement means: If some option is not provided by INI,
+			// Not-fresh means Increment: If some option is not provided by INI,
 			// we should keep it current runtime value(in `item.pdatax`).
 
 			if (m_ini.has_key(secname, item.keyname))
@@ -301,7 +311,7 @@ void DataXIni::ResetDefault()
 
 
 //static 
-void DataXIni::LoadItemvalFromIni(IDataXString *pdatax, SimpleIniEx &ini,
+void DataXIni::ResetItemvalFromIni(IDataXString *pdatax, SimpleIniEx &ini,
 	const TCHAR *secname, const TCHAR *keyname)
 {
 	// [2026-05-18] Historical note:
