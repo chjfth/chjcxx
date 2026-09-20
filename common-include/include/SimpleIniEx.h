@@ -1,14 +1,31 @@
 #ifndef __CHHI__SimpleIniEx_h_
 #define __CHHI__SimpleIniEx_h_
 #define __CHHI__SimpleIniEx_h_created_ 20260504
-#define __CHHI__SimpleIniEx_h_updated_ 20260515
+#define __CHHI__SimpleIniEx_h_updated_ 20260520
 
 #include <SimpleIni.h>
 
 class SimpleIniEx : public SimpleIni
 {
 public:
-	bool load_cascade(const TCHAR* const ar_inifiles[], int nfiles);
+	enum LoadHow_et // For load_cascade()
+	{
+		LoadMerge = 1,
+		// Try loading each INI file one-by-one, merge their content.
+		// When save, will save to final success-loaded INI file.
+
+		LoadFirst = 2,
+		// Stop at first success-loaded INI file.
+		// When save, will try from the success-load one, then later each until success.
+
+		LoadFinal = 3,
+		// Try loading INI in reverse order, stop at first success-loaded INI file.
+		// When save, will try from the success-loaded one, then later each
+		// (in user array normal order) until success.
+	};
+
+public:
+	bool load_cascade(const TCHAR* const ar_inifiles[], int nfiles, LoadHow_et loadhow);
 
 	bool save_cascade(Sdring *p_out_inipath=nullptr);
 
@@ -104,30 +121,86 @@ private:
 #include <CHHI_vaDBG_hide.h> // Suppress/invalidate vaDBG macros, from now on
 #endif
 
-bool SimpleIniEx::load_cascade(const TCHAR* const ar_inifiles[], int nfiles)
+bool SimpleIniEx::load_cascade(const TCHAR* const ar_inifiles[], int nfiles,
+	LoadHow_et loadhow)
 {
 	if(nfiles<=0)
 		return false;
 
+	m_idxSave = nfiles - 1;
+	bool has_succ = false;
+
 	m_inifiles.reset(nfiles);
 
-	for(int i=0; i<nfiles; i++)
+	this->clear();
+
+	if(loadhow==LoadMerge)
 	{
-		m_inifiles[i] = ospath::fullpath_from_rela(ar_inifiles[i]);
-
-		vaDBG2(_T("SimpleIniEx::load_cascade(), try loading from (%d/%d) '%s'"), 
-			i+1, nfiles, m_inifiles[i].c_str());
-
-		auto err = load(ar_inifiles[i]);
-		if(!err)
+		for(int i=0; i<nfiles; i++)
 		{
-			vaDBG2(_T(".   Load OK."));
-			m_idxSave = i;
-		}
-		// Error case message: Rely on vaDBG() inside load().
-	}
+			m_inifiles[i] = ospath::fullpath_from_rela(ar_inifiles[i]);
 
-	return true;
+			vaDBG2(_T("SimpleIniEx::load_cascade(LoadMerge), try loading from (%d/%d) '%s'"), 
+				i+1, nfiles, m_inifiles[i].c_str());
+
+			auto err = load(ar_inifiles[i]);
+			if(!err)
+			{
+				vaDBG2(_T(".   Load OK."));
+				has_succ = true;
+				m_idxSave = i;
+			}
+			// Error case message: Rely on vaDBG() inside load().
+		}
+
+		return has_succ ? true : false; 
+		// -- 'return false' Does not interfere with further SimpleIni operation
+	}
+	else if(loadhow==LoadFirst)
+	{
+		for(int i=0; i<nfiles; i++)
+		{
+			m_inifiles[i] = ospath::fullpath_from_rela(ar_inifiles[i]);
+
+			vaDBG2(_T("SimpleIniEx::load_cascade(LoadFirst), try loading from (%d/%d) '%s'"), 
+				i+1, nfiles, m_inifiles[i].c_str());
+
+			auto err = load(ar_inifiles[i]);
+			if(!err)
+			{
+				vaDBG2(_T(".   Load OK."));
+				m_idxSave = i;
+				return true;
+			}
+		}
+
+		return false;
+	}
+	else if(loadhow==LoadFinal)
+	{
+		// Load in reversed order.
+
+		for(int i=nfiles-1; i>=0; i--)
+		{
+			m_inifiles[i] = ospath::fullpath_from_rela(ar_inifiles[i]);
+
+			vaDBG2(_T("SimpleIniEx::load_cascade(LoadFinal), try loading from (%d/%d) '%s'"), 
+				i+1, nfiles, m_inifiles[i].c_str());
+
+			auto err = load(ar_inifiles[i]);
+			if(!err)
+			{
+				vaDBG2(_T(".   Load OK."));
+				has_succ = true;
+				m_idxSave = i;
+				return true;
+			}
+		}
+
+		return has_succ ? true : false;
+	}
+	else
+		return false;
 }
 
 bool SimpleIniEx::save_cascade(Sdring *p_out_inipath)

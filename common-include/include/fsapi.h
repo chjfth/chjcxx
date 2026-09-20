@@ -1,7 +1,7 @@
 #ifndef __CHHI__fsapi_h_
 #define __CHHI__fsapi_h_
 #define __CHHI__fsapi_h_created_ 20260112
-#define __CHHI__fsapi_h_updated_ 20260406
+#define __CHHI__fsapi_h_updated_ 20260920
 
 
 // Include OS headers to provide OS-specific data-types used in API prototype.
@@ -17,6 +17,7 @@
 #endif
 
 #include <ps_TCHAR.h>
+#include <sdring.h>
 
 //
 // Check current compiler 
@@ -45,6 +46,7 @@ enum fserror_et
 	E_not_found = -5,
 	E_create = -6,
 	E_access_denied = -7,
+	E_io = -8,
 
 	E_disk_full = -10, // pending
 };
@@ -115,6 +117,12 @@ bool file_delete(const TCHAR* inputpath);
 bool file_copy(const TCHAR* srcpath, const TCHAR *dstpath, bool is_overwrite);
 
 
+// [2026-09-20] text file API
+
+Sdring load_textfile_simple(const TCHAR *textfilepath, 
+	fserror_et *p_fserr=nullptr, bool *p_isUtf8=nullptr);
+
+
 ////////////////////////////////////////////////////////////////////////////
 } // namespace fsapi
 ////////////////////////////////////////////////////////////////////////////
@@ -147,7 +155,10 @@ extern const CInterpretConst& fsapi_E_xxx();
 // >>> Include headers required by this lib's implementation
 
 #include <commdefs.h> // for Uint, Uint64, enum bitwise-OR etc
-#include <snTprintf.h>
+//#include <snTprintf.h>
+#include <makeTsdring.h>
+#include <utf8utils.h>
+#include <EnsureClnup_misc.h>
 
 // <<< Include headers required by this lib's implementation
 
@@ -188,6 +199,59 @@ ITC_MAKE_OBJECT(fsapi_E_xxx, _e2v_fsapi_E_xxx, ITCF_SINT);
 }
 #endif // __CHHI__InterpretConst_h_
 
+
+////////////////////////////////////////////////////////////////////////////
+namespace fsapi {
+////////////////////////////////////////////////////////////////////////////
+
+
+Sdring load_textfile_simple(const TCHAR *filepath, fserror_et *p_fserr, bool *p_isUtf8)
+{
+	SETTLE_OUTPUT_PTR(fserror_et, p_fserr, E_unknown);
+	SETTLE_OUTPUT_PTR(bool, p_isUtf8, false);
+
+	if (!file_exists(filepath))
+	{
+		*p_fserr = E_not_found;
+		return nullptr;
+	}
+
+	CEC_filehandle_t fh = file_open(filepath, open_for_read,
+		open_share_read | open_share_write);
+
+	int filesize = (int)file_getsize(fh);
+	if (filesize == 0)
+	{
+		*p_fserr = E_success;
+		return nullptr; // consider it an empty INI file
+	}
+
+	else if (filesize < 0)
+	{
+		*p_fserr = E_io;
+		return nullptr;
+	}
+
+	sdring<char> filebin(filesize);
+
+	int bytesRed = file_read(fh, filebin.getptr(), filesize);
+	if (bytesRed != filesize)
+	{
+		*p_fserr = E_io;
+		return nullptr;
+	}
+
+	int invalid_offset = (int)utf8::find_invalid_utf8seq(filebin, filesize);
+
+	*p_isUtf8 = invalid_offset >= 0 ? false : true;
+
+	Sdring initext = makeTsdring(std::move(filebin), *p_isUtf8 ? mTs_UTF8 : mTs_SysDefault);
+	return initext;
+}
+
+////////////////////////////////////////////////////////////////////////////
+} // namespace fsapi {
+////////////////////////////////////////////////////////////////////////////
 
 
 

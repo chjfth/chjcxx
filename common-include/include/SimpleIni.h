@@ -1,7 +1,7 @@
 #ifndef __CHHI__SimpleIni_h_
 #define __CHHI__SimpleIni_h_
 #define __CHHI__SimpleIni_h_created_ 20260416
-#define __CHHI__SimpleIni_h_updated_ 20260710
+#define __CHHI__SimpleIni_h_updated_ 20260920
 
 #include <ps_TCHAR.h>
 #include <sdring.h>
@@ -50,7 +50,7 @@ public:
 
 	virtual ReCode_et load_initext(const TCHAR *initext, int inilen);
 
-	virtual Sdring save_ini_string(const TCHAR *crlf=nullptr); // todo: rename to better name?
+	virtual Sdring save_ini_as_string(const TCHAR *crlf=nullptr); // name was save_ini_string()
 	// -- return whole INI string, as appear in INI file.
 
 	virtual ReCode_et save(const TCHAR *savefilename=nullptr, const TCHAR *crlf=nullptr);
@@ -429,7 +429,7 @@ public:
 
 	ReCode_et load_initext(const TCHAR *initext, int inilen);
 
-	Sdring save_ini_string(const TCHAR *crlf=nullptr); 
+	Sdring save_ini_as_string(const TCHAR *crlf=nullptr); 
 	// -- return whole INI string, as appear in INI file.
 
 	ReCode_et save(const TCHAR *savefilename=nullptr, const TCHAR *crlf=nullptr);
@@ -777,17 +777,37 @@ CIniOp::create_new_section_with_headup(const TCHAR *secname, int blanklines)
 	return p_kvdict;
 }
 
+inline static const TCHAR* ILC_getstr(IniLineCat_et linecat)
+{
+	const TCHAR *str_ilc = linecat == ILC_empty ? _T("ILC_empty") :
+		(linecat == ILC_comment ? _T("ILC_comment") : _T("ILC_unknown"));
+	return str_ilc;
+}
+
 
 CIniOp::ReCode_et
 CIniOp::load_initext(const TCHAR *initext, int inilen)
 {
-	// Prepare a virtual section("_start_" to hold comments at file start.
+	// Determine if we start from an empty INI.
+	// * If empty, we will recognize and preserve comment lines from the first INI text, 
+	//   and later save_ini_as_string() will output those comment lines.
+	// * If non-empty, it means we are doing append-loading from a second INI text.
+	//   In this case, second INI's comment lines conceptually conflict with first INI,
+	//   so I will ignore comment lines from second INI.
+	//   [2026-09-20] For simplicity, value-embedded comment-lines are also ignored.
 
+	bool want_comments = m_inidict.keycount()==0 ? true : false;
+	if(want_comments)
+		vaDBG2(_T("{%s} load_initext() fresh. INI comments will be preserved."), m_pfilenam);
+	else
+		vaDBG2(_T("{%s} load_initext() append. INI comments will be ignored."), m_pfilenam);
+
+	// Ensure a virtual section("_start_" to hold comments at file start.
 	create_virtual_start_section();
 	
 	Sdring curSection = VIRTUAL_SECTION_0;
 
-	// get back(ptr) the just created empty kvdict inside m_inidict.
+	// Retrieve(ptr) the just created empty kvdict inside m_inidict.
 	hashdict<Keval_St> *pCurKvdict = m_inidict.get(VIRTUAL_SECTION_0);
 
 	KVcontinue_St kvc;
@@ -825,10 +845,12 @@ CIniOp::load_initext(const TCHAR *initext, int inilen)
 
 		// ..... Check each ILC_xxx .....
 
-		if(linecat==ILC_empty || linecat==ILC_comment || linecat==ILC_unknown)
+		bool is_ILC_comment_style = 
+			linecat==ILC_empty || linecat==ILC_comment || linecat==ILC_unknown;
+
+		if(is_ILC_comment_style && want_comments)
 		{
-			const TCHAR *str_ilc = linecat==ILC_empty ? _T("ILC_empty") :
-				( linecat==ILC_comment ? _T("ILC_comment") : _T("ILC_unknown") );
+			const TCHAR *str_ilc = ILC_getstr(linecat);
 			vaDBG3(_T("{%s}L#%d <%s> '%s'"), m_pfilenam,iline, 
 				str_ilc,   // <%s>
 				linetext.is_empty() ? _T("") : linetext.c_str());
@@ -866,6 +888,14 @@ CIniOp::load_initext(const TCHAR *initext, int inilen)
 					kvdict.set(vkey, std::move(keval));
 				}
 			}
+		}
+		else if(is_ILC_comment_style && !want_comments)
+		{
+			// Do nothing, just log
+			const TCHAR *str_ilc = ILC_getstr(linecat);
+			vaDBG3(_T("{%s}L#%d Ignored: <%s> '%s'"), m_pfilenam, iline,
+				str_ilc,   // <%s>
+				linetext.is_empty() ? _T("") : linetext.c_str());
 		}
 		else if(linecat==ILC_section)
 		{
@@ -1243,9 +1273,11 @@ static void TSA_append_blank_lines(TScalableArray<TCHAR>& sout, int lines,
 	sout[len1_-1] = '\0';
 }
 
-Sdring CIniOp::save_ini_string(const TCHAR *crlf)
+Sdring CIniOp::save_ini_as_string(const TCHAR *crlf)
 {
 	create_virtual_start_section();
+
+	vaDBG2(_T("{%s} save_ini_as_string() ..."), m_pfilenam);
 
 	if(!(crlf && crlf[0]))
 		crlf = os_crlf;
@@ -1362,6 +1394,8 @@ Sdring CIniOp::save_ini_string(const TCHAR *crlf)
 			sout[orig_len_ - 1 - crlflen] = '\0';
 	}
 
+	vaDBG2(_T("{%s} save_ini_as_string() done, %d TCHARs"), m_pfilenam, sout.CurrentEles());
+
 	// [2026-05-02] Here I have to do a string copy, bcz TSA & Sdring's heap pointers
 	// are not compatible.
 	return Sdring(sout.GetElePtr());
@@ -1373,7 +1407,7 @@ CIniOp::save(const TCHAR *savefilename, const TCHAR *crlf)
 {
 	const TCHAR *inipath = savefilename ? savefilename : m_inipath.c_str();
 
-	Sdring initext = save_ini_string(crlf);
+	Sdring initext = save_ini_as_string(crlf);
 
 	sdring<char> initextA = makeAsdring(initext, m_isUtf8 ? mTs_UTF8 : mTs_SysDefault);
 
@@ -1500,9 +1534,9 @@ SimpleIni::load_initext(const TCHAR *initext, int inilen)
 	return m_pi->load_initext(initext, inilen);
 }
 
-Sdring SimpleIni::save_ini_string(const TCHAR *crlf)
+Sdring SimpleIni::save_ini_as_string(const TCHAR *crlf)
 {
-	return m_pi->save_ini_string(crlf);
+	return m_pi->save_ini_as_string(crlf);
 }
 
 SimpleIni::ReCode_et 
