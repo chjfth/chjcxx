@@ -1,7 +1,7 @@
 #ifndef __CHHI__SimpleIniEx_h_
 #define __CHHI__SimpleIniEx_h_
 #define __CHHI__SimpleIniEx_h_created_ 20260504
-#define __CHHI__SimpleIniEx_h_updated_ 20260520
+#define __CHHI__SimpleIniEx_h_updated_ 20261004
 
 #include <SimpleIni.h>
 
@@ -127,7 +127,6 @@ bool SimpleIniEx::load_cascade(const TCHAR* const ar_inifiles[], int nfiles,
 	if(nfiles<=0)
 		return false;
 
-	m_idxSave = nfiles - 1;
 	bool has_succ = false;
 
 	m_inifiles.reset(nfiles);
@@ -174,6 +173,7 @@ bool SimpleIniEx::load_cascade(const TCHAR* const ar_inifiles[], int nfiles,
 			}
 		}
 
+		m_idxSave = nfiles - 1;
 		return false;
 	}
 	else if(loadhow==LoadFinal)
@@ -197,6 +197,7 @@ bool SimpleIniEx::load_cascade(const TCHAR* const ar_inifiles[], int nfiles,
 			}
 		}
 
+		m_idxSave = 0;
 		return has_succ ? true : false;
 	}
 	else
