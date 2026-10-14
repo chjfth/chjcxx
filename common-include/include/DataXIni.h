@@ -1,7 +1,7 @@
 #ifndef __CHHI__DataXIni_h_
 #define __CHHI__DataXIni_h_
 #define __CHHI__DataXIni_h_created_ 20260508
-#define __CHHI__DataXIni_h_updated_ 20260920
+#define __CHHI__DataXIni_h_updated_ 20261014
 
 
 #include <hashdict.h>
@@ -41,7 +41,7 @@ protected:
 private:
 	struct IniItem_st
 	{
-		// index into msa_sections[], avoid storing duplicate section name string
+		// index into msa_sections[], avoid storing duplicate section-name string
 		int idx_secname; 
 
 		Sdring keyname;       // key-name for an INI item
@@ -61,16 +61,19 @@ private:
 template<typename TU, typename FORMAT = XStringFormatDefault>
 class DataXString_BindIni : public DataXString<TU, FORMAT>
 {
+	// Disable copy-ctor and move-ctor
 	DataXString_BindIni(const DataXString_BindIni&) = delete;
 	DataXString_BindIni(DataXString_BindIni&&) = delete;
 
 protected:
-	DataXIni& m_xini; // m_xini not used here, just for child convenience.
+	DataXIni& m_xini; // m_xini not used here, just for child-class convenience.
 
 public:
 	using Base = DataXString<TU, FORMAT>;
 
 public:
+	DataXString_BindIni() : m_xini( *(DataXIni*)nullptr ) {}
+
 	DataXString_BindIni(
 		DataXIni& xini, const TCHAR *secname, const TCHAR *keyname,
 		const TCHAR* default_str=nullptr)
@@ -107,6 +110,8 @@ public:
 public: // new for _AutoSaveIni
 	virtual SetValue_ret SetValue(TU&& val) cxx11_override
 	{
+		// This overrides DataXString's SetValue() .
+
 		SetValue_ret svret = Base::SetValue(std::move(val));
 
 		if (svret == SetNew)
@@ -118,6 +123,12 @@ public: // new for _AutoSaveIni
 	}
 };
 
+// [2026-10-14] Difference btw DataXString_BindIni and DataXString_AutoSaveIni:
+// * If user calls `obj_BindIni=some_value`, obj_BindIni's internal string-form data
+//   is modified, but the associated iniobj is not touched yet.
+//   User can later manually call xini.SaveIni() to flush dirty value to iniobj and
+//   modify the actual INI file.
+// * If user calls `obj_AutoSaveIni=somevalue`, xini.SaveIni() will be called immediately.
 
 
 
