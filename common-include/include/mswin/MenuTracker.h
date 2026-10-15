@@ -1,7 +1,7 @@
 #ifndef __CHHI__MenuTracker_h_
 #define __CHHI__MenuTracker_h_
 #define __CHHI__MenuTracker_h_created_ 20260826
-#define __CHHI__MenuTracker_h_updated_ 20260828
+#define __CHHI__MenuTracker_h_updated_ 20261015
 
 #include <utility>
 #include <windows.h>
@@ -53,8 +53,11 @@ public:
 	static const TCHAR * const s_root_popname; // ="_root_"
 
 public:
-	CMenuTracker() {}
 	virtual ~CMenuTracker();
+	CMenuTracker()
+	{
+		m_hmenuTop = NULL;
+	}
 
 	ReCode_et BindMenuTree(HMENU hmenuTop);
 
