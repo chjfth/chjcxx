@@ -1,7 +1,7 @@
 #ifndef __CHHI__hashdict_h_
 #define __CHHI__hashdict_h_
 #define __CHHI__hashdict_h_created_ 20260404
-#define __CHHI__hashdict_h_updated_ 20260706
+#define __CHHI__hashdict_h_updated_ 20261017
 
 #include <CxxVerCheck.h>
 #ifndef CXX11_OR_NEWER
@@ -107,15 +107,22 @@ public:
 
 	TU* get(const TCHAR *key);
 
-	bool has_key(const TCHAR *key) { return get(key) ? true : false; }
+	bool has_key(const TCHAR *key) { 
+		return get(key) ? true : false; 
+	}
 
-	int keycount() { return m_slots_active; }
+	int keycount() { 
+		return m_slots_active; 
+	}
 
 	bool del(const TCHAR *key);
 
 	bool del(const TCHAR *key, TU& recv_old_value);
 	// -- Note: recv_old_value is a reference, not `TU** ppOldValue`,
 	//          This eliminate user's hassle of `delete *ppOldValue` later.
+
+	bool key_rename(const TCHAR *oldname, const TCHAR *newname);
+	// -- False return reasons: oldname not exists, newname already exists.
 
 	bool compact(); // reduce memory consumed by hashdict, clearing out all dummies
 
@@ -310,7 +317,7 @@ private:
 
 	TU* SetKey(const TCHAR *key, TU&& value, bool is_overwrite);
 
-	int in_get(const TCHAR *key); // return index into trove, -1 if not found
+	int in_get(const TCHAR *key, int *pIdxSlot=nullptr); // return index-into-trove, -1 if not found
 
 	bool in_del(const TCHAR *key, bool is_recv_old, TU& recv_old_value);
 
@@ -528,6 +535,9 @@ void hashdict<TU>::_steal_from_old(hashdict& old)
 template<typename TU> 
 TU* hashdict<TU>::SetKey(const TCHAR *in_key, TU&& in_value, bool is_overwrite)
 {
+	// Note: If user wants to know whether a new key is created or an old key is overwritten,
+	// User should call has_key() in advance to know it.
+
 	vaDBG3_DbgEnterExit;
 
 	init_if_dumb();
@@ -685,8 +695,11 @@ TU* hashdict<TU>::get(const TCHAR *in_key)
 }
 
 template<typename TU>
-int hashdict<TU>::in_get(const TCHAR *in_key)
+int hashdict<TU>::in_get(const TCHAR *in_key, int *pIdxSlot)
 {
+	// Would return idxTrove of the matching key, -1 if not found.
+	// *pIdxSlot(optional) outputs the idxSlot of the matching key.
+
 	assert(in_key && in_key[0]);
 	if(! (in_key && in_key[0]) )
 		return -1;
@@ -724,6 +737,10 @@ int hashdict<TU>::in_get(const TCHAR *in_key)
 			{
 				vaDBG3(_T("{%s}hashdict:get(\"%s\") found after %d probes, value@<%p>"), dbgsig(), 
 					in_key, probes+1, &pte->uvalue);
+			
+				if(pIdxSlot)
+					*pIdxSlot = idxSlot;
+				
 				return int(pte - msa_trove.GetElePtr(0));
 			}
 			else
@@ -874,7 +891,7 @@ bool hashdict<TU>::in_del(const TCHAR *in_key, bool is_recv_old, TU& recv_old_va
 	if(is_dumb())
 		return false;
 
-	// Return: If in_key is found and deleted.
+	// Return: whether in_key is found and deleted.
 
 	Uint64 in_hashfull = cal_hashfull(in_key);
 	Uint32 in_hashtail = (Uint32)in_hashfull & m_hashmask;
@@ -936,6 +953,75 @@ bool hashdict<TU>::in_del(const TCHAR *in_key, bool is_recv_old, TU& recv_old_va
 		{
 			assert(slot.state==SlotDummy);
 		}
+	}
+}
+
+
+template<typename TU>
+bool hashdict<TU>::key_rename(const TCHAR *oldname, const TCHAR *newname)
+{
+	vaDBG3_DbgEnterExit;
+
+	int idxOldSlot = -1;
+	int idxTrove = in_get(oldname, &idxOldSlot);
+	if(idxOldSlot == -1)
+		return false; // oldname not found
+
+	if(!newname || !newname[0])
+		return false; // empty key string
+
+	if(has_key(newname))
+		return false;
+
+	if(_tcscmp(oldname, newname)==0)
+		return true;
+
+	Uint64 in_hashfull = cal_hashfull(newname);
+	Uint32 in_hashtail = (Uint32)in_hashfull & m_hashmask;
+
+	assert((int)in_hashtail < m_slots_capacity);
+
+	vaDBG3(_T("{%s}hashdict::key_rename(\"%s\" -> \"%s\"); keyhash=0x%llX(0x%0*X) , idxOldSlot=%d"), dbgsig(),
+		oldname, newname, 
+		in_hashfull, (m_dict_width+1)/4, in_hashtail,  
+		idxOldSlot // idxOldSlot=%d
+		);
+
+	// Mark old slot dummy
+	msa_slots[idxOldSlot].state = SlotDummy;
+	
+	// Find a new slot for newname.
+
+	LCGen lcg(m_hashmask, (Uint32)in_hashfull, PerturbShift);
+
+	int probes = 0; // debug
+	for (;; probes++)
+	{
+		assert(probes < m_slots_capacity);
+
+		int idxSlot = lcg.next();
+		slot_st &slot = msa_slots[idxSlot];
+
+		if (slot.state == SlotInUse)
+		{
+			continue;
+		}
+		else
+		{
+			vaDBG3(_T("{%s}  %s found(idxSlot=%d) after %d probes. Use it for new keyname."), dbgsig(),
+				slot.state==SlotEmpty ? _T("SlotEmpty") : _T("SlotDummy"), // %s found
+				idxSlot, probes+1);
+
+			slot.state = SlotInUse;
+			slot.idx_trove = idxTrove;
+
+			trove_entry_st &trovent = msa_trove[idxTrove];
+			assert(trovent.state == TroventInUse);
+			trovent.hashfull = in_hashfull;
+			trovent.key = newname;
+
+			return true;
+		}		
 	}
 }
 
