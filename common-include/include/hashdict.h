@@ -131,7 +131,7 @@ public:
 	Sdrings get_keys();
 
 	void set_dbgsig(const TCHAR *dbgsig) { m_dbgsig = dbgsig; }
-	const TCHAR* dbgsig() { return m_dbgsig.not_empty() ? m_dbgsig.c_str() : _T(""); }
+	const TCHAR* dbgsig() const { return m_dbgsig.not_empty() ? m_dbgsig.c_str() : _T(""); }
 
 	//////// enumerator ////////
 

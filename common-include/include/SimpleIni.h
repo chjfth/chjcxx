@@ -1,7 +1,13 @@
 #ifndef __CHHI__SimpleIni_h_
 #define __CHHI__SimpleIni_h_
 #define __CHHI__SimpleIni_h_created_ 20260416
-#define __CHHI__SimpleIni_h_updated_ 20260920
+#define __CHHI__SimpleIni_h_updated_ 20261018
+
+// Significant Updates
+//	[20261018] 
+//	* A duplicated old keyname is auto-renamed to some_keyname#N (N is 0,1,2 etc),
+//	  so later same-name keyname overwrites the old one.
+//	* Keyname# behavior and comment-line preserving behavior apply ONLY to latest-loaded INI.
 
 #include <ps_TCHAR.h>
 #include <sdring.h>
@@ -205,7 +211,7 @@ struct Keval_St  // represent a INI-key(or virtual-key)'s value
 	enum Type { 
 		Comment=0, OneLine=1, _2Lines=2, _3Lines=3, _4Lines=4,
 
-		Headup0Lines=-1, Headup1Lines=-2, // negative for VIRTUAL_KEYNAME_HEADUP_BLANK_LINES
+		Headup0Lines=-1, Headup1Lines=-2, // negative for VIRTUAL_KEYNAME_of_HeadupBlankLines
 	};
 
 	union
@@ -213,7 +219,8 @@ struct Keval_St  // represent a INI-key(or virtual-key)'s value
 		Type type;
 		int totlines; // this keval occupies multiple lines(>=2)
 	};
-	Sdring  firstline; // used when type=Comment or type=OneLine
+	int atline1b;         // at which line of the INI file(one-based)
+	Sdring  firstline;  // used when type=Comment or type=OneLine
 	Sdring *ar_exlines; // array size indicated by `totlines-1`
 
 	////
@@ -264,8 +271,7 @@ public:
 
 private:
 	void _copy_from_old(const Keval_St& old) {
-		totlines = old.totlines;
-		firstline = old.firstline;
+		_pod_copy(old);
 		ar_exlines = nullptr;
 		if(old.ar_exlines)
 		{
@@ -279,14 +285,21 @@ private:
 	}
 
 	void _steal_from_old(Keval_St& old) {
-		totlines = old.totlines;
+		_pod_copy(old);
 		firstline = std::move(old.firstline);
 		ar_exlines = old.ar_exlines;
+	}
+
+	void _pod_copy(const Keval_St& old) {
+		totlines = old.totlines;
+		atline1b = old.atline1b;
+		firstline = old.firstline;
 	}
 
 private:
 	void _ct0r() {
 		totlines = 0;
+		atline1b = 0;
 		ar_exlines = nullptr;
 	}
 
@@ -348,6 +361,23 @@ struct BlankLines_St // consecutive blank line info
 		m_count = m_iline_start = 0;
 	}
 };
+
+static bool is_rawkey_virtual(const TCHAR *rawkey)
+{
+	return rawkey[0]==';' ? true : false;
+}
+
+static Sdring makeup_newkeyname_with_sharp_suffix(
+	const hashdict<Keval_St> *pKvdict,  const TCHAR *oldname)
+{
+	Sdring newkey;
+	for(int i=0; ; i++)
+	{
+		vaSdringSet(newkey, _T("%s#%d"), oldname, i);
+		if(! pKvdict->has_key(newkey))
+			return newkey;
+	}
+}
 
 
 class CIniOp : public SimpleIni
@@ -512,6 +542,8 @@ CIniOp::load(const TCHAR *inifilepath)
 	m_inipath = inifilepath;
 	ospath::split(inifilepath, m_inifilenam);
 	m_pfilenam = m_inifilenam.c_str();
+
+	vaDBG2(_T("CIniOp::load() from file: \"%s\" ..."), inifilepath);
 
 	return load_initext(initext, initext.rawlen());
 }
@@ -788,19 +820,13 @@ inline static const TCHAR* ILC_getstr(IniLineCat_et linecat)
 CIniOp::ReCode_et
 CIniOp::load_initext(const TCHAR *initext, int inilen)
 {
-	// Determine if we start from an empty INI.
-	// * If empty, we will recognize and preserve comment lines from the first INI text, 
-	//   and later save_ini_as_string() will output those comment lines.
-	// * If non-empty, it means we are doing append-loading from a second INI text.
-	//   In this case, second INI's comment lines conceptually conflict with first INI,
-	//   so I will ignore comment lines from second INI.
-	//   [2026-09-20] For simplicity, value-embedded comment-lines are also ignored.
+	bool is_prev_empty = m_inidict.keycount()==0 ? true : false;
 
-	bool want_comments = m_inidict.keycount()==0 ? true : false;
-	if(want_comments)
-		vaDBG2(_T("{%s} load_initext() fresh. INI comments will be preserved."), m_pfilenam);
-	else
-		vaDBG2(_T("{%s} load_initext() append. INI comments will be ignored."), m_pfilenam);
+	vaDBG2(_T("{%s}load_initext() %s tier... (this@%p)"), m_pfilenam, 
+		is_prev_empty?_T("first"):_T("not-first") , this);
+
+	hashdict< hashdict<Keval_St> > prev_tier = std::move(m_inidict);
+	hashdict<Keval_St> *pOldKvdict = nullptr;
 
 	// Ensure a virtual section("_start_" to hold comments at file start.
 	create_virtual_start_section();
@@ -834,6 +860,7 @@ CIniOp::load_initext(const TCHAR *initext, int inilen)
 
 		iline++;
 
+		assert(pCurKvdict);
 		hashdict<Keval_St> &kvdict = *pCurKvdict; // make a short name
 
 		Sdring newkey_real, linetext;
@@ -841,14 +868,14 @@ CIniOp::load_initext(const TCHAR *initext, int inilen)
 		linecat = CheckLineCategory(kvc.has_penkey(), 
 			initext, linepos, linelen, 
 			newkey_real, linetext);
-		// -- [outparam] newkey_real, linetext may have produced NEW content
+		// -- [outparam] newkey_real: linetext may have produced NEW content
 
 		// ..... Check each ILC_xxx .....
 
 		bool is_ILC_comment_style = 
 			linecat==ILC_empty || linecat==ILC_comment || linecat==ILC_unknown;
 
-		if(is_ILC_comment_style && want_comments)
+		if(is_ILC_comment_style)
 		{
 			const TCHAR *str_ilc = ILC_getstr(linecat);
 			vaDBG3(_T("{%s}L#%d <%s> '%s'"), m_pfilenam,iline, 
@@ -889,23 +916,14 @@ CIniOp::load_initext(const TCHAR *initext, int inilen)
 				}
 			}
 		}
-		else if(is_ILC_comment_style && !want_comments)
-		{
-			// Do nothing, just log
-			const TCHAR *str_ilc = ILC_getstr(linecat);
-			vaDBG3(_T("{%s}L#%d Ignored: <%s> '%s'"), m_pfilenam, iline,
-				str_ilc,   // <%s>
-				linetext.is_empty() ? _T("") : linetext.c_str());
-		}
 		else if(linecat==ILC_section)
 		{
 			Sdring secname = linetext.trim(_T("[]"), 2);
-			vaDBG3(_T("{%s}L#%d <ILC_section> [%s]"), m_pfilenam, iline, secname.c_str());
+			vaDBG3(_T("{%s}L#%d <ILC_section> [%s]"), m_pfilenam,iline, secname.c_str());
 
 			kvc.Converge(kvdict);
 
 			pCurKvdict = m_inidict.get(secname);
-			
 			if(!pCurKvdict)
 			{
 				vaDBG3(_T(".   Attach %d headup blank lines to the new secname."), bls.m_count);
@@ -913,9 +931,13 @@ CIniOp::load_initext(const TCHAR *initext, int inilen)
 			}
 			else
 			{
-				// If a secname is loaded from a second file, the blanklines above 
-				// that [secname] is discarded. Yes, we only respect the first.
+				// If a [secname] appears a second time in an INI file, these blanklines 
+				// are discarded. Yes, it's rational to have these section-headup blanklines
+				// on first seeing of that [secname]. On INI saving, there will be only ONE
+				// merged section for the same [secname].
 			}
+
+			pOldKvdict = prev_tier.get(secname); // can be NULL
 
 			bls.Clear();
 
@@ -923,18 +945,49 @@ CIniOp::load_initext(const TCHAR *initext, int inilen)
 		}
 		else if(linecat==ILC_realkey)
 		{
-			vaDBG3(_T("{%s}L#%d <ILC_realkey> '%s' = '%s'"), m_pfilenam, iline,
+			bool succ = false;
+			vaDBG3(_T("{%s}L#%d <ILC_realkey> '%s' = '%s'"), m_pfilenam,iline,
 				newkey_real.c_str(), linetext.c_str());
 
 			kvc.Converge(kvdict); // settle pending key-value pair.
 			bls.Converge(kvdict, curSection);
 
+			// First check if the newkey_real has existed in current-tier INI, if existed,
+			// we rename the old newkey_real to have #N suffix(N is 0,1,2...), so to
+			// imply to user: that old key is overwritten by later "same-name" new key.
+			//
+			Keval_St *pKvExisted = pCurKvdict->get(newkey_real);
+			if(pKvExisted)
+			{
+				Sdring oldkey_sharp = makeup_newkeyname_with_sharp_suffix(pCurKvdict, newkey_real);
+
+				vaDBG3(_T(".   Rename old duplicate-keyname to '%s' (at INI line %d)"), 
+					oldkey_sharp.c_str(), pKvExisted->atline1b);
+
+				succ = pCurKvdict->key_rename(newkey_real, oldkey_sharp);
+				assert(succ);
+			}
+
+			// Now set the newkey_real's new Keval.
+
 			Keval_St keval;
 			keval.type = Keval_St::OneLine; // assume it one-line key-val at first seen
+			keval.atline1b = iline;
 			keval.firstline = std::move(linetext);
 
 			kvdict.set(newkey_real, std::move(keval));
 
+			// Abandon newkey_real from previous tier INI, no matter exists or not.
+			if(pOldKvdict)
+			{
+				succ = pOldKvdict->del(newkey_real);
+				if (succ)
+				{
+					vaDBG3(_T(".   Abandon same-name key '%s' from previous tier INI"), newkey_real.c_str());
+				}
+			}
+
+			// Reset kvc
 			kvc.reset(std::move(newkey_real), iline);
 		}
 		else
@@ -948,9 +1001,72 @@ CIniOp::load_initext(const TCHAR *initext, int inilen)
 
 	} // while(1) process each INI line
 
-	vaDBG3(_T("{%s}Meet end of INI text, total INI lines: %d"), m_pfilenam, iline);
+	vaDBG3(_T("{%s}Meet end of INI text, total INI lines: %d"), m_pfilenam,iline);
 	kvc.Converge(*pCurKvdict);
 
+	if(is_prev_empty)
+		return E_Success;
+
+	//
+	// Finally, Consolidate remnant sections and keys from prev_tier into m_inidict.
+	//
+
+	vaDBG2(_T("{%s}Consolidate from previous tier..."), m_pfilenam);
+
+	Sdrings ssSections = prev_tier.get_keys();
+	for(int i=0; i<ssSections.count(); i++)
+	{
+//		iline++;
+		Sdring secname = ssSections[i];
+		const TCHAR *psecname = secname.c_str();
+
+		if(secname==VIRTUAL_SECTION_0)
+			continue; // ignore [_start_] section
+
+		pOldKvdict = prev_tier.get(secname);
+
+		pCurKvdict = m_inidict.get(secname);
+
+		if(!pCurKvdict)
+		{
+			vaDBG3(_T(".   Move whole section [%s]"), psecname);
+
+			m_inidict.set(secname, std::move(*pOldKvdict));
+		}
+		else
+		{
+			vaDBG3(_T(".   Move partial section [%s] with keys:"), psecname);
+
+			bool succ = false;
+			auto enumor = pOldKvdict->get_enumor();
+
+			const TCHAR *rawkey = enumor.next(); // discard the virtual _blanklines_ key
+			assert(Sdring::str_match(rawkey, VIRTUAL_KEYNAME_of_HeadupBlankLines));
+
+			for(int j=0; ;)
+			{
+				rawkey = enumor.next();
+				if(!rawkey)
+					break;
+
+				if(is_rawkey_virtual(rawkey))
+					continue;
+
+				vaDBG3(_T(".   key(%d): %s"), j+1, rawkey);
+
+				Keval_St *pKeval = pOldKvdict->get(rawkey);
+				assert(pKeval);
+
+				pCurKvdict->set(rawkey, std::move(*pKeval));
+
+				succ = pOldKvdict->del(rawkey);
+				assert(succ);
+				j++;
+			}
+		}
+	}
+
+	vaDBG2(_T("{%s}Consolidate from previous tier done."), m_pfilenam);
 	return E_Success;
 }
 
@@ -1021,7 +1137,7 @@ Sdrings CIniOp::_in_section_keys(const TCHAR *secname, bool want_virtual)
 		if(!rawkey)
 			break;
 
-		if (rawkey[0] != ';')
+		if(!is_rawkey_virtual(rawkey))
 			nreal++;
 	}
 
@@ -1036,7 +1152,7 @@ Sdrings CIniOp::_in_section_keys(const TCHAR *secname, bool want_virtual)
 
 	if(!want_virtual)
 	{
-		rawkey = enumor.next(); // discard the virtual
+		rawkey = enumor.next(); // discard the virtual _blanklines_ key
 		assert(Sdring::str_match(rawkey, VIRTUAL_KEYNAME_of_HeadupBlankLines));
 	}
 
@@ -1046,7 +1162,7 @@ Sdrings CIniOp::_in_section_keys(const TCHAR *secname, bool want_virtual)
 		if (!rawkey)
 			break;
 
-		if (rawkey[0] != ';')
+		if (!is_rawkey_virtual(rawkey))
 			rets[i++] = rawkey;
 	}
 

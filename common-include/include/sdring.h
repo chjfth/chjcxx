@@ -1,7 +1,7 @@
 #ifndef __sdring_h_
 #define __sdring_h_
-#define __sdring_h_created_ 20251225_
-#define __sdring_h_updated_ 20260826_
+#define __sdring_h_created_ 20251225
+#define __sdring_h_updated_ 20261018
 
 #include <utility>
 #include <assert.h>
@@ -132,7 +132,7 @@ public:
 		return getbuf();
 	}
 
-	operator T_CHAR const* const& () const {
+	operator T_CHAR const* const& () const { // This could be Dangerous, wait and see!
 		return m_buf;
 		// Note: returns a reference(not T_CHAR*'s value)
 		// For function prototype, put a `const` exactly before `&` is vital.
@@ -232,12 +232,12 @@ public:
 		return m_buf[pos];
 	}
 
-	bool operator==(const T_CHAR *instr) 
+	bool operator==(const T_CHAR *instr) const
 	{
 		return str_match( this->c_str(), instr );
 	}
 
-	bool operator==(const sdring& ins)
+	bool operator==(const sdring& ins) const
 	{
 		return str_match( this->c_str(), ins.c_str() );
 	}
