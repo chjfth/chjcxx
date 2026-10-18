@@ -1,7 +1,7 @@
 #ifndef __TScalableArray_h_
 #define __TScalableArray_h_
 #define __TScalableArray_h_created_ 20050101
-#define __TScalableArray_h_updated_ 20260826
+#define __TScalableArray_h_updated_ 20261018
 
 #include <assert.h>
 #include <stdio.h>
@@ -118,7 +118,7 @@ public:
 		return GetEles(pos, pEle, 1);
 	}
 
-	T* GetElePtr(int pos=0);
+	T* GetElePtr(int pos=0) const;
 		// Note: Adding or deleting elements may cause the returned pointer to become invalid.
 		// [2008-08-27] Not returning const ptr, since user should be allowed to modify any element.
 
@@ -451,7 +451,7 @@ TScalableArray<T>::GetEles(int pos, T* pEle, int n) const
 
 template<typename T>
 T* 
-TScalableArray<T>::GetElePtr(int pos)
+TScalableArray<T>::GetElePtr(int pos) const
 {
 	if(pos<0 || pos>=m_nCurEle || !mar_Ele) 
 		return NULL;
