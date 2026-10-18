@@ -1,7 +1,7 @@
 #ifndef __CHHI__hashdict_h_
 #define __CHHI__hashdict_h_
 #define __CHHI__hashdict_h_created_ 20260404
-#define __CHHI__hashdict_h_updated_ 20261017
+#define __CHHI__hashdict_h_updated_ 20261018
 
 #include <CxxVerCheck.h>
 #ifndef CXX11_OR_NEWER
@@ -105,9 +105,9 @@ public:
 		return SetKey(key, std::move(copy), false);
 	}
 
-	TU* get(const TCHAR *key);
+	TU* get(const TCHAR *key) const;
 
-	bool has_key(const TCHAR *key) { 
+	bool has_key(const TCHAR *key) const { 
 		return get(key) ? true : false; 
 	}
 
@@ -308,16 +308,18 @@ private:
 	
 	void _clear();
 	
-	bool is_dumb() { return m_dict_width==0; }
+	bool is_dumb() const { 
+		return m_dict_width==0; 
+	}
 	void init_if_dumb();
 
 	int RequestTroveEntry(); // Return idx of the "new" trove, may cause trove compact
 
-	trove_entry_st* IsKeyFoundAtSlot(int idxSlot, Uint64 in_keyhash, const TCHAR *in_key);
+	trove_entry_st* IsKeyFoundAtSlot(int idxSlot, Uint64 in_keyhash, const TCHAR *in_key) const;
 
 	TU* SetKey(const TCHAR *key, TU&& value, bool is_overwrite);
 
-	int in_get(const TCHAR *key, int *pIdxSlot=nullptr); // return index-into-trove, -1 if not found
+	int in_get(const TCHAR *key, int *pIdxSlot=nullptr) const; // return index-into-trove, -1 if not found
 
 	bool in_del(const TCHAR *key, bool is_recv_old, TU& recv_old_value);
 
@@ -326,7 +328,7 @@ private:
 	void CheckToCompactSlotAndTrove();
 	void CheckToCompactTrove();
 
-	Uint64 cal_hashfull(const TCHAR *str)
+	static Uint64 cal_hashfull(const TCHAR *str)
 	{
 		if(!(str && str[0]))
 			return 0;
@@ -678,14 +680,14 @@ TU* hashdict<TU>::SetKey(const TCHAR *in_key, TU&& in_value, bool is_overwrite)
 }
 
 template<typename TU> 
-TU* hashdict<TU>::get(const TCHAR *in_key)
+TU* hashdict<TU>::get(const TCHAR *in_key) const
 {
 	int idxTrove = in_get(in_key);
 	
 	if(idxTrove>=0)
 	{
 		assert(idxTrove<m_trove_ploughs);
-		return &msa_trove[idxTrove].uvalue;
+		return const_cast<TU*>( &msa_trove[idxTrove].uvalue );
 	}
 	else
 	{ 
@@ -695,7 +697,7 @@ TU* hashdict<TU>::get(const TCHAR *in_key)
 }
 
 template<typename TU>
-int hashdict<TU>::in_get(const TCHAR *in_key, int *pIdxSlot)
+int hashdict<TU>::in_get(const TCHAR *in_key, int *pIdxSlot) const
 {
 	// Would return idxTrove of the matching key, -1 if not found.
 	// *pIdxSlot(optional) outputs the idxSlot of the matching key.
@@ -722,7 +724,7 @@ int hashdict<TU>::in_get(const TCHAR *in_key, int *pIdxSlot)
 	int probes = 0; // debug
 	for(;; probes++)
 	{
-		slot_st &slot = msa_slots[idxSlot];
+		const slot_st &slot = msa_slots[idxSlot];
 
 		if(slot.state==SlotEmpty)
 		{
@@ -1027,13 +1029,13 @@ bool hashdict<TU>::key_rename(const TCHAR *oldname, const TCHAR *newname)
 
 template<typename TU> 
 typename hashdict<TU>::trove_entry_st* 
-hashdict<TU>::IsKeyFoundAtSlot(int idxSlot, Uint64 in_keyhash, const TCHAR *in_key)
+hashdict<TU>::IsKeyFoundAtSlot(int idxSlot, Uint64 in_keyhash, const TCHAR *in_key) const
 {
-	slot_st &slot = msa_slots[idxSlot];
+	const slot_st &slot = msa_slots[idxSlot];
 
 	assert(slot.state==SlotInUse);
 
-	trove_entry_st &trovent = msa_trove[slot.idx_trove];
+	const trove_entry_st &trovent = msa_trove[slot.idx_trove];
 
 	assert(trovent.state==TroventInUse);
 
@@ -1045,7 +1047,7 @@ hashdict<TU>::IsKeyFoundAtSlot(int idxSlot, Uint64 in_keyhash, const TCHAR *in_k
 	// Second confirm with exact key-string match
 
 	if(trovent.key==in_key)
-		return &trovent;
+		return const_cast<trove_entry_st*>(&trovent);
 	else
 		return nullptr;
 }
