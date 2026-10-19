@@ -1,7 +1,7 @@
 #ifndef __CHHI__SimpleIni_h_
 #define __CHHI__SimpleIni_h_
 #define __CHHI__SimpleIni_h_created_ 20260416
-#define __CHHI__SimpleIni_h_updated_ 20261018
+#define __CHHI__SimpleIni_h_updated_ 20261019
 
 // Significant Updates
 //	[20261018] 
@@ -474,6 +474,8 @@ private:
 	hashdict<Keval_St>* create_new_section_with_headup(const TCHAR *secname, int blanklines);
 
 	Sdrings _in_section_keys(const TCHAR *secname, bool want_virtual);
+
+	void consolidate_prev_tier(hashdict<hashdict<Keval_St>> &prev_tier);
 
 	//
 	// Leave below at end of class body
@@ -1007,13 +1009,17 @@ CIniOp::load_initext(const TCHAR *initext, int inilen)
 	vaDBG3(_T("{%s}Meet end of INI text, total INI lines: %d"), m_pfilenam,iline);
 	kvc.Converge(*pCurKvdict);
 
-	if(is_prev_empty)
-		return E_Success;
+	if(!is_prev_empty)
+	{
+		// Consolidate remnant sections and keys from prev_tier into m_inidict.
+		consolidate_prev_tier(prev_tier);
+	}
 
-	//
-	// Finally, Consolidate remnant sections and keys from prev_tier into m_inidict.
-	//
+	return E_Success;
+}
 
+void CIniOp::consolidate_prev_tier(hashdict<hashdict<Keval_St>> &prev_tier)
+{
 	vaDBG2(_T("{%s}Consolidate from previous tier..."), m_pfilenam);
 
 	Sdrings ssSections = prev_tier.get_keys();
@@ -1026,9 +1032,9 @@ CIniOp::load_initext(const TCHAR *initext, int inilen)
 		if(secname==VIRTUAL_SECTION_0)
 			continue; // ignore [_start_] section
 
-		pOldKvdict = prev_tier.get(secname);
+		hashdict<Keval_St> *pOldKvdict = prev_tier.get(secname);
 
-		pCurKvdict = m_inidict.get(secname);
+		hashdict<Keval_St> *pCurKvdict = m_inidict.get(secname);
 
 		if(!pCurKvdict)
 		{
@@ -1070,9 +1076,7 @@ CIniOp::load_initext(const TCHAR *initext, int inilen)
 	}
 
 	vaDBG2(_T("{%s}Consolidate from previous tier done."), m_pfilenam);
-	return E_Success;
 }
-
 
 Sdrings CIniOp::sections()
 {
@@ -1506,14 +1510,16 @@ Sdring CIniOp::save_ini_as_string(const TCHAR *crlf)
 	}
 	else
 	{
-		// Chop off one CRLF from sout's tail.
+		// Chop off one CRLF from sout's tail. [C.261019]
 		int orig_len_ = sout.CurrentEles();
 		assert(sout[orig_len_-1]=='\0');
 		if(orig_len_ > crlflen)
 			sout[orig_len_ - 1 - crlflen] = '\0';
 	}
 
-	vaDBG2(_T("{%s} save_ini_as_string() done, %d TCHARs"), m_pfilenam, sout.CurrentEles());
+	vaDBG2(_T("{%s} save_ini_as_string() done, %d TCHARs"), m_pfilenam, 
+		_tcslen( sout.GetElePtr() ) //  CurrentEles() is inaccurate due to [C.261019] above.
+	);
 
 	// [2026-05-02] Here I have to do a string copy, bcz TSA & Sdring's heap pointers
 	// are not compatible.
