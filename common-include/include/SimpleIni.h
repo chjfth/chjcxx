@@ -926,7 +926,10 @@ CIniOp::load_initext(const TCHAR *initext, int inilen)
 			pCurKvdict = m_inidict.get(secname);
 			if(!pCurKvdict)
 			{
-				vaDBG3(_T(".   Attach %d headup blank lines to the new secname."), bls.m_count);
+				if(bls.m_count>0)
+				{
+					vaDBG3(_T(".   Attach %d headup blank lines to the new secname."), bls.m_count);
+				}
 				pCurKvdict = create_new_section_with_headup(secname, bls.m_count);
 			}
 			else

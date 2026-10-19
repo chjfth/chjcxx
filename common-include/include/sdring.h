@@ -128,11 +128,11 @@ public:
 		// Use with caution. Safer alternative is getptr().
 		return m_buf; 
 	}
-	operator T_CHAR* & () { 
+	operator T_CHAR* & () {                  // Returning a reference could be DANGEROUS, wait and see!
 		return getbuf();
 	}
 
-	operator T_CHAR const* const& () const { // This could be Dangerous, wait and see!
+	operator T_CHAR const* const& () const { // Returning a reference could be DANGEROUS, wait and see!
 		return m_buf;
 		// Note: returns a reference(not T_CHAR*'s value)
 		// For function prototype, put a `const` exactly before `&` is vital.

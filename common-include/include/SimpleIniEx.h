@@ -1,7 +1,7 @@
 #ifndef __CHHI__SimpleIniEx_h_
 #define __CHHI__SimpleIniEx_h_
 #define __CHHI__SimpleIniEx_h_created_ 20260504
-#define __CHHI__SimpleIniEx_h_updated_ 20261004
+#define __CHHI__SimpleIniEx_h_updated_ 20261019
 
 #include <SimpleIni.h>
 
@@ -142,7 +142,7 @@ bool SimpleIniEx::load_cascade(const TCHAR* const ar_inifiles[], int nfiles,
 			vaDBG2(_T("SimpleIniEx::load_cascade(LoadMerge), try loading from (%d/%d) '%s'"), 
 				i+1, nfiles, m_inifiles[i].c_str());
 
-			auto err = load(ar_inifiles[i]);
+			auto err = load(m_inifiles[i]);
 			if(!err)
 			{
 				vaDBG2(_T(".   Load OK."));
@@ -164,7 +164,7 @@ bool SimpleIniEx::load_cascade(const TCHAR* const ar_inifiles[], int nfiles,
 			vaDBG2(_T("SimpleIniEx::load_cascade(LoadFirst), try loading from (%d/%d) '%s'"), 
 				i+1, nfiles, m_inifiles[i].c_str());
 
-			auto err = load(ar_inifiles[i]);
+			auto err = load(m_inifiles[i]);
 			if(!err)
 			{
 				vaDBG2(_T(".   Load OK."));
@@ -187,7 +187,7 @@ bool SimpleIniEx::load_cascade(const TCHAR* const ar_inifiles[], int nfiles,
 			vaDBG2(_T("SimpleIniEx::load_cascade(LoadFinal), try loading from (%d/%d) '%s'"), 
 				i+1, nfiles, m_inifiles[i].c_str());
 
-			auto err = load(ar_inifiles[i]);
+			auto err = load(m_inifiles[i]);
 			if(!err)
 			{
 				vaDBG2(_T(".   Load OK."));
