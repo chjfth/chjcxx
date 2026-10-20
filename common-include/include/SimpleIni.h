@@ -270,8 +270,14 @@ public:
 	// boilerplate code, no need to modify <<<
 
 private:
+	void _pod_copy(const Keval_St& old) {
+		totlines = old.totlines;
+		atline1b = old.atline1b;
+	}
+
 	void _copy_from_old(const Keval_St& old) {
 		_pod_copy(old);
+		firstline = old.firstline;
 		ar_exlines = nullptr;
 		if(old.ar_exlines)
 		{
@@ -288,12 +294,6 @@ private:
 		_pod_copy(old);
 		firstline = std::move(old.firstline);
 		ar_exlines = old.ar_exlines;
-	}
-
-	void _pod_copy(const Keval_St& old) {
-		totlines = old.totlines;
-		atline1b = old.atline1b;
-		firstline = old.firstline;
 	}
 
 private:
@@ -1025,7 +1025,6 @@ void CIniOp::consolidate_prev_tier(hashdict<hashdict<Keval_St>> &prev_tier)
 	Sdrings ssSections = prev_tier.get_keys();
 	for(int i=0; i<ssSections.count(); i++)
 	{
-//		iline++;
 		Sdring secname = ssSections[i];
 		const TCHAR *psecname = secname.c_str();
 
@@ -1463,7 +1462,7 @@ Sdring CIniOp::save_ini_as_string(const TCHAR *crlf)
 
 			// Check whether it's virtual(;3=xxx) or real(foo=bar).
 
-			if(keyname[0]==';') // a virtual key
+			if(is_rawkey_virtual(keyname))
 			{
 				TSA_append_line(sout, keval.firstline, crlf, crlflen);
 				continue;

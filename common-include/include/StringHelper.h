@@ -708,7 +708,7 @@ Sdring& vlSdringAppendSelf(Sdring &s, const TCHAR *fmt, va_list args)
 	{
 		s.append_self(psz, retlen);
 	}
-	delete psz;
+	delete[] psz;
 	return s;
 }
 
