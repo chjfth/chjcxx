@@ -1,7 +1,7 @@
 #ifndef __CHHI__ospath_h_
 #define __CHHI__ospath_h_
 #define __CHHI__ospath_h_created_ 20260418
-#define __CHHI__ospath_h_updated_ 20260823
+#define __CHHI__ospath_h_updated_ 20261020
 
 #include <ps_TCHAR.h>
 #include <sdring.h>
@@ -140,6 +140,11 @@ Sdring fullpath_to_rela(const TCHAR *basedir, const TCHAR *tofullpath,
 // If user is in basedir, then returned relapath will refer to tofullpath.
 // If no relative path representation is possible(different windows driver-letter etc), 
 // it will return tofullpath verbatim.
+
+
+const TCHAR* get_exe_filename();
+const TCHAR* get_exe_dir();
+bool switch_to_exedir();
 
 
 ////////////////////////////////////////////////////////////////////////////

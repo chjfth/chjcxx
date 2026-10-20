@@ -5,6 +5,8 @@
 
 #include <windows.h>
 
+#include <mswin/utils_env.h>
+
 ////////////////////////////////////////////////////////////////////////////
 namespace ospath { 
 ////////////////////////////////////////////////////////////////////////////
@@ -20,6 +22,22 @@ Sdring fullpath_from_rela(const TCHAR* rela)
 	assert(ret==fulllen_-1);
 
 	return fullpath;
+}
+
+
+const TCHAR* get_exe_filename()
+{
+	return GetExeFilename();
+}
+
+const TCHAR* get_exe_dir()
+{
+	return GetExeDir();
+}
+
+bool switch_to_exedir()
+{
+	return SwitchToExeDir();
 }
 
 

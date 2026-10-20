@@ -24,6 +24,7 @@ BOOL Is_UserAnAdmin();
 const TCHAR* GetExeFilename();
 const TCHAR *GetExeStemname(); // the exe filename without .exe suffix
 const TCHAR* GetExeDir();
+bool SwitchToExeDir();
 
 Sdring GetFullpathRelaToExe(const TCHAR *relapath);
 
@@ -213,6 +214,13 @@ const TCHAR* GetExeDir()
 	}
 	else
 		return _T("");
+}
+
+bool SwitchToExeDir()
+{
+	const TCHAR *exedir = GetExeDir();
+	BOOL succ = SetCurrentDirectory(exedir);
+	return succ ? true : false;
 }
 
 Sdring GetFullpathRelaToExe(const TCHAR *relapath)
