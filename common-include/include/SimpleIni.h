@@ -1,7 +1,7 @@
 #ifndef __CHHI__SimpleIni_h_
 #define __CHHI__SimpleIni_h_
 #define __CHHI__SimpleIni_h_created_ 20260416
-#define __CHHI__SimpleIni_h_updated_ 20261019
+#define __CHHI__SimpleIni_h_updated_ 20261021
 
 // Significant Updates
 //	[20261018] 
@@ -155,6 +155,11 @@ private: // data members
 #error This file needs at least GCC 10.0 to compile. GCC 9.4 "returning reference to temporary" bug would crash the generated program.
 // Even if GCC 9.4 survive CheckLineCategory()'s `TCHAR* const` site. There are more problematic places. (Evclip 20260505.s1)
 #endif 
+#endif
+
+
+#ifndef __CHHI__InterpretConst_h_
+#error This libcode requires <InterpretConst.h>, please `#include <InterpretConst.h>` at start of CHHI.cpp, right beneath CHHI_ALL_IMPL.
 #endif
 
 #include <msvc_extras.h>
@@ -1538,7 +1543,8 @@ CIniOp::save(const TCHAR *savefilename, const TCHAR *crlf)
 	filehandle_t fh = file_open(inipath, open_for_write, open_share_none);
 	if(fh<0)
 	{
-		vaDBG1(_T("CIniOp::save() : Cannot open file for write: '%s' (fsapi-error:%d)"), inipath, (int)fh);
+		vaDBG1(_T("CIniOp::save() : Cannot open file for write: '%s' (fsapi-error:%s)"), 
+			inipath, ITCSvn((int)fh, itc::fsapi_E_xxx));
 		return E_FileIo;
 	}
 

@@ -145,7 +145,7 @@ bool SimpleIniEx::load_cascade(const TCHAR* const ar_inifiles[], int nfiles,
 			auto err = load(m_inifiles[i]);
 			if(!err)
 			{
-				vaDBG2(_T(".   Load OK."));
+				vaDBG2(_T(".   loading from (%d/%d) OK."), i+1, nfiles);
 				has_succ = true;
 				m_idxSave = i;
 			}
@@ -167,7 +167,7 @@ bool SimpleIniEx::load_cascade(const TCHAR* const ar_inifiles[], int nfiles,
 			auto err = load(m_inifiles[i]);
 			if(!err)
 			{
-				vaDBG2(_T(".   Load OK."));
+				vaDBG2(_T(".   loading from (%d/%d) OK."), i+1, nfiles);
 				m_idxSave = i;
 				return true;
 			}
@@ -190,7 +190,7 @@ bool SimpleIniEx::load_cascade(const TCHAR* const ar_inifiles[], int nfiles,
 			auto err = load(m_inifiles[i]);
 			if(!err)
 			{
-				vaDBG2(_T(".   Load OK."));
+				vaDBG2(_T(".   loading from (%d/%d) OK."), i+1, nfiles);
 				has_succ = true;
 				m_idxSave = i;
 				return true;
