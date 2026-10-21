@@ -508,6 +508,10 @@ private:
 	}
 };
 
+inline bool is_comment_char(TCHAR c)
+{
+	return (c==';' || c=='#') ? true : false;
+}
 
 CIniOp::ReCode_et
 CIniOp::load(const TCHAR *inifilepath)
@@ -638,7 +642,7 @@ struct KVcontinue_St // KeyVal line continuation info
 	{
 		int nlines = m_saMixLines.CurrentEles();
 
-		assert(linetext[0]==';' || linetext[0]=='\t');
+		assert(is_comment_char(linetext[0]) || StringSplitter_IsSpaceTab(linetext[0]));
 
 		if(linetext[0]=='\t')
 			m_idxlastreal = nlines;
@@ -729,37 +733,45 @@ static IniLineCat_et CheckLineCategory(
 	newkey_real.set_empty();
 	linetext.set_empty();
 
+	if(linelen==0)
+		return ILC_empty;
+
 	// First check if it is a key=val continuation line(start with a \t)
 	// First check it, bcz it is NOT allowed to have extra leading spaces.
 
-	if (has_pending_key && initext[linepos] == '\t')
+	if (has_pending_key && initext[linepos]=='\t')
 	{
 		linetext = Sdring(initext+linepos, linelen);
 		return ILC_keycont;
 	}
 
-	// Skip blank chars(spaces,tabs) at line start.
+	// Find non-blank-chars(spaces,tabs) at line start.
 
-	int indents = 0;
-	while (indents < linelen && Is_leading_blank(initext[linepos + indents]))
-		indents++;
+	int blank_chars = 0;
+	while (blank_chars<linelen && Is_leading_blank(initext[linepos+blank_chars]))
+		blank_chars++;
 
-	if (indents == linelen)
-		return ILC_empty;
+	linetext = Sdring(initext+linepos, linelen);
+	
+	// Check if it is comment line (led by ; or #)
 
-	linetext = Sdring(initext + linepos + indents, linelen - indents);
-
-	// Check if it is comment line (lead by ;)
-
-	if(initext[linepos]==';')
+	if(is_comment_char(linetext[blank_chars]))
 		return ILC_comment;
 
-	// Check if it is section name [some_section_name]
-		
+	// Note Below: Blank chars before `[section_name]` and `key=value` will be removed.
+	// Recording them would cost extra resources.
+
+	// Check if it is section name [some_section_name].
+
 	Sdring linetrimd = linetext.trim(_T(" \t"), 2);
+
+	if(linetrimd.is_empty())
+		return ILC_unknown; // Lines with pure spaces/tabs, just preserve them.
+
+
 	if(linetrimd[0]=='[' && linetrimd[-1]==']')
 	{
-		linetext = std::move(linetrimd);
+		linetext = std::move(linetrimd); // leading blanks stripped
 		return ILC_section;
 	}
 
@@ -772,32 +784,27 @@ static IniLineCat_et CheckLineCategory(
 		,
 		Is_equal_sign, StringSplitter_IsSpaceTab,
 		true> // want null-split
-		spgkeyval(linetext, 0, linetext.rawlen());
+		spgkeyval(linetext, blank_chars, linelen-blank_chars);
 			
 	int keylen = 0;
 	int keypos = spgkeyval.next(&keylen);
-	assert(keypos==0);
+	assert(keypos==blank_chars);
 
 	if(keylen==0) // starts with a '='
 		return ILC_unknown; 
 
-	int vallen = 0; // len2 just debug
-	int valpos = spgkeyval.next(&vallen);
+	int vallen_t = 0; // just for debug
+	int valpos = spgkeyval.next(&vallen_t);
 	if(valpos==-1) // no '=' found
 		return ILC_unknown;
 
 	newkey_real = Sdring(&linetext[keypos], keylen);
 
-	// In this case, linetext outputs the value part, not the whole INI line.
-	if(valpos>=0) // can be -1 if val is empty
-	{
-		int vallen = linetext.rawlen() - valpos;
-		linetext = Sdring(&linetext[valpos], vallen);
-	}
-	else
-	{
-		linetext = Sdring();
-	}
+	// Here, linetext outputs the value part, not the whole INI line.
+	// `vallen` can be larger than `vallen_t`, when keval has trailing spaces/tabs.
+	int vallen = linelen - valpos;
+	linetext = Sdring(&linetext[valpos], vallen);
+
 	return ILC_realkey;
 }
 
