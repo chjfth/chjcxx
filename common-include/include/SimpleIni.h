@@ -1077,7 +1077,11 @@ void CIniOp::consolidate_prev_tier(hashdict<hashdict<Keval_St>> &prev_tier)
 				Keval_St *pKeval = pOldKvdict->get(rawkey);
 				assert(pKeval);
 
-				pCurKvdict->set(rawkey, std::move(*pKeval));
+#ifndef _SEEBUG_Ubuntu2004GccRunCrash // only for experiment, should not #define this
+				pCurKvdict->set(rawkey, std::move(*pKeval)); // OK
+#else
+				pCurKvdict->set(rawkey, *pKeval); // ok, but not optimal
+#endif // Ubuntu 20.04 with gcc-10 produces different buggy behavior for above two.
 
 				succ = pOldKvdict->del(rawkey);
 				assert(succ);
