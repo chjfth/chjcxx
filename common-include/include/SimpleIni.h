@@ -1,13 +1,21 @@
 #ifndef __CHHI__SimpleIni_h_
 #define __CHHI__SimpleIni_h_
 #define __CHHI__SimpleIni_h_created_ 20260416
-#define __CHHI__SimpleIni_h_updated_ 20261021
+#define __CHHI__SimpleIni_h_updated_ 20261022
 
-// Significant Updates
-//	[20261018] 
-//	* A duplicated old keyname is auto-renamed to some_keyname#N (N is 0,1,2 etc),
-//	  so later same-name keyname overwrites the old one.
-//	* Keyname# behavior and comment-line preserving behavior apply ONLY to latest-loaded INI.
+// Significant Updates [20261021] 
+//  * Comment-line preserving behavior ONLY affects latest load() INI. 
+//    This is rational behavior, because comment-lines (of the same section-name) from
+//    two INI tiers may conflict each other.
+//
+//	* A duplicated old some_keyname is auto-renamed to some_keyname#N (N is 0,1,2 etc)
+//	  on save(), so later same-name keyname overwrites the old one.
+//	  Note: Keyname#N auto-renaming behavior apply ONLY to latest load() INI, because
+//    save() only affects a single INI file.
+//
+//  * If a section-name appears twice, then, on save(), there will be only ONE .
+//    merged section of that name.
+
 
 #include <ps_TCHAR.h>
 #include <sdring.h>
@@ -33,33 +41,33 @@ public:
 
 	static int getversion();
 
-	virtual ReCode_et load(const TCHAR *inifilename);
+	ReCode_et load(const TCHAR *inifilename);
 	// -- Multiple load() calls accumulate INI content. To avoid accumulate, clear() first.
 
-	virtual ReCode_et clear();
+	ReCode_et clear();
 
-	virtual Sdrings sections();
+	Sdrings sections();
 
-	virtual bool has_section(const TCHAR *section_name);
-	virtual Sdrings section_keys(const TCHAR *section_name);
+	bool has_section(const TCHAR *section_name);
+	Sdrings section_keys(const TCHAR *section_name);
 
-	virtual bool has_key(const TCHAR *section_name, const TCHAR *keyname);
-	virtual Sdring get(const TCHAR *section_name, const TCHAR *keyname);
+	bool has_key(const TCHAR *section_name, const TCHAR *keyname);
+	Sdring get(const TCHAR *section_name, const TCHAR *keyname);
 	// -- To distinguish {no-key} and {has-key with empty value}, user need to call has_key().
 
-	virtual Sdring get_default(const TCHAR *section_name, const TCHAR *keyname,
+	Sdring get_default(const TCHAR *section_name, const TCHAR *keyname,
 		const TCHAR *default_value);
 
-	virtual ReCode_et set(const TCHAR *section_name, const TCHAR *keyname, const TCHAR *value);
+	ReCode_et set(const TCHAR *section_name, const TCHAR *keyname, const TCHAR *value);
 
-	virtual ReCode_et del_key(const TCHAR *section_name, const TCHAR *keyname);
+	ReCode_et del_key(const TCHAR *section_name, const TCHAR *keyname);
 
-	virtual ReCode_et load_initext(const TCHAR *initext, int inilen);
+	ReCode_et load_initext(const TCHAR *initext, int inilen);
 
-	virtual Sdring save_ini_as_string(const TCHAR *crlf=nullptr); // name was save_ini_string()
+	Sdring save_ini_as_string(const TCHAR *crlf=nullptr); // name was save_ini_string()
 	// -- return whole INI string, as appear in INI file.
 
-	virtual ReCode_et save(const TCHAR *savefilename=nullptr, const TCHAR *crlf=nullptr);
+	ReCode_et save(const TCHAR *savefilename=nullptr, const TCHAR *crlf=nullptr);
 
 public:
 	// boilerplate ctor/dtor code, no need to modify >>>
@@ -1593,7 +1601,7 @@ CIniOp::save(const TCHAR *savefilename, const TCHAR *crlf)
 int SimpleIni::getversion() 
 { 
 	// High 16-bit is major ver, low 16-bit is minor ver.
-	return 0x10001; 
+	return 0x20000; 
 }
 
 void SimpleIni::_ct0r()
