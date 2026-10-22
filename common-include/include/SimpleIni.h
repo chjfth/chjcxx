@@ -1080,6 +1080,12 @@ void CIniOp::consolidate_prev_tier(hashdict<hashdict<Keval_St>> &prev_tier)
 				if(is_rawkey_virtual(rawkey))
 					continue;
 
+				if(_tcschr(rawkey, '#'))
+				{
+					vaDBG3(_T(".   Skip dup-key: %s"), rawkey);
+					continue;
+				}
+
 				vaDBG3(_T(".   key(%d): %s"), j+1, rawkey);
 
 				Keval_St *pKeval = pOldKvdict->get(rawkey);
