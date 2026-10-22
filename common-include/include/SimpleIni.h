@@ -163,6 +163,7 @@ private: // data members
 #error This file needs at least GCC 10.0 to compile. GCC 9.4 "returning reference to temporary" bug would crash the generated program.
 // Even if GCC 9.4 survive CheckLineCategory()'s `TCHAR* const` site. There are more problematic places. (Evclip 20260505.s1)
 #endif 
+#warning [2026-10-22] Chj: GCC(at least up to 15.2) with -O2 compiles this code but runs fail in test_SimpleIni/test_dupkeys_and_dupsectoins()
 #endif
 
 
