@@ -12,6 +12,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <string.h> // for strrchr() on Linux
 #include <limits.h> // for PATH_MAX
 
 
